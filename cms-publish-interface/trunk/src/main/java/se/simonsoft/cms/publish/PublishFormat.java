@@ -2,21 +2,27 @@ package se.simonsoft.cms.publish;
 
 /**
  * Represents a format, e.g. PDF, WEB, EPUB.
- * 
+ * Format string approved by {@link PublishService#getPublishFormat(String)}.
+ * {@link #toString()} can be a label if {@link #getFormat()} is a human-unreadable identifier.
  * @author takesson
  *
  */
-public class PublishFormat {
+public interface PublishFormat {
 
-	String format;
-	
-	public PublishFormat(String format) {
-		
-		this.format = format;
+	public enum Compression {
+		zip,
+		tgz
 	}
 	
-	// Staffan, I can foresee that we might communicate certain other aspect, such as whether the output is zipped.
-	// You generally like settors better than massive constructors. But then it is difficult to make immutable?
+	/**
+	 * @return Format identifier as understood by the publish service.
+	 */
+	String getFormat();
 	
+	/**
+	 * 
+	 * @return non-null if output file for the format is an archive
+	 */
+	Compression getOutputCompression();
 	
 }

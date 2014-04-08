@@ -2,6 +2,9 @@ package se.simonsoft.cms.publish;
 
 import java.util.Map;
 
+/**
+ * Passed to {@link PublishService} to request a job.
+ */
 public interface PublishRequest {
 
 	
@@ -15,7 +18,7 @@ public interface PublishRequest {
 	 * @return the file to be published, typically a CmsItemId but could be any other 
 	 * url/path that the service understands and can access. 
 	 */
-	public String getFile();
+	public PublishSource getFile();
 	
 	
 	/**

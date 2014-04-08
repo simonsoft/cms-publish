@@ -1,21 +1,29 @@
 package se.simonsoft.cms.publish;
 
 import java.io.OutputStream;
+import java.util.Set;
 
 /**
  * Represents a service that can publish a file into one or many formats.
  * Both the config and the per-publish parameters are provided in each PublishRequest.
+ * 
+ * Each publication request produces a single output file, which might be an archive of publication files.
  * @author takesson
  *
  */
 public interface PublishService {
 
+	/**
+	 * Useful for generic user interfaces to list supported formats.
+	 * @return Non exhaustive list of formats that the service supports.
+	 */
+	public Set<PublishFormat> getPublishFormats();
 	
-	
-	/* Will all publish services actually be able to enumerate formats?
-	public Set<PublishFormat> getPublishFormats()
-	*/
-	
+	/**
+	 * 
+	 * @param format a 
+	 * @return
+	 */
 	public PublishFormat getPublishFormat(String format);
 
 	/**
