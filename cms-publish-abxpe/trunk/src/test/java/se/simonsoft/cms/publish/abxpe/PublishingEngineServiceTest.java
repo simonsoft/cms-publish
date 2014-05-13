@@ -7,12 +7,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
+import se.simonsoft.cms.publish.PublishSourceUrl;
 import se.simonsoft.cms.publish.PublishTicket;
 
 import se.simonsoft.cms.item.CmsItemId;
@@ -23,26 +27,22 @@ import org.junit.Test;
 public class PublishingEngineServiceTest {
 	private String publishHost = "http://pds-suse-svn3.pdsvision.net";
 	private String publishPath = "/e3/servlet/e3";
-	private PublishTicket ticket;
 	
 	@Test
-	public void publishRequestTest() {
-		PublishingEngineService peService = new PublishingEngineService();
+	public void publishRequestTest() throws MalformedURLException, InterruptedException, PublishException {
+		PublishServicePe peService = new PublishServicePe();
 		PublishRequestDefault request = new PublishRequestDefault();
 		
-		Map<String, String> config = new HashMap<String, String>();
-		config.put("host", this.publishHost);
-		config.put("path", this.publishPath); // Are we really going to build the url like this?
+		// Add config
+		request.addConfig("host", this.publishHost);
+		request.addConfig("path", this.publishPath);
+		// Add Params
+		request.addParam("profile", "<LogicalExpression><LogicalGroup operator=\"OR\"><ProfileRef alias=\"Features\" value=\"FeatureX\"/><ProfileRef alias=\"Features\" value=\"FeatureD\"/></LogicalGroup></LogicalExpression>");
+		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style");
+		request.addParam("app-config", "$aptpath/application/se.simonsoft.flir/app/standard.3sppdf");
 		
-		request.setConfig(config);
-		
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("stylesheet", "$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style");
-		params.put("app-config", "$aptpath/application/se.simonsoft.flir/app/standard.3sppdf");
-		params.put("profile", "<LogicalExpression><LogicalGroup operator=\"OR\"><ProfileRef alias=\"Features\" value=\"FeatureX\"/><ProfileRef alias=\"Features\" value=\"FeatureD\"/></LogicalGroup></LogicalExpression>");
-		request.setParams(params);
-		
-		//URL url = new URL("$aptpath/e3/e3/e3demo.xml"); // DEMO xml.
+		//URL path = new URL("C:/Program Files/e3/e3/e3demo.xml"); // DEMO xml.
+		//PublishSourceUrl url = new PublishSourceUrl(path);
 		CmsItemId id = new CmsItemIdArg("x-svn:///svn/flir^/thg-swe/td/td-xml/thg-swe/td-spec/03198-000.xml");
 		
 		PublishSourceCmsItemId source = new PublishSourceCmsItemId(id);
@@ -50,51 +50,30 @@ public class PublishingEngineServiceTest {
 		request.setFile(source);
 		request.setFormat("pdf");
 		PublishTicket ticket = peService.requestPublish(request);
-		
-		assertNotNull("Ticket should not ne bnull", ticket.toString());
-	}
+		assertNotNull("Ticket should not be null", ticket.toString());
 	
-	@Test
-	public void publishIsCompleteTest(){
-		PublishingEngineService peService = new PublishingEngineService();
-		PublishRequestDefault request = new PublishRequestDefault();
+		boolean isComplete = false;
+		while(!isComplete){
+			Thread.sleep(1000); // Sleep for a second before asking PE again
+			isComplete = peService.isCompleted(ticket, request);
+		}
+		// Perform the test, by now isComplete should be true
+		assertTrue(isComplete);
 		
-		Map<String, String> config = new HashMap<String, String>();
-		config.put("host", this.publishHost);
-		config.put("path", this.publishPath); // Are we really going to build the url like this?
-		
-		request.setConfig(config);
-		PublishTicket ticket = new PublishTicket("10987");
-		// Will fail if proceess is hanging
-		assertTrue(peService.isCompleted(ticket, request));
-	}
-	
-	@Test
-	public void getResultStreamTest()
-	{
-		PublishingEngineService peService = new PublishingEngineService();
-		PublishRequestDefault request = new PublishRequestDefault();
-		
-		Map<String, String> config = new HashMap<String, String>();
-		config.put("host", this.publishHost);
-		config.put("path", this.publishPath); // Are we really going to build the url like this?
-		
-		request.setConfig(config);
-		
-		PublishTicket ticket = new PublishTicket("10987");
+		// Test completed output
+		 // TODO: Check for Mime 
 		try {
-			File test = File.createTempFile("se.simonsoft.publish.abxpe.test", "");
-			FileOutputStream fopStream = new FileOutputStream(test);
+			File temp = File.createTempFile("se.simonsoft.publish.abxpe.test", "");
+			FileOutputStream fopStream = new FileOutputStream(temp);
 			peService.getResultStream(ticket, request, fopStream);
 			
-			assertTrue("File shoudl exist in temporary store", test.exists());
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			assertTrue("File should exist in temporary store", temp.exists());
+		
+		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	}
-	
 }

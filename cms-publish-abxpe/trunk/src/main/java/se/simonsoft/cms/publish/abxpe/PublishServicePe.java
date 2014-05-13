@@ -1,8 +1,11 @@
 package se.simonsoft.cms.publish.abxpe;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -36,24 +39,19 @@ import se.simonsoft.cms.publish.PublishTicket;
 /**
  * Arbortext Publishing Engine implementation of PublishService
  * @author joakimdurehed
- *
  */
-public class PublishingEngineService implements PublishService {
+public class PublishServicePe implements PublishService {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private Set<PublishFormat> publishFormats;
 	private String peUri = "/e3/servlet/e3";
-	private RestClientJavaNet httpClient;
+	private RestClientJavaNet httpClient; 
 	public static final String PE_URL_ENCODING = "UTF-8";
 	
-	private File tempfile;
-	
-	public PublishingEngineService(){
-		
+	public PublishServicePe(){
 		this.publishFormats = new HashSet<PublishFormat>();
 		this.publishFormats.add(new PublishFormatPDF());
-		this.publishFormats.add(new PublishFormatWeb());
-		
+		this.publishFormats.add(new PublishFormatWeb());	
 	}
 	
 	@Override
@@ -90,8 +88,7 @@ public class PublishingEngineService implements PublishService {
 		try { 
 			// If we did not find any matching formats.
 			if(count == this.publishFormats.size()){
-			
-				throw new PublishException(format + " is not supported by thus Publish Service");
+				throw new PublishException(format + " is not supported by the Publish Service");
 			}
 			} catch (PublishException e) {
 				logger.info(e.getMessage());
@@ -135,31 +132,26 @@ public class PublishingEngineService implements PublishService {
 		}
 
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-		///*
+	
 		try {
-			//*
-			this.tempfile = File.createTempFile("se.simonsoft.publish.abxpe", "");
-			logger.debug("Temp file crated at: " + this.tempfile.getAbsolutePath());
-			final FileOutputStream fopStream = new FileOutputStream(this.tempfile);
-		
+			
+			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+	
 			this.httpClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
 						logger.info("Got response from PE" );
-						
-					return fopStream; // The httpclient will stream the content to tempfile
+						logger.debug("Responseheaders: " + headers);
+					return byteOutputStream; // Returns to our outputstream
 				}
 			});
-			
-			return this.getQueueTicket();
+			// Keeps response in memory, BUT, in this case we know that response will not be to large
+			return this.getQueueTicket( new ByteArrayInputStream(byteOutputStream.toByteArray())); 
 		} catch (HttpStatusError e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
+			logger.debug("Publication error: " + e.getResponse());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			logger.debug(e.getMessage());
-			e.printStackTrace();
 		}
 		return null;
 	}
@@ -168,67 +160,56 @@ public class PublishingEngineService implements PublishService {
 	@Override
 	public Boolean isCompleted(PublishTicket ticket, PublishRequest request) {
 		logger.debug("Start");
-		// Take the ticket and ask for the resulting document. 
-		// The requests is probably not needed for PE.
 		
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
+		boolean result = false;
 		// Start with host and pe path
 		
 		uri.append(this.peUri);
 		
-		// General always valid params
+		// Params for status check
 		uri.append("?&f=qt-status");// This is a status request
 		uri.append("&response-format=xml"); // We always want a XML response to parse
-		uri.append("&id=" + ticket.toString()); // And ask for the ticket id
+		uri.append("&id=" + ticket.toString()); // And ask publish with ticket id
 		
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
 		try {
+		
+			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 			
-			this.tempfile = File.createTempFile("se.simonsoft.publish.abxpe", "");
-			logger.debug("Temp file crated at: " + this.tempfile.getAbsolutePath());
-			final FileOutputStream fopStream = new FileOutputStream(this.tempfile);
-
 			this.httpClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
-						logger.info("Got response from PE" );
-						
-					return fopStream; // The httpclient will stream the content to tempfile
+						logger.info("Got response from PE");
+						logger.debug("Responseheaders: " + headers);
+					return byteOutputStream; // The httpclient will stream the content to tempfile
 				}
 			});
-			
+			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			// If we find that the response says Complete, return true
-			if(this.parseResponse("Transaction", "state").equals("Complete")){
-				return true;
+			if(this.parseResponse("Transaction", "state", new ByteArrayInputStream(byteOutputStream.toByteArray())).equals("Complete")){
+				result = true;
 			}
 			
 		} catch (HttpStatusError e) {
-			try {
-				throw new PublishException(e.getMessage());
-			} catch (PublishException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally {
-			return false;
+			throw new RuntimeException("Publishing Engine communication failed", e);
+		}finally{
+			return result;
 		}
 	}
 
 	@Override
-	public void getResultStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) {
+	public void getResultStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) throws PublishException {
 		
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
-		// Start with host and pe path
-		
 		uri.append(this.peUri);
 		
 		// General always valid params
@@ -248,29 +229,27 @@ public class PublishingEngineService implements PublishService {
 				}
 			});
 		
-	
 		} catch (HttpStatusError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Publishing Engine communication failed", e);
 		}
 	}
 
 	@Override
 	public void getLogStream(PublishTicket ticket, PublishRequest request,
 			OutputStream outStream) {
-		// TODO Auto-generated method stub
-
+		
 	}
 	
 	/*
 	 * Method to parse the response XML from PE and find specific values on
 	 * on a specific element (in our case the Transaction ele
 	 * @author jdurehed
+	 * In the future we might need to use xPath instead, 
+	 * but for now element and attribute parsing will suffice.
 	 */
-	private String parseResponse(String element, String attribute){
+	private String parseResponse(String element, String attribute, InputStream content){
 		logger.debug("Start");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		
@@ -279,7 +258,8 @@ public class PublishingEngineService implements PublishService {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			
 			// Start to parse the response
-	    	Document doc = db.parse(this.tempfile);
+	    	Document doc = db.parse(content);
+	    	
 	    	Node node = doc.getElementsByTagName(element).item(0);
 			Element foundElement = (Element)node;
 			String attributeValue = foundElement.getAttribute(attribute);
@@ -287,28 +267,25 @@ public class PublishingEngineService implements PublishService {
 			return attributeValue;
 						
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		logger.debug("End");
 		return null;
 	}
+	
 	/*
 	 * Method to parse the response XML from PE and get the queue ID.
 	 * @author jdurehed
 	 */
-	private PublishTicket getQueueTicket(){
+	private PublishTicket getQueueTicket(InputStream response){
 		logger.debug("Start");
-		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id"));
+		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id", response));
 		logger.debug("End");
 		return queueTicket;
 	}
