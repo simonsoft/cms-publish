@@ -1,6 +1,7 @@
 package se.simonsoft.cms.publish.impl;
 
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import se.simonsoft.cms.publish.PublishFormat;
@@ -14,8 +15,8 @@ import se.simonsoft.cms.publish.PublishSource;
  */
 public class PublishRequestDefault implements PublishRequest {
 	
-	private Map<String, String> config;
-	private Map<String, String> params;
+	private Map<String, String> config = new HashMap<String, String>();
+	private Map<String, String> params = new HashMap<String, String>();
 	private PublishFormat format;
 	private PublishSource publishSource;
 	
@@ -32,20 +33,21 @@ public class PublishRequestDefault implements PublishRequest {
 
 	@Override
 	public PublishFormat getFormat() {
-		return this.format;
+		return this.format; // TODO: return copy
 	}
 
 	@Override
 	public Map<String, String> getParams() {
-		return this.params;
+		return this.params;  // TODO: return copy
 	}
 	
-	public void setConfig(Map<String, String> config){
-		this.config = config;
+	// Add k,v config to config map
+	public void addConfig(String key, String value){
+		this.config.put(key, value);
 	}
-	
-	public void setParams(Map<String, String> params){
-		this.params = params;
+	// Add k,v param to param map
+	public void addParam(String key, String value){
+		this.params.put(key, value);
 	}
 	
 	public void setFormat(String format){
