@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2009-2013 Simonsoft Nordic AB
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project name="PublishReport" default="start" >
+    
+    <property name="httpresponse" value=""/>
+    <!-- Some default properties -->
+    <property name="report-query" value="last_modified%3A[* TO NOW]"/>
+    <property name="username" value="report-read"/>
+    <property name="password" value="read"/>
+    
+	<echo message="My jenkins home is ${JenkinsHome}"/>
+    <echo message="Cert: ${JenkinsHome}/cert/jdurehed.jks"/>
+    
+    <!-- We use missinglinks HTTP task to fetch items to publish -->
+    <taskdef name="http" classname="org.missinglink.ant.task.http.HttpClientTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
+	
+	<target name="start" depends="report-get, publish"/>
+	
+	<target name="report-get">
+		<http url="${config.host}/cms/rest/report/items" printresponse="true" expected="200">
+		   <!--   <keystore file="${JenkinsHome}/cert/jdurehed.jks" password="JeOthlmyio"/>-->
+		    <!-- Use a read user to fetch the report -->
+	    	<credentials username="${username}" password="${password}"/>
+	    	<!-- To create a jks from p12:
+	    		keytool -importkeystore -destkeystore jdurehed.jks -srckeystore jdurehed4.p12 -srcstoretype PKCS12
+	    	 -->
+	    
+	    	<!-- Make sure we get a JSON response -->
+	        <headers>
+				<header name="Accept" value="application/json"/> 
+			</headers>
+			<!-- The actual query. Needs to be url encoded  -->
+			<query>
+				<parameter name="q" value="${report-query}"/>
+			</query>
+			<!-- The property to store the resulting entity in -->
+			<entity value="${httpresponse}"/>
+			
+		</http>
+		<!-- 
+		<antcall target="publish">
+    		<param name="jsonresponse" value="${httpresponse}"/>
+  		</antcall>
+  		 -->
+	</target>
+	
+	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
+	<echo message="Response: ${httpresponse}"/>
+
+	<target name="publish" description="Publish a single file">
+		
+	   	<publishrequest 
+	   	    publishservice="${publishservice}" 
+	   	    workspace="${workspace}" 
+	   	    jobname="${jobname}" 
+	   	    buildid="${buildid}"
+	   	    buildnumber="${buildnumber}"
+	   	    filename="${filename}"
+	   	    jenkinshome="${JenkinsHome}"
+	   	    json="${jsonresponse}">
+			
+			<!-- Shoud perhaps also have config for port and uri -->
+	   	   <configs>
+	   	     <config name="host" value="${config.host}"/>
+	   	   </configs>
+	   	   
+	   	   <!-- Params to the Publish Service (PE) -->
+	   	   <params>
+	   	       <param name="profile" value="${param.profile}"/>
+	   	       <param name="app-config" value="${param.app-config}"/>
+	   	       <param name="stylesheet" value="${param.stylesheet}"/>
+	   	       <param name="file" value="${param.file}"/> <!-- Shall be set using jsonreport -->
+	   	       <param name="file-type" value="${param.file-type}"/>
+	   	   </params>
+	   	</publishrequest>
+	</target>
+</project>
