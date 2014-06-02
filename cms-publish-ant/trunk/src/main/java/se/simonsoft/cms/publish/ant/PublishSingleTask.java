@@ -254,13 +254,15 @@ public class PublishSingleTask extends Task{
 
 		try {
 			// First create the folders
+			/*
 			File outputpath = new File(this.jenkinshome + "/publications/" + this.buildnumber + "_" + this.buildid + "/");
 			if(!outputpath.mkdirs())
 			{
 				throw new BuildException("Could not create dirs " + outputpath.getAbsolutePath());
 			}
+			*/
 			// Then we create the file in that location
-			outputfile = new File(this.jenkinshome + "/publications/" + this.buildnumber + "_" + this.buildid + "/", this.filename);
+			outputfile = new File(this.filename);
 			log("Absolutepath: " + outputfile.getAbsolutePath());
 
 			outputfile.createNewFile();

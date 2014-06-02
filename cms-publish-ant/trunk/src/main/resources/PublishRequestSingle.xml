@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+
     Copyright (C) 2009-2013 Simonsoft Nordic AB
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +23,8 @@
 	<target name="publish" description="Publish a single file">
 		
 	   	<publishrequest 
-	   	    publishservice="${publishservice}" 
-	   	    workspace="${workspace}" 
-	   	    jobname="${jobname}" 
-	   	    buildid="${buildid}"
-	   	    buildnumber="${buildnumber}"
-	   	    filename="${filename}"
-	   	    jenkinshome="${JenkinsHome}">
+	   	    publishservice="${publishservice}"
+	   	    filename="${filename}">
 	   	   <configs>
 	   	     <config name="host" value="${config.host}"/>
 	   	   </configs>
@@ -39,6 +35,7 @@
 	   	       <param name="stylesheet" value="${param.stylesheet}"/>
 	   	       <param name="file" value="${param.file}"/>
 	   	       <param name="file-type" value="${param.file-type}"/>
+	   	       <param name="type" value="${param.type"/>
 	   	   </params>
 	   	</publishrequest>
 	</target>

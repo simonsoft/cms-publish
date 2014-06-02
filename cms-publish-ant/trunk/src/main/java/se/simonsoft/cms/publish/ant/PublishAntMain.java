@@ -15,31 +15,13 @@
  */
 package se.simonsoft.cms.publish.ant;
 
-/**
- * @author joakimdurehed
- *
- */
-public class ParamNode {
-	protected String name;
-	protected String value;
+public class PublishAntMain {
 
-	public ParamNode() {
-		super();
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(final String name) {
-		this.name = name;
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(final String value) {
-		this.value = value;
-	}
 }

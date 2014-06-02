@@ -16,24 +16,36 @@
     limitations under the License.
 
 -->
-<project name="PublishReport" default="start" >
+<project name="PublishReport"  basedir="." default="parsereport" >
     
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
-    <property name="report-query" value="last_modified%3A[* TO NOW]"/>
+   	<property name="lang" value="en-US"/>
     <property name="username" value="report-read"/>
     <property name="password" value="read"/>
-    
-	<echo message="My jenkins home is ${JenkinsHome}"/>
-    <echo message="Cert: ${JenkinsHome}/cert/jdurehed.jks"/>
+    <!-- Flir  -->
+    <property name="stylesheet-a4" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
     
     <!-- We use missinglinks HTTP task to fetch items to publish -->
     <taskdef name="http" classname="org.missinglink.ant.task.http.HttpClientTask"/>
+    <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
+    <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
+	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
-	<target name="start" depends="report-get, publish"/>
+	<target name="get-report">
+	    <getreport url="${config.host}/cms/rest/report/items" username="${username}" password="${password}">
+	        <!-- Query params  -->
+	       <params>
+	           <param name="q" value="id:*td-spec* AND svnrevision:[8668 TO *]"/>
+	           <param name="rows" value="2000"/>
+	       </params>
+	    </getreport>
+	    <echo message="${reportresponse}"/>
+	</target>
 	
-	<target name="report-get">
+	<target name="notused">
+	   
 		<http url="${config.host}/cms/rest/report/items" printresponse="true" expected="200">
 		   <!--   <keystore file="${JenkinsHome}/cert/jdurehed.jks" password="JeOthlmyio"/>-->
 		    <!-- Use a read user to fetch the report -->
@@ -46,13 +58,12 @@
 	        <headers>
 				<header name="Accept" value="application/json"/> 
 			</headers>
-			<!-- The actual query. Needs to be url encoded  -->
+			<!-- The actual query. Needs to be url encoded ? -->
 			<query>
-				<parameter name="q" value="${report-query}"/>
+				<parameter name="q" value="d%3A*td-spec*+AND+svnrevision%3A%5B8668+TO+*%5D&amp;rows=2000"/>
 			</query>
 			<!-- The property to store the resulting entity in -->
 			<entity value="${httpresponse}"/>
-			
 		</http>
 		<!-- 
 		<antcall target="publish">
@@ -62,33 +73,147 @@
 	</target>
 	
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
-	<echo message="Response: ${httpresponse}"/>
-
+	
+	<!-- WE COULD PARSE JSON USING SCRIPT TASK. SHOULD WE? -->
+	<target name="parsereport" depends="get-report">
+	    <!-- Partse the response -->
+	    <preparepublish report="${reportresponse}">
+	    </preparepublish>
+	    <!-- When parsed publish each item -->
+	    <for list="${items}" delimiter="," param="values">
+			<sequential>
+			    <echo message="@{values}"/>
+			    
+			     <propertyregex property="file"
+              			input="@{values}"
+              			regexp="(.+);"
+             			select="\1"
+             			override="true"
+             			casesensitive="false" />
+			     <propertyregex property="filename"
+              			input="@{values}"
+              			regexp=";(.+)"
+             			select="\1"
+             			override="true"
+             			casesensitive="false" />
+			     
+			     <!-- 
+			     <propertyregex property="file"
+              			input="@{values}"
+              			regexp="[^;]+"
+             			select="\1"
+             			override="true"
+             			casesensitive="false" />
+			     <propertyregex property="filename"
+              			input="@{values}"
+              			regexp="[^;]+"
+             			select="\2"
+             			override="true"
+             			casesensitive="false" />
+			     <propertyregex property="lang"
+              			input="@{values}"
+              			regexp="[^;]+"
+             			select="\3"
+             			override="true"
+             			casesensitive="false" />
+             			 -->
+				<antcall target="publish">
+				     <param name="file" value="${file}"/>
+				     <param name="filename" value="${filename}"/>
+				     <param name="lang" value="${lang}"/>
+  				</antcall>
+			</sequential>
+		</for>  
+	</target>
+	
 	<target name="publish" description="Publish a single file">
 		
-	   	<publishrequest 
-	   	    publishservice="${publishservice}" 
-	   	    workspace="${workspace}" 
-	   	    jobname="${jobname}" 
-	   	    buildid="${buildid}"
-	   	    buildnumber="${buildnumber}"
-	   	    filename="${filename}"
-	   	    jenkinshome="${JenkinsHome}"
-	   	    json="${jsonresponse}">
+	   	<publishrequest publishservice="${publishservice}">
 			
 			<!-- Shoud perhaps also have config for port and uri -->
 	   	   <configs>
 	   	     <config name="host" value="${config.host}"/>
 	   	   </configs>
 	   	   
-	   	   <!-- Params to the Publish Service (PE) -->
+	   	   <jobs>
+	   	       <!-- Each job specifies the params for a publish request -->
+	   	      <!--   <job profile="${param.profile}" appconfig="${param.app-config}" stylesheet="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" type="pdf" file="${param.file}" filetype="${param.file-type}"/>-->
+	   	      
+	   	      <job filename="${filename}-${lang}_A4.pdf">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="type" value="pdf"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="${filename}-${lang}_USL.pdf" >
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="type" value="pdf"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="no">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="zip-output" value="yes"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
+		   	       	<param name="type" value="html"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="yes">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="zip-output" value="yes"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
+		   	       	<param name="type" value="html"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="${filename}-${lang}.rtf">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="zip-output" value="yes"/>
+		   	       	<param name="type" value="rtf"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="${filename}-${lang}.zip" zipoutput="no">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="zip-output" value="yes"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="type" value="xml"/>
+	   	   		</params>
+	   	   	</job>
+	   	   </jobs>
+	   	   
+	   	   <!-- Params to the Publish Service (PE)
 	   	   <params>
 	   	       <param name="profile" value="${param.profile}"/>
 	   	       <param name="app-config" value="${param.app-config}"/>
 	   	       <param name="stylesheet" value="${param.stylesheet}"/>
-	   	       <param name="file" value="${param.file}"/> <!-- Shall be set using jsonreport -->
+	   	       <param name="file" value="${param.file}"/>
 	   	       <param name="file-type" value="${param.file-type}"/>
 	   	   </params>
+	   	    -->
 	   	</publishrequest>
 	</target>
 </project>
