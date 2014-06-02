@@ -66,7 +66,10 @@ public class PublishServicePe implements PublishService {
 	public PublishServicePe(){
 		this.publishFormats = new HashSet<PublishFormat>();
 		this.publishFormats.add(new PublishFormatPDF());
-		this.publishFormats.add(new PublishFormatWeb());	
+		this.publishFormats.add(new PublishFormatWeb());
+		this.publishFormats.add(new PublishFormatHTML());
+		this.publishFormats.add(new PublishFormatXML());
+		this.publishFormats.add(new PublishFormatRTF());	
 	}
 	
 	@Override
@@ -134,17 +137,15 @@ public class PublishServicePe implements PublishService {
 		
 		// Mandatory client params
 		uri.append("&file=").append(urlencode(request.getFile().getURI()));// The file to convert
-		//q.append("&type=").append(request.getFormat()); // The output type
-		uri.append("&type=pdf");; // Only for now. Use above later.
+		uri.append("&type=").append(request.getFormat()); // The output type
+		//uri.append("&type=pdf");; // Only for now. Use above later.
 		
 		logger.debug("URI: " + uri.toString());
 		
 		// Additional params if there are any
 		if(request.getParams().size() > 0){
 			for(Map.Entry<String, String> entry: request.getParams().entrySet()){
-				if(entry.getKey().equals("profile")){
-					uri.append("&" + entry.getKey() + "=" + entry.getValue()); // profile should be treated as String (I think)
-				}
+
 				uri.append("&" + entry.getKey() + "=" + urlencode(entry.getValue()));
 			}
 		}
@@ -241,7 +242,7 @@ public class PublishServicePe implements PublishService {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
-						logger.info("Got response from PE" );
+						logger.info("Got response from PE with status: " + headers.getStatus());
 						
 					return outputStream; // The httpclient will stream the content to tempfile
 				}
