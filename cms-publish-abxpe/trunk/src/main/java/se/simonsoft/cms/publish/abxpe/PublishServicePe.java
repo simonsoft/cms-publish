@@ -137,7 +137,7 @@ public class PublishServicePe implements PublishService {
 		
 		// Mandatory client params
 		uri.append("&file=").append(urlencode(request.getFile().getURI()));// The file to convert
-		uri.append("&type=").append(request.getFormat().toString()); // The output type
+		uri.append("&type=").append(request.getFormat()); // The output type
 		//uri.append("&type=pdf");; // Only for now. Use above later.
 		
 		logger.debug("URI: " + uri.toString());
