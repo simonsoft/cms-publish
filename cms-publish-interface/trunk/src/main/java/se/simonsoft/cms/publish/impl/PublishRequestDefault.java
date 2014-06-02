@@ -21,6 +21,7 @@ import java.util.Map;
 
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
+import se.simonsoft.cms.publish.PublishService;
 import se.simonsoft.cms.publish.PublishSource;
 
 /**
@@ -48,7 +49,7 @@ public class PublishRequestDefault implements PublishRequest {
 
 	@Override
 	public PublishFormat getFormat() {
-		return this.format; // TODO: return copy
+		return this.format; 
 	}
 
 	@Override
@@ -65,8 +66,10 @@ public class PublishRequestDefault implements PublishRequest {
 		this.params.put(key, value);
 	}
 	
-	public void setFormat(String format){
+	public void setFormat(PublishFormat format){
 		// Just for now
+		this.format = format;
+		/*
 		this.format =  new PublishFormat() {
 			@Override
 			public String getFormat() {
@@ -79,6 +82,7 @@ public class PublishRequestDefault implements PublishRequest {
 				return null;
 			}
 		};
+		//*/
 	}
 	
 	public void setFile(PublishSource source){
