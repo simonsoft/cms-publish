@@ -19,7 +19,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
@@ -32,15 +35,35 @@ import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
+/*
+ * Publish a report item to the number of outputs set by "jobs".
+ * This is specifically designed for certain user and not a general publish task.
+ *
+ */
 public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
 	protected String publishservice;
 	protected JobsNode jobs;
 	protected String zipoutput;
+	protected String outputfolder;
 	private ArrayList<PublishJob> publishedJobs;
 	private PublishServicePe publishService;
 	protected boolean fail;
 	
+	/**
+	 * @return the outputfolder
+	 */
+	public String getOutputfolder() {
+		return outputfolder;
+	}
+
+	/**
+	 * @param outputfolder the outputfolder to set
+	 */
+	public void setOutputfolder(String outputfolder) {
+		this.outputfolder = outputfolder;
+	}
+
 	/**
 	 * @return the zipoutput
 	 */
@@ -129,6 +152,15 @@ public class PublishReportTask extends Task {
 			e.printStackTrace();
 		}
 	}
+	/*
+	 * We use current date time as 
+	 */
+	private String getDateTime()
+	{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		Date now = new Date();
+		return dateFormat.format(now);
+	}
 	
 	/*
 	 * Publish each job
@@ -171,10 +203,17 @@ public class PublishReportTask extends Task {
 			for (final ParamNode param : paramsNode.getParams()) {
 				log("Params: " + param.getName() + ":" + param.getValue());
 				if(param.getName().equals("file")) {
+					// We remove the .xml file ending for naming convention.
+					// This is specific to customer, and might be part of parsed report later when 
+					//  use CMS Item Objects instead
+					// TODO remove this naming convention to a better suited place
+					String slices[] = param.getValue().split(".");
+					
 					// TODO set correct publish source (now we default to cmsitem)
+					// Should set this as a parameter to the job?
 					publishRequest.setFile(
 							new PublishSourceCmsItemId(
-									new CmsItemIdArg(param.getValue())
+									new CmsItemIdArg(slices[0])
 									));
 					log("PublishRequestFile: " + publishRequest.getFile().getURI());
 				}
@@ -183,21 +222,6 @@ public class PublishReportTask extends Task {
 					final String type = param.getValue();
 					log("Set type: " + param.getValue());
 					publishRequest.setFormat(this.publishService.getPublishFormat(param.getValue()));
-					/*
-					publishRequest.setFormat(new PublishFormat() {
-						@Override
-						public String getFormat() {
-							// Set to whatever value
-							String formatType = type;
-							return formatType;
-						}
-
-						@Override
-						public Compression getOutputCompression() {
-							return null;
-						}
-					});
-					*/
 				}
 				// For arbitrary params just add them
 				publishRequest.addParam	(param.getName(), param.getValue());
@@ -260,10 +284,10 @@ public class PublishReportTask extends Task {
 		File outputfile = null;
 
 		FileOutputStream outputStream = null;
-
+		
 		try {
 			// Then we create the file in that location
-			outputfile = new File(filename);
+			outputfile = new File(outputfolder + "/" + filename);
 			log("Absolutepath: " + outputfile.getAbsolutePath());
 
 			outputfile.createNewFile();

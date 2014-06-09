@@ -19,16 +19,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
 import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestResponse;
+import se.repos.restclient.RestResponseAccept;
 import se.repos.restclient.auth.RestAuthenticationSimple;
+import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
 
 public class RequestReportTask extends Task {
@@ -37,8 +41,25 @@ public class RequestReportTask extends Task {
 	
 	protected ConfigsNode configs;
 	protected String url;
+	protected String apiuri;
 	protected String username;
 	protected String password;
+	
+	
+	/**
+	 * @return the uri
+	 */
+	public String getApiuri() {
+		return apiuri;
+	}
+
+	/**
+	 * @param uri the uri to set
+	 */
+	public void setApiuri(String apiuri) {
+		this.apiuri = apiuri;
+	}
+
 	/**
 	 * @return the username
 	 */
@@ -109,17 +130,37 @@ public class RequestReportTask extends Task {
 	{	
 		log("Request report");
 		RestAuthenticationSimple authentication = new RestAuthenticationSimple(username,password);
+		authentication.getSSLContext(url); // Trying to configure SSL before hand.
+		
 		this.httpClient = new RestClientJavaNet(this.url, authentication);
 		
-		
+		///*
 		HashMap<String,String> requestHeaders = new HashMap<String, String>();
+		requestHeaders.put("Authorization", "Basic " +  Codecs.base64encode(
+				username + ":" + password));
 		requestHeaders.put("Accept", "application/json");
-		requestHeaders.put("Authorization", "Basic amR1cmVoZWQ6amR1cmVoZWQ=");
+		//*/
 		try {
 			
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+			/*
+			this.httpClient.get(uri, new RestResponseAccept() {
+
+				@Override
+				public OutputStream getResponseStream(ResponseHeaders headers) {
+					log("Response from API: " + headers.getStatus());
+					return byteOutputStream; // Returns to our outputstream
+				}
+				 // Seems like restclient does care about accept method.
+				@Override
+				public String getAccept() {
+					return "application/json"; // We want json response
+				}
+			});
+			//*/
 			
-			this.httpClient.get(new URL(uri), new RestResponse() {
+			//*
+			this.httpClient.get(this.constructURL(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -127,28 +168,30 @@ public class RequestReportTask extends Task {
 					return byteOutputStream; // Returns to our outputstream
 				}
 			}, requestHeaders);
-			
+			//*/
 			// Return the JSON response as string
 			return byteOutputStream.toString("UTF-8");
 			
 		} catch (HttpStatusError e) {
 			// TODO Here we need to fail the build
 			log("Communication error: " + e.getResponse());
+			throw new BuildException(e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new BuildException(e);
 		}
-		return "";
+	
 	}
 	
 	/*
-	 * Supports report framework 1.0
+	 * Constructs URI that supports report framework 1.0
 	 */
 	private String constructURI()
 	{
 		log("Construct URI");
 		StringBuffer uri = new StringBuffer();
-		uri.append(this.url);
+		uri.append(apiuri);
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
 				// Adding the query (query is mandatory)
@@ -168,6 +211,26 @@ public class RequestReportTask extends Task {
 		
 		log("URI:" + uri.toString());
 		return uri.toString(); // Return as string
+	}
+	
+	/*
+	 * Constructs URL that supports report framework 1.0
+	 */
+	private URL constructURL()
+	{
+		log("Construct URL");
+		StringBuffer url = new StringBuffer();
+		url.append(this.url);
+		url.append(this.constructURI());
+		log("URL:" + url.toString());
+		URL returnURL = null;
+		try {
+			returnURL = new URL(url.toString());
+		} catch (MalformedURLException e) {
+			
+			e.printStackTrace();
+		}
+		return returnURL;
 	}
 	
 	protected String urlencode(String value) {

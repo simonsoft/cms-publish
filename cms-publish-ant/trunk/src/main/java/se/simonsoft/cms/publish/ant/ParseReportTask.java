@@ -15,8 +15,14 @@
  */
 package se.simonsoft.cms.publish.ant;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.tools.ant.Task;
 import org.json.simple.JSONArray;
@@ -52,7 +58,6 @@ public class ParseReportTask extends Task {
 	 */
 	private void setMuliValueProperty(ArrayList<String> values, String propertyName)
 	{
-		
 		StringBuffer string = new StringBuffer();
 		
 		for (String value: values){
@@ -65,6 +70,8 @@ public class ParseReportTask extends Task {
 		log("Parsing result");
 		JSONParser parser = new JSONParser();
 		ArrayList<String> parsedItems = new ArrayList<String>();
+		Pattern pattern = Pattern.compile("_");
+		Long latestRev = 0L; // init rev counter. With this we'll find the latest/highest revision.
 		try {
 			
 			JSONObject jsonreport = (JSONObject)parser.parse(report);
@@ -86,10 +93,24 @@ public class ParseReportTask extends Task {
 					String id = (String) item.get("logical");
 					String name = (String) item.get("name");
 					
+					
+					// Find match for "_" in filename
+					
+					Matcher matcher = pattern.matcher(name);
+					// Deal with matches
+					if (matcher.find()) {
+						String slices[] = name.split("_");
+						name = slices[0] + ".xml"; // Correct to parent file name
+					}
+					// Find the highest revision
+					if(latestRev < rev){
+						latestRev = rev;
+					}
 					parsedItems.add(id + ";"+ name );
 					log("id:" + id + " status: " + status);
 				}
 			}
+			this.storeLatestRevision(latestRev); // Make sure we store the latest rev.
 		return parsedItems;	
 			
 		} catch (ParseException e) {
@@ -97,4 +118,33 @@ public class ParseReportTask extends Task {
 		}
 		return null;
 	}
+	
+	/*
+	 * We store the latest revison for the next report request.
+	 * This might be a stupid way of going about this. Can we ask the report API for modified date instead? I can't find that at least.
+	 */
+	private void storeLatestRevision(Long revision){
+		
+		// Create the file
+		File revFile = new File("latestrev.txt");
+		BufferedWriter writer = null;
+		try {
+			// Add the rev, overwrites if exist
+			writer = new BufferedWriter(new FileWriter(revFile));
+			writer.write(revision.toString());
+			writer.write("\n!!! NEVER EDIT THIS FILE !!!");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				writer.close();
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	
 }
