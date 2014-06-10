@@ -21,6 +21,7 @@
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
+   	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
 
     <!-- Report query defaults-->
     <property name="username" value="report-read"/>
@@ -30,8 +31,6 @@
     <property name="rows" value="2000"/>
     <property name="apiuri" value="/cms/rest/report/items"/>
     
-    <!-- We use missinglinks HTTP task to fetch items to publish -->
-    <taskdef name="http" classname="org.missinglink.ant.task.http.HttpClientTask"/>
 
     <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
@@ -55,41 +54,14 @@
 	    </getreport>
 	</target>
 	
-	<target name="notused">
-	   
-		<http url="${config.host}/cms/rest/report/items" printresponse="true" expected="200">
-		   <!--   <keystore file="${JenkinsHome}/cert/jdurehed.jks" password="JeOthlmyio"/>-->
-		    <!-- Use a read user to fetch the report -->
-	    	<credentials username="${username}" password="${password}"/>
-	    	<!-- To create a jks from p12:
-	    		keytool -importkeystore -destkeystore jdurehed.jks -srckeystore jdurehed4.p12 -srcstoretype PKCS12
-	    	 -->
-	    
-	    	<!-- Make sure we get a JSON response -->
-	        <headers>
-				<header name="Accept" value="application/json"/> 
-			</headers>
-			<!-- The actual query. Needs to be url encoded ? -->
-			<query>
-				<parameter name="q" value="d%3A*td-spec*+AND+svnrevision%3A%5B8668+TO+*%5D&amp;rows=2000"/>
-			</query>
-			<!-- The property to store the resulting entity in -->
-			<entity value="${httpresponse}"/>
-		</http>
-		<!-- 
-		<antcall target="publish">
-    		<param name="jsonresponse" value="${httpresponse}"/>
-  		</antcall>
-  		 -->
-	</target>
-	
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
 	
-	<!-- WE COULD PARSE JSON USING SCRIPT TASK. SHOULD WE? -->
+	<!-- WE COULD PARSE JSON USING SCRIPT TASK. SHOULD WE? NO-->
 	<target name="parsereport" depends="get-report">
 	    <!-- Partse the response -->
 	    <preparepublish report="${reportresponse}">
 	    </preparepublish>
+	    <!--  We should do this later in java and call publish task from there.. -->
 	    <!-- When parsed publish each item -->
 	    <for list="${items}" delimiter="," param="values">
 			<sequential>
