@@ -32,6 +32,7 @@
     
     <!-- We use missinglinks HTTP task to fetch items to publish -->
     <taskdef name="http" classname="org.missinglink.ant.task.http.HttpClientTask"/>
+
     <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
@@ -42,6 +43,7 @@
 	<tstamp>
     	<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
   	</tstamp>
+  	
 	
 	<target name="get-report">
 	    <getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
@@ -91,8 +93,6 @@
 	    <!-- When parsed publish each item -->
 	    <for list="${items}" delimiter="," param="values">
 			<sequential>
-			    <echo message="@{values}"/>
-			    
 			     <propertyregex property="file"
               			input="@{values}"
               			regexp="(.+);"
@@ -126,6 +126,7 @@
              			override="true"
              			casesensitive="false" />
              			 -->
+             			 <echo message="${file}"/>
 				<antcall target="publish">
 				     <param name="file" value="${file}"/>
 				     <param name="filename" value="${filename}"/>
@@ -137,7 +138,7 @@
 	
 	<target name="publish" description="Publish an item">
 		
-	   	<publishrequest publishservice="${publishservice}" outputfolder="${timestamp}">
+	   	<publishrequest publishservice="${publishservice}" outputfolder="export">
 			
 			<!-- Should perhaps also have config for port and uri -->
 	   	   <configs>
@@ -168,7 +169,7 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="no">
+	   	   	<job filename="${filename}-${lang}.html.zip" zipoutput="no">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
@@ -180,6 +181,7 @@
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	<!-- 
 	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="yes">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -192,6 +194,7 @@
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	 -->
 	   	   	<job filename="${filename}-${lang}.rtf">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>

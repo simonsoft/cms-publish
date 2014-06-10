@@ -19,12 +19,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.tools.ant.Task;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,7 +35,10 @@ import org.json.simple.parser.ParseException;
 public class ParseReportTask extends Task {
 
 	protected String report;
+	private String revStoreFileName = "latestrev.txt";
 	private ArrayList<String> items;
+	
+	
 	/**
 	 * @return the report
 	 */
@@ -63,6 +68,7 @@ public class ParseReportTask extends Task {
 		for (String value: values){
 			string.append(value + ",");
 		}
+		// Set the ant property
 		this.getProject().setProperty(propertyName, string.toString());
 	}
 	
@@ -101,13 +107,14 @@ public class ParseReportTask extends Task {
 					if (matcher.find()) {
 						String slices[] = name.split("_");
 						name = slices[0] + ".xml"; // Correct to parent file name
+						
 					}
 					// Find the highest revision
 					if(latestRev < rev){
 						latestRev = rev;
 					}
 					parsedItems.add(id + ";"+ name );
-					log("id:" + id + " status: " + status);
+					log("id:" + id + " name: " + name);
 				}
 			}
 			this.storeLatestRevision(latestRev); // Make sure we store the latest rev.
@@ -126,7 +133,7 @@ public class ParseReportTask extends Task {
 	private void storeLatestRevision(Long revision){
 		
 		// Create the file
-		File revFile = new File("latestrev.txt");
+		File revFile = new File(revStoreFileName);
 		BufferedWriter writer = null;
 		try {
 			// Add the rev, overwrites if exist
@@ -145,6 +152,4 @@ public class ParseReportTask extends Task {
 			}
 		}
 	}
-	
-	
 }
