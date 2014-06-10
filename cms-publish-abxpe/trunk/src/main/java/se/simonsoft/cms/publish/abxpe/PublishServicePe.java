@@ -102,7 +102,7 @@ public class PublishServicePe implements PublishService {
 			}
 		}
 		
-		// Todo. Make this a throws on method
+		// TODO  Refactor: a nicer/better looking way of getting format
 		try { 
 			// If we did not find any matching formats.
 			if(count == this.publishFormats.size()){
@@ -131,7 +131,7 @@ public class PublishServicePe implements PublishService {
 		// Start with host and pe path
 		uri.append(this.peUri);
 		// General always valid params
-		uri.append("?f=convert");// This is always a conversion operation
+		uri.append("?f=convert");// This is always a convert operation
 		uri.append("&response-format=xml"); // We always want a XML response to parse
 		uri.append("&queue=yes"); // We always want to queue
 		
