@@ -34,7 +34,10 @@ import se.repos.restclient.RestResponseAccept;
 import se.repos.restclient.auth.RestAuthenticationSimple;
 import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
-
+/*
+ * Sends request to CMS reporting 1.0 and sets the response as ant property
+ * Uses JREs default jks for SSL
+ */
 public class RequestReportTask extends Task {
 
 	private RestClientJavaNet httpClient;

@@ -31,7 +31,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
+/*
+ * Parse the JSON response from CMS Reporting 1.0
+ */
 public class ParseReportTask extends Task {
 
 	protected String report;
@@ -76,7 +78,7 @@ public class ParseReportTask extends Task {
 		log("Parsing result");
 		JSONParser parser = new JSONParser();
 		ArrayList<String> parsedItems = new ArrayList<String>();
-		Pattern pattern = Pattern.compile("_");
+		//Pattern pattern = Pattern.compile("_");
 		Long latestRev = 0L; // init rev counter. With this we'll find the latest/highest revision.
 		try {
 			
@@ -91,28 +93,36 @@ public class ParseReportTask extends Task {
 				while (iterator.hasNext()) 
 				{
 					JSONObject item = iterator.next();
-					JSONObject prop = (JSONObject) item.get("prop");
+					//JSONObject prop = (JSONObject) item.get("prop");
 					JSONObject commit = (JSONObject) item.get("commit");
+					
 					Long rev = (Long) commit.get("rev");
-					String lang = (String) prop.get("abx:lang");
-					String status = (String) prop.get("cms:status");
+					// Properties we want to work with soon:
+					//String lang = (String) prop.get("abx:lang");
+					//String status = (String) prop.get("cms:status");
 					String id = (String) item.get("logical");
 					String name = (String) item.get("name");
 					
 					
 					// Find match for "_" in filename
 					
-					Matcher matcher = pattern.matcher(name);
-					// Deal with matches
-					if (matcher.find()) {
+					//Matcher matcher = pattern.matcher(name);
+					if(name.contains("_")) {
 						String slices[] = name.split("_");
-						name = slices[0] + ".xml"; // Correct to parent file name
+						name = slices[0];
+					}
+					// Remove the filetype
+					
+					if(name.contains(".")) {
 						
+						String slices[] = name.split("\\.");
+						name = slices[0];
 					}
 					// Find the highest revision
 					if(latestRev < rev){
 						latestRev = rev;
 					}
+					// id is logical id and name is name without file end
 					parsedItems.add(id + ";"+ name );
 					log("id:" + id + " name: " + name);
 				}

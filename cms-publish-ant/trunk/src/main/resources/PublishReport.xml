@@ -17,6 +17,8 @@
 
 -->
 <project name="PublishReport"  basedir="." default="parsereport" >
+   	
+   <!--  <stopwatch name="timer"/> -->
     
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
@@ -52,6 +54,7 @@
 	           <param name="rows" value="${rows}"/>
 	       </params>
 	    </getreport>
+	    <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
@@ -105,7 +108,8 @@
 				     <param name="lang" value="${lang}"/>
   				</antcall>
 			</sequential>
-		</for>  
+		</for>
+		<!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
 	<target name="publish" description="Publish an item">
@@ -153,7 +157,7 @@
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<!-- 
+	   	   	
 	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="yes">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -166,7 +170,7 @@
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	 -->
+	   	   	 
 	   	   	<job filename="${filename}-${lang}.rtf">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -176,7 +180,7 @@
 		   	       	<param name="type" value="rtf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}-${lang}.zip" zipoutput="no">
+	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="no">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="file" value="${file}"/>
@@ -198,6 +202,7 @@
 	   	   </params>
 	   	    -->
 	   	</publishrequest>
+	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
 	

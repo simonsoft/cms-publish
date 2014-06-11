@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
@@ -39,9 +40,8 @@ import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 /*
- * Publish a report item to the number of outputs set by "jobs".
- * This is specifically designed for certain user and not a general publish task.
- *
+ * Publish a report item to the number of outputs (jobs).
+ * The task also manages the output and unzips jobs if requested.
  */
 public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
@@ -147,7 +147,7 @@ public class PublishReportTask extends Task {
 			
 			if(this.isCompleted()) { // Check if the jobs are ready
 				this.getResult(); // Download the result
-				//this.manageArchives(); //  output is unzipped if it needs to be
+				this.handleResult(); //  output is unzipped if it needs to be
 			}
 			
 		} catch (InterruptedException e) {
@@ -310,72 +310,218 @@ public class PublishReportTask extends Task {
 	/*
 	 * Loops over the jobs and the result to unzip the archives 
 	 * that needs to be delivered as folders.
+	 * 
 	 */
-	private void manageArchives() {
+	private void handleResult() {
 		// TODO unzip the ones that should no be zipped archives..
+		log("Handle zip outputs");
 		for (PublishJob publishJob : this.publishedJobs) {
 			for (final JobNode job : jobs.getJobs()) {
 
 				if(job.getFilename().equals(publishJob.getFilename())) {
-					if(job.getZipoutput().equals("no")) {
+					if(job.getZipoutput() != null && job.getZipoutput().equals("no")) {
+						
+						if(publishJob.getFilename().contains(".")) {
+							// A little flaky but for now we assume that packages that
+							// like 1195437-en-US.html.zip is always the ones 
+							// that should be unzipped.
+							String slices[] = publishJob.getFilename().split("\\.");
+							String newFileName = slices[0] + "." + slices[1];
+							
+							//String newOutputFolderName = 
+							// Unzip and rename file. // We can assume that the outpufolders has been created, so it's safe to crate the new subfolder
+							this.unZip(publishJob.getFilename(), this.outputfolder, newFileName);
+							this.deleteFile(publishJob.getFilename()); // Then delete the original zip
+						}
 						// Unzip and rename contents.
-						this.unZip(publishJob.getFilename(), publishJob.getFilename());
+						//this.unZip(publishJob.getFilename(), outputfolder, );
+					}else if(job.getZipoutput() != null && job.getZipoutput().equals("yes")) {
+						// TODO unzip and rename file
+						/*
+						if(publishJob.getFilename().contains(".")) {
+							String slices[] = publishJob.getFilename().split("\\.");
+							String newFileName = slices[0] + "." + slices[1];
+							
+							if(publishJob.getPublishRequest().getFormat().getFormat().equals("html")) {
+								
+							}
+						}
+						this.unZip(publishJob.getFilename(), this.outputfolder, publishJob.getFilename());
+						//*/
 					}
+						
 				}
 			}	
+		}	
+	}
+	
+	/*
+	 * Deletes a file
+	 * @
+	 */
+	private void deleteFile(String file)
+	{
+		try{
+
+			File fileToDelete = new File(file);
+
+			if(fileToDelete.delete()){
+				log(fileToDelete.getName() + " is deleted!");
+			}else{
+				log("Could not delete file");
+			}
+
+		} catch(Exception e){
+			e.printStackTrace();
 		}
-		
-		
 	}
 	/*
-	 * Unzips a file to an outputfolder
-	 */
-	private void unZip(String zipFile, String outputFolder){
+	public void zipFile(String zipFile)
+	{
+		byte[] buffer = new byte[1024];
+		String source = "";
+		FileOutputStream fos = null;
+		ZipOutputStream zos = null;
+		try
+		{
+			try
+			{
+				source = SOURCE_FOLDER.substring(SOURCE_FOLDER.lastIndexOf("\\") + 1, SOURCE_FOLDER.length());
+			}
+			catch (Exception e)
+			{
+				source = SOURCE_FOLDER;
+			}
+			fos = new FileOutputStream(zipFile);
+			zos = new ZipOutputStream(fos);
 
+			System.out.println("Output to Zip : " + zipFile);
+			FileInputStream in = null;
+
+			for (String file : this.fileList)
+			{
+				System.out.println("File Added : " + file);
+				ZipEntry ze = new ZipEntry(source + File.separator + file);
+				zos.putNextEntry(ze);
+				try
+				{
+					in = new FileInputStream(SOURCE_FOLDER + File.separator + file);
+					int len;
+					while ((len = in.read(buffer)) > 0)
+					{
+						zos.write(buffer, 0, len);
+					}
+				}
+				finally
+				{
+					in.close();
+				}
+			}
+
+			zos.closeEntry();
+			System.out.println("Folder successfully compressed");
+
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		finally
+		{
+			try
+			{
+				zos.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void generateFileList(File node)
+	{
+
+		// add file only
+		if (node.isFile())
+		{
+			fileList.add(generateZipEntry(node.toString()));
+
+		}
+
+		if (node.isDirectory())
+		{
+			String[] subNote = node.list();
+			for (String filename : subNote)
+			{
+				generateFileList(new File(node, filename));
+			}
+		}
+	}
+
+	private String generateZipEntry(String file)
+	{
+		return file.substring(SOURCE_FOLDER.length() + 1, file.length());
+	}
+	//*
+	
+	/*
+	 * Unzips a file to an outputfolder and renames the files needed
+	 */
+	private void unZip(String zipFile, String outputFolder, String newFileName){
+		// Unzip and rename contents.
+		log("Unzip to " + newFileName);
+		
 		byte[] buffer = new byte[1024];
 
 		try{
 
 			//create output directory is not exists
-			File folder = new File(outputFolder);
+			File folder = new File(outputFolder + File.separator + newFileName);
+			
 			if(!folder.exists()){
+				log("Create output dir " + folder.getPath());
+				folder.mkdir();
+			}
+			if(!folder.isDirectory()){
 				folder.mkdir();
 			}
 
 			//get the zip file content
-			ZipInputStream zis = 
-					new ZipInputStream(new FileInputStream(zipFile));
-			//get the zipped file list entry
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(outputFolder + File.separator + zipFile));
+			//get the zipped file entry list
 			ZipEntry ze = zis.getNextEntry();
 
 			while(ze!=null){
 
 				String fileName = ze.getName();
-				
-				File newFile = new File(outputFolder + File.separator + fileName);
-				File correctedFile = new File(outputFolder + File.separator + zipFile);
-				// Lets not use PEs stupid names
-				if(fileName.equals("e3out.htm")) {
-					// Rename the file
-					if(!newFile.renameTo(correctedFile)) {
-						log("Crap, could not rename file");
-					}
-				}
-				
-				log("file unzip : "+ newFile.getAbsoluteFile());
+				// File in zip
+				File fileToUnzip = new File(folder.getPath() + File.separator + fileName);
+				File renamedFile = new File(folder.getPath() + File.separator + newFileName);
+
+				log("file unzip : "+ fileToUnzip.getAbsoluteFile());
 					
 				//create all non exists folders
 				//else you will hit FileNotFoundException for compressed folder
-				new File(newFile.getParent()).mkdirs();
-
-				FileOutputStream fos = new FileOutputStream(newFile);             
+				new File(fileToUnzip.getParent()).mkdirs();
+				
+				// Start getting the content
+				FileOutputStream fos = new FileOutputStream(fileToUnzip);             
 
 				int len;
 				while ((len = zis.read(buffer)) > 0) {
 					fos.write(buffer, 0, len);
 				}
 
-				fos.close();   
+				fos.close();
+				// Lets not use PEs stupid names
+				if(fileName.equals("e3out.htm") || fileName.equals("e3out.xml")) {
+					// Rename the file
+					
+					if(!fileToUnzip.renameTo(renamedFile)) {
+						log("Crap, could not rename file");
+					}
+				}
 				ze = zis.getNextEntry();
 			}
 
