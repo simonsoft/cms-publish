@@ -24,6 +24,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -41,7 +42,8 @@ import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 /*
  * Publish a report item to the number of outputs (jobs).
- * The task also manages the output and unzips jobs if requested.
+ * The task also manages the output and unzips jobs if requested. 
+ * Perhaps working with the result should be another task later
  */
 public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
@@ -52,6 +54,7 @@ public class PublishReportTask extends Task {
 	private ArrayList<PublishJob> publishedJobs;
 	private PublishServicePe publishService;
 	protected boolean fail;
+	
 	
 	/**
 	 * @return the outputfolder
@@ -250,7 +253,7 @@ public class PublishReportTask extends Task {
 				}
 				// Timeout. This is an arbitrary number. What should count as a timeout?
 				// TODO timeout?
-				if(completedCount > 500){
+				if(checks > 2000){
 					return false;
 				}
 			}
@@ -319,7 +322,9 @@ public class PublishReportTask extends Task {
 			for (final JobNode job : jobs.getJobs()) {
 
 				if(job.getFilename().equals(publishJob.getFilename())) {
+					
 					if(job.getZipoutput() != null && job.getZipoutput().equals("no")) {
+						log("Manage zip to folder");
 						
 						if(publishJob.getFilename().contains(".")) {
 							// A little flaky but for now we assume that packages that
@@ -328,28 +333,44 @@ public class PublishReportTask extends Task {
 							String slices[] = publishJob.getFilename().split("\\.");
 							String newFileName = slices[0] + "." + slices[1];
 							
-							//String newOutputFolderName = 
-							// Unzip and rename file. // We can assume that the outpufolders has been created, so it's safe to crate the new subfolder
+							// Unzip and rename file.
+							// We can assume that the outpufolders has been created, so it's safe to crate the new subfolder
 							this.unZip(publishJob.getFilename(), this.outputfolder, newFileName);
+							
 							this.deleteFile(publishJob.getFilename()); // Then delete the original zip
 						}
 						// Unzip and rename contents.
 						//this.unZip(publishJob.getFilename(), outputfolder, );
 					}else if(job.getZipoutput() != null && job.getZipoutput().equals("yes")) {
 						// TODO unzip and rename file
-						/*
+						//*
+						log("Manage zip to zip");
 						if(publishJob.getFilename().contains(".")) {
+							
 							String slices[] = publishJob.getFilename().split("\\.");
-							String newFileName = slices[0] + "." + slices[1];
+							String newFileName = slices[0];
 							
 							if(publishJob.getPublishRequest().getFormat().getFormat().equals("html")) {
 								
+								newFileName = newFileName + ".html";
+								
+								this.unZip(publishJob.getFilename(), this.outputfolder, newFileName);
+								
+								// Path to unzipped folder
+								String pathToFolder = this.outputfolder + File.separator + newFileName;
+								log("PathToFolder: " + pathToFolder);
+								
+								List<String> fileList = new ArrayList<String>(); 
+								
+								this.generateFileList(fileList, new File(pathToFolder), pathToFolder);
+								
+								this.zipIt(fileList, this.outputfolder + File.separator + publishJob.getFilename(), pathToFolder);
+								
 							}
 						}
-						this.unZip(publishJob.getFilename(), this.outputfolder, publishJob.getFilename());
+						
 						//*/
 					}
-						
 				}
 			}	
 		}	
@@ -364,7 +385,7 @@ public class PublishReportTask extends Task {
 		try{
 
 			File fileToDelete = new File(file);
-
+			
 			if(fileToDelete.delete()){
 				log(fileToDelete.getName() + " is deleted!");
 			}else{
@@ -375,98 +396,87 @@ public class PublishReportTask extends Task {
 			e.printStackTrace();
 		}
 	}
-	/*
-	public void zipFile(String zipFile)
-	{
-		byte[] buffer = new byte[1024];
-		String source = "";
-		FileOutputStream fos = null;
-		ZipOutputStream zos = null;
-		try
-		{
-			try
-			{
-				source = SOURCE_FOLDER.substring(SOURCE_FOLDER.lastIndexOf("\\") + 1, SOURCE_FOLDER.length());
-			}
-			catch (Exception e)
-			{
-				source = SOURCE_FOLDER;
-			}
-			fos = new FileOutputStream(zipFile);
-			zos = new ZipOutputStream(fos);
+	/**
+     * Zip it
+     * @param zipFile output ZIP file location
+     * Modified from http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
+     */
+    private void zipIt(List<String> fileList, String zipFile, String sourceFolder){
+ 
+     byte[] buffer = new byte[1024];
+ 
+     try{
+ 
+    	FileOutputStream fos = new FileOutputStream(zipFile);
+    	ZipOutputStream zos = new ZipOutputStream(fos);
+ 
+    	log("Output to Zip : " + zipFile);
+ 
+    	for(String file : fileList){
+ 
+    		log("File Added : " + file);
+    		ZipEntry ze= new ZipEntry(file);
+        	zos.putNextEntry(ze);
+ 
+        	FileInputStream in = new FileInputStream(sourceFolder + File.separator + file);
+ 
+        	int len;
+        	while ((len = in.read(buffer)) > 0) {
+        		zos.write(buffer, 0, len);
+        	}
+ 
+        	in.close();
+    	}
+ 
+    	zos.closeEntry();
+    	//remember close it
+    	zos.close();
+ 
+    	System.out.println("Done");
+    }catch(IOException ex){
+       ex.printStackTrace();   
+    }
+   }
+ 
+    /**
+     * Traverse a directory and get all files,
+     * and add the file into fileList  
+     * @param node file or directory
+     * Modified from http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
+     */
+    private void generateFileList(List<String> fileList, File node, String sourceFolder){
 
-			System.out.println("Output to Zip : " + zipFile);
-			FileInputStream in = null;
+    	//add file only
+    	if(node.isFile()){
+    		log("Add to filelist: " + node.getAbsolutePath());
+    		fileList.add(generateZipEntry(node.getAbsolutePath(), sourceFolder));
+    	}
 
-			for (String file : this.fileList)
-			{
-				System.out.println("File Added : " + file);
-				ZipEntry ze = new ZipEntry(source + File.separator + file);
-				zos.putNextEntry(ze);
-				try
-				{
-					in = new FileInputStream(SOURCE_FOLDER + File.separator + file);
-					int len;
-					while ((len = in.read(buffer)) > 0)
-					{
-						zos.write(buffer, 0, len);
-					}
-				}
-				finally
-				{
-					in.close();
-				}
-			}
-
-			zos.closeEntry();
-			System.out.println("Folder successfully compressed");
-
-		}
-		catch (IOException ex)
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			try
-			{
-				zos.close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public void generateFileList(File node)
-	{
-
-		// add file only
-		if (node.isFile())
-		{
-			fileList.add(generateZipEntry(node.toString()));
-
-		}
-
-		if (node.isDirectory())
-		{
-			String[] subNote = node.list();
-			for (String filename : subNote)
-			{
-				generateFileList(new File(node, filename));
-			}
-		}
-	}
-
-	private String generateZipEntry(String file)
-	{
-		return file.substring(SOURCE_FOLDER.length() + 1, file.length());
-	}
-	//*
+    	if(node.isDirectory()){
+    		String[] subNote = node.list();
+    		for(String filename : subNote){
+    			generateFileList(fileList, new File(node, filename), sourceFolder);
+    		}
+    	}
+    }
+ 
+    /**
+     * Format the file path for zip
+     * @param file file path
+     * @return Formatted file path
+     * Modified from http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
+     */
+    private String generateZipEntry(String file, String sourceFolder)
+    {
+    	//new File(sourceFolder).getAbsolutePath();
+    	return file.substring(new File(sourceFolder).getAbsolutePath().length()+1, file.length());
+    }
 	
 	/*
 	 * Unzips a file to an outputfolder and renames the files needed
+	 * @param String zipfile
+	 * @param String outputFolder
+	 * @param String newFileName
 	 */
 	private void unZip(String zipFile, String outputFolder, String newFileName){
 		// Unzip and rename contents.
@@ -517,8 +527,10 @@ public class PublishReportTask extends Task {
 				// Lets not use PEs stupid names
 				if(fileName.equals("e3out.htm") || fileName.equals("e3out.xml")) {
 					// Rename the file
-					
-					if(!fileToUnzip.renameTo(renamedFile)) {
+					log("Rename " + fileToUnzip.getName());
+					if(fileToUnzip.renameTo(renamedFile)) {
+						log("Renamed to " + renamedFile.getName());
+					}else{
 						log("Crap, could not rename file");
 					}
 				}
