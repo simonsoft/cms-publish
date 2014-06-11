@@ -29,6 +29,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FileDeleteStrategy;
+import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
@@ -313,31 +315,37 @@ public class PublishReportTask extends Task {
 	/*
 	 * Loops over the jobs and the result to unzip the archives 
 	 * that needs to be delivered as folders.
-	 * 
 	 */
 	private void handleResult() {
 		// TODO unzip the ones that should no be zipped archives..
 		log("Handle zip outputs");
 		for (PublishJob publishJob : this.publishedJobs) {
+			
 			for (final JobNode job : jobs.getJobs()) {
 
 				if(job.getFilename().equals(publishJob.getFilename())) {
-					
+
 					if(job.getZipoutput() != null && job.getZipoutput().equals("no")) {
 						log("Manage zip to folder");
-						
+
 						if(publishJob.getFilename().contains(".")) {
 							// A little flaky but for now we assume that packages that
 							// like 1195437-en-US.html.zip is always the ones 
 							// that should be unzipped.
 							String slices[] = publishJob.getFilename().split("\\.");
 							String newFileName = slices[0] + "." + slices[1];
-							
+							String tempFolderPath = this.outputfolder + File.separator + job.getRootfilename() + "_temp";
 							// Unzip and rename file.
 							// We can assume that the outpufolders has been created, so it's safe to crate the new subfolder
-							this.unZip(publishJob.getFilename(), this.outputfolder, newFileName);
+							this.unZip(publishJob.getFilename(), tempFolderPath, job.getRootfilename());
 							
-							this.deleteFile(publishJob.getFilename()); // Then delete the original zip
+							// Move contents to outputfolder
+							this.moveUnzippedResult(new File(tempFolderPath), new File(this.outputfolder));
+							
+							//this.moveFilesFromFolder(new File(this.outputfolder + File.separator + job.getRootfilename()), new File(this.outputfolder));
+							
+							this.deleteFile(new File(this.outputfolder + File.separator + publishJob.getFilename())); // Then delete the original zip
+							this.deleteFile(new File(tempFolderPath)); // Delete temp folder
 						}
 						// Unzip and rename contents.
 						//this.unZip(publishJob.getFilename(), outputfolder, );
@@ -346,29 +354,47 @@ public class PublishReportTask extends Task {
 						//*
 						log("Manage zip to zip");
 						if(publishJob.getFilename().contains(".")) {
-							
+
 							String slices[] = publishJob.getFilename().split("\\.");
 							String newFileName = slices[0];
-							
+							String tempFolderPath = this.outputfolder + File.separator + job.getRootfilename() + "_temp";
 							if(publishJob.getPublishRequest().getFormat().getFormat().equals("html")) {
-								
+									
 								newFileName = newFileName + ".html";
 								
-								this.unZip(publishJob.getFilename(), this.outputfolder, newFileName);
+								this.unZip(publishJob.getFilename(), tempFolderPath, job.getRootfilename());
 								
+								// Path to unzipped folder
+								String pathToFolder = this.outputfolder + File.separator + job.getRootfilename();
+								log("PathToFolder: " + pathToFolder);
+
+								List<String> fileList = new ArrayList<String>(); 
+
+								this.generateFileList(fileList, new File(tempFolderPath), tempFolderPath);
+
+								this.zipIt(fileList, this.outputfolder + File.separator + publishJob.getFilename(), tempFolderPath);
+								this.deleteFile(new File(tempFolderPath));
+							}
+							
+							if(publishJob.getPublishRequest().getFormat().getFormat().equals("xml")) {
+
+								newFileName = newFileName + ".xml";
+								// Unzip to folder and set root file name 
+								this.unZip(publishJob.getFilename(), tempFolderPath, job.getRootfilename());
+
 								// Path to unzipped folder
 								String pathToFolder = this.outputfolder + File.separator + newFileName;
 								log("PathToFolder: " + pathToFolder);
-								
+
 								List<String> fileList = new ArrayList<String>(); 
-								
-								this.generateFileList(fileList, new File(pathToFolder), pathToFolder);
-								
-								this.zipIt(fileList, this.outputfolder + File.separator + publishJob.getFilename(), pathToFolder);
-								
+
+								this.generateFileList(fileList, new File(tempFolderPath), tempFolderPath);
+
+								this.zipIt(fileList, this.outputfolder + File.separator + publishJob.getFilename(), tempFolderPath);
+								this.deleteFile(new File(tempFolderPath));
 							}
 						}
-						
+
 						//*/
 					}
 				}
@@ -377,25 +403,48 @@ public class PublishReportTask extends Task {
 	}
 	
 	/*
-	 * Deletes a file
-	 * @
+	 * 
 	 */
-	private void deleteFile(String file)
+	private void moveUnzippedResult(File source, File destination)
 	{
-		try{
-
-			File fileToDelete = new File(file);
+		log("Move files from folder");
+		
+		try {
+			FileUtils.copyDirectory(source, destination);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/*
+	 * Deletes a file
+	 * @param String file to delete
+	 */
+	private void deleteFile(File file)
+	{
+		try {
+			log("Deleted file " + file.getName());
+			FileDeleteStrategy.FORCE.delete(file);
 			
-			if(fileToDelete.delete()){
-				log(fileToDelete.getName() + " is deleted!");
-			}else{
-				log("Could not delete file");
-			}
-
 		} catch(Exception e){
 			e.printStackTrace();
 		}
 	}
+	
+	private void renameFile(File oldFile, File newFile)
+	{
+		try {
+			// Make a copy
+			FileUtils.copyFile(oldFile, newFile, true);
+			// Delete original
+			this.deleteFile(oldFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	/**
      * Zip it
      * @param zipFile output ZIP file location
@@ -480,36 +529,36 @@ public class PublishReportTask extends Task {
 	 */
 	private void unZip(String zipFile, String outputFolder, String newFileName){
 		// Unzip and rename contents.
-		log("Unzip to " + newFileName);
+		log("Unzip to " + outputFolder);
 		
 		byte[] buffer = new byte[1024];
 
-		try{
+		try {
 
 			//create output directory is not exists
-			File folder = new File(outputFolder + File.separator + newFileName);
+			File folder = new File(outputFolder);
 			
-			if(!folder.exists()){
+			if(!folder.exists()) {
 				log("Create output dir " + folder.getPath());
 				folder.mkdir();
 			}
-			if(!folder.isDirectory()){
+			if(!folder.isDirectory()) {
 				folder.mkdir();
 			}
 
 			//get the zip file content
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(outputFolder + File.separator + zipFile));
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(this.outputfolder + File.separator + zipFile));
 			//get the zipped file entry list
 			ZipEntry ze = zis.getNextEntry();
 
-			while(ze!=null){
+			while(ze != null) {
 
 				String fileName = ze.getName();
 				// File in zip
 				File fileToUnzip = new File(folder.getPath() + File.separator + fileName);
 				File renamedFile = new File(folder.getPath() + File.separator + newFileName);
 
-				log("file unzip : "+ fileToUnzip.getAbsoluteFile());
+				log("file unzip : " + fileToUnzip.getAbsoluteFile());
 					
 				//create all non exists folders
 				//else you will hit FileNotFoundException for compressed folder
@@ -528,12 +577,18 @@ public class PublishReportTask extends Task {
 				if(fileName.equals("e3out.htm") || fileName.equals("e3out.xml")) {
 					// Rename the file
 					log("Rename " + fileToUnzip.getName());
+					//this.forceRename(fileToUnzip, renamedFile);
+					this.renameFile(fileToUnzip, renamedFile);
+					/*
 					if(fileToUnzip.renameTo(renamedFile)) {
 						log("Renamed to " + renamedFile.getName());
 					}else{
 						log("Crap, could not rename file");
 					}
+					
+					//*/
 				}
+				
 				ze = zis.getNextEntry();
 			}
 

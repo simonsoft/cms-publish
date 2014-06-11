@@ -23,7 +23,23 @@ public class JobNode {
 	protected ParamsNode params;
 	protected String filename;
 	protected String zipoutput;
+	protected String rootfilename;
 	
+	/**
+	 * @return the rootfilename
+	 */
+	public String getRootfilename() {
+		
+		return rootfilename;
+	}
+
+	/**
+	 * @param rootfilename the rootfilename to set
+	 */
+	public void setRootfilename(String rootfilename) {
+		this.rootfilename = rootfilename;
+	}
+
 	/**
 	 * @return the zipoutput
 	 */
@@ -65,4 +81,5 @@ public class JobNode {
 	public void addConfiguredParams(ParamsNode params) {
 		this.params = params;
 	}
+	
 }

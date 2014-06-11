@@ -145,27 +145,27 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}-${lang}.html.zip" zipoutput="no">
+	   	   	<job filename="${filename}-${lang}.html.zip" zipoutput="no" rootfilename="${filename}-${lang}.html">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
-	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="yes">
+	   	   	<job filename="${filename}-${lang}_html.zip" zipoutput="yes" rootfilename="${filename}-${lang}.html" >
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
@@ -180,7 +180,7 @@
 		   	       	<param name="type" value="rtf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="no">
+	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="no" rootfilename="${filename}-${lang}.xml">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="file" value="${file}"/>
