@@ -19,7 +19,16 @@
 <project name="PublishReport"  basedir="." default="parsereport" >
    	
    <!--  <stopwatch name="timer"/> -->
-    
+   
+    <taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.FindLatestRevisionTask"/>
+    <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
+    <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
+	
+	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
+	
+
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
@@ -29,22 +38,25 @@
     <property name="username" value="report-read"/>
     <property name="password" value="read"/>
     <property name="previousrevision" value="8667"/>
-    <property name="query" value="id:*td-spec* AND svnrevision:[${previousrevision} TO *]"/>
+    <property name="id" value="*td-spec-cur*"/>
+    
+    <!-- Will set ${previousrevision} -->
+    <target name="getlatestrevision">
+	    <getrevision/>
+	    <echo message="${previousrevision}"/>
+	</target>
+    
+    <!-- The general query -->
+    <property name="query" value="id:${id} AND svnrevision:[${previousrevision} TO *]"/>
     <property name="rows" value="2000"/>
     <property name="apiuri" value="/cms/rest/report/items"/>
-    
-
-    <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
-    <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
-	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
-	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
+   
 	
 	<!-- Create a timestamp to use when creating path for output -->
 	<tstamp>
     	<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
   	</tstamp>
-  	
+	
 	
 	<target name="get-report">
 	    <getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
@@ -60,7 +72,7 @@
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
 	
 	<!-- WE COULD PARSE JSON USING SCRIPT TASK. SHOULD WE? NO-->
-	<target name="parsereport" depends="get-report">
+	<target name="parsereport" depends="getlatestrevision,get-report">
 	    <!-- Partse the response -->
 	    <preparepublish report="${reportresponse}">
 	    </preparepublish>
@@ -101,7 +113,6 @@
              			override="true"
              			casesensitive="false" />
              			 -->
-             			 <echo message="${file}"/>
 				<antcall target="publish">
 				     <param name="file" value="${file}"/>
 				     <param name="filename" value="${filename}"/>

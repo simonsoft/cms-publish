@@ -104,7 +104,10 @@ public class ParseReportTask extends Task {
 					String name = (String) item.get("name");
 					
 		
-					//Matcher matcher = pattern.matcher(name);
+					// If we find a underscore we know that this is a dependency
+					// and that the parent file has the same name except the underscore 
+					// ie: 1122048_comp.xml is a dependency to 1122048.xml
+					// This is of obviously VERY customer dependent.
 					if(name.contains("_")) {
 						String slices[] = name.split("_");
 						name = slices[0];
