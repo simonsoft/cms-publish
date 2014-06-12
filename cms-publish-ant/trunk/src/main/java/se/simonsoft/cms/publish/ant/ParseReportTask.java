@@ -116,9 +116,9 @@ public class ParseReportTask extends Task {
 						int index = id.lastIndexOf("/");
 						String updatedId = id;
 						updatedId = updatedId.substring(0, index);
-						log("Substring: " + updatedId);
+						//log("Substring: " + updatedId);
 						updatedId = updatedId + "/" + name + ".xml";
-						log("Changed to parent logical id: " + updatedId);
+						//log("Changed to parent logical id: " + updatedId);
 						id = updatedId;
 						// This can of course trigger a publish of the same file two 
 						//times if both the dependency and the parent has been modified.
@@ -135,11 +135,19 @@ public class ParseReportTask extends Task {
 					if(latestRev < rev){
 						latestRev = rev;
 					}
+					
+					if(parsedItems.indexOf(id + ";"+ name) == -1) {
+						// id is logical id and name is name without file end
+						parsedItems.add(id + ";"+ name);
+						log("id:" + id + " name: " + name);
+					}
+					
 					// id is logical id and name is name without file end
-					parsedItems.add(id + ";"+ name );
-					log("id:" + id + " name: " + name);
+					//parsedItems.add(id + ";"+ name);
+					//log("id:" + id + " name: " + name);
 				}
 			}
+			log("Number of items to publish: " + parsedItems.size());
 			this.storeLatestRevision(latestRev); // Make sure we store the latest rev.
 		return parsedItems;	
 			
