@@ -103,14 +103,24 @@ public class ParseReportTask extends Task {
 					String id = (String) item.get("logical");
 					String name = (String) item.get("name");
 					
-					
-					// Find match for "_" in filename
-					
+		
 					//Matcher matcher = pattern.matcher(name);
 					if(name.contains("_")) {
 						String slices[] = name.split("_");
 						name = slices[0];
+						
+						// Modify logical id to match parent
+						int index = id.lastIndexOf("/");
+						String updatedId = id;
+						updatedId = updatedId.substring(0, index);
+						log("Substring: " + updatedId);
+						updatedId = updatedId + "/" + name + ".xml";
+						log("Changed to parent logical id: " + updatedId);
+						id = updatedId;
+						// This can of course trigger a publish of the same file two 
+						//times if both the dependency and the parent has been modified.
 					}
+					
 					// Remove the filetype
 					
 					if(name.contains(".")) {

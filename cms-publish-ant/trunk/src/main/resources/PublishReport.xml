@@ -135,6 +135,7 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	§
 	   	   	<job filename="${filename}-${lang}_USL.pdf" >
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -145,6 +146,7 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	
 	   	   	<job filename="${filename}-${lang}.html.zip" zipoutput="no" rootfilename="${filename}-${lang}.html">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -180,7 +182,8 @@
 		   	       	<param name="type" value="rtf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="no" rootfilename="${filename}-${lang}.xml">
+	   	   	
+	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="file" value="${file}"/>
@@ -190,6 +193,7 @@
 		   	       	<param name="type" value="xml"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	
 	   	   </jobs>
 	   	   
 	   	   <!-- Params to the Publish Service (PE)
