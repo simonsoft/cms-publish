@@ -120,8 +120,6 @@ public class ParseReportTask extends Task {
 						updatedId = updatedId + "/" + name + ".xml";
 						//log("Changed to parent logical id: " + updatedId);
 						id = updatedId;
-						// This can of course trigger a publish of the same file two 
-						//times if both the dependency and the parent has been modified.
 					}
 					
 					// Remove the filetype
@@ -135,7 +133,7 @@ public class ParseReportTask extends Task {
 					if(latestRev < rev){
 						latestRev = rev;
 					}
-					
+					// Make sure we don't publish the same item twice
 					if(parsedItems.indexOf(id + ";"+ name) == -1) {
 						// id is logical id and name is name without file end
 						parsedItems.add(id + ";"+ name);

@@ -23,11 +23,11 @@
     <taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.FindLatestRevisionTask"/>
     <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
-	
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
+
 
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
@@ -37,20 +37,17 @@
     <!-- Report query defaults-->
     <property name="username" value="report-read"/>
     <property name="password" value="read"/>
-    <property name="previousrevision" value="8667"/>
-    <property name="id" value="*td-spec-cur*"/>
     
     <!-- Will set ${previousrevision} -->
     <target name="getlatestrevision">
 	    <getrevision/>
 	    <echo message="${previousrevision}"/>
-	</target>
+	    <!-- The general query -->
+	    <property name="query" value="svnrevision:[${previousrevision} TO *] AND (id:*td-spec-cur* OR id:*td-xml/non-thg-swe*)"/>
+	</target>    
     
-    <!-- The general query -->
-    <property name="query" value="id:${id} AND svnrevision:[${previousrevision} TO *]"/>
     <property name="rows" value="2000"/>
     <property name="apiuri" value="/cms/rest/report/items"/>
-   
 	
 	<!-- Create a timestamp to use when creating path for output -->
 	<tstamp>
@@ -113,10 +110,10 @@
              			override="true"
              			casesensitive="false" />
              			 -->
-				<antcall target="publish">
-				     <param name="file" value="${file}"/>
-				     <param name="filename" value="${filename}"/>
-				     <param name="lang" value="${lang}"/>
+				<antcall target="publish">			
+				    <param name="file" value="${file}"/>
+				    <param name="filename" value="${filename}"/>
+				    <param name="lang" value="${lang}"/>
   				</antcall>
 			</sequential>
 		</for>
@@ -146,7 +143,6 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	§
 	   	   	<job filename="${filename}-${lang}_USL.pdf" >
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -206,19 +202,29 @@
 	   	   	</job>
 	   	   	
 	   	   </jobs>
-	   	   
-	   	   <!-- Params to the Publish Service (PE)
-	   	   <params>
-	   	       <param name="profile" value="${param.profile}"/>
-	   	       <param name="app-config" value="${param.app-config}"/>
-	   	       <param name="stylesheet" value="${param.stylesheet}"/>
-	   	       <param name="file" value="${param.file}"/>
-	   	       <param name="file-type" value="${param.file-type}"/>
-	   	   </params>
-	   	    -->
 	   	</publishrequest>
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
+	<target name="publishedreport">
+	    
+	     <for list="${publishedfiles}" delimiter="," param="values">
+			<sequential>
+			     <propertyregex property="file"
+              			input="@{values}"
+              			regexp="(.+);"
+             			select="\1"
+             			override="true"
+             			casesensitive="false" />
+			     <propertyregex property="filename"
+              			input="@{values}"
+              			regexp=";(.+)"
+             			select="\1"
+             			override="true"
+             			casesensitive="false" />
+				
+			</sequential>
+		</for>
+	</target>
 	
 </project>

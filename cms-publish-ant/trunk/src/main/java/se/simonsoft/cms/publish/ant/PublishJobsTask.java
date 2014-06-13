@@ -20,10 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -36,18 +33,17 @@ import org.apache.tools.ant.Task;
 
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
-import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 /*
- * Publish a report item to the number of outputs (jobs).
+ * Publish a an item to the number of outputs (jobs).
  * The task also manages the output and unzips jobs if requested. 
  * Perhaps working with the result should be another task later
  */
-public class PublishReportTask extends Task {
+public class PublishJobsTask extends Task {
 	protected ConfigsNode configs;
 	protected String publishservice;
 	protected JobsNode jobs;
@@ -173,8 +169,14 @@ public class PublishReportTask extends Task {
 		for (final JobNode job : jobs.getJobs()) {
 			// Create the request
 			PublishRequestDefault publishRequest = this.createRequestDefault(job.getParams());
+			
 			// Send the request
 			PublishTicket ticket = publishService.requestPublish(publishRequest);
+		
+			if(ticket == null){
+				log("Could not send request to PublishingEngine");
+				// Here we would like to output PE error.
+			}
 			// Store the request and id as a job
 			PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
 			// Save the job
@@ -222,8 +224,8 @@ public class PublishReportTask extends Task {
 				// For the type we create a publishformat to set (this is a fix, need to do this another way, by asking publish service)
 				if(param.getName().equals("type")) {
 					final String type = param.getValue();
-					log("Set type: " + param.getValue());
 					publishRequest.setFormat(this.publishService.getPublishFormat(param.getValue()));
+					log("publishRequest Format: " + publishRequest.getFormat().getFormat());
 				}
 				// For arbitrary params just add them
 				publishRequest.addParam	(param.getName(), param.getValue());
@@ -246,10 +248,11 @@ public class PublishReportTask extends Task {
 				boolean isComplete = false;
 				if(!publishJob.isCompleted()) {
 					isComplete = publishService.isCompleted(publishJob.getTicket(), publishJob.getPublishRequest());
-					log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
+					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
-						log("Ticket id: " + publishJob.getTicket().toString() +" completed");
+						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");
+						
 						completedCount++;
 					}
 				}

@@ -29,6 +29,11 @@ public class FindLatestRevisionTask extends Task {
 		String revision = "";
 		try {
 			revision = this.readRevisionFile();
+			// Modify revisionnumber to use the next iteration ie: 
+			// if last revision was 1000 we want to check for files with rev 1001 and onwards.
+			Long revisionNumber = Long.parseLong(revision);
+			revisionNumber = revisionNumber + 1;
+			revision = revisionNumber.toString();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -36,21 +41,25 @@ public class FindLatestRevisionTask extends Task {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		// Only set property if we've got a value
+		if(revision.equals("")) {
+			this.getProject().setProperty("previousrevision", revision);
+		}
 		
-		this.getProject().setProperty("previousrevision", revision);
 	}
 	
 	private String readRevisionFile() throws IOException
 	{
-		BufferedReader br = new BufferedReader(new FileReader("latestrev.txt"));
+		BufferedReader br = null;
 	
 	    try {
+	    	br = new BufferedReader(new FileReader("latestrev.txt"));
 	        StringBuilder sb = new StringBuilder();
 	        String firstline = br.readLine();
 	        return firstline;
 	    } catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	    	log("No latestrev.txt file found.");
+	    	//e.printStackTrace();
 		} finally {
 	        br.close();
 	    }
