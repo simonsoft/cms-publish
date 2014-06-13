@@ -31,9 +31,16 @@ public class FindLatestRevisionTask extends Task {
 			revision = this.readRevisionFile();
 			// Modify revisionnumber to use the next iteration ie: 
 			// if last revision was 1000 we want to check for files with rev 1001 and onwards.
+			log("revision:" + revision);
 			Long revisionNumber = Long.parseLong(revision);
 			revisionNumber = revisionNumber + 1;
 			revision = revisionNumber.toString();
+			log("revision after fix: " + revision);
+			// Only set property if we've got a value
+			
+			if(!revision.equals("")) {
+				this.getProject().setProperty("previousrevision", revision);
+			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -41,10 +48,7 @@ public class FindLatestRevisionTask extends Task {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// Only set property if we've got a value
-		if(revision.equals("")) {
-			this.getProject().setProperty("previousrevision", revision);
-		}
+		
 		
 	}
 	

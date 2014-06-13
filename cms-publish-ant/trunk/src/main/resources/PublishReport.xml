@@ -26,8 +26,6 @@
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
-	
-
 
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
