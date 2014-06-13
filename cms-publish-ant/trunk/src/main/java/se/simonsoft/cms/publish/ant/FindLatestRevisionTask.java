@@ -15,59 +15,46 @@
  */
 package se.simonsoft.cms.publish.ant;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Task;
 
 public class FindLatestRevisionTask extends Task {
 
 	public void execute() 
 	{
-		String revision = "";
-		try {
-			revision = this.readRevisionFile();
-			// Modify revisionnumber to use the next iteration ie: 
-			// if last revision was 1000 we want to check for files with rev 1001 and onwards.
-			log("revision:" + revision);
-			Long revisionNumber = Long.parseLong(revision);
-			revisionNumber = revisionNumber + 1;
-			revision = revisionNumber.toString();
-			log("revision after fix: " + revision);
-			// Only set property if we've got a value
-			
-			if(!revision.equals("")) {
-				this.getProject().setProperty("previousrevision", revision);
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		String revision = this.readRevisionFile();
+		// Modify revisionnumber to use the next iteration ie: 
+		// if last revision was 1000 we want to check for files with rev 1001 and onwards.
+		log("revision:" + revision);
+		
+		Long revisionNumber = Long.parseLong(revision);
+		revisionNumber = revisionNumber + 1;
+		revision = revisionNumber.toString();
+		log("revision after fix: " + revision);
+		
+		// Only set property if we've got a value
+		
+		if(!revision.equals("")) {
+			this.getProject().setProperty("previousrevision", revision);
 		}
-		
-		
 	}
 	
-	private String readRevisionFile() throws IOException
+	private String readRevisionFile()
 	{
-		BufferedReader br = null;
-	
-	    try {
-	    	br = new BufferedReader(new FileReader("latestrev.txt"));
-	        StringBuilder sb = new StringBuilder();
-	        String firstline = br.readLine();
-	        return firstline;
-	    } catch (IOException e) {
-	    	log("No latestrev.txt file found.");
-	    	//e.printStackTrace();
-		} finally {
-	        br.close();
-	    }
-		return "";
-	    
+		List<String> strings;
+		try {
+			strings = FileUtils.readLines(new File("latestrev.txt"), "utf-8");
+			// Get the first line only
+			return strings.get(0); 
+		} catch (IOException e) {
+			log("Could not read latestrev.txt: " + e.getMessage());
+			//e.printStackTrace();
+		}
+		// Failed to get anything from file
+		return ""; 
 	}
 }
