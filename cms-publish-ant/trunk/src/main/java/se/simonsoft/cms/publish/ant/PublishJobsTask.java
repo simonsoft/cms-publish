@@ -261,6 +261,7 @@ public class PublishJobsTask extends Task {
 				if(checks > 2000){
 					return false;
 				}
+				checks++;
 			}
 			// Are all jobs completed?
 			if(completedCount == this.publishedJobs.size()) {
