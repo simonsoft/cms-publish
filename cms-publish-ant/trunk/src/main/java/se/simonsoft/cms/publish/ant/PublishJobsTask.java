@@ -152,10 +152,11 @@ public class PublishJobsTask extends Task {
 			}
 			
 		} catch (InterruptedException e) {
-			
 			e.printStackTrace();
 		} catch (PublishException e) {
-			e.printStackTrace();
+			// Until we get a proper fail logging method in place bail out at first failed publish.
+			throw new BuildException("Publication Error, we did not get any valid result.", e);
+			
 		}
 	}
 	
