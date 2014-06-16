@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project name="PublishReport"  basedir="." default="parsereport" >
+<project name="PublishReport"  basedir="." default="publishreport" >
    	
    <!--  <stopwatch name="timer"/> -->
    
@@ -24,6 +24,8 @@
     <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
+	
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
@@ -39,7 +41,6 @@
     <!-- Will set ${previousrevision} -->
     <target name="getlatestrevision">
 	    <getrevision/>
-	    <echo message="${previousrevision}"/>
 	    <!-- The general query -->
 	    <property name="query" value="svnrevision:[${previousrevision} TO *] AND (id:*td-spec-cur* OR id:*td-xml/non-thg-swe*)"/>
 	</target>    
@@ -52,7 +53,7 @@
     	<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
   	</tstamp>
 	
-	
+
 	<target name="get-report">
 	    <getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
 	        <!-- Query params  -->
@@ -131,7 +132,7 @@
 	   	       <!-- Each job specifies the params for a publish request -->
 	   	      <!--   <job profile="${param.profile}" appconfig="${param.app-config}" stylesheet="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" type="pdf" file="${param.file}" filetype="${param.file-type}"/>-->
 	   	    
-	   	      <job filename="${filename}-${lang}_A4.pdf">
+	   	   	<job filename="${filename}-${lang}_A4.pdf">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
@@ -141,6 +142,7 @@
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
+	   	   	
 	   	   	<job filename="${filename}-${lang}_USL.pdf" >
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
@@ -159,7 +161,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
@@ -172,7 +174,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
@@ -194,7 +196,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.xml_files"/>
 		   	       	<param name="type" value="xml"/>
 	   	   		</params>
 	   	   	</job>
@@ -237,25 +239,8 @@
 	   	   	
 	</target>
 	
-	<target name="publishedreport">
-	    
-	     <for list="${publishedfiles}" delimiter="," param="values">
-			<sequential>
-			     <propertyregex property="file"
-              			input="@{values}"
-              			regexp="(.+);"
-             			select="\1"
-             			override="true"
-             			casesensitive="false" />
-			     <propertyregex property="filename"
-              			input="@{values}"
-              			regexp=";(.+)"
-             			select="\1"
-             			override="true"
-             			casesensitive="false" />
-				
-			</sequential>
-		</for>
+	<target name="publishreport" depends="parsereport">
+	     <publishreport/>
 	</target>
 	
 </project>

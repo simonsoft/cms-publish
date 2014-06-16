@@ -19,6 +19,7 @@
 <project name="PublishSingleTechSpec" basedir="." default="publish" >
 
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.PublishReportTask"/>
 	
 	 <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
@@ -65,7 +66,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
@@ -78,7 +79,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.html_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
 	   	   		</params>
@@ -100,19 +101,22 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
-		   	       	<param name="zip-graph-dir" value="${filename}-en-US.xml_files"/>
+		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.xml_files"/>
 		   	       	<param name="type" value="xml"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
-	   	   </jobs>
+	   	  </jobs>
+	   	   
 	   	</publishrequest>
-	   	
+	   	<!-- Get error report before copying -->
+		<publishreport/>
+		
 	   	<copy todir="${copytodir}" overwrite="true" force="true">
 	    	<resources>
 	      		<file file="export/${filename}-${lang}_xml.zip"/>
 	      		<file file="export/${filename}-${lang}.rtf"/>
-	      		<file file="export/${filename}-en-US.html_files"/>
+	      		<file file="export/${filename}-${lang}.html_files"/>
 	      		<file file="export/${filename}-${lang}.html"/>
 	      		<file file="export/${filename}-${lang}_USL.pdf"/>
 	      		<file file="export/${filename}-${lang}_A4.pdf"/>

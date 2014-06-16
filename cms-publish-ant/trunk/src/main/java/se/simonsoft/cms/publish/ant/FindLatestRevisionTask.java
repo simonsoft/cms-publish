@@ -32,10 +32,14 @@ public class FindLatestRevisionTask extends Task {
 		log("revision:" + revision);
 		
 		Long revisionNumber = Long.parseLong(revision);
-		revisionNumber = revisionNumber + 1;
-		revision = revisionNumber.toString();
-		log("revision after fix: " + revision);
 		
+		if(revision.equals("0")) {
+			revision = revisionNumber.toString();
+		}else{
+			revisionNumber = revisionNumber + 1;
+			revision = revisionNumber.toString();
+			log("Change to next revision: " + revision);
+		}
 		// Only set property if we've got a value
 		
 		if(!revision.equals("")) {
@@ -46,8 +50,15 @@ public class FindLatestRevisionTask extends Task {
 	private String readRevisionFile()
 	{
 		List<String> strings;
+		
+		if(!FileUtils.getFile("latestrev.txt").exists()){
+			log("No previois latestrev.txt file. Returning rev 0 as default");
+			return "0";
+		}
+		
 		try {
 			strings = FileUtils.readLines(new File("latestrev.txt"), "utf-8");
+			
 			// Get the first line only
 			return strings.get(0); 
 		} catch (IOException e) {

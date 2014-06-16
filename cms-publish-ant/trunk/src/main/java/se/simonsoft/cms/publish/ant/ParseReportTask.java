@@ -22,9 +22,11 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Task;
 
 import org.json.simple.JSONArray;
@@ -93,13 +95,13 @@ public class ParseReportTask extends Task {
 				while (iterator.hasNext()) 
 				{
 					JSONObject item = iterator.next();
-					//JSONObject prop = (JSONObject) item.get("prop");
+					JSONObject prop = (JSONObject) item.get("prop");
 					JSONObject commit = (JSONObject) item.get("commit");
 					
 					Long rev = (Long) commit.get("rev");
 					// Properties we want to work with soon:
-					//String lang = (String) prop.get("abx:lang");
-					//String status = (String) prop.get("cms:status");
+					String lang = (String) prop.get("abx:lang");
+					String status = (String) prop.get("cms:status");
 					String id = (String) item.get("logical");
 					String name = (String) item.get("name");
 					
@@ -138,6 +140,8 @@ public class ParseReportTask extends Task {
 						// id is logical id and name is name without file end
 						parsedItems.add(id + ";"+ name);
 						log("id:" + id + " name: " + name);
+						// A test, for each item we find send it to publish
+						//this.passToPublish(id, name, lang, status);
 					}
 					
 					// id is logical id and name is name without file end
@@ -155,20 +159,42 @@ public class ParseReportTask extends Task {
 		return null;
 	}
 	
+	// Test to see if we how we can call other targets with properties
+	private void passToPublish(String filename, String file, String lang, String status)
+	{
+		this.getProject().setProperty("filename", filename);
+		this.getProject().setProperty("file", file);
+		this.getProject().setProperty("lang", lang);
+		this.getProject().setProperty("status", status);
+		this.getProject().executeTarget("publish");
+		
+	}
+	
 	/*
 	 * We store the latest revison for the next report request.
 	 * This might be a stupid way of going about this. Can we ask the report API for modified date instead? I can't find that at least.
 	 */
 	private void storeLatestRevision(Long revision){
-		
+	
 		// Create the file
 		File revFile = new File(revStoreFileName);
+		
+		// If we already have a revStore make sure we don't overwrite with 0
+		if(revFile.exists()){
+			
+			if(revision.equals(0L)) {
+				// Keep the previous revision.
+				log("Keep current revision");
+				return;
+			}
+		}
+		
 		BufferedWriter writer = null;
 		try {
 			// Add the rev, overwrites if exist
 			writer = new BufferedWriter(new FileWriter(revFile));
 			writer.write(revision.toString());
-			writer.write("\n!!! NEVER EDIT THIS FILE !!!");
+			writer.write("\n!!! NEVER EDIT THIS FILE MANUALLY !!!");
 			
 		} catch (IOException e) {
 			e.printStackTrace();

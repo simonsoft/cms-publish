@@ -153,11 +153,16 @@ public class PublishJobsTask extends Task {
 			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (PublishException e) {
+		}
+		/*
+		 catch (PublishException e) {
+		 
+			
 			// Until we get a proper fail logging method in place bail out at first failed publish.
-			throw new BuildException("Publication Error, we did not get any valid result.", e);
+			//throw new BuildException("Publication Error, we did not get a valid result from Publishing Engine.\n" + e.getMessage(), e);
 			
 		}
+		//*/
 	}
 	
 	/*
@@ -209,10 +214,6 @@ public class PublishJobsTask extends Task {
 				log("Params: " + param.getName() + ":" + param.getValue());
 				if(param.getName().equals("file")) {
 					// We remove the .xml file ending for naming convention.
-					// This is specific to customer, and might be part of parsed report later when 
-					//  use CMS Item Objects instead
-					// TODO remove this naming convention to a better suited place
-					//String slices[] = param.getValue().split(".");
 					
 					// TODO set correct publish source (now we default to cmsitem)
 					// Should set this as a parameter to the job?
@@ -276,13 +277,43 @@ public class PublishJobsTask extends Task {
 	/*
 	 * Downloads the result from PE
 	 */
-	private void getResult() throws PublishException {
+	private void getResult() {
 		log("Getting the results");
 		for (PublishJob publishJob : this.publishedJobs) {
-			this.publishService.getResultStream(publishJob.getTicket(), publishJob.getPublishRequest(), this.resultLocation(publishJob.getFilename()));
+			try {
+				this.publishService.getResultStream(publishJob.getTicket(), publishJob.getPublishRequest(), this.resultLocation(publishJob.getFilename()));
+			} catch (PublishException e) {
+				log("Ticket: " + publishJob.getTicket().toString() + " failed with file: " + publishJob.getPublishRequest().getFile().getURI());
+				this.addToErrorLog("Ticket: " + publishJob.getTicket().toString() + " failed with file: " + publishJob.getPublishRequest().getFile().getURI() + "\n");
+			
+				// TODO Auto-generated catch block
+				//e.printStackTrace();
+			}
 		}
 	}
 	
+	private void addToErrorLog(String error){
+	
+		try {
+			FileUtils.writeStringToFile(new File("errors.log"), error, "utf-8", true);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		/*
+		// Properties are immutable but we don't care.
+		String previousErrors = this.getProject().getProperty("errors");
+		
+		if(previousErrors == null){
+			log("error: " + error);
+			this.getProject().setNewProperty("errors", error);
+		}else {
+			log("error with previous: " + error + " prev: " + previousErrors);
+			this.getProject().setProperty("errors", previousErrors + "," + error);
+			log("Have we set property?: " + this.getProject().getProperty("errors"));
+		}
+		//*/
+	}
 	/*
 	 *  Get the location to store the result in
 	 */
@@ -317,7 +348,7 @@ public class PublishJobsTask extends Task {
 		return outputStream;
 	}
 	
-	/*
+	/* TODO: Should all this file management be a another Task instead? I think so.
 	 * Loops over the jobs and the result to unzip the archives 
 	 * that needs to be delivered as folders.
 	 */
