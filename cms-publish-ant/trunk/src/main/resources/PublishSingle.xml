@@ -23,7 +23,7 @@
 	 <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
    	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
-   	
+ 	
 	<target name="publish" description="Publish an item">
 		
 	   	<publishrequest publishservice="${publishservice}" outputfolder="export">
@@ -94,7 +94,7 @@
 	   	   		</params>
 	   	   	</job>
 	   	   	
-	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
+	   	   	<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="file" value="${file}"/>
@@ -107,6 +107,19 @@
 	   	   	
 	   	   </jobs>
 	   	</publishrequest>
+	   	
+	   	<copy todir="${copytodir}" overwrite="true" force="true">
+	    	<resources>
+	      		<file file="export/${filename}-${lang}_xml.zip"/>
+	      		<file file="export/${filename}-${lang}.rtf"/>
+	      		<file file="export/${filename}-en-US.html_files"/>
+	      		<file file="export/${filename}-${lang}.html"/>
+	      		<file file="export/${filename}-${lang}_USL.pdf"/>
+	      		<file file="export/${filename}-${lang}_A4.pdf"/>
+	      		<file file="export/${filename}-${lang}_html.zip"/>
+	    	</resources>
+ 		 </copy>
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
+	
 </project>

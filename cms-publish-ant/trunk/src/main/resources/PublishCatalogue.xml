@@ -41,29 +41,37 @@
 	   	       <!-- Each job specifies the params for a publish request -->
 	   	      <!--   <job profile="${param.profile}" appconfig="${param.app-config}" stylesheet="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" type="pdf" file="${param.file}" filetype="${param.file-type}"/>-->
 	   	    
-	   	      <job filename="${filename}_A4.pdf">
+	   	      <job filename="Catalog_A4.pdf">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_A4.style"/>
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	<job filename="${filename}_USL.pdf" >
+	   	   	<job filename="Catalog_USL.pdf" >
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_letter.style"/>
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
 	   	   		</params>
 	   	   	</job>
-	   	   	
+	   	 
 	   	   </jobs>
 	   	</publishrequest>
+	   	
+	   	<copy todir="${copytodir}" overwrite="true" force="true">
+	    	<resources>
+	      		<file file="export/Catalog_A4.pdf"/>
+	      		<file file="export/Catalog_USL.pdf"/>
+	    	</resources>
+ 		 </copy>
+ 		 
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>	
 </project>

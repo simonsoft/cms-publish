@@ -188,7 +188,7 @@
 	   	   		</params>
 	   	   	</job>
 	   	   	
-	   	   	<job filename="${filename}-${lang}.xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
+	   	   	<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="file" value="${file}"/>
@@ -202,6 +202,39 @@
 	   	   </jobs>
 	   	</publishrequest>
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
+	</target>
+	
+	<!-- Publish the catalogues when specs are done -->
+	<target name="publishcatalogue">
+		<publishrequest publishservice="${publishservice}" outputfolder="export">
+			
+			<!-- Should perhaps also have config for port and uri -->
+	   		<configs>
+	   	    	<config name="host" value="${config.host}"/>
+	   	   	</configs>
+	   	   	
+	    	<job filename="Catalog_A4.pdf">
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_A4.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="type" value="pdf"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	<job filename="Catalog_USL.pdf" >
+	   	      	<params>
+		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
+		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
+		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_letter.style"/>
+		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="type" value="pdf"/>
+	   	   		</params>
+	   	   	</job>
+		</publishrequest>
+	   	   	
 	</target>
 	
 	<target name="publishedreport">
