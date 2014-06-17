@@ -260,9 +260,11 @@ public class PublishJobsTask extends Task {
 				}
 				// Timeout. This is an arbitrary number. What should count as a timeout?
 				// TODO timeout?
+				/*
 				if(checks > 2000){
 					return false;
 				}
+				//*/
 				checks++;
 			}
 			// Are all jobs completed?
