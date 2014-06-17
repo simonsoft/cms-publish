@@ -27,7 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
-public class PublishReportTask extends Task {
+public class ErrorReportTask extends Task {
 
 	public void execute()
 	{

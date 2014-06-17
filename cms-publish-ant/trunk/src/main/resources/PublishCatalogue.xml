@@ -21,6 +21,8 @@
    <!--  <stopwatch name="timer"/> -->
    
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.ErrorReportTask"/>
+	
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
@@ -65,6 +67,9 @@
 	   	   </jobs>
 	   	</publishrequest>
 	   	
+	   	<!-- Get error report before copying -->
+		<publishreport/>
+		
 	   	<copy todir="${copytodir}" overwrite="true" force="true">
 	    	<resources>
 	      		<file file="export/Catalog_A4.pdf"/>
