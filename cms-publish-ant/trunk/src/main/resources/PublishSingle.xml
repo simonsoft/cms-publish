@@ -19,6 +19,7 @@
 <project name="PublishSingleTechSpec" basedir="." default="publish" >
 
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
+	<taskdef name="copyresult" classname="se.simonsoft.cms.publish.ant.CopyDirToDirTask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.ErrorReportTask"/>
 	
 	 <!-- Some default properties -->
@@ -120,18 +121,11 @@
 	   	<!-- Get error report before copying -->
 		<publishreport/>
 		
-		 <!-- Copy to manual folder -->
-	   	<copy todir="${copytodir}" overwrite="true" force="true">
-	    	<resources>
-	      		<file file="export/${filename}-${lang}_xml.zip"/>
-	      		<file file="export/${filename}-${lang}.rtf"/>
-	      		<file file="export/${filename}-${lang}.html_files"/>
-	      		<file file="export/${filename}-${lang}.html"/>
-	      		<file file="export/${filename}-${lang}_USL.pdf"/>
-	      		<file file="export/${filename}-${lang}_A4.pdf"/>
-	      		<file file="export/${filename}-${lang}_html.zip"/>
-	    	</resources>
- 		 </copy>
+		<!-- Copy to manual folder -->
+		<copy todir="${destdir}" overwrite="true" force="true">
+	    	<fileset dir="${sourcedir}"/>
+	    </copy>
+
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	

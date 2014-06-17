@@ -27,7 +27,8 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
    	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
-
+	<property name="param.queue-priority" value="4"/> <!-- We use a lower priority so other requests should be able to pass -->
+	
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
 	
 	<target name="publish" description="Publish an item">
@@ -51,6 +52,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	<job filename="Catalog_USL.pdf" >
@@ -61,6 +63,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	 

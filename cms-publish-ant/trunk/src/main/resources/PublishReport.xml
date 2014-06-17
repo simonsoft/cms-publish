@@ -33,6 +33,7 @@
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
    	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
+   	<property name="param.queue-priority" value="4"/> <!-- We use a lower priority so other requests should be able to pass -->
 
     <!-- Report query defaults-->
     <property name="username" value="report-read"/>
@@ -140,6 +141,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
@@ -151,6 +153,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
@@ -164,6 +167,7 @@
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
@@ -177,6 +181,7 @@
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
 		   	       	<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
 		   	       	<param name="type" value="html"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	 
@@ -187,6 +192,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="rtf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
@@ -198,6 +204,7 @@
 		   	       	<param name="zip-output" value="yes"/>
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.xml_files"/>
 		   	       	<param name="type" value="xml"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	
@@ -226,6 +233,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 	   	   	<job filename="Catalog_USL.pdf" >
@@ -236,6 +244,7 @@
 		   	       	<param name="file" value="${file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
 	   	   		</params>
 	   	   	</job>
 		</publishrequest>
