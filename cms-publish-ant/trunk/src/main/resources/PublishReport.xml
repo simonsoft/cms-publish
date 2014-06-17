@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project name="PublishReport"  basedir="." default="publishreport" >
+<project name="PublishReport"  basedir="." default="delete" >
    	
    <!--  <stopwatch name="timer"/> -->
    
@@ -90,26 +90,6 @@
              			override="true"
              			casesensitive="false" />
 			     
-			     <!-- 
-			     <propertyregex property="file"
-              			input="@{values}"
-              			regexp="[^;]+"
-             			select="\1"
-             			override="true"
-             			casesensitive="false" />
-			     <propertyregex property="filename"
-              			input="@{values}"
-              			regexp="[^;]+"
-             			select="\2"
-             			override="true"
-             			casesensitive="false" />
-			     <propertyregex property="lang"
-              			input="@{values}"
-              			regexp="[^;]+"
-             			select="\3"
-             			override="true"
-             			casesensitive="false" />
-             			 -->
 				<antcall target="publish">			
 				    <param name="file" value="${file}"/>
 				    <param name="filename" value="${filename}"/>
@@ -248,13 +228,24 @@
 	   	   		</params>
 	   	   	</job>
 		</publishrequest>
-	   	
-		
-			
 	</target>
 	
 	<target name="publishreport" depends="parsereport">
 	     <publishreport/>
 	</target>
+	
+	<!-- Copy export contents to delta folder -->
+	<target name="copy" depends="publishreport">
+		<copy todir="${destdir}" overwrite="true" force="true">
+			<fileset dir="${sourcedir}"/>
+		</copy>
+	</target>
+	
+	<!-- Delete export -->
+	<target name="delete" depends="copy">
+	    <delete dir="${sourcedir}"/>
+	</target>
+	    
+	
 	
 </project>
