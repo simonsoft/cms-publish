@@ -154,15 +154,6 @@ public class PublishJobsTask extends Task {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		/*
-		 catch (PublishException e) {
-		 
-			
-			// Until we get a proper fail logging method in place bail out at first failed publish.
-			//throw new BuildException("Publication Error, we did not get a valid result from Publishing Engine.\n" + e.getMessage(), e);
-			
-		}
-		//*/
 	}
 	
 	/*
@@ -253,13 +244,12 @@ public class PublishJobsTask extends Task {
 					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
-						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");
-						
+						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
 						completedCount++;
 					}
 				}
 				// Timeout. This is an arbitrary number. What should count as a timeout?
-				// TODO timeout?
+				// TODO timeout at all?
 				/*
 				if(checks > 2000){
 					return false;
@@ -282,18 +272,22 @@ public class PublishJobsTask extends Task {
 	private void getResult() {
 		log("Getting the results");
 		for (PublishJob publishJob : this.publishedJobs) {
-			try {
+			try {	
 				this.publishService.getResultStream(publishJob.getTicket(), publishJob.getPublishRequest(), this.resultLocation(publishJob.getFilename()));
 			} catch (PublishException e) {
-				log("Ticket: " + publishJob.getTicket().toString() + " failed with file: " + publishJob.getPublishRequest().getFile().getURI());
-				this.addToErrorLog("Ticket: " + publishJob.getTicket().toString() + " failed with file: " + publishJob.getPublishRequest().getFile().getURI() + "\n");
-			
-				// TODO Auto-generated catch block
-				//e.printStackTrace();
+				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + publishJob.getPublishRequest().getFile().getURI());
+				
+				this.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + ". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + " with errors: " + e.getMessage() + "\n");
+				// Let's also remove the output
+				this.deleteFile(new File(outputfolder + "/" + publishJob.getFilename()));
+				
 			}
 		}
 	}
 	
+	/*
+	 * Write errors to our error log file
+	 */
 	private void addToErrorLog(String error){
 	
 		try {
@@ -302,20 +296,8 @@ public class PublishJobsTask extends Task {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		/*
-		// Properties are immutable but we don't care.
-		String previousErrors = this.getProject().getProperty("errors");
-		
-		if(previousErrors == null){
-			log("error: " + error);
-			this.getProject().setNewProperty("errors", error);
-		}else {
-			log("error with previous: " + error + " prev: " + previousErrors);
-			this.getProject().setProperty("errors", previousErrors + "," + error);
-			log("Have we set property?: " + this.getProject().getProperty("errors"));
-		}
-		//*/
 	}
+	
 	/*
 	 *  Get the location to store the result in
 	 */

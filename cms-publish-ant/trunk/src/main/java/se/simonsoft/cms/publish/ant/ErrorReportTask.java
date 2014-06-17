@@ -48,15 +48,15 @@ public class ErrorReportTask extends Task {
 		List<String> errors;
 		
 		try {
-			//File errorslog = FileUtils.getFile("errors.log");
-			/*
+			File errorslog = new File("errors.log"); 
+			//*
 			if(!errorslog.exists()) {
-				
+				errorslog.createNewFile();
 			}
-			*/
-			errors = FileUtils.readLines(new File("errors.log"), "utf-8");
-			
-			if(errors != null) {
+			//*/
+			errors = FileUtils.readLines(errorslog, "utf-8");
+			// If we have any errors to show, log them out
+			if(errors != null && errors.size() > 0) {
 				log("Found " + errors.size() +" error(s)");
 				for(String error: errors) {
 					log(error);
