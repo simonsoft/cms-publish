@@ -245,7 +245,5 @@
 	<target name="delete" depends="copy">
 	    <delete dir="${sourcedir}"/>
 	</target>
-	    
-	
-	
+
 </project>

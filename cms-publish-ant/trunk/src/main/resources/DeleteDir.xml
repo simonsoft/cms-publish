@@ -16,10 +16,15 @@
     limitations under the License.
 
 -->
-<project name="DeleteDir" basedir="." default="copy">
+<project name="DeleteDir" basedir="." default="delete">
 	
 	<target name="delete" description="Deletes a directory">
-		<delete dir="${dirtodelete}"/>
+	    <!-- Delete the contents of dirtodelete -->
+		<delete>
+		    <fileset dir="${dirtodelete}">
+      			<include name="**/*"/>
+   			</fileset>
+		</delete>
 	</target>
 	
 </project>

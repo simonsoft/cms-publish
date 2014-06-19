@@ -124,7 +124,11 @@
 		<copy todir="${destdir}" overwrite="true" force="true">
 	    	<fileset dir="${sourcedir}"/>
 	    </copy>
-
+	    
+	    <!-- Delete export -->
+		<delete dir="${sourcedir}"/>
+		
+	
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	

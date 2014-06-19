@@ -32,7 +32,7 @@ public class FindLatestRevisionTask extends Task {
 		log("revision:" + revision);
 		
 		Long revisionNumber = Long.parseLong(revision);
-		
+		/*
 		if(revision.equals("0")) {
 			revision = revisionNumber.toString();
 		}else{
@@ -40,6 +40,9 @@ public class FindLatestRevisionTask extends Task {
 			revision = revisionNumber.toString();
 			log("Change to next revision: " + revision);
 		}
+		//*/
+		revision = revisionNumber.toString();
+		
 		// Only set property if we've got a value
 		
 		if(!revision.equals("")) {
