@@ -16,15 +16,20 @@
     limitations under the License.
 
 -->
-<project name="DeleteDir" basedir="." default="delete">
+<project name="DeleteADir" basedir="." default="delete">
 	
+    <taskdef name="deletedir" classname="se.simonsoft.cms.publish.ant.DeleteDirTask"/>
+    
 	<target name="delete" description="Deletes a directory">
 	    <!-- Delete the contents of dirtodelete -->
+		<deletedir directory="${dirtodelete}"/>
+		    <!-- 
 		<delete>
 		    <fileset dir="${dirtodelete}">
       			<include name="**/*"/>
    			</fileset>
 		</delete>
+		 -->
 	</target>
 	
 </project>
