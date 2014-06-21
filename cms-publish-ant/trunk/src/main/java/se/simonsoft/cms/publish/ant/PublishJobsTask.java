@@ -173,13 +173,13 @@ public class PublishJobsTask extends Task {
 			if(ticket == null){
 				log("Could not send request to PublishingEngine");
 				// Here we would like to output PE error.
+				this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
+			}else {
+				// Store the request and id as a job
+				PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
+				// Save the job
+				this.publishedJobs.add(publishJob);
 			}
-			// Store the request and id as a job
-			PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
-			// Save the job
-			this.publishedJobs.add(publishJob);
-			
-			log("Publish request id: " + ticket.toString());
 		}
 	}
 	
