@@ -97,6 +97,7 @@
   				</antcall>
 			</sequential>
 		</for>
+		<antcall target="publishcatalogue"/>
 		<!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
