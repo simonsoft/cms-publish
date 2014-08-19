@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project name="PublishReport"  basedir="." default="delete" >
+<project name="PublishReport"  basedir=".">
    	
    <!--  <stopwatch name="timer"/> -->
    
@@ -44,7 +44,7 @@
 	    <getrevision/>
 	    <!-- The general query -->
 	    <property name="query" value="svnrevision:[${previousrevision} TO *] AND (id:*td-spec-cur* OR id:*td-xml/non-thg-swe*)"/>
-	</target>    
+	</target>
     
     <property name="rows" value="2000"/>
     <property name="apiuri" value="/cms/rest/report/items"/>
@@ -97,7 +97,7 @@
   				</antcall>
 			</sequential>
 		</for>
-		<antcall target="publishcatalogue"/>
+		<!-- <antcall target="publishcatalogue"/> -->
 		<!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
@@ -236,14 +236,14 @@
 	</target>
 	
 	<!-- Copy export contents to delta folder -->
-	<target name="copy" depends="publishreport">
+	<target name="copy">
 		<copy todir="${destdir}" overwrite="true" force="true">
 			<fileset dir="${sourcedir}"/>
 		</copy>
 	</target>
 	
 	<!-- Delete export -->
-	<target name="delete" depends="copy">
+	<target name="delete">
 	    <delete dir="${sourcedir}"/>
 	</target>
 
