@@ -36,6 +36,8 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
+import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.JobNode;
 import se.simonsoft.cms.publish.ant.nodes.JobsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;

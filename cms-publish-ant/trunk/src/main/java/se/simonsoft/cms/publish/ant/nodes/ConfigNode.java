@@ -13,31 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.nodes;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ConfigsNode {
+public class ConfigNode {
 	
-	protected List<ConfigNode> configs = new ArrayList<ConfigNode>();
+	protected String name;
+	protected String value;
 
-	public ConfigsNode() {
+	public ConfigNode() {
 		super();
 	}
-	
-	  public void addConfig(final ConfigNode config) {
-	    configs.add(config);
-	  }
-	
-	  public List<ConfigNode> getConfigs() {
-	    return configs;
-	  }
-	
-	  public boolean isValid() {
-	    if (configs.size() > 0) {
-	      return true;
-	    }
-	    return false;
-	  }
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(final String value) {
+		this.value = value;
+	}
 }

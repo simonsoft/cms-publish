@@ -34,6 +34,7 @@ import se.repos.restclient.RestResponseAccept;
 import se.repos.restclient.auth.RestAuthenticationSimple;
 import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
+import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 /*
