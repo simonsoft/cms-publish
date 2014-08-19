@@ -13,31 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.nodes;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * @author joakimdurehed
+ *
+ */
+public class ParamNode {
+	protected String name;
+	protected String value;
 
-public class JobsNode {
-
-	protected List<JobNode> jobs = new ArrayList<JobNode>();
-
-	public JobsNode() {
+	public ParamNode() {
 		super();
 	}
 
-	public void addJob(final JobNode job) {
-		jobs.add(job);
+	public String getName() {
+		return name;
 	}
 
-	public List<JobNode> getJobs() {
-		return jobs;
+	public void setName(final String name) {
+		this.name = name;
 	}
 
-	public boolean isValid() {
-		if (jobs.size() > 0) {
-			return true;
-		}
-		return false;
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(final String value) {
+		this.value = value;
 	}
 }

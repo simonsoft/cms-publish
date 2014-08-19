@@ -36,6 +36,10 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+import se.simonsoft.cms.publish.ant.nodes.JobNode;
+import se.simonsoft.cms.publish.ant.nodes.JobsNode;
+import se.simonsoft.cms.publish.ant.nodes.ParamNode;
+import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 /*
@@ -52,7 +56,6 @@ public class PublishJobsTask extends Task {
 	private ArrayList<PublishJob> publishedJobs;
 	private PublishServicePe publishService;
 	protected boolean fail;
-	
 	
 	/**
 	 * @return the outputfolder

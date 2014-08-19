@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.nodes;
 
 /*
  * Object that have necessary information about whats unique for a specific publishjob

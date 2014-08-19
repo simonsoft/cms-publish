@@ -34,6 +34,8 @@ import se.repos.restclient.RestResponseAccept;
 import se.repos.restclient.auth.RestAuthenticationSimple;
 import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
+import se.simonsoft.cms.publish.ant.nodes.ParamNode;
+import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 /*
  * Sends request to CMS reporting 1.0 and sets the response as ant property
  * Uses JREs default jks for SSL
