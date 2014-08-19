@@ -20,11 +20,11 @@
    	
    <!--  <stopwatch name="timer"/> -->
    
-    <taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.FindLatestRevisionTask"/>
-    <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.RequestReportTask"/>
+    <taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.tasks.FindLatestRevisionTask"/>
+    <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.ParseReportTask"/>
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
-	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.ErrorReportTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.tasks.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
 	
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>

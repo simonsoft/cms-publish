@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.tasks;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;

@@ -18,8 +18,8 @@
 -->
 <project name="PublishSingleTechSpec" basedir="." default="publish" >
 
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishJobsTask"/>
-	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.ErrorReportTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.tasks.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
 	
 	 <!-- Some default properties -->
    	<property name="lang" value="en-US"/>

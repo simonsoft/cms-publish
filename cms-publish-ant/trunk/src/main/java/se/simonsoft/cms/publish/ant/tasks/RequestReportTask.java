@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.tasks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -201,16 +201,16 @@ public class RequestReportTask extends Task {
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
 				// Adding the query (query is mandatory)
-				if(param.name.equals("q")){
-					uri.append("?q=" + urlencode(param.value));
+				if(param.getName().equals("q")){
+					uri.append("?q=" + urlencode(param.getValue()));
 				}
 				// Adding rows
-				if(param.name.equals("rows")){
-					uri.append("&rows=" + param.value);
+				if(param.getName().equals("rows")){
+					uri.append("&rows=" + param.getValue());
 				}
 				
-				if(param.name.equals("start")){
-					uri.append("&start=" + param.value);
+				if(param.getName().equals("start")){
+					uri.append("&start=" + param.getValue());
 				}
 			}
 		}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.tasks;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +36,7 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+import se.simonsoft.cms.publish.ant.PublishJob;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.JobNode;
