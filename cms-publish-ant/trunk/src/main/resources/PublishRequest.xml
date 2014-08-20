@@ -21,6 +21,7 @@
    <!--  <stopwatch name="timer"/> -->
   
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
+	<taskdef name="repackage" classname="se.simonsoft.cms.publish.ant.RepackageTask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
 	
     <!-- Some default properties -->
@@ -38,25 +39,40 @@
 	   	   </configs>
 	   	   
 	   	   <jobs>
-	   	       <!-- Each job specifies the params for a publish request -->
-	   	      <!--   <job profile="${param.profile}" appconfig="${param.app-config}" stylesheet="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" type="pdf" file="${param.file}" filetype="${param.file-type}"/>-->
-	   	    
-	   	   	<job filename="${filename}">
-	   	      	<params>
-		   	       	<param name="profile" value="${param.profile}"/>
-		   	       	<param name="app-config" value="${param.app-config}"/>
-		   	       	<param name="stylesheet" value="${param.stylesheet}"/>
-		   	       	<param name="file" value="${param.file}"/>
-		   	       	<param name="file-type" value="${param.file-type}"/>
-		   	       	<param name="type" value="${param.type}"/>
-		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
-	   	   		</params>
-	   	   	</job>
-	   	   	
-	   	   </jobs>
+		   		<!-- Each job specifies the params for a publish request -->
+		   	    
+		   	   	<job filename="${filename}" zipoutput="${zipoutput}" rootfilename="${zip-root-filename">
+		   	    	<params>
+			   	       	<param name="profile" value="${param.profile}"/>
+			   	       	<param name="app-config" value="${param.app-config}"/>
+			   	       	<param name="stylesheet" value="${param.stylesheet}"/>
+			   	       	<param name="file" value="${param.file}"/>
+			   	       	<param name="file-type" value="${param.file-type}"/>
+		   	     		<param name="zip-output" value="${param.zip-output}"/>
+		   	     		<param name="zip-graph-dir" value="${param.zip-graph-dir}"/>
+		   	     		<param name="graphic-transform" value="${param.graphic-transform}"/>
+			   	       	<param name="type" value="${param.type}"/>
+			   	       	<param name="queue-priority" value="${param.queue-priority}"/>
+		   	   		</params>
+		   	   	</job>
+	   	   	</jobs>
+	   		
+	   		<antcall target="repackage">
+	   			<param name="file" value="${file}"/>
+	   			<param name="filename" value="${filename}"/>
+	   			<param name="type" value="${param.type}"/>
+	   			<param name="zip-output" value="${param.zip-output}"/>
+	   			<param name="lang" value="${lang}"/>
+	   			<param name="export" value="${lang}"/>
+	   			<param name="zipped" value="${zipoutput}"/>
+	   			<param name="rootfilename" value="${zip-root-filename"/>
+	   		</antcall>
 	   	</publishrequest>
 	   
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
+	</target>
+	<target name="repackage">
+		<repackage/>
 	</target>
 	
 	<target name="publishreport" depends="publish">

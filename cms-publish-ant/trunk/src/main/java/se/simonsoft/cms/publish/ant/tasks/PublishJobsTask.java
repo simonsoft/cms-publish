@@ -173,6 +173,7 @@ public class PublishJobsTask extends Task {
 		this.publishedJobs = new ArrayList<PublishJob>();
 		
 		for (final JobNode job : jobs.getJobs()) {
+			log("Add job " + job.getFilename() + " to list of jobs");
 			this.publishJob(job);
 		}
 	}
@@ -180,6 +181,7 @@ public class PublishJobsTask extends Task {
 	
 	private void publishJob(JobNode job)
 	{
+		log("Preparing PublishRequest");
 		// Create the request
 		PublishRequestDefault publishRequest = this.createRequestDefault(job.getParams());
 
@@ -191,6 +193,7 @@ public class PublishJobsTask extends Task {
 			// Here we would like to output PE error.
 			this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
 		}else {
+			log("PublishRequest sent to PublishService. Recievewd ticket: " + ticket.toString());
 			// Store the request and id as a job
 			PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
 			// Save the job

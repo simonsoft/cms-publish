@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -121,13 +122,23 @@ public class FileManagementHelper {
 		logger.debug("end");
 	}
 
-
+	
+	/*
+	 * Method that will zip file/dir
+	 */
+	public void zip(String zipFile, String sourceFolder) {
+		List<String> fileList = new ArrayList<String>();
+		
+		this.zipFile(fileList, zipFile, sourceFolder);
+	}
+	
+	
 	/**
 	 * Zip it
 	 * @param zipFile output ZIP file location
 	 * Modified from http://www.mkyong.com/java/how-to-compress-files-in-zip-format/
 	 */
-	public void zip(List<String> fileList, String zipFile, String sourceFolder){
+	private void zipFile(List<String> fileList, String zipFile, String sourceFolder) {
 
 		byte[] buffer = new byte[1024];
 
