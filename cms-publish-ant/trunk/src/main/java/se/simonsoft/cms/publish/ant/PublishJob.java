@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.ant;
 
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.ant.nodes.JobNode;
 /*
  * A single PublishJob
  */
@@ -25,6 +26,7 @@ public class PublishJob {
 	private PublishRequest publishRequest;
 	private String filename;
 	private boolean completed = false;
+	private JobNode job;
 	
 	
 	public PublishJob(PublishTicket ticket, PublishRequest publishRequest, String filename)

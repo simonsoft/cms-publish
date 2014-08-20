@@ -191,44 +191,8 @@
 	   	   	
 	   	   </jobs>
 	   	</publishrequest>
-	   	
-	   	
-	   	
+	   
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
-	</target>
-	
-	<!-- Publish the catalogues when specs are done -->
-	<target name="publishcatalogue">
-		<publishrequest publishservice="${publishservice}" outputfolder="export">
-			
-			<!-- Should perhaps also have config for port and uri -->
-	   		<configs>
-	   	    	<config name="host" value="${config.host}"/>
-	   	   	</configs>
-	   	   	
-	    	<job filename="Catalog_A4.pdf">
-	   	      	<params>
-		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_A4.style"/>
-		   	       	<param name="file" value="${file}"/>
-		   	       	<param name="file-type" value="${param.file-type}"/>
-		   	       	<param name="type" value="pdf"/>
-		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
-	   	   		</params>
-	   	   	</job>
-	   	   	<job filename="Catalog_USL.pdf" >
-	   	      	<params>
-		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/prod_catalog_letter.style"/>
-		   	       	<param name="file" value="${file}"/>
-		   	       	<param name="file-type" value="${param.file-type}"/>
-		   	       	<param name="type" value="pdf"/>
-		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
-	   	   		</params>
-	   	   	</job>
-		</publishrequest>
 	</target>
 	
 	<target name="publishreport" depends="parsereport">

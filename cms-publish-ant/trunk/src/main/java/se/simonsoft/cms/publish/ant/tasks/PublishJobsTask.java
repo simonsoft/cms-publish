@@ -170,25 +170,30 @@ public class PublishJobsTask extends Task {
 		this.publishedJobs = new ArrayList<PublishJob>();
 		
 		for (final JobNode job : jobs.getJobs()) {
-			// Create the request
-			PublishRequestDefault publishRequest = this.createRequestDefault(job.getParams());
-			
-			// Send the request
-			PublishTicket ticket = publishService.requestPublish(publishRequest);
-		
-			if(ticket == null){
-				log("Could not send request to PublishingEngine");
-				// Here we would like to output PE error.
-				this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
-			}else {
-				// Store the request and id as a job
-				PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
-				// Save the job
-				this.publishedJobs.add(publishJob);
-			}
+			this.publishJob(job);
 		}
 	}
 	
+	
+	private void publishJob(JobNode job)
+	{
+		// Create the request
+		PublishRequestDefault publishRequest = this.createRequestDefault(job.getParams());
+
+		// Send the request
+		PublishTicket ticket = publishService.requestPublish(publishRequest);
+
+		if(ticket == null){
+			log("Could not send request to PublishingEngine");
+			// Here we would like to output PE error.
+			this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
+		}else {
+			// Store the request and id as a job
+			PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
+			// Save the job
+			this.publishedJobs.add(publishJob);
+		}
+	}
 	/*
 	 * Create the default request and set the config, params and other properties
 	 */
@@ -241,6 +246,7 @@ public class PublishJobsTask extends Task {
 		boolean isAllComplete = false;
 		int completedCount = 0;
 		int checks = 1;
+		
 		while(!isAllComplete){
 		
 			for (PublishJob publishJob : this.publishedJobs) {

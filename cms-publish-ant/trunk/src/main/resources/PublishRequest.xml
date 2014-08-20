@@ -16,8 +16,54 @@
     limitations under the License.
 
 -->
-<project name="PublishRequest" basedir="." default="publish">
+<project name="PublishReport"  basedir=".">
+   	
+   <!--  <stopwatch name="timer"/> -->
+  
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.tasks.PublishJobsTask"/>
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
+	
+	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
+	
+    <!-- Some default properties -->
+   	<property name="lang" value="en-US"/>
+   	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
+   	<property name="param.queue-priority" value="4"/> <!-- We use a lower priority so other requests should be able to pass -->
+	
+	<target name="publish" description="Publish an item">
+		
+	   	<publishrequest publishservice="${publishservice}" outputfolder="export">
+			
+			<!-- Should perhaps also have config for port and uri -->
+	   	   <configs>
+	   	     <config name="host" value="${config.host}"/>
+	   	   </configs>
+	   	   
+	   	   <jobs>
+	   	       <!-- Each job specifies the params for a publish request -->
+	   	      <!--   <job profile="${param.profile}" appconfig="${param.app-config}" stylesheet="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" type="pdf" file="${param.file}" filetype="${param.file-type}"/>-->
+	   	    
+	   	   	<job filename="${filename}">
+	   	      	<params>
+		   	       	<param name="profile" value="${param.profile}"/>
+		   	       	<param name="app-config" value="${param.app-config}"/>
+		   	       	<param name="stylesheet" value="${param.stylesheet}"/>
+		   	       	<param name="file" value="${param.file}"/>
+		   	       	<param name="file-type" value="${param.file-type}"/>
+		   	       	<param name="type" value="${param.type}"/>
+		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
+	   	   		</params>
+	   	   	</job>
+	   	   	
+	   	   </jobs>
+	   	</publishrequest>
+	   
+	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
+	</target>
+	
+	<target name="publishreport">
+	     <publishreport/>
+	</target>
 
-    
-    
 </project>
