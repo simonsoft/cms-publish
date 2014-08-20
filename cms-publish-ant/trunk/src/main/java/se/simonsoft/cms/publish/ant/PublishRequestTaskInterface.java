@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.ant;
 
 import se.simonsoft.cms.publish.PublishRequest;
+import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.JobNode;
 import se.simonsoft.cms.publish.ant.nodes.JobsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
@@ -69,9 +70,20 @@ public interface PublishRequestTaskInterface {
 	public JobsNode getJobs();
 	
 	/*
-	 *  Perform a publish request
+	 *  Perform a publish request ( bad name)
 	 */
 	public void doPublishRequest(JobNode job);
+	
+	
+	/**
+	 * @return the configs
+	 */
+	public ConfigsNode getConfigs();
+	
+	/**
+	 * @param configs the configs to set
+	 */
+	public void addConfiguredConfigs(ConfigsNode configs);
 	
 	/**
 	 * Create a PublishRequest

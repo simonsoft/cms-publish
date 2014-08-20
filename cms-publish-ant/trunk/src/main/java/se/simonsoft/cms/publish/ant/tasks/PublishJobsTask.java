@@ -108,6 +108,14 @@ public class PublishJobsTask extends Task {
 	public ConfigsNode getConfigs() {
 		return configs;
 	}
+	
+	/**
+	 * @param configs the configs to set
+	 */
+	public void addConfiguredConfigs(ConfigsNode configs) {
+		this.configs = configs;
+	}
+	
 
 	/**
 	 * @param jobs the jobs to set
@@ -123,12 +131,7 @@ public class PublishJobsTask extends Task {
 		return jobs;
 	}
 
-	/**
-	 * @param configs the configs to set
-	 */
-	public void addConfiguredConfigs(ConfigsNode configs) {
-		this.configs = configs;
-	}
+	
 
 	/**
 	 * @return the publishservice

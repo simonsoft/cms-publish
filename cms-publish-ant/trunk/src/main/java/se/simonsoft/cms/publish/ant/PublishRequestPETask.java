@@ -63,6 +63,16 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	}
 	
 	@Override
+	public ConfigsNode getConfigs() {
+		return configs;
+	}
+
+	@Override
+	public void addConfiguredConfigs(ConfigsNode configs) {
+		this.configs = configs;
+	}
+	
+	@Override
 	public String getOutputfolder() {
 		return this.outputfolder;
 	}
@@ -230,10 +240,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	}
 	 // Not now
 	public PublishSource retrivePublishSource(String uri){
-		
-			
-		return null;
-		
+		return null;		
 	}
 
 	@Override
@@ -252,7 +259,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
 				
-				
 				// Let's also remove the output
 				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
 				
@@ -261,16 +267,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					// Remove this publishJob from the stack of jobs
 					this.publishedJobs.remove(publishJob);
 					// Then send it to publishing again
-					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
-					
+					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);	
 				}
 				
 				errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 						". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 						" with errors: " + e.getMessage() + "\n");
-				
-				
-
 			}
 		}
 	}

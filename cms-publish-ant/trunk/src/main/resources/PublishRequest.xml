@@ -16,15 +16,12 @@
     limitations under the License.
 
 -->
-<project name="PublishReport"  basedir=".">
+<project name="PublishRequest"  basedir="." default="publishreport">
    	
    <!--  <stopwatch name="timer"/> -->
   
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.tasks.PublishJobsTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
-	
-	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
-	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
@@ -33,7 +30,7 @@
 	
 	<target name="publish" description="Publish an item">
 		
-	   	<publishrequest publishservice="${publishservice}" outputfolder="export">
+	   	<publishrequest outputfolder="export">
 			
 			<!-- Should perhaps also have config for port and uri -->
 	   	   <configs>
@@ -62,7 +59,7 @@
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
-	<target name="publishreport">
+	<target name="publishreport" depends="publish">
 	     <publishreport/>
 	</target>
 
