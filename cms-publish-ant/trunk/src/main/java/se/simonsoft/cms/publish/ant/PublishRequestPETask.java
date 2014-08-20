@@ -51,7 +51,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	private PublishServicePe publishService;
 	protected boolean fail;
 	private final ErrorLoggerHelper errorLogger = new ErrorLoggerHelper();
-	private int tryCount = 2;
 	
 	@Override
 	public void addConfiguredJobs(JobsNode jobs) {
@@ -84,6 +83,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		this.zipoutput = Boolean.parseBoolean(zipoutput);
 		
 	}
+	
 	@Override
 	public boolean isFail() {
 		return this.fail;
@@ -97,7 +97,9 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	
 	public void execute() {
 		
+		// Instantiate some stuff we need
 		this.publishService = new PublishServicePe(); // Create a PE service
+		this.publishedJobs = new ArrayList<PublishJob>();
 		
 		this.publishJobs(); // Publish the jobs
 		
@@ -106,21 +108,34 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 	}
 	
+	/*
+	 * For all jobs, doPublishRequest
+	 */
 	private void publishJobs()
 	{
-		this.publishedJobs = new ArrayList<PublishJob>();
-		
 		for (final JobNode job : jobs.getJobs()) {
-			this.doPublishRequest(job);
+			this.doPublishRequest(job); // Should we call it makePublishRequest?
 		}
 	}
 	
 	@Override
-	public void doPublishRequest(JobNode job) {
-		
+	public void doPublishRequest(JobNode job) {	
 		// Create the request
 		PublishRequestDefault publishRequest = (PublishRequestDefault) this.createPublishRequest(job.getParams());
-
+		
+		// Store the request and id as a job
+		PublishJob publishJob = new PublishJob(publishRequest, job.getFilename());
+		
+		// Send the request
+		this.sendPublishRequest(publishRequest, publishJob);
+	}
+	
+	/*
+	 * Send the actual request to PublishService
+	 * For now we take a publishJob too
+	 */
+	private void sendPublishRequest(PublishRequestDefault publishRequest, PublishJob publishJob)
+	{
 		// Send the request
 		PublishTicket ticket = publishService.requestPublish(publishRequest);
 
@@ -130,12 +145,11 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			//this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
 		}else {
 			// Store the request and id as a job
-			PublishJob publishJob = new PublishJob(ticket, publishRequest, job.getFilename());
-			// Save the job
+			publishJob.setTicket(ticket); // Set the ticket
 			this.publishedJobs.add(publishJob);
 		}
 	}
-
+	
 	@Override
 	public boolean isCompleted() {
 		log("Check if publish requests are completed");
@@ -228,26 +242,34 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		FileManagementHelper fileHelper = new FileManagementHelper();
 		
 		for (PublishJob publishJob : this.publishedJobs) {
-			
+			int tryCount = 0;
 			try {
-				tryCount--;
+				tryCount++;
 				this.publishService.getResultStream(publishJob.getTicket(),
 													publishJob.getPublishRequest(), 
 													fileHelper.createStorageLocation(this.outputfolder, publishJob.getFilename()));
 			} catch (PublishException e) {
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
+				
+				
+				// Let's also remove the output
+				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
+				
 				if(tryCount != 0) {
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
-					this.doPublishRequest(publishJob);
+					// Remove this publishJob from the stack of jobs
+					this.publishedJobs.remove(publishJob);
+					// Then send it to publishing again
+					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
+					
 				}
 				
 				errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 						". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 						" with errors: " + e.getMessage() + "\n");
 				
-				// Let's also remove the output
-				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
+				
 
 			}
 		}

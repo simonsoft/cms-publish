@@ -37,7 +37,7 @@
 			
 			<!-- Should perhaps also have config for port and uri -->
 	   	   <configs>
-	   	     <config name="host" value="${config.host}"/>
+	   	   		<config name="host" value="${config.host}"/>
 	   	   </configs>
 	   	   
 	   	   <jobs>
