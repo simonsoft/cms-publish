@@ -322,9 +322,9 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 		
 		if(job.getZipoutput().equals("yes")) {
-			
+			log("Zip");
 			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
 		}
-		fileHelper.delete(new File(temporaryPath));
+		//fileHelper.delete(new File(temporaryPath));
 	}
 }
