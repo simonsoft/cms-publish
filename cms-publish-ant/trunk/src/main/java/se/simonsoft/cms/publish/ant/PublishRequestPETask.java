@@ -51,6 +51,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	private PublishServicePe publishService;
 	protected boolean fail;
 	private final ErrorLoggerHelper errorLogger = new ErrorLoggerHelper();
+	private FileManagementHelper fileHelper = new FileManagementHelper();
 	
 	@Override
 	public void addConfiguredJobs(JobsNode jobs) {
@@ -293,11 +294,34 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	{
 		for (JobNode job : this.jobs.getJobs()) {
 			// Recieve all properties... i hope.
+			/*
 			this.getProject().setProperty("zipped", job.getZipoutput());
 			this.getProject().setProperty("fileName", job.getFilename());
 			this.getProject().setProperty("zipOutput", getZipoutput());
 			this.getProject().executeTarget("repackage");
+			*/
+			this.repackage(job);
 		}
 		
+	}
+	
+	private void repackage(JobNode job)
+	{
+		String temporaryPath = "";
+		// Unzip if we have a zip
+		if(job.getZipoutput().equals("yes")) {
+			temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
+			fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename());
+		}
+		
+		if(this.getZipoutput().equals("yes")) {
+			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
+		}
+		
+		fileHelper.delete(new File(temporaryPath));
+		
+		if(this.getZipoutput().equals("no")) {
+			
+		}
 	}
 }
