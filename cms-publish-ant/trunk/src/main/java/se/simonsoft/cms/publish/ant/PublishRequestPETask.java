@@ -115,6 +115,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		
 		if(this.isCompleted()) { // Check if the jobs are ready
 			this.getPublishResult(); // Download the result
+			this.callForRepackage();
 		}
 	}
 	
@@ -279,9 +280,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	
 	public void callForRepackage()
 	{
-		// Recieve all properties... i hope.
-		this.getProject().setProperty("zipped", getZipoutput());
-	
-		this.getProject().executeTarget("repackage");
+		for (JobNode job : this.jobs.getJobs()) {
+			// Recieve all properties... i hope.
+			this.getProject().setProperty("zipped", job.getZipoutput());
+			this.getProject().setProperty("fileName", job.getFilename());
+			this.getProject().executeTarget("repackage");
+		}
+		
 	}
 }
