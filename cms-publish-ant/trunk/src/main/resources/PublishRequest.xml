@@ -21,13 +21,16 @@
    <!--  <stopwatch name="timer"/> -->
   
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
-	<taskdef name="repackage" classname="se.simonsoft.cms.publish.ant.RepackageTask"/>
+	<taskdef name="repackage" classname="se.simonsoft.cms.publish.ant.tasks.RepackageTask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
+	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
    	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
    	<property name="param.queue-priority" value="4"/> <!-- We use a lower priority so other requests should be able to pass -->
+	<property name="outputfolder" value="export"/>
 	
 	<target name="publish" description="Publish an item">
 		
@@ -41,7 +44,7 @@
 	   	   <jobs>
 		   		<!-- Each job specifies the params for a publish request -->
 		   	    
-		   	   	<job filename="${filename}" zipoutput="${zipoutput}" rootfilename="${zip-root-filename">
+		   	   	<job filename="${filename}" zipoutput="${zipoutput}" rootfilename="${zip-root-filename}">
 		   	    	<params>
 			   	       	<param name="profile" value="${param.profile}"/>
 			   	       	<param name="app-config" value="${param.app-config}"/>
@@ -65,7 +68,7 @@
 	   			<param name="lang" value="${lang}"/>
 	   			<param name="export" value="${lang}"/>
 	   			<param name="zipped" value="${zipoutput}"/>
-	   			<param name="rootfilename" value="${zip-root-filename"/>
+	   			<param name="rootfilename" value="${zip-root-filename}"/>
 	   		</antcall>
 	   	</publishrequest>
 	   

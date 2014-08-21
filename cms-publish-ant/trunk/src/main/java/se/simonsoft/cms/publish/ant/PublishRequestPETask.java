@@ -45,7 +45,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	protected ConfigsNode configs;
 	protected String publishservice;
 	protected JobsNode jobs;
-	protected boolean zipoutput;
+	protected String zipoutput;
 	protected String outputfolder;
 	private ArrayList<PublishJob> publishedJobs;
 	private PublishServicePe publishService;
@@ -84,13 +84,13 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	}
 	
 	@Override
-	public boolean getZipoutput() {
-		return false;
+	public String getZipoutput() {
+		return zipoutput;
 	}
 	
 	@Override
 	public void setZipoutput(String zipoutput) {
-		this.zipoutput = Boolean.parseBoolean(zipoutput);
+		this.zipoutput = zipoutput;
 		
 	}
 	
@@ -111,7 +111,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		this.publishService = new PublishServicePe(); // Create a PE service
 		this.publishedJobs = new ArrayList<PublishJob>();
 		
-		this.publishJobs(); // Publish the jobs
+		this.publishJobs(); // Publish all the jobs
 		
 		if(this.isCompleted()) { // Check if the jobs are ready
 			this.getPublishResult(); // Download the result
@@ -262,7 +262,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				// Let's also remove the output
 				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
 				
-				if(tryCount != 0) {
+				if(tryCount != 0) {	
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
 					// Remove this publishJob from the stack of jobs
 					this.publishedJobs.remove(publishJob);
@@ -275,5 +275,13 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 						" with errors: " + e.getMessage() + "\n");
 			}
 		}
+	}
+	
+	public void callForRepackage()
+	{
+		// Recieve all properties... i hope.
+		this.getProject().setProperty("zipped", getZipoutput());
+	
+		this.getProject().executeTarget("repackage");
 	}
 }

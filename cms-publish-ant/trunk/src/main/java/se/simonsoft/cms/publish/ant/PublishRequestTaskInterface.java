@@ -42,7 +42,7 @@ public interface PublishRequestTaskInterface {
 	/**
 	 * @return the zipoutput
 	 */
-	public boolean getZipoutput();
+	public String getZipoutput();
 
 	/**
 	 * @param zipoutput the zipoutput to set
