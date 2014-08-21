@@ -59,6 +59,7 @@
 		   	   		</params>
 		   	   	</job>
 	   	   	</jobs>
+	   		
 	   		<!--
 	   		<antcall target="repackage">
 	   			<param name="file" value="${file}"/>
@@ -71,15 +72,17 @@
 	   			<param name="rootfilename" value="${zip-root-filename}"/>
 	   		</antcall>
 	   		-->
+	   		
 	   	</publishrequest>
 	   
 	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
+	
 	<target name="repackage">
 		<repackage/>
 	</target>
 	
-	<target name="publishreport" depends="publish">
+	<target name="publishreport" depends="publish, repackage">
 	     <publishreport/>
 	</target>
 

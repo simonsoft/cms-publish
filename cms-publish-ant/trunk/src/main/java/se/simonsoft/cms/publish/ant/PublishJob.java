@@ -25,6 +25,7 @@ public class PublishJob {
 	private PublishRequest publishRequest;
 	private String filename;
 	private boolean completed = false;
+	private int numberOfTries = 2;
 	
 	
 	public PublishJob(PublishTicket ticket, PublishRequest publishRequest, String filename)
@@ -38,6 +39,20 @@ public class PublishJob {
 	{
 		this.publishRequest = publishRequest;
 		this.filename = filename;
+	}
+	
+	/**
+	 * @return the numberOfTries
+	 */
+	public int getNumberOfTries() {
+		return numberOfTries;
+	}
+
+	/**
+	 * @param numberOfTries the numberOfTries to set
+	 */
+	public void setNumberOfTries(int numberOfTries) {
+		this.numberOfTries = numberOfTries;
 	}
 	
 	/**

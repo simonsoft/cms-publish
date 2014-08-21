@@ -250,30 +250,41 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		FileManagementHelper fileHelper = new FileManagementHelper();
 		
 		for (PublishJob publishJob : this.publishedJobs) {
-			int tryCount = 0;
+	
 			try {
-				tryCount++;
-				this.publishService.getResultStream(publishJob.getTicket(),
-													publishJob.getPublishRequest(), 
-													fileHelper.createStorageLocation(this.outputfolder, publishJob.getFilename()));
+				
+				// We allow two tries because we have seen that the PE can behave strange and failed on the first try but ALWAYS 
+				// succeeding on the second go. We have not found out what is causing this. All we know is, if it fails once, 
+				// it will succeed on next publish
+				if(publishJob.getNumberOfTries() >= 1) { // If we have at least one more try let's do it
+					
+					publishJob.setNumberOfTries(publishJob.getNumberOfTries() - 1); // Count one try down
+					
+					this.publishService.getResultStream(publishJob.getTicket(),
+							publishJob.getPublishRequest(), 
+							fileHelper.createStorageLocation(this.outputfolder, publishJob.getFilename()));
+				}
+				
 			} catch (PublishException e) {
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
 				
-				// Let's also remove the output
-				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
-				
-				if(tryCount != 0) {	
-					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
-					// Remove this publishJob from the stack of jobs
-					this.publishedJobs.remove(publishJob);
-					// Then send it to publishing again
-					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);	
-				}
-				
 				errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 						". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 						" with errors: " + e.getMessage() + "\n");
+				
+				// Let's also remove the output
+				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
+
+				log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
+				errorLogger.addToErrorLog("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again" + "\n");
+				
+				// Remove this publishJob from the stack of jobs
+				this.publishedJobs.remove(publishJob);
+
+				// Then send it to publishing again
+				this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);	
+				
 			}
 		}
 	}
@@ -284,6 +295,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			// Recieve all properties... i hope.
 			this.getProject().setProperty("zipped", job.getZipoutput());
 			this.getProject().setProperty("fileName", job.getFilename());
+			this.getProject().setProperty("zipOutput", getZipoutput());
 			this.getProject().executeTarget("repackage");
 		}
 		
