@@ -292,6 +292,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	
 	public void callForRepackage()
 	{
+		
 		for (JobNode job : this.jobs.getJobs()) {
 			// Recieve all properties... i hope.
 			/*
@@ -307,23 +308,23 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	
 	private void repackage(JobNode job)
 	{
+		log("repackage");
 		String temporaryPath = "";
 		
 		// Unzip if we have a zip
 		for (final ParamNode param : job.getParams().getParams()) {
 			
 			if(param.getName().equals("zip-output") && param.getValue().equals("yes")) {
-				
+				log("UnZip");
 				temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
 				fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename());
-				
 			}
 		}
 		
-		fileHelper.delete(new File(temporaryPath));
-		
 		if(job.getZipoutput().equals("yes")) {
+			
 			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
 		}
+		fileHelper.delete(new File(temporaryPath));
 	}
 }

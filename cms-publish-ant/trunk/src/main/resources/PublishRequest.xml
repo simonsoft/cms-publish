@@ -84,7 +84,7 @@
 		</repackage>
 	</target>
 	
-	<target name="publishreport" depends="publish, repackage">
+	<target name="publishreport" depends="publish">
 	     <publishreport/>
 	</target>
 
