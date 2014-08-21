@@ -210,7 +210,7 @@ public class FileManagementHelper {
 	 * @param String outputFolder
 	 * @param String newFileName
 	 */
-	public void unZip(String zipFile, String outputFolder, String newFileName){
+	public void unZip(String zipFile, String destinationFolder, String newFileName, String sourceFolder){
 		// Unzip and rename contents.
 
 		byte[] buffer = new byte[1024];
@@ -218,7 +218,7 @@ public class FileManagementHelper {
 		try {
 
 			//create output directory is not exists
-			File folder = new File(outputFolder);
+			File folder = new File(destinationFolder);
 
 			if(!folder.exists()) {
 				logger.debug("Create output dir " + folder.getPath());
@@ -229,7 +229,7 @@ public class FileManagementHelper {
 			}
 
 			//get the zip file content
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(outputFolder + File.separator + zipFile));
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(sourceFolder + File.separator + zipFile));
 			//get the zipped file entry list
 			ZipEntry ze = zis.getNextEntry();
 
