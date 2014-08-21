@@ -128,7 +128,7 @@ public class FileManagementHelper {
 	 */
 	public void zip(String zipFile, String sourceFolder) {
 		List<String> fileList = new ArrayList<String>();
-		
+		this.generateFileList(fileList, new File(sourceFolder), sourceFolder);
 		this.zipFile(fileList, zipFile, sourceFolder);
 	}
 	
