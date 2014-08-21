@@ -80,14 +80,7 @@
 	
 	<target name="repackage">
 		<repackage>
-			<param name="file" value="${file}"/>
-			<param name="filename" value="${filename}"/>
-			<param name="type" value="${param.type}"/>
-			<param name="zip-output" value="${param.zip-output}"/>
-			<param name="lang" value="${lang}"/>
-			<param name="export" value="${lang}"/>
-			<param name="zipped" value="${zipoutput}"/>
-			<param name="rootfilename" value="${zip-root-filename}"/>
+			
 		</repackage>
 	</target>
 	
