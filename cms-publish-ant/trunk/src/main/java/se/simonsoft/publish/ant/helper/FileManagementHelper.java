@@ -42,7 +42,7 @@ public class FileManagementHelper {
 	/*
 	 *  Get the location to store the result in
 	 */
-	public FileOutputStream createStorageLocation(String outputFolder,String fileName) {
+	public FileOutputStream createStorageLocation(String outputFolder, String fileName) {
 
 		File outputfile = null;
 
@@ -77,13 +77,9 @@ public class FileManagementHelper {
 	 * Moves a file
 	 * @param String file to delete
 	 */
-	public void copyDirectory(String source, String destination)
+	public void copyDirectory(String sourceDir, String destinationDir) throws IOException
 	{
-		try {
-			FileUtils.copyDirectory(new File(source), new File(destination));
-		} catch (IOException e) {
-			logger.info("Could not move file!", e);
-		}
+		FileUtils.copyDirectory(new File(sourceDir), new File(destinationDir));
 	}
 
 	/*
@@ -280,7 +276,7 @@ public class FileManagementHelper {
 			logger.debug("End");
 
 		} catch(IOException ex){
-			logger.debug("Unzip failed: " + ex.getMessage()); 
+			logger.debug("Unzip failed: " + ex.getMessage());
 		}
 	}
 }

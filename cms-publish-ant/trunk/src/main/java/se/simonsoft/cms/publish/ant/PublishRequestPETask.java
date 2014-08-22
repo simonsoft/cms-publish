@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.ant;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.tools.ant.Task;
@@ -335,7 +336,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		
 		if(job.getZipoutput().equals("no")) {
 			log("Move result to: " + "export" + File.separator + job.getFilename());
-			fileHelper.copyDirectory(temporaryPath, "export" + File.separator + job.getFilename());
+			try {
+				fileHelper.copyDirectory(temporaryPath, "export" + File.separator + job.getFilename());
+			} catch (IOException e) {
+				log("Could not move result: " + e.getMessage());
+				errorLogger.addToErrorLog("Could not move result for : " + job.getRootfilename() + "\n");
+			}
 		}
 		log("Clean up");
 		fileHelper.delete(new File(temporaryPath));
