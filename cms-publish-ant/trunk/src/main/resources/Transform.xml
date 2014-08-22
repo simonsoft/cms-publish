@@ -18,7 +18,7 @@
 -->
 <project name="Transform"  basedir="." default="transform">
    
-    <taskdef name="transform" classname="se.simonsoft.cms.publish.ant.tasks.XSLTransformTask"/>
+    <taskdef name="transformer" classname="se.simonsoft.cms.publish.ant.tasks.XSLTransformTask"/>
 
     <!-- Report query defaults-->
     <property name="transformSourcePath" value=""/>
@@ -26,7 +26,7 @@
 	<property name="outputSourcePath" value=""/>
 	
 	<target name="transform" description="Transform an item using XSLT">
-	   	<transform transformSourcePath="transformSourcePath" inputSourcePath="${inputSourcePath}" outputSourcePath="${outputSourcePath}"/>	
+	   	<transformer transformSourcePath="transformSourcePath" inputSourcePath="${inputSourcePath}" outputSourcePath="${outputSourcePath}"/>	
 	</target> 	
 
 </project>

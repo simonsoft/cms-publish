@@ -65,17 +65,17 @@ public class XSLTransformTask extends Task {
 	}
 
 	/**
-	 * @return the resultPath
+	 * @return the outputSourcePath
 	 */
-	public String getResultPath() {
+	public String getOutputSourcePath() {
 		return outputSourcePath;
 	}
 
 	/**
-	 * @param resultPath the resultPath to set
+	 * @param outputSourcePath the resultPath to set
 	 */
-	public void setResultPath(String resultPath) {
-		this.outputSourcePath = resultPath;
+	public void setOutputSourcePath(String outputSourcePath) {
+		this.outputSourcePath = outputSourcePath;
 	}
 
 	private Transformer transformer;
@@ -91,8 +91,8 @@ public class XSLTransformTask extends Task {
 		Source text = new StreamSource(new File(this.getInputSourcePath()));
 		
         try {
-        	log("Transform " + this.getInputSourcePath() + " to " + this.getResultPath());
-			transformer.transform(text, new StreamResult(new File(this.getResultPath())));
+        	log("Transform " + this.getInputSourcePath() + " to " + this.getOutputSourcePath());
+			transformer.transform(text, new StreamResult(new File(this.getOutputSourcePath())));
 		} catch (TransformerException e) {
 			log("TransformError: " + e.getMessage());
 		}
