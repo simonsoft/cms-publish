@@ -285,6 +285,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 						
 					// Then send it to publishing again
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
+					this.getPublishResult();
 				}	
 			}
 		}
