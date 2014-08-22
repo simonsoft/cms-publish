@@ -318,6 +318,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			if(param.getName().equals("zip-output") && param.getValue().equals("yes")) {
 				temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
 				log("UnZip to: " + temporaryPath);
+				// Will rename "master file" to rootFilename
 				fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
 			}
 			
@@ -330,6 +331,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			log("Zip to: " + "export" + File.separator + job.getFilename());
 			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
 		}
-		//fileHelper.delete(new File(temporaryPath));
+		log("Clean up");
+		fileHelper.delete(new File(temporaryPath));
 	}
 }
