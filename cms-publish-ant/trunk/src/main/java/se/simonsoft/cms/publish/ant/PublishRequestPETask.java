@@ -265,27 +265,30 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 							publishJob.getPublishRequest(), 
 							fileHelper.createStorageLocation(this.outputfolder, publishJob.getFilename()));
 				}
+				else{
+					
+				}
 				
 			} catch (PublishException e) {
+				
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
-				
-				errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
-						". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
-						" with errors: " + e.getMessage() + "\n");
-				
-				// Let's also remove the output
-				fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
+				if(publishJob.getNumberOfTries() == 0) {
+					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
+							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
+							" with errors: " + e.getMessage() + "\n");
+				} else {
+					// Let's also remove the output
+					fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
 
-				log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
-				errorLogger.addToErrorLog("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again" + "\n");
-				
-				// Remove this publishJob from the stack of jobs
-				this.publishedJobs.remove(publishJob);
-
-				// Then send it to publishing again
-				this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);	
-				
+					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
+					
+					// Remove this publishJob from the stack of jobs
+					//this.publishedJobs.remove(publishJob);
+						
+					// Then send it to publishing again
+					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
+				}	
 			}
 		}
 	}

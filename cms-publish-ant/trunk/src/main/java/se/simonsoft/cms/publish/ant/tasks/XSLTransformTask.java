@@ -107,10 +107,11 @@ public class XSLTransformTask extends Task {
 		TransformerFactory transFact = TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null);
 		
 	    try {
+	    	transFact.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			this.transformer = transFact.newTransformer(xslt);
-			
 		} catch (TransformerConfigurationException e) {
 			log("TransformConfigurationError: " + e.getMessage());
+			e.printStackTrace();
 		}
 		
 	}

@@ -26,7 +26,7 @@
 	<property name="outputSourcePath" value=""/>
 	
 	<target name="transform" description="Transform an item using XSLT">
-	   	<transformer transformSourcePath="transformSourcePath" inputSourcePath="${inputSourcePath}" outputSourcePath="${outputSourcePath}"/>	
+	   	<transformer transformSourcePath="${transformSourcePath}" inputSourcePath="${inputSourcePath}" outputSourcePath="${outputSourcePath}"/>	
 	</target> 	
 
 </project>
