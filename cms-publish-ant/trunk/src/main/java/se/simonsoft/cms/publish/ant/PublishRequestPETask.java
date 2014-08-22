@@ -332,6 +332,11 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			log("Zip to: " + "export" + File.separator + job.getFilename());
 			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
 		}
+		
+		if(job.getZipoutput().equals("no")) {
+			log("Move result to: " + "export" + File.separator + job.getFilename());
+			fileHelper.copyDirectory(temporaryPath, "export" + File.separator + job.getFilename());
+		}
 		log("Clean up");
 		fileHelper.delete(new File(temporaryPath));
 	}

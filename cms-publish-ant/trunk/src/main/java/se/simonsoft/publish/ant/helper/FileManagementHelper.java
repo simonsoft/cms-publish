@@ -77,10 +77,10 @@ public class FileManagementHelper {
 	 * Moves a file
 	 * @param String file to delete
 	 */
-	public void copyDirectory(File source, File destination)
+	public void copyDirectory(String source, String destination)
 	{
 		try {
-			FileUtils.copyDirectory(source, destination);
+			FileUtils.copyDirectory(new File(source), new File(destination));
 		} catch (IOException e) {
 			logger.info("Could not move file!", e);
 		}
