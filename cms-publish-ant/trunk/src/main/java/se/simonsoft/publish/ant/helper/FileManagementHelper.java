@@ -77,9 +77,22 @@ public class FileManagementHelper {
 	 * Moves a file
 	 * @param String file to delete
 	 */
-	public void copyDirectory(String sourceDir, String destinationDir) throws IOException
-	{
-		FileUtils.copyDirectory(new File(sourceDir), new File(destinationDir));
+	public void copyDirectory(String sourceDirPath, String destinationDirPath) throws IOException
+	{ 
+		File destinationDir = new File(destinationDirPath);
+		File sourceDir = new File(sourceDirPath);
+		
+		// File utils should create folders if they do not exists, but we want 
+		// to make sure that we are dealing with directories
+		if(!destinationDir.isDirectory()) {
+			destinationDir.mkdir();
+		}
+		
+		if(!sourceDir.isDirectory()) {
+			sourceDir.mkdir();
+		}
+		
+		FileUtils.copyDirectory(sourceDir, destinationDir);
 	}
 
 	/*
