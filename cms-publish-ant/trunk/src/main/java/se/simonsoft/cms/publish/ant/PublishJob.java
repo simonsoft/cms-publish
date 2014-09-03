@@ -24,6 +24,7 @@ public class PublishJob {
 	private PublishTicket ticket;
 	private PublishRequest publishRequest;
 	private String filename;
+	private boolean isZip;
 	private boolean completed = false;
 	private int numberOfTries = 2;
 	
@@ -41,6 +42,20 @@ public class PublishJob {
 		this.filename = filename;
 	}
 	
+	/**
+	 * @return the isZip
+	 */
+	public boolean isZip() {
+		return isZip;
+	}
+
+	/**
+	 * @param isZip the isZip to set
+	 */
+	public void setZip(boolean isZip) {
+		this.isZip = isZip;
+	}
+
 	/**
 	 * @return the numberOfTries
 	 */

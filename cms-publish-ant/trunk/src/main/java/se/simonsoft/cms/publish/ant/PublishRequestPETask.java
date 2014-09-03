@@ -117,7 +117,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		
 		if(this.isCompleted()) { // Check if the jobs are ready
 			this.getPublishResult(); // Download the result
-			this.callForRepackage();
+			//this.callForRepackage(); Let's use Ant tasks for repackaging. It's smarter....
 		}
 	}
 	
@@ -137,7 +137,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		PublishRequestDefault publishRequest = (PublishRequestDefault) this.createPublishRequest(job.getParams());
 		
 		// Store the request and id as a job
-		PublishJob publishJob = new PublishJob(publishRequest, job.getFilename());
+		PublishJob publishJob = this.createPublishJob(publishRequest, job);
 		
 		// Send the request
 		this.sendPublishRequest(publishRequest, publishJob);
@@ -198,6 +198,24 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 		return true;
 	}
+	
+	/*
+	 * Configures a PublishJob object
+	 * @param PublishRequestDefault publishRequest
+	 * @param JobNode job
+	 */
+	private PublishJob createPublishJob(PublishRequestDefault publishRequest, JobNode job)
+	{
+		PublishJob publishJob = new PublishJob(publishRequest, job.getFilename());
+		
+		for (final ParamNode param : job.getParams().getParams()) {
+			if(param.getName().equals("zip-output")) {
+				publishJob.setZip(Boolean.parseBoolean(param.getValue()));
+			}
+		}
+		
+		return publishJob;
+	}
 
 	@Override
 	public PublishRequest createPublishRequest(ParamsNode paramsNode) {
@@ -235,6 +253,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					publishRequest.setFormat(this.publishService.getPublishFormat(param.getValue()));
 					log("publishRequest Format: " + publishRequest.getFormat().getFormat());
 				}
+				
 				// For arbitrary params just add them
 				publishRequest.addParam	(param.getName(), param.getValue());
 			}
@@ -252,9 +271,18 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		FileManagementHelper fileHelper = new FileManagementHelper();
 		
 		for (PublishJob publishJob : this.publishedJobs) {
-	
+			
 			try {
+				String fileName = "";
 				
+				if (publishJob.isZip()){
+					if(publishJob.getFilename().contains(".zip")) {
+						fileName = publishJob.getFilename();
+					}
+					else {
+						fileName = publishJob.getFilename() + ".zip";
+					}
+				}
 				// We allow two tries because we have seen that the PE can behave strange and failed on the first try but ALWAYS 
 				// succeeding on the second go. We have not found out what is causing this. All we know is, if it fails once, 
 				// it will succeed on next publish
@@ -264,7 +292,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					
 					this.publishService.getResultStream(publishJob.getTicket(),
 							publishJob.getPublishRequest(), 
-							fileHelper.createStorageLocation(this.outputfolder, publishJob.getFilename()));
+							fileHelper.createStorageLocation(this.outputfolder, fileName));
 				}
 				
 			} catch (PublishException e) {
@@ -321,8 +349,14 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
 				log("UnZip to: " + temporaryPath);
 				// Will rename "master file" to rootFilename
-				fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
+				try {
+					fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
+				} catch (IOException e) {
+					log("Unzip failed: " + e.getMessage());
+					e.printStackTrace();
+				}
 			}
+			//this.getProject().copyFile(sourceFile, destFile, filtering);
 			
 			if(param.getName().equals("zip-output") && param.getValue().equals("no")) {
 				return;
