@@ -214,7 +214,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		// Let's store if this publishJob requested a zip package or not
 		for (final ParamNode param : job.getParams().getParams()) {
 			if(param.getName().equals("zip-output")) {
-				publishJob.setZip(Boolean.parseBoolean(param.getValue()));
+				publishJob.setZip(param.getValue());
 			}
 		}
 		
@@ -279,7 +279,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			try {
 				String fileName = "";
 				// If this publish required a zip package, let's make sure we set proper file type
-				if (publishJob.isZip()){
+				if (publishJob.isZip().equals("yes")){
 					if(publishJob.getFilename().contains(".zip")) {
 						fileName = publishJob.getFilename();
 					}
