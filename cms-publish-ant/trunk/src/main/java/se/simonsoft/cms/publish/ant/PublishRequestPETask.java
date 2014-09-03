@@ -16,10 +16,14 @@
 package se.simonsoft.cms.publish.ant;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.FileUtils;
 
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
@@ -117,7 +121,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		
 		if(this.isCompleted()) { // Check if the jobs are ready
 			this.getPublishResult(); // Download the result
-			//this.callForRepackage(); Let's use Ant tasks for repackaging. It's smarter....
 		}
 	}
 	
@@ -292,7 +295,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					
 					this.publishService.getResultStream(publishJob.getTicket(),
 							publishJob.getPublishRequest(), 
-							fileHelper.createStorageLocation(this.outputfolder, fileName));
+							this.getStorageLocation(this.outputfolder, fileName));
 				}
 				
 			} catch (PublishException e) {
@@ -320,58 +323,35 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 	}
 	
-	public void callForRepackage()
-	{
+	private FileOutputStream getStorageLocation(String outputFolder, String fileName) {
 		
-		for (JobNode job : this.jobs.getJobs()) {
-			// Recieve all properties... i hope.
-			/*
-			this.getProject().setProperty("zipped", job.getZipoutput());
-			this.getProject().setProperty("fileName", job.getFilename());
-			this.getProject().setProperty("zipOutput", getZipoutput());
-			this.getProject().executeTarget("repackage");
-			*/
-			this.repackage(job);
-		}
-		
-	}
-	
-	private void repackage(JobNode job)
-	{
-		log("repackage");
-		String temporaryPath = "";
-		
-		// Unzip if we have a zip
-		
-		for (final ParamNode param : job.getParams().getParams()) {
+		File outputfile = null;
+
+		FileOutputStream outputStream = null;
+
+		try {
+			// Make sure the outputfolder exists
+			File folder = new File(outputFolder);
+			if(!folder.exists()){
+				folder.mkdir();
+			}
+			// Then we create the file in that location
+			outputfile = new File(outputFolder + File.pathSeparator + fileName);
+			log("Absolutepath: " + outputfile.getAbsolutePath());
 			
-			if(param.getName().equals("zip-output") && param.getValue().equals("yes")) {
-				temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
-				log("UnZip to: " + temporaryPath);
-				fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
-			}
-			//this.getProject().copyFile(sourceFile, destFile, filtering);
-			
-			if(param.getName().equals("zip-output") && param.getValue().equals("no")) {
-				return;
-			}
+			outputfile.createNewFile();
+			// Connect the stream to the file
+			outputStream = new FileOutputStream(outputfile);
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new BuildException("Could not store file at (file not found) " + outputfile.getAbsolutePath());
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new BuildException("Could not store file at (IO) " + outputfile.getAbsolutePath());
 		}
-		
-		if(job.getZipoutput().equals("yes")) {
-			log("Zip to: " + "export" + File.separator + job.getFilename());
-			fileHelper.zip("export" + File.separator + job.getFilename(), temporaryPath);
-		}
-		
-		if(job.getZipoutput().equals("no")) {
-			log("Move result to: " + "export" + File.separator + job.getFilename());
-			try {
-				fileHelper.copyDirectory(temporaryPath, "export" + File.separator + job.getFilename());
-			} catch (IOException e) {
-				log("Could not move result: " + e.getMessage());
-				errorLogger.addToErrorLog("Could not move result for : " + job.getRootfilename() + "\n");
-			}
-		}
-		log("Clean up");
-		fileHelper.delete(new File(temporaryPath));
+
+		return outputStream;
+
 	}
 }
