@@ -211,6 +211,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	{
 		PublishJob publishJob = new PublishJob(publishRequest, job.getFilename());
 		
+		// Let's store if this publishJob requested a zip package or not
 		for (final ParamNode param : job.getParams().getParams()) {
 			if(param.getName().equals("zip-output")) {
 				publishJob.setZip(Boolean.parseBoolean(param.getValue()));
@@ -277,7 +278,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			
 			try {
 				String fileName = "";
-				
+				// If this publish required a zip package, let's make sure we set proper file type
 				if (publishJob.isZip()){
 					if(publishJob.getFilename().contains(".zip")) {
 						fileName = publishJob.getFilename();
@@ -292,7 +293,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				if(publishJob.getNumberOfTries() >= 1) { // If we have at least one more try let's do it
 					
 					publishJob.setNumberOfTries(publishJob.getNumberOfTries() - 1); // Count one try down
-					
+					log("Retrieve result as: " + fileName);
 					this.publishService.getResultStream(publishJob.getTicket(),
 							publishJob.getPublishRequest(), 
 							this.getStorageLocation(this.outputfolder, fileName));
