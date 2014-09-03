@@ -348,13 +348,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			if(param.getName().equals("zip-output") && param.getValue().equals("yes")) {
 				temporaryPath = "export" + File.separator + job.getFilename() + "_temp";
 				log("UnZip to: " + temporaryPath);
-				// Will rename "master file" to rootFilename
-				try {
-					fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
-				} catch (IOException e) {
-					log("Unzip failed: " + e.getMessage());
-					e.printStackTrace();
-				}
+				fileHelper.unZip(job.getFilename(), temporaryPath, job.getRootfilename(), "export");
 			}
 			//this.getProject().copyFile(sourceFile, destFile, filtering);
 			

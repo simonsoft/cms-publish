@@ -61,9 +61,11 @@
 	   
 	</target>
 	
-	   	   		
+	 <!-- We could assume that each project publish request demands a zip, 
+	 	but just to make sure we check for param.zip-putput -->  		
 	<target name="unarchive" if="${param.zip-output}">
-		<unzip src="${outputfolder}/${filename}" dest="${filename}"/>
+		<unzip src="${outputfolder}/${filename}.zip" dest="${outputfolder}/${filename}"/>
+		<delete file="${outputfolder}/${filename}.zip"/>
 	</target>
 			
 	<target name="performtransform">
@@ -72,7 +74,8 @@
 	</target>
 				
 	<target name="archive" if="${zipoutput}">
-		<tar basedir="${filename}" dest="${filename}"/>
+		<tar basedir="${outputfolder}/${filename}" dest="${outputfolder}/${filename}.tar"/>
+		<delete dir="${outputfolder}/${filename}"/>
 	</target>
 			
 	<target name="cleanup">

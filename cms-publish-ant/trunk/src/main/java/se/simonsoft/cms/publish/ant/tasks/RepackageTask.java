@@ -131,12 +131,7 @@ public class RepackageTask extends Task {
 		// Unzip if we have a zip
 		if(getZipOutput().equals("yes")) {
 			temporaryPath = "export" + File.separator + getFileName() + "_temp";
-			try {
-				fileHelper.unZip(getFileName(), temporaryPath, getRootfilename(), "export");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			fileHelper.unZip(getFileName(), temporaryPath, getRootfilename(), "export");
 		}
 		
 		if(getZipped().equals("yes")) {
