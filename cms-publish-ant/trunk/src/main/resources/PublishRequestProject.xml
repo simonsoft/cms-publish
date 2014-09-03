@@ -69,8 +69,8 @@
 	</target>
 			
 	<target name="performtransform">
-		<xslt style="techdoc_to_machine.xsl" in="${filename}/${e3defaultfilename}" out="${filename}/project.xml"/>
-		<delete file="${filename}/${e3defaultfilename}"/>
+		<xslt style="techdoc_to_machine.xsl" in="${outputfolder}/${filename}/${e3defaultfilename}" out="${outputfolder}/${filename}/project.xml"/>
+		<delete file="${outputfolder}/${filename}/${e3defaultfilename}"/>
 	</target>
 				
 	<target name="archive" if="${zipoutput}">

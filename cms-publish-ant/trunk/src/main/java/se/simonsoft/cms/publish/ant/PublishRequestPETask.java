@@ -335,8 +335,9 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			if(!folder.exists()){
 				folder.mkdir();
 			}
+			
 			// Then we create the file in that location
-			outputfile = new File(outputFolder + File.pathSeparator + fileName);
+			outputfile = new File(outputFolder + File.separator + fileName);
 			log("Absolutepath: " + outputfile.getAbsolutePath());
 			
 			outputfile.createNewFile();
