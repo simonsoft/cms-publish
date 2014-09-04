@@ -30,6 +30,7 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
 	
     <property name="httpresponse" value=""/>
+	<property name="outputfolder" value="export"/>
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
    	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
@@ -49,12 +50,6 @@
     <property name="rows" value="2000"/>
     <property name="apiuri" value="/cms/rest/report/items"/>
 	
-	<!-- Create a timestamp to use when creating path for output -->
-	<tstamp>
-    	<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
-  	</tstamp>
-	
-
 	<target name="get-report">
 	    <getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
 	        <!-- Query params  -->
@@ -63,7 +58,6 @@
 	           <param name="rows" value="${rows}"/>
 	       </params>
 	    </getreport>
-	    <!-- <stopwatch name="timer" action="elapsed"/>  -->
 	</target>
 	
 	<!-- New target that parses the response. And then call on publish for each result item using Rhino. -->
@@ -97,8 +91,7 @@
   				</antcall>
 			</sequential>
 		</for>
-		<!-- <antcall target="publishcatalogue"/> -->
-		<!-- <stopwatch name="timer" action="elapsed"/>  -->
+
 	</target>
 	
 	<target name="publish" description="Publish an item">
@@ -191,8 +184,7 @@
 	   	   	
 	   	   </jobs>
 	   	</publishrequest>
-	   
-	   <!-- <stopwatch name="timer" action="elapsed"/>  -->
+
 	</target>
 	
 	<target name="publishreport" depends="parsereport">
