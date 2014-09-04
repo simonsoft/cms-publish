@@ -314,11 +314,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
 					
 					// Remove this publishJob from the stack of jobs
-					//this.publishedJobs.remove(publishJob);
+					this.publishedJobs.remove(publishJob);
 						
 					// Then send it to publishing again
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
 					this.getPublishResult();
+					break;
 				}	
 			}
 		}
