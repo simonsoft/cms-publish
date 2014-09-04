@@ -277,7 +277,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		for (PublishJob publishJob : this.publishedJobs) {
 			
 			try {
-				String fileName = "";
+				String fileName = publishJob.getFilename(); 
 				// If this publish required a zip package, let's make sure we set proper file type
 				if (publishJob.isZip().equals("yes")){
 					if(publishJob.getFilename().contains(".zip")) {
