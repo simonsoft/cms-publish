@@ -74,7 +74,7 @@
 	</target>
 				
 	<target name="archive" if="${zipoutput}">
-		<tar basedir="${outputfolder}/${filename}" dest="${outputfolder}/${filename}.tar"/>
+		<tar basedir="${outputfolder}/${filename}" destfile="${outputfolder}/${filename}.tar"/>
 		<delete dir="${outputfolder}/${filename}"/>
 	</target>
 			

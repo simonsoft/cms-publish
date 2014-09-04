@@ -24,7 +24,7 @@ public class PublishJob {
 	private PublishTicket ticket;
 	private PublishRequest publishRequest;
 	private String filename;
-	private String isZip;
+	private String isZip = "";
 	private boolean completed = false;
 	private int numberOfTries = 2;
 	

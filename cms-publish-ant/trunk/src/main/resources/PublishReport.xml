@@ -16,19 +16,19 @@
     limitations under the License.
 
 -->
-<project name="PublishReport"  basedir=".">
+<project name="PublishReport" basedir="." default="delete">
    	
    <!--  <stopwatch name="timer"/> -->
    
     <taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.tasks.FindLatestRevisionTask"/>
     <taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.RequestReportTask"/>
     <taskdef name="preparepublish" classname="se.simonsoft.cms.publish.ant.tasks.ParseReportTask"/>
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.tasks.PublishJobsTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
 	
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
-
+	
     <property name="httpresponse" value=""/>
     <!-- Some default properties -->
    	<property name="lang" value="en-US"/>
@@ -91,7 +91,7 @@
              			casesensitive="false" />
 			     
 				<antcall target="publish">			
-				    <param name="file" value="${file}"/>
+				    <param name="param.file" value="${file}"/>
 				    <param name="filename" value="${filename}"/>
 				    <param name="lang" value="${lang}"/>
   				</antcall>
@@ -103,7 +103,7 @@
 	
 	<target name="publish" description="Publish an item">
 		
-	   	<publishrequest publishservice="${publishservice}" outputfolder="export">
+	   	<publishrequest outputfolder="export">
 			
 			<!-- Should perhaps also have config for port and uri -->
 	   	   <configs>
@@ -119,7 +119,7 @@
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
 		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
@@ -131,7 +131,7 @@
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="pdf"/>
 		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
@@ -142,7 +142,7 @@
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
@@ -156,7 +156,7 @@
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
@@ -170,7 +170,7 @@
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
 		   	       	<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="type" value="rtf"/>
 		   	       	<param name="queue-priority" value="${param.queue-priority}"/>
@@ -180,7 +180,7 @@
 	   	   	<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 	   	      	<params>
 		   	       	<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-		   	       	<param name="file" value="${file}"/>
+		   	       	<param name="file" value="${param.file}"/>
 		   	       	<param name="file-type" value="${param.file-type}"/>
 		   	       	<param name="zip-output" value="yes"/>
 		   	       	<param name="zip-graph-dir" value="${filename}-${lang}.xml_files"/>
@@ -196,18 +196,25 @@
 	</target>
 	
 	<target name="publishreport" depends="parsereport">
-	     <publishreport/>
+		<publishreport/>
+		<property name="copy" value="true"/> 
 	</target>
 	
 	<!-- Copy export contents to delta folder -->
-	<target name="copy">
-		<copy todir="${destdir}" overwrite="true" force="true">
+	<target name="todelta" if="copy">
+		<copy todir="${deltadir}" overwrite="true" force="true">
 			<fileset dir="${sourcedir}"/>
 		</copy>
 	</target>
 	
+	<target name="tocumulative" if="copy">
+			<copy todir="${cumulativedir}" overwrite="true" force="true">
+				<fileset dir="${sourcedir}"/>
+			</copy>
+	</target>
+	
 	<!-- Delete export -->
-	<target name="delete">
+	<target name="delete" depends="publishreport,todelta, tocumulative">
 	    <delete dir="${sourcedir}"/>
 	</target>
 
