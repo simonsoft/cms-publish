@@ -63,7 +63,7 @@ public class PublishingEngineServiceTest {
 		PublishSourceCmsItemId source = new PublishSourceCmsItemId(id);
 		
 		request.setFile(source);
-		request.setFormat("pdf");
+		request.setFormat(new PublishFormatPDF());
 		PublishTicket ticket = peService.requestPublish(request);
 		assertNotNull("Ticket should not be null", ticket.toString());
 	

@@ -93,6 +93,7 @@ public class PublishServicePe implements PublishService {
 		 *  xml			text/xml
 		 */
 		int count = 0;
+		
 		for(PublishFormat pFormat: this.publishFormats)
 		{
 			if(pFormat.getFormat().equals(format)){
@@ -111,9 +112,9 @@ public class PublishServicePe implements PublishService {
 			} catch (PublishException e) {
 				logger.info(e.getMessage());
 				e.printStackTrace();
-			}finally{
-				return null;
 			}
+		
+		return null;
 		
 		
 	}
@@ -169,8 +170,10 @@ public class PublishServicePe implements PublishService {
 			return this.getQueueTicket( new ByteArrayInputStream(byteOutputStream.toByteArray())); 
 		} catch (HttpStatusError e) {
 			logger.debug("Publication error: " + e.getResponse());
+			e.printStackTrace();
 		} catch (IOException e) {
 			logger.debug(e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -209,7 +212,8 @@ public class PublishServicePe implements PublishService {
 			});
 			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			// If we find that the response says Complete, return true
-			if(this.parseResponse("Transaction", "state", new ByteArrayInputStream(byteOutputStream.toByteArray())).equals("Complete")){
+			String parseResult = this.parseResponse("Transaction", "state", new ByteArrayInputStream(byteOutputStream.toByteArray()));
+			if(parseResult.equals("Complete") || parseResult.equals("Cancelled")){
 				result = true;
 			}
 			
@@ -231,7 +235,7 @@ public class PublishServicePe implements PublishService {
 		StringBuffer uri = new StringBuffer();
 		uri.append(this.peUri);
 		
-		// General always valid params
+		// General always mandatory params
 		uri.append("?&f=qt-retrieve");// The retrieve req
 		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
 		
@@ -258,7 +262,7 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public void getLogStream(PublishTicket ticket, PublishRequest request,
 			OutputStream outStream) {
-		
+		//TODO Implement
 	}
 	
 	/*
