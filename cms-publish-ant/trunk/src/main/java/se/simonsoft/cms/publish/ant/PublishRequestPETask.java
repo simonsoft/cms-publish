@@ -279,9 +279,9 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		FileManagementHelper fileHelper = new FileManagementHelper();
 		
 		for (PublishJob publishJob : this.publishedJobs) {
-			
+			String fileName = publishJob.getFilename(); 
 			try {
-				String fileName = publishJob.getFilename(); 
+				
 				// If this publish required a zip package, let's make sure we set proper file type
 				if (publishJob.isZip().equals("yes")){
 					if(publishJob.getFilename().contains(".zip")) {
@@ -297,7 +297,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				if(publishJob.getNumberOfTries() >= 1) { // If we have at least one more try let's do it
 					
 					publishJob.setNumberOfTries(publishJob.getNumberOfTries() - 1); // Count one try down
-					log("Retrieve result as: " + fileName);
+					log("Retrieve result: " + fileName + " try: " + publishJob.getNumberOfTries());
 					this.publishService.getResultStream(publishJob.getTicket(),
 							publishJob.getPublishRequest(), 
 							this.getStorageLocation(this.outputfolder, fileName));
@@ -308,9 +308,10 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
 				// Remove 
-				fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
+				fileHelper.delete(new File(this.outputfolder + "/" + fileName));
 				
 				if(publishJob.getNumberOfTries() == 0) {
+					
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 							" with errors: " + e.getMessage() + "\n");

@@ -123,27 +123,53 @@
 
 			</jobs>
 
-
-
 		</publishrequest>
-		<!-- File management -->
-		<unzip src="${outputfolder}/${filename}-${lang}.html_temp.zip" dest="${outputfolder}" />
-		<move file="${outputfolder}/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}.html" />
-		<delete file="${outputfolder}/${filename}-${lang}.html_temp.zip" />
 
-		<unzip src="${outputfolder}/${filename}-${lang}_html.zip" dest="${outputfolder}/${filename}-${lang}_html_temp" />
-		<delete file="${outputfolder}/${filename}-${lang}.html.zip" />
-		<move file="${outputfolder}/${filename}-${lang}_html_temp/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}_html_temp/${filename}-${lang}.html" />
-		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lang}_html_temp" />
-		<delete dir="${outputfolder}/${filename}-${lang}_html_temp" />
+		<!-- File management: Make sure we don't work with empty files-->
 
-		<unzip src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
-		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
-		<move file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
-		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
-		<delete dir="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<condition property="make-html-unzip">
+			<length file="${outputfolder}/${filename}-${lang}.html_temp.zip" when="greater" length="0" />
+		</condition>
 
+		<condition property="make-html-zip">
+			<length file="${outputfolder}/${filename}-${lang}_html.zip" when="greater" length="0" />
+		</condition>
+
+		<condition property="make-xml-zip">
+			<length file="${outputfolder}/${filename}-${lang}_xml.zip" when="greater" length="0" />
+		</condition>
+		
+		<!-- Call our package tasks-->
+		<antcall target="packageunzippedhtml" />
+		<antcall target="packagezippedhtml" />
+		<antcall target="packagezippedxml" />
+		
 	</target>
+
+	<!-- Package tasks begins -->
+	<target name="packageunzippedhtml" if="make-html-unzip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}.html_temp.zip" dest="${outputfolder}" />
+		<move failonerror="false" file="${outputfolder}/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}.html" />
+		<delete failonerror="false" file="${outputfolder}/${filename}-${lang}.html_temp.zip" />
+	</target>
+
+	<target name="packagezippedhtml" if="make-html-zip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_html.zip" dest="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}.html.zip" />
+		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_html_temp/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}_html_temp/${filename}-${lang}.html" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_html_temp" />
+	</target>
+
+	<target name="packagezippedxml" if="make-xml-zip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
+		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml_temp" />
+	</target>
+	
+	<!-- Package tasks ends -->
 
 	<!-- Get error report before copying -->
 	<target name="publishreport" depends="publish">
