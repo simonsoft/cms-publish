@@ -169,10 +169,11 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	private void sendPublishRequest(PublishRequestDefault publishRequest, PublishJob publishJob)
 	{
 		// Send the request
-		PublishTicket ticket = publishService.requestPublish(publishRequest);
+		PublishTicket ticket = publishService.requestPublish(publishRequest); 
 
 		if(ticket == null){
 			log("Could not send request to PublishingEngine");
+			throw new BuildException("Publish Service communication error.");
 			// Here we would like to output PE error.
 			//this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
 		}else {
@@ -310,6 +311,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 							" with errors: " + e.getMessage() + "\n");
+					fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
 				} else {
 					// Let's also remove the output
 					fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
