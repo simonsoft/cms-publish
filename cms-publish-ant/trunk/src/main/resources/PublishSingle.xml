@@ -16,129 +16,152 @@
     limitations under the License.
 
 -->
-<project name="PublishSingleTechSpec" basedir="." default="publish" >
+<project name="PublishSingleTechSpec" basedir="." default="delete">
 
-	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
-	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask" />
 
 	<!-- Some default properties -->
-	<property name="lang" value="en-US"/>
-	<property name="param.file-type" value="xml"/>
+	<property name="lang" value="en-US" />
+	<property name="param.file-type" value="xml" />
 	<!-- We will basically always use xml as input format -->
-	<property name="param.queue-priority" value="4"/>
+	<property name="param.queue-priority" value="4" />
 	<!-- We use a lower priority so other requests should be able to pass -->
 
-	<property name="outputfolder" value="export"/>
-	
+	<property name="outputfolder" value="export" />
+	<property name="e3defaultxmlfilename" value="e3out.xml" />
+	<property name="e3defaulthtmlfilename" value="e3out.htm" />
+
 	<target name="publish" description="Publish an item">
 
 		<publishrequest outputfolder="export">
 
 			<!-- Should perhaps also have config for port and uri -->
 			<configs>
-				<config name="host" value="${config.host}"/>
+				<config name="host" value="${config.host}" />
 			</configs>
 
 			<jobs>
 				<!-- Each job specifies the params for a publish request -->
-			
-				<job filename="${filename}-${lang}_A4.pdf">
+
+
+
+				<job filename="${filename}-${lang}.html_temp" zipoutput="no" rootfilename="${filename}-${lang}.html">
 					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="type" value="pdf"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.html_files" />
+						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg" />
+						<param name="type" value="html" />
+						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
 
-				<job filename="${filename}-${lang}_USL.pdf" >
+				<job filename="${filename}-${lang}_html.zip" zipoutput="yes" rootfilename="${filename}-${lang}.html">
 					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf"/>
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="type" value="pdf"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
-					</params>
-				</job>
-
-				<job filename="${filename}-${lang}.html.zip" zipoutput="no" rootfilename="${filename}-${lang}.html">
-					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="zip-output" value="yes"/>
-						<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
-						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
-						<param name="type" value="html"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
-					</params>
-				</job>
-
-				<job filename="${filename}-${lang}_html.zip" zipoutput="yes" rootfilename="${filename}-${lang}.html" >
-					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="zip-output" value="yes"/>
-						<param name="zip-graph-dir" value="${filename}-${lang}.html_files"/>
-						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg"/>
-						<param name="type" value="html"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.html_files" />
+						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg" />
+						<param name="type" value="html" />
+						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
 
 				<job filename="${filename}-${lang}.rtf">
 					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="type" value="rtf"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="rtf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
 
 				<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;"/>
-						<param name="file" value="${param.file}"/>
-						<param name="file-type" value="${param.file-type}"/>
-						<param name="zip-output" value="yes"/>
-						<param name="zip-graph-dir" value="${filename}-${lang}.xml_files"/>
-						<param name="type" value="xml"/>
-						<param name="queue-priority" value="${param.queue-priority}"/>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.xml_files" />
+						<param name="type" value="xml" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}_A4.pdf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="pdf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}_USL.pdf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="pdf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
 
 			</jobs>
 
+
+
 		</publishrequest>
-		
-		<!-- Get error report before copying -->
-		<target name="publishreport" depends="publish">
-			<publishreport/>
-			<property name="copy" value="true"/> 
-		</target>
+		<!-- File management -->
+		<unzip src="${outputfolder}/${filename}-${lang}.html_temp.zip" dest="${outputfolder}" />
+		<move file="${outputfolder}/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}.html" />
+		<delete file="${outputfolder}/${filename}-${lang}.html_temp.zip" />
 
-		<!-- Copy export contents to delta folder -->
-		<target name="tomanual" if="copy">
-			<copy todir="${manualdir}" overwrite="true" force="true">
-				<fileset dir="${sourcedir}"/>
-			</copy>
-		</target>
+		<unzip src="${outputfolder}/${filename}-${lang}_html.zip" dest="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}.html.zip" />
+		<move file="${outputfolder}/${filename}-${lang}_html_temp/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}_html_temp/${filename}-${lang}.html" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete dir="${outputfolder}/${filename}-${lang}_html_temp" />
 
-		<!-- Delete export -->
-		<target name="delete" depends="publishreport,tomanual">
-			<delete dir="${sourcedir}"/>
-		</target>
+		<unzip src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
+		<move file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete dir="${outputfolder}/${filename}-${lang}_xml_temp" />
 
+	</target>
+
+	<!-- Get error report before copying -->
+	<target name="publishreport" depends="publish">
+		<publishreport />
+
+		<property name="copy" value="true" />
+	</target>
+
+	<!-- Copy export contents to delta folder -->
+	<target name="tomanual" if="copy">
+		<copy todir="${manualdir}" overwrite="true" force="true">
+			<fileset dir="${sourcedir}" />
+		</copy>
+	</target>
+
+	<!-- Delete export -->
+	<target name="delete" depends="publishreport,tomanual">
+		<delete dir="${sourcedir}" />
 	</target>
 
 </project>

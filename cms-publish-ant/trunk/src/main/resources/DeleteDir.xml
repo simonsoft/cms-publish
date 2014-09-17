@@ -17,19 +17,8 @@
 
 -->
 <project name="DeleteADir" basedir="." default="delete">
-	
-    <taskdef name="deletedir" classname="se.simonsoft.cms.publish.ant.tasks.DeleteDirTask"/>
-    
 	<target name="delete" description="Deletes a directory">
 	    <!-- Delete the contents of dirtodelete -->
-		<deletedir directory="${dirtodelete}"/>
-		    <!-- 
-		<delete>
-		    <fileset dir="${dirtodelete}">
-      			<include name="**/*"/>
-   			</fileset>
-		</delete>
-		 -->
+		<delete dir="${dirtodelete}"/>
 	</target>
-	
 </project>

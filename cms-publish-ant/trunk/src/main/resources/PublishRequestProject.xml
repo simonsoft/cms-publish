@@ -16,74 +16,97 @@
     limitations under the License.
 
 -->
+
+<!-- 
+	This ANT Build is specific for publishing VSM Project files in one language.
+-->
 <project name="PublishRequest"  basedir="." default="publishreport">
-  
+
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask"/>
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask"/>
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
-	
-    <!-- Some default properties -->
-   	<property name="lang" value="en-US"/>
-   	<property name="param.file-type" value="xml"/> 	<!-- We will basically always use xml as input format -->
-   	<property name="param.queue-priority" value="4"/> <!-- We use a lower priority so other requests should be able to pass -->
-	<property name="outputfolder" value="export"/>
-	<property name="e3defaultfilename" value="e3out.xml"/>
 
-	<target name="publish" description="Publish an item">
-		
-	   	<publishrequest outputfolder="${outputfolder}">
-			
-			<!-- Should perhaps also have config for port and uri -->
-	   	   <configs>
-	   	   		<config name="host" value="${config.host}"/>
-	   	   </configs>
-	   	   
-	   	   <jobs>
-		   		<!-- Each job specifies the params for a publish request -->
-		   	    
-		   	   	<job filename="${filename}" zipoutput="${zipoutput}" rootfilename="${zip-root-filename}">
-		   	    	<params>
-			   	       	<param name="profile" value="${param.profile}"/>
-			   	       	<param name="app-config" value="${param.app-config}"/>
-			   	       	<param name="stylesheet" value="${param.stylesheet}"/>
-			   	       	<param name="file" value="${param.file}"/>
-			   	       	<param name="file-type" value="${param.file-type}"/>
-		   	     		<param name="zip-output" value="${param.zip-output}"/>
-		   	     		<param name="zip-graph-dir" value="${param.zip-graph-dir}"/>
-		   	     		<param name="graphic-transform" value="${param.graphic-transform}"/>
-			   	       	<param name="type" value="${param.type}"/>
-			   	       	<param name="queue-priority" value="${param.queue-priority}"/>
-		   	   		</params>
-		   	   	</job>
-	   	   	</jobs>
-	   	</publishrequest>
-	   
-	</target>
+	<!-- Some default properties -->
+	<property name="lang" value="en-US"/>
+	<property name="param.file-type" value="xml"/>
+	<property name="param.type" value="xml"/>
+	<property name="param.profile" value=""/>
+	<property name="param.app-config" value=""/>
+	<property name="param.stylesheet" value=""/>
+	<property name="param.zip-output" value="yes"/>
+	<property name="param.zip-graph-dir" value="graphics"/>
+	<property name="param.queue-priority" value="4"/>
+	<property name="zipoutput" value="yes"/>
+	<property name="zip-root-filename" value="${filename}.xml"/>
+
+	<!-- We use a lower priority so other requests should be able to pass -->
+	<property name="outputfolder" value="workspace/export"/>
+	<property name="e3defaultfilename" value="e3out.xml"/>
 	
-	 <!-- We could assume that each project publish request demands a zip, 
-	 	but just to make sure we check for param.zip-putput -->  		
+<!--
+	<target name="get-report">
+		<getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
+			<params>
+				<param name="q" value="${query}" />
+				<param name="rows" value="${rows}" />
+			</params>
+		</getreport>
+	</target>
+-->
+	<target name="publish" description="Publish an item">
+
+		<publishrequest outputfolder="${outputfolder}">
+
+			<!-- Should perhaps also have config for port and uri -->
+			<configs>
+				<config name="host" value="${config.host}"/>
+			</configs>
+
+			<jobs>
+				<!-- Each job specifies the params for a publish request -->
+
+				<job filename="${filename}" zipoutput="${zipoutput}" rootfilename="${zip-root-filename}">
+					<params>
+						<param name="profile" value="${param.profile}"/>
+						<param name="app-config" value="${param.app-config}"/>
+						<param name="stylesheet" value="${param.stylesheet}"/>
+						<param name="file" value="${param.file}"/>
+						<param name="file-type" value="${param.file-type}"/>
+						<param name="zip-output" value="${param.zip-output}"/>
+						<param name="zip-graph-dir" value="${param.zip-graph-dir}"/>
+						<param name="graphic-transform" value="${param.graphic-transform}"/>
+						<param name="type" value="${param.type}"/>
+						<param name="queue-priority" value="${param.queue-priority}"/>
+					</params>
+				</job>
+			</jobs>
+		</publishrequest>
+
+	</target>
+
+	<!-- We could assume that each project publish request demands a zip, 
+	 	but just to make sure we check for param.zip-putput -->
 	<target name="unarchive" if="${param.zip-output}">
 		<unzip src="${outputfolder}/${filename}.zip" dest="${outputfolder}/${filename}"/>
 		<delete file="${outputfolder}/${filename}.zip"/>
 	</target>
-			
+
 	<target name="performtransform">
 		<xslt style="techdoc_to_machine.xsl" in="${outputfolder}/${filename}/${e3defaultfilename}" out="${outputfolder}/${filename}/project.xml"/>
 		<delete file="${outputfolder}/${filename}/${e3defaultfilename}"/>
 	</target>
-				
+	
+	<!-- We could assume that we always want a tar -->
 	<target name="archive" if="${zipoutput}">
 		<tar basedir="${outputfolder}/${filename}" destfile="${outputfolder}/${filename}.tar"/>
+		<move file="${outputfolder}/${filename}.tar" tofile="${outputfolder}/${filename}.jos"/> 
 		<delete dir="${outputfolder}/${filename}"/>
+		<delete dir="${outputfolder}/${filename}.tar"/>
 	</target>
-			
-	<target name="cleanup">
 	
-	</target>		
-				
 	<target name="publishreport" depends="publish, unarchive, performtransform, archive">
-	     <publishreport/>
+		<publishreport/>
 	</target>
-
+	
 </project>

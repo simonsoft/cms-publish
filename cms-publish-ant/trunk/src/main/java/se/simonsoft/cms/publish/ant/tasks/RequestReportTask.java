@@ -126,7 +126,6 @@ public class RequestReportTask extends Task {
 
 	public void execute()
 	{
-		
 		String response = this.requestReport(this.constructURI());
 		log("response: " + response);
 		this.getProject().setProperty("reportresponse", response);
@@ -140,32 +139,15 @@ public class RequestReportTask extends Task {
 		
 		this.httpClient = new RestClientJavaNet(this.url, authentication);
 		
-		///*
 		HashMap<String,String> requestHeaders = new HashMap<String, String>();
 		requestHeaders.put("Authorization", "Basic " +  Codecs.base64encode(
 				username + ":" + password));
 		requestHeaders.put("Accept", "application/json");
-		//*/
+	
 		try {
 			
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-			/*
-			this.httpClient.get(uri, new RestResponseAccept() {
 
-				@Override
-				public OutputStream getResponseStream(ResponseHeaders headers) {
-					log("Response from API: " + headers.getStatus());
-					return byteOutputStream; // Returns to our outputstream
-				}
-				 // Seems like restclient does care about accept method.
-				@Override
-				public String getAccept() {
-					return "application/json"; // We want json response
-				}
-			});
-			//*/
-			
-			//*
 			this.httpClient.get(this.constructURL(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
@@ -174,20 +156,17 @@ public class RequestReportTask extends Task {
 					return byteOutputStream; // Returns to our outputstream
 				}
 			}, requestHeaders);
-			//*/
+		
 			// Return the JSON response as string
 			return byteOutputStream.toString("UTF-8");
 			
 		} catch (HttpStatusError e) {
-			// TODO Here we need to fail the build
 			log("Communication error: " + e.getResponse());
 			throw new BuildException(e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new BuildException(e);
 		}
-	
 	}
 	
 	/*
@@ -195,27 +174,23 @@ public class RequestReportTask extends Task {
 	 */
 	private String constructURI()
 	{
-		log("Construct URI");
 		StringBuffer uri = new StringBuffer();
 		uri.append(apiuri);
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
+				
 				// Adding the query (query is mandatory)
 				if(param.getName().equals("q")){
 					uri.append("?q=" + urlencode(param.getValue()));
 				}
-				// Adding rows
-				if(param.getName().equals("rows")){
-					uri.append("&rows=" + param.getValue());
+				// And add the rest of the params
+				else {
+					uri.append("&" + param.getName() + "=" + param.getValue());
 				}
 				
-				if(param.getName().equals("start")){
-					uri.append("&start=" + param.getValue());
-				}
 			}
 		}
-		
-		log("URI:" + uri.toString());
+		log("Constructed report request-uri: " + uri.toString());
 		return uri.toString(); // Return as string
 	}
 	
@@ -224,11 +199,9 @@ public class RequestReportTask extends Task {
 	 */
 	private URL constructURL()
 	{
-		log("Construct URL");
 		StringBuffer url = new StringBuffer();
 		url.append(this.url);
 		url.append(this.constructURI());
-		log("URL:" + url.toString());
 		URL returnURL = null;
 		try {
 			returnURL = new URL(url.toString());

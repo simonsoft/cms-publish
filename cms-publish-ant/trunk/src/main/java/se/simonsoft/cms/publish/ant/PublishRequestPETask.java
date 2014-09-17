@@ -86,7 +86,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	@Override
 	public void setOutputfolder(String outputfolder) {
 		this.outputfolder = outputfolder;
-		
 	}
 	
 	@Override
@@ -97,7 +96,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	@Override
 	public void setZipoutput(String zipoutput) {
 		this.zipoutput = zipoutput;
-		
 	}
 	
 	@Override
@@ -109,7 +107,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	public void setFail(boolean fail) {
 		this.fail = fail;
 	}
-	
 	
 	public void execute() {
 		
@@ -147,62 +144,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	}
 	
 	/*
-	 * Send the actual request to PublishService
-	 * For now we take a publishJob too
-	 */
-	private void sendPublishRequest(PublishRequestDefault publishRequest, PublishJob publishJob)
-	{
-		// Send the request
-		PublishTicket ticket = publishService.requestPublish(publishRequest);
-
-		if(ticket == null){
-			log("Could not send request to PublishingEngine");
-			// Here we would like to output PE error.
-			//this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
-		}else {
-			// Store the request and id as a job
-			publishJob.setTicket(ticket); // Set the ticket
-			this.publishedJobs.add(publishJob);
-		}
-	}
-	
-	@Override
-	public boolean isCompleted() {
-		log("Check if publish requests are completed");
-		boolean isAllComplete = false;
-		int completedCount = 0;
-		int checks = 1;
-		
-		while(!isAllComplete){
-		
-			for (PublishJob publishJob : this.publishedJobs) {
-				boolean isComplete = false;
-				if(!publishJob.isCompleted()) {
-					isComplete = publishService.isCompleted(publishJob.getTicket(), publishJob.getPublishRequest());
-					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
-					if(isComplete) {
-						publishJob.setCompleted(isComplete);
-						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
-						completedCount++;
-					}
-				}	
-				checks++;
-			}
-			// Are all jobs completed?
-			if(completedCount == this.publishedJobs.size()) {
-				isAllComplete = true;
-			}
-			
-			try {
-				Thread.sleep(2000);  // Be patient
-			} catch (InterruptedException e) {
-				log("Error when checking for completed jobs: " + e.getMessage());
-			}
-		}
-		return true;
-	}
-	
-	/*
 	 * Configures a PublishJob object
 	 * @param PublishRequestDefault publishRequest
 	 * @param JobNode job
@@ -219,6 +160,29 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 		
 		return publishJob;
+	}
+	
+	/*
+	 * Send the actual request to PublishService
+	 * For now we take a publishJob too
+	 */
+	private void sendPublishRequest(PublishRequestDefault publishRequest, PublishJob publishJob)
+	{
+		// Send the request
+		PublishTicket ticket = publishService.requestPublish(publishRequest);
+
+		if(ticket == null){
+			log("Could not send request to PublishingEngine");
+			// Here we would like to output PE error.
+			//this.addToErrorLog("PublicationException: Did not get response back from PE for file: " + publishRequest.getFile().getURI());
+		}else {
+			// Store the request and id as a job
+			publishJob.setTicket(ticket); // Set the ticket
+			if(!this.publishedJobs.contains(publishJob)){
+				this.publishedJobs.add(publishJob);
+			}
+			
+		}
 	}
 
 	@Override
@@ -264,6 +228,45 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 		return publishRequest;
 	}
+
+	
+	@Override
+	public boolean isCompleted() {
+		log("Check if publish requests are completed");
+		boolean isAllComplete = false;
+		int completedCount = 0;
+		int checks = 1;
+		
+		while(!isAllComplete){
+		
+			for (PublishJob publishJob : this.publishedJobs) {
+				boolean isComplete = false;
+				if(!publishJob.isCompleted()) {
+					isComplete = publishService.isCompleted(publishJob.getTicket(), publishJob.getPublishRequest());
+					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
+					if(isComplete) {
+						publishJob.setCompleted(isComplete);
+						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
+						completedCount++;
+					}
+				}	
+				checks++;
+			}
+			// Are all jobs completed?
+			if(completedCount == this.publishedJobs.size()) {
+				isAllComplete = true;
+			}
+			
+			try {
+				Thread.sleep(2000);  // Be patient
+			} catch (InterruptedException e) {
+				log("Error when checking for completed jobs: " + e.getMessage());
+			}
+		}
+		return true;
+	}
+	
+	
 	 // Not now
 	public PublishSource retrivePublishSource(String uri){
 		return null;		
@@ -309,17 +312,17 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 							" with errors: " + e.getMessage() + "\n");
 				} else {
 					// Let's also remove the output
-					fileHelper.delete(new File(outputfolder + "/" + publishJob.getFilename()));
+					fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
 
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
 					
 					// Remove this publishJob from the stack of jobs
-					this.publishedJobs.remove(publishJob);
+					//this.publishedJobs.remove(publishJob);
 						
 					// Then send it to publishing again
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
 					this.getPublishResult();
-					break;
+					break; // Will this ever work
 				}	
 			}
 		}
