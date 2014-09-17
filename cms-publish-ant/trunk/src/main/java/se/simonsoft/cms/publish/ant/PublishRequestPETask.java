@@ -307,15 +307,15 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				
 				log("Ticket: " + publishJob.getTicket().toString() + " failed for file: " + 
 								publishJob.getPublishRequest().getFile().getURI());
+				// Remove 
+				fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
+				
 				if(publishJob.getNumberOfTries() == 0) {
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 							" with errors: " + e.getMessage() + "\n");
-					fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
+					
 				} else {
-					// Let's also remove the output
-					fileHelper.delete(new File(this.outputfolder + "/" + publishJob.getFilename()));
-
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
 					
 					// Remove this publishJob from the stack of jobs
