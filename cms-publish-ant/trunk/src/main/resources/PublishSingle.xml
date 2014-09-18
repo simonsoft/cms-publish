@@ -174,20 +174,18 @@
 	<!-- Get error report before copying -->
 	<target name="publishreport" depends="publish">
 		<publishreport />
-
-		<property name="copy" value="true" />
 	</target>
 
 	<!-- Copy export contents to delta folder -->
 	<target name="tomanual" if="copy">
-		<copy todir="${manualdir}" overwrite="true" force="true">
+		<copy failonerror="false" todir="${manualdir}" overwrite="true" force="true">
 			<fileset dir="${sourcedir}" />
 		</copy>
 	</target>
 
 	<!-- Delete export -->
 	<target name="delete" depends="publishreport,tomanual">
-		<delete dir="${sourcedir}" />
+		<delete failonerror="false" dir="${sourcedir}" />
 	</target>
 
 </project>
