@@ -237,11 +237,11 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	public boolean isCompleted() {
 		log("Check if publish requests are completed");
 		boolean isAllComplete = false;
-		int completedCount = 0;
+		
 		int checks = 1;
 		
 		while(!isAllComplete){
-		
+			int completedCount = 0;
 			// Check if a publishJob is completed
 			for (PublishJob publishJob : this.publishedJobs) {
 				boolean isComplete = false;
