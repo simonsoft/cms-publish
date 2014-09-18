@@ -252,9 +252,14 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
 						completedCount++;
 					}
-				}	
+				}
+				else {
+					completedCount++; // PublishJob already completed.
+				}
 				checks++;
 			}
+			
+			
 			// Are all jobs completed?
 			if(completedCount == this.publishedJobs.size()) {
 				isAllComplete = true;
@@ -327,8 +332,10 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					// Then send it to publishing again
 					publishJob.setCompleted(false); // Reset completed state
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
-					this.isCompleted();
-					this.getPublishResult();
+					if(this.isCompleted()) {
+						this.getPublishResult();
+					}
+					
 					break;
 				}	
 			}
