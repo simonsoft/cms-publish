@@ -325,6 +325,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					//this.publishedJobs.remove(publishJob);
 						
 					// Then send it to publishing again
+					publishJob.setCompleted(false); // Reset completed state
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
 					this.isCompleted();
 					this.getPublishResult();
