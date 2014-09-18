@@ -310,7 +310,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				// Remove 
 				fileHelper.delete(new File(this.outputfolder + "/" + fileName));
 				
-				if(publishJob.getNumberOfTries() == 0) {
+				if(publishJob.getNumberOfTries() == -1) {
 					
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 

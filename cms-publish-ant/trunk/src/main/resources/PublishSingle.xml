@@ -177,7 +177,7 @@
 	</target>
 
 	<!-- Copy export contents to delta folder -->
-	<target name="tomanual" if="copy">
+	<target name="tomanual">
 		<copy failonerror="false" todir="${manualdir}" overwrite="true" force="true">
 			<fileset dir="${sourcedir}" />
 		</copy>
