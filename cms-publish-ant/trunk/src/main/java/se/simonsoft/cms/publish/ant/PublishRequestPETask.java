@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
@@ -46,7 +48,7 @@ import se.simonsoft.publish.ant.helper.FileManagementHelper;
  * 
  */
 public class PublishRequestPETask extends Task implements PublishRequestTaskInterface {
-	
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected ConfigsNode configs;
 	protected String publishservice;
 	protected JobsNode jobs;
@@ -310,7 +312,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 				// Remove 
 				fileHelper.delete(new File(this.outputfolder + "/" + fileName));
 				
-				if(publishJob.getNumberOfTries() == -1) {
+				if(publishJob.getNumberOfTries() == 0) {
 					
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
@@ -324,8 +326,9 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 						
 					// Then send it to publishing again
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
+					this.isCompleted();
 					this.getPublishResult();
-					break; // Will this ever work
+					break;
 				}	
 			}
 		}
