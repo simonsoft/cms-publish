@@ -242,6 +242,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		
 		while(!isAllComplete){
 		
+			// Check if a publishJob is completed
 			for (PublishJob publishJob : this.publishedJobs) {
 				boolean isComplete = false;
 				if(!publishJob.isCompleted()) {
@@ -250,15 +251,16 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
 						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
-						completedCount++;
 					}
-				}
-				else {
-					completedCount++; // PublishJob already completed.
 				}
 				checks++;
 			}
-			
+			// Count the number of completed jobs
+			for (PublishJob publishJob : this.publishedJobs) {
+				if(publishJob.isCompleted()) {
+					completedCount++;
+				}
+			}
 			
 			// Are all jobs completed?
 			if(completedCount == this.publishedJobs.size()) {
