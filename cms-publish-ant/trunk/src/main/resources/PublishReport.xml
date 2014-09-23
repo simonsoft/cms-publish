@@ -16,9 +16,7 @@
     limitations under the License.
 
 -->
-<project name="PublishReport" basedir="." default="delete">
-
-	<!--  <stopwatch name="timer"/> -->
+<project name="PublishReport" basedir="." default="run">
 
 	<taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.tasks.FindLatestRevisionTask" />
 	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.RequestReportTask" />
@@ -44,16 +42,15 @@
 	<!-- Report query defaults-->
 	<property name="username" value="report-read" />
 	<property name="password" value="read" />
-
+	<property name="rows" value="2000" />
+	<property name="apiuri" value="/cms/rest/report/items" />
+	
 	<!-- Will set ${previousrevision} -->
 	<target name="getlatestrevision">
 		<getrevision />
 		<!-- The general query -->
 		<property name="query" value="svnrevision:[${previousrevision} TO *] AND (id:*td-spec-cur* OR id:*td-xml/non-thg-swe*)" />
 	</target>
-
-	<property name="rows" value="2000" />
-	<property name="apiuri" value="/cms/rest/report/items" />
 
 	<target name="get-report">
 		<getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
@@ -90,7 +87,7 @@
 
 	<target name="publish" description="Publish an item">
 
-		<publishrequest outputfolder="export">
+		<publishrequest outputfolder="${outputfolder}">
 
 			<!-- Should perhaps also have config for port and uri -->
 			<configs>
@@ -224,27 +221,41 @@
 	</target>
 
 	<!-- Package tasks ends -->
-
-	<target name="publishreport" depends="parsereport">
+<!--
+	<target name="publishreport">
 		<publishreport />
 	</target>
 
-	<!-- Copy export contents to delta folder -->
 	<target name="todelta">
 		<copy failonerror="false" todir="${deltadir}" overwrite="true" force="true">
-			<fileset dir="${sourcedir}" />
+			<fileset dir="${outputfolder}" />
 		</copy>
 	</target>
 
 	<target name="tocumulative">
 		<copy failonerror="false" todir="${cumulativedir}" overwrite="true" force="true">
-			<fileset dir="${sourcedir}" />
+			<fileset dir="${outputfolder}" />
 		</copy>
 	</target>
 
-	<!-- Delete export -->
-	<target name="delete" depends="publishreport,todelta, tocumulative">
-		<delete failonerror="false" dir="${sourcedir}" />
+	<target name="delete" depends="publishreport">
+		<delete failonerror="false" dir="${outputfolder}" />
+	</target>
+-->
+	<!-- the dependency to parsereport makes sure publishing process initiates -->
+	<target name="run" depends="parsereport">
+		<publishreport />
+		<!-- Move files. If nothing is to be moved, a warning will output -->
+		<!-- Copy export contents to delta folder -->
+		<copy failonerror="false" preservelastmodified="true" todir="${deltadir}" overwrite="true" force="true">
+			<fileset dir="${outputfolder}" />
+		</copy>
+		<!-- Copy export contents to cumulative folder -->
+		<copy failonerror="false" preservelastmodified="true" todir="${cumulativedir}" overwrite="true" force="true">
+			<fileset dir="${outputfolder}" />
+		</copy>
+		<!-- Delete export -->
+		<delete failonerror="false" dir="${outputfolder}" />
 	</target>
 
 </project>
