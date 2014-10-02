@@ -95,7 +95,37 @@
 		<delete failonerror="false" file="${outputfolder}/${filename}.zip" />
 	</target>
 
-	<target name="performtransform">
+	<target name="rename-icon-file">
+		<!-- Create a list of files to rename -->
+		<xslt style="createfilelist.xsl" in="${outputfolder}/${filename}/${e3defaultfilename}" out="${outputfolder}/filelist.txt">
+			<param name="graphicsdir" expression="${param.zip-graph-dir}"/>
+			<factory name="net.sf.saxon.TransformerFactoryImpl">
+				<attribute name="http://saxon.sf.net/feature/version-warning" value="false" />
+			</factory>
+		</xslt>
+		<!-- load this file into a property -->
+		<loadfile property="textFile" srcfile="${outputfolder}/filelist.txt" />
+		
+		<!-- Using ant contrib for loop, get each value and then rename the file -->
+		<for param="line" list="${textFile}" delimiter="${line.separator}">
+			<sequential>
+				<propertyregex property="sewablefile" input="@{line}" regexp="(.+):" select="\1" override="true" casesensitive="false" />
+				<propertyregex property="iconfile" input="@{line}" regexp=":(.+)" select="\1" override="true" casesensitive="false" />
+				<propertyregex property="sewablefile.name" input="${sewablefile}" regexp="(.*)\.(.*)" select="\1" override="true" />
+				
+				<echo message="Sewablefile; ${sewablefile}"/>
+				<echo message="Iconfile: ${iconfile}"/>
+				<echo message="Sewable file name: ${sewablefile.name}"/>
+				
+				<move file="${outputfolder}/${filename}/${param.zip-graph-dir}/${iconfile}" 
+					tofile="${outputfolder}/${filename}/${param.zip-graph-dir}/${sewablefile.name}.png" 
+					failonerror="false"/>
+			</sequential>
+		</for>
+		<delete failonerror="false" file="${outputfolder}/filelist.txt"/>
+	</target>
+
+	<target name="perform-transform">
 		<xslt style="techdoc_to_machine.xsl" in="${outputfolder}/${filename}/${e3defaultfilename}" out="${outputfolder}/${filename}/project.xml">
 			<factory name="net.sf.saxon.TransformerFactoryImpl">
 				<attribute name="http://saxon.sf.net/feature/version-warning" value="false" />
@@ -112,13 +142,13 @@
 		<delete failonerror="false" dir="${outputfolder}/${filename}.tar" />
 	</target>
 
-	<target name="publishreport">
+	<target name="publish-report">
 		<publishreport />
 		<condition property="errors">
 			<length file="${outputfolder}/errors.log" when="greater" length="0" />
 		</condition>
 	</target>
 
-	<target name="run" depends="publish, publishreport, unarchive, performtransform, archive" />
+	<target name="run" depends="publish, publish-report, unarchive,rename-icon-file,perform-transform, archive" />
 
 </project>
