@@ -25,7 +25,7 @@
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
 	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.ErrorReportTask" />
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
-	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />	
 
 	<!-- Some default properties -->
 	<property name="lang" value="en-US" />
@@ -37,6 +37,7 @@
 	<property name="param.zip-output" value="yes" />
 	<property name="param.zip-graph-dir" value="graphics" />
 	<property name="param.queue-priority" value="4" />
+	<property name="param.flatten-entities" value="yes" />
 	<property name="zipoutput" value="yes" />
 	<property name="zip-root-filename" value="${filename}.xml" />
 
@@ -78,6 +79,7 @@
 						<param name="graphic-transform" value="${param.graphic-transform}" />
 						<param name="type" value="${param.type}" />
 						<param name="queue-priority" value="${param.queue-priority}" />
+						<param name="flatten-entities" value="${param.flatten-entities}" />
 					</params>
 				</job>
 			</jobs>
@@ -112,11 +114,11 @@
 				<propertyregex property="sewablefile" input="@{line}" regexp="(.+):" select="\1" override="true" casesensitive="false" />
 				<propertyregex property="iconfile" input="@{line}" regexp=":(.+)" select="\1" override="true" casesensitive="false" />
 				<propertyregex property="sewablefile.name" input="${sewablefile}" regexp="(.*)\.(.*)" select="\1" override="true" />
-				
+				<!--
 				<echo message="Sewablefile; ${sewablefile}"/>
 				<echo message="Iconfile: ${iconfile}"/>
 				<echo message="Sewable file name: ${sewablefile.name}"/>
-				
+				-->
 				<move file="${outputfolder}/${filename}/${param.zip-graph-dir}/${iconfile}" 
 					tofile="${outputfolder}/${filename}/${param.zip-graph-dir}/${sewablefile.name}.png" 
 					failonerror="false"/>
