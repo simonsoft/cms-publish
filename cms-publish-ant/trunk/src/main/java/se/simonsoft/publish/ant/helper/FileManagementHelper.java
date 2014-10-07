@@ -106,7 +106,7 @@ public class FileManagementHelper {
 			FileDeleteStrategy.FORCE.delete(file);
 
 		} catch(Exception e){
-			logger.info("Could not delete file!", e);
+			logger.info("Could not delete file!");
 			logger.debug(e.getMessage());
 		}
 		logger.debug("end");
@@ -125,7 +125,7 @@ public class FileManagementHelper {
 			// Delete original
 			this.delete(oldFile);
 		} catch (IOException e) {
-			logger.info("Could not rename file!", e);
+			logger.info("Could not rename file!");
 			logger.debug(e.getMessage());
 		}
 		logger.debug("end");
@@ -176,7 +176,8 @@ public class FileManagementHelper {
 			zos.close();
 
 		}catch(IOException ex){
-			logger.info("Could not rename file!", ex);  
+			logger.info("Could not rename file!");
+			logger.debug(ex.getMessage());
 		}
 	}
 

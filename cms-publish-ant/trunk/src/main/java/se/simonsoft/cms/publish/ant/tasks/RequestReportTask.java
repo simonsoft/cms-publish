@@ -15,41 +15,52 @@
  */
 package se.simonsoft.cms.publish.ant.tasks;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.HashMap;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
-import se.repos.restclient.HttpStatusError;
-import se.repos.restclient.ResponseHeaders;
-import se.repos.restclient.RestResponse;
-import se.repos.restclient.RestResponseAccept;
-import se.repos.restclient.auth.RestAuthenticationSimple;
-import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
+import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
-/*
+import se.simonsoft.publish.ant.helper.RestClientReportRequest;
+
+/**
  * Sends request to CMS reporting 1.0 and sets the response as ant property
  * Uses JREs default jks for SSL
+ * 
+ * @author joakimdurehed
+ *
  */
+
 public class RequestReportTask extends Task {
 
 	private RestClientJavaNet httpClient;
 	
 	protected ConfigsNode configs;
-	protected String url;
+	protected ParamsNode params;
+	protected String url;  
 	protected String apiuri;
 	protected String username;
 	protected String password;
+	protected String target;
+	protected String reportversion;
+	
+	private RestClientReportRequest request;
+	
+	/**
+	 * @return the reportversion
+	 */
+	public String getReportversion() {
+		return reportversion;
+	}
+
+	/**
+	 * @param reportversion the reportversion to set
+	 */
+	public void setReportversion(String reportversion) {
+		this.reportversion = reportversion;
+	}
 	
 	
 	/**
@@ -94,7 +105,6 @@ public class RequestReportTask extends Task {
 		this.password = password;
 	}
 
-	protected ParamsNode params;
 	
 	/**
 	 * @return the configs
@@ -124,100 +134,68 @@ public class RequestReportTask extends Task {
 		this.params = params;
 	}
 
+	/**
+	 * @return the target
+	 */
+	public String getTarget() {
+		return target;
+	}
+
+	/**
+	 * @param target the target to set
+	 */
+	public void setTarget(String target) {
+		this.target = target;
+	}
+
+	
 	public void execute()
 	{
-		String response = this.requestReport(this.constructURI());
-		log("response: " + response);
-		this.getProject().setProperty("reportresponse", response);
+		this.request = new RestClientReportRequest();
+		this.request.setApiuri(this.getApiuri());
+		this.request.setBaseUrl(this.getUrl());
+		
+		this.addConfigsToRequest();
+		this.addParamsToRequest();
+		// We'll get a json string
+		String response = this.requestReport();
+		
+		// We set a property with the response for somebody to parse
+		this.getProject().setProperty("requestresponse", response);
+		if(this.getTarget() != null) {
+			log("Call target " + this.getTarget());
+			// Call a target to deal with the response
+			this.getProject().executeTarget(this.getTarget());
+		}
+		
 	}
 	
-	private String requestReport(String uri)
+	private String requestReport()
 	{	
 		log("Request report");
-		RestAuthenticationSimple authentication = new RestAuthenticationSimple(username,password);
-		authentication.getSSLContext(url); // Trying to configure SSL before hand.
-		
-		this.httpClient = new RestClientJavaNet(this.url, authentication);
-		
-		HashMap<String,String> requestHeaders = new HashMap<String, String>();
-		requestHeaders.put("Authorization", "Basic " +  Codecs.base64encode(
-				username + ":" + password));
-		requestHeaders.put("Accept", "application/json");
-	
-		try {
-			
-			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-
-			this.httpClient.get(this.constructURL(), new RestResponse() {
-				@Override
-				public OutputStream getResponseStream(
-						ResponseHeaders headers) {
-					log("Response from API: " + headers.getStatus());
-					return byteOutputStream; // Returns to our outputstream
-				}
-			}, requestHeaders);
-		
-			// Return the JSON response as string
-			return byteOutputStream.toString("UTF-8");
-			
-		} catch (HttpStatusError e) {
-			log("Communication error: " + e.getResponse());
-			throw new BuildException(e);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new BuildException(e);
+		String response = this.request.sendRequest();
+		if(response == null) {
+			throw new BuildException("Could not get report response!");
 		}
+		return response;
 	}
 	
-	/*
-	 * Constructs URI that supports report framework 1.0
-	 */
-	private String constructURI()
+	
+	private void addParamsToRequest()
 	{
-		StringBuffer uri = new StringBuffer();
-		uri.append(apiuri);
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
-				
-				// Adding the query (query is mandatory)
-				if(param.getName().equals("q")){
-					uri.append("?q=" + urlencode(param.getValue()));
-				}
-				// And add the rest of the params
-				else {
-					uri.append("&" + param.getName() + "=" + param.getValue());
-				}
-				
+				this.request.addParam(param.getName(), param.getValue());
 			}
 		}
-		log("Constructed report request-uri: " + uri.toString());
-		return uri.toString(); // Return as string
 	}
 	
-	/*
-	 * Constructs URL that supports report framework 1.0
-	 */
-	private URL constructURL()
+	private void addConfigsToRequest()
 	{
-		StringBuffer url = new StringBuffer();
-		url.append(this.url);
-		url.append(this.constructURI());
-		URL returnURL = null;
-		try {
-			returnURL = new URL(url.toString());
-		} catch (MalformedURLException e) {
-			
-			e.printStackTrace();
-		}
-		return returnURL;
-	}
-	
-	protected String urlencode(String value) {
-		try {
-			return URLEncoder.encode(value, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// encoding is a constant so we must consider this a fatal runtime environment issue
-			throw new RuntimeException("Unexpected JVM behavior: failed to encode URL using UTF-8", e);
+		if (null != configs && configs.isValid()) {
+			for (final ConfigNode config : configs.getConfigs()) {
+				this.request.addConfig(config.getName(), config.getValue());
+			}
 		}
 	}
 }
