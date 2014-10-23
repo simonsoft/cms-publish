@@ -165,6 +165,8 @@
 		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
 		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
 		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<!-- Copy a single XML to output root -->
+		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
 		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
 		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml_temp" />
 	</target>
