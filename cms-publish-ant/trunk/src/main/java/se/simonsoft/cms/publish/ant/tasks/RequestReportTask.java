@@ -24,6 +24,7 @@ import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
+import se.simonsoft.publish.ant.helper.RestClientReportRequest.Reportversion;
 
 /**
  * Sends request to CMS reporting 1.0 and sets the response as ant property
@@ -148,32 +149,39 @@ public class RequestReportTask extends Task {
 		this.target = target;
 	}
 
-	
+	/**
+	 * 
+	 */
 	public void execute()
 	{
 		this.request = new RestClientReportRequest();
-		this.request.setApiuri(this.getApiuri());
-		this.request.setBaseUrl(this.getUrl());
+		//this.request.setApiuri(this.getApiuri());
+		//this.request.setBaseUrl(this.getUrl());
 		
 		this.addConfigsToRequest();
 		this.addParamsToRequest();
-		// We'll get a json string
-		String response = this.requestReport();
 		
-		// We set a property with the response for somebody to parse
-		this.getProject().setProperty("requestresponse", response);
-		if(this.getTarget() != null) {
-			log("Call target " + this.getTarget());
-			// Call a target to deal with the response
-			this.getProject().executeTarget(this.getTarget());
+		// If we require a CMS 3 report
+		if(reportversion.equals(Reportversion.v32.toString())) {
+			this.request.requestCMSItemReport();
+		} else {
+			// We'll get a json string
+			String response = this.requestReport();
+			// We set a property with the response for somebody to parse
+			this.getProject().setProperty("requestresponse", response);
+			if(this.getTarget() != null) {
+				log("Call target " + this.getTarget());
+				// Call a target to deal with the response
+				this.getProject().executeTarget(this.getTarget());
+			}
 		}
-		
 	}
 	
 	private String requestReport()
 	{	
 		log("Request report");
 		String response = this.request.sendRequest();
+		
 		if(response == null) {
 			throw new BuildException("Could not get report response!");
 		}

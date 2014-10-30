@@ -15,10 +15,16 @@
  */
 package se.simonsoft.cms.publish.ant;
 
+import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
-/*
- * A single PublishJob
+
+/**
+ * A publishJob class is a sort of transport object that holds information about a PublishTicket, the PublishRequest and other information
+ * about the file. WILL now also hold a CMS Item object.
+ * 
+ * @author joakimdurehed
+ *
  */
 public class PublishJob {
 	private PublishTicket ticket;
@@ -27,8 +33,14 @@ public class PublishJob {
 	private String isZip = "";
 	private boolean completed = false;
 	private int numberOfTries = 2;
+	private CmsItem cmsItem;
 	
-	
+	/**
+	 * 
+	 * @param ticket
+	 * @param publishRequest
+	 * @param filename
+	 */
 	public PublishJob(PublishTicket ticket, PublishRequest publishRequest, String filename)
 	{
 		this.ticket = ticket;
@@ -36,10 +48,28 @@ public class PublishJob {
 		this.filename = filename;
 	}
 	
+	/**
+	 * 
+	 * @param publishRequest
+	 * @param filename
+	 */
 	public PublishJob(PublishRequest publishRequest, String filename)
 	{
 		this.publishRequest = publishRequest;
 		this.filename = filename;
+	}
+	
+	/**
+	 * 
+	 * @param publishRequest
+	 * @param filename
+	 * @param cmsitem
+	 */
+	public PublishJob(PublishRequest publishRequest, String filename, CmsItem cmsitem)
+	{
+		this.publishRequest = publishRequest;
+		this.filename = filename;
+		this.setCmsItem(cmsitem);
 	}
 	
 	/**
@@ -121,5 +151,13 @@ public class PublishJob {
 	 */
 	public void setPublishRequest(PublishRequest publishRequest) {
 		this.publishRequest = publishRequest;
+	}
+
+	public CmsItem getCmsItem() {
+		return cmsItem;
+	}
+
+	public void setCmsItem(CmsItem cmsItem) {
+		this.cmsItem = cmsItem;
 	}
 }

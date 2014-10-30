@@ -53,7 +53,7 @@
 	</target>
 
 	<target name="get-report">
-		<getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}" reportversion="${version}">
+		<getreport url="${config.host}" apiuri="${apiuri}" username="${username}" password="${password}">
 			<!-- Query params  -->
 			<params>
 				<param name="q" value="${query}" />
