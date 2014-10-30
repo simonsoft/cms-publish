@@ -250,7 +250,7 @@ public class RestClientReportRequest {
 					RepoRevision itemRepoRev = item.getRevisionChanged();
 					logger.debug("filename {}", item.getId().getRelPath().getNameBase());
 					this.getItemProperty("name", item.getProperties());
-					this.getItemMeta("name", item.getMeta());
+					//this.getItemMeta("name", item.getMeta());
 					
 		}
 		
