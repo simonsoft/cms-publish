@@ -120,7 +120,7 @@ public class RequestReportTask extends Task {
 	private void publishItem(CmsItem item) 
 	{
 		logger.debug("enter");
-		this.getProject().setProperty("param.file", item.getId().toString());
+		this.getProject().setProperty("param.file", item.getId().getLogicalId());
 		this.getProject().setProperty("filename", this.getItemProperty("name", item.getProperties()));
 		this.getProject().setProperty("lang", this.getItemProperty("prop_abx.lang", item.getProperties()));
 		this.getProject().executeTarget("publish");
