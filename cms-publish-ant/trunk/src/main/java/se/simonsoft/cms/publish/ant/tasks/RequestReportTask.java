@@ -15,10 +15,17 @@
  */
 package se.simonsoft.cms.publish.ant.tasks;
 
+import java.util.Iterator;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import se.repos.restclient.javase.RestClientJavaNet;
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.list.CmsItemList;
+import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
@@ -35,78 +42,15 @@ import se.simonsoft.publish.ant.helper.RestClientReportRequest.Reportversion;
  */
 
 public class RequestReportTask extends Task {
-
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private RestClientJavaNet httpClient;
 	
 	protected ConfigsNode configs;
 	protected ParamsNode params;
-	protected String url;  
-	protected String apiuri;
-	protected String username;
-	protected String password;
-	protected String target;
-	protected String reportversion;
 	
 	private RestClientReportRequest request;
-	
-	/**
-	 * @return the reportversion
-	 */
-	public String getReportversion() {
-		return reportversion;
-	}
 
-	/**
-	 * @param reportversion the reportversion to set
-	 */
-	public void setReportversion(String reportversion) {
-		this.reportversion = reportversion;
-	}
-	
-	
-	/**
-	 * @return the uri
-	 */
-	public String getApiuri() {
-		return apiuri;
-	}
 
-	/**
-	 * @param uri the uri to set
-	 */
-	public void setApiuri(String apiuri) {
-		this.apiuri = apiuri;
-	}
-
-	/**
-	 * @return the username
-	 */
-	public String getUsername() {
-		return username;
-	}
-
-	/**
-	 * @param username the username to set
-	 */
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	/**
-	 * @return the password
-	 */
-	public String getPassword() {
-		return password;
-	}
-
-	/**
-	 * @param password the password to set
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	
 	/**
 	 * @return the configs
 	 */
@@ -115,42 +59,21 @@ public class RequestReportTask extends Task {
 	}
 
 	/**
-	 * @return the url
-	 */
-	public String getUrl() {
-		return url;
-	}
-
-	/**
-	 * @param url the url to set
-	 */
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	/**
-	 * @param jobs the jobs to set
+	 * @param params the params to set
 	 */
 	public void addConfiguredParams(ParamsNode params) {
 		this.params = params;
 	}
-
+	
 	/**
-	 * @return the target
+	 * @param configs the configs to set
 	 */
-	public String getTarget() {
-		return target;
+	public void addConfiguredConfigs(ConfigsNode configs) {
+		this.configs = configs;
 	}
 
 	/**
-	 * @param target the target to set
-	 */
-	public void setTarget(String target) {
-		this.target = target;
-	}
-
-	/**
-	 * 
+	 * executes the task
 	 */
 	public void execute()
 	{
@@ -161,6 +84,10 @@ public class RequestReportTask extends Task {
 		this.addConfigsToRequest();
 		this.addParamsToRequest();
 		
+		
+		CmsItemList itemList = this.request.requestCMSItemReport();
+		this.publishItems(itemList);
+		/*
 		// If we require a CMS 3 report
 		if(reportversion.equals(Reportversion.v32.toString())) {
 			this.request.requestCMSItemReport();
@@ -175,6 +102,50 @@ public class RequestReportTask extends Task {
 				this.getProject().executeTarget(this.getTarget());
 			}
 		}
+		//*/
+	}
+	
+	private void publishItems(CmsItemList itemList) 
+	{
+		logger.debug("enter");
+		Iterator<CmsItem> itemListIterator = itemList.iterator();
+		while (itemListIterator.hasNext()) {
+			CmsItem item = itemListIterator.next();
+			logger.debug("id: {}, checksum {}", item.getId(),
+					item.getChecksum());
+			
+			this.publishItem(item);
+		}
+	}
+	private void publishItem(CmsItem item) 
+	{
+		logger.debug("enter");
+		this.getProject().setProperty("file", item.getId().toString());
+		this.getProject().setProperty("filename", this.getItemProperty("name", item.getProperties()));
+		this.getProject().setProperty("lang", this.getItemProperty("prop_abx.lang", item.getProperties()));
+		this.getProject().executeTarget("publish");
+		/*
+		 * <param name="param.file" value="${file}" />
+					<param name="filename" value="${filename}" />
+					<param name="lang" value="${lang}" />
+		 */
+	}
+	/**
+	 * Gets a property value by property name
+	 * 
+	 * @param propertyName the name of the property
+	 * @param props the items propeties
+	 * @return
+	 */
+	private String getItemProperty(String propertyName, CmsItemProperties props) 
+	{
+		 for (String name : props.getKeySet()) {
+            // p.put(n, props.getString(n));
+			 if(name.equals(propertyName)) {
+				 return props.getString(name);
+			 }
+		 }
+		return "";
 	}
 	
 	private String requestReport()

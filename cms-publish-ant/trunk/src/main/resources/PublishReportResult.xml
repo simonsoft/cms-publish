@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright (C) 2009-2013 Simonsoft Nordic AB
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project name="ReportRequest" basedir="." default="run">
+
+	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.RequestReportTask" />
+	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
+
+	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+	<property name="httpresponse" value="" />
+	<property name="outputfolder" value="export" />
+	<!-- Some default properties -->
+	<property name="lang" value="en-US" />
+	<property name="param.file-type" value="xml" />
+	<!-- We will basically always use xml as input format -->
+	<property name="param.queue-priority" value="4" />
+	<!-- We use a lower priority so other requests should be able to pass -->
+
+	<property name="e3defaultxmlfilename" value="e3out.xml" />
+	<property name="e3defaulthtmlfilename" value="e3out.htm" />
+
+	<!-- Report query defaults-->
+	<property name="username" value="report-read" />
+	<property name="password" value="read" />
+	<property name="config.rows" value="2000" />
+	<property name="config.apiuri" value="/cms/rest/report/items" />
+
+
+	<target name="get-report">
+		<getreport>
+			<configs>
+				<config name="baseurl" value="${config.host}"/>
+				<config name="apiuri" value="${config.apiuri}"/> <!--  not neded in reporting 1.2.2 -->
+				<config name="username" value="${config.username}"/>
+				<config name="password" value="${config.password}"/>
+				<config name="version" value="v32"/>
+				<config name="target" value="publish"/>
+			</configs>
+			<!-- Query params  -->
+			<params>
+				<param name="q" value="${param.query}" />
+				<param name="repo" value="${param.repo}"/>
+				<param name="fl" value="${param.fields}" />
+				<param name="rows" value="${param.rows}" />
+			</params>
+		</getreport>
+	</target>
+
+	<target name="publish" description="Publish an item">
+
+		<publishrequest outputfolder="${outputfolder}">
+
+			<!-- Should perhaps also have config for port and uri -->
+			<configs>
+				<config name="host" value="${config.host}" />
+			</configs>
+
+			<jobs>
+				<!-- Each job specifies the params for a publish request -->
+
+				<job filename="${filename}-${lang}.html_temp" zipoutput="no" rootfilename="${filename}-${lang}.html">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.html_files" />
+						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg" />
+						<param name="type" value="html" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+			</jobs>
+		</publishrequest>
+		
+		<!-- File management: Make sure we don't work with empty files (this is an extra precaution)-->
+
+		<condition property="make-html-unzip">
+			<length file="${outputfolder}/${filename}-${lang}.html_temp.zip" when="greater" length="0" />
+		</condition>
+
+		<condition property="make-html-zip">
+			<length file="${outputfolder}/${filename}-${lang}_html.zip" when="greater" length="0" />
+		</condition>
+
+		<condition property="make-xml-zip">
+			<length file="${outputfolder}/${filename}-${lang}_xml.zip" when="greater" length="0" />
+		</condition>
+
+		<!-- Call our package tasks-->
+		<antcall target="packageunzippedhtml" />
+		<antcall target="packagezippedhtml" />
+		<antcall target="packagezippedxml" />
+
+	</target>
+	
+	<!-- Package tasks begins -->
+	<target name="packageunzippedhtml" if="make-html-unzip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}.html_temp.zip" dest="${outputfolder}" />
+		<move failonerror="false" file="${outputfolder}/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}.html" />
+		<delete failonerror="false" file="${outputfolder}/${filename}-${lang}.html_temp.zip" />
+	</target>
+
+	<target name="packagezippedhtml" if="make-html-zip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_html.zip" dest="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}.html.zip" />
+		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_html_temp/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}_html_temp/${filename}-${lang}.html" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lang}_html_temp" />
+		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_html_temp" />
+	</target>
+
+	<target name="packagezippedxml" if="make-xml-zip">
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
+		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<!-- Copy a single XML to output root -->
+		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
+		
+		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml_temp" />
+	</target>
+	
+	<!-- the dependency to parsereport makes sure publishing process initiates -->
+	<target name="run" depends="get-report">
+		
+	</target>
+
+</project>
