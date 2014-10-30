@@ -39,9 +39,11 @@
 	<!-- Report query defaults-->
 	<property name="config.username" value="report-read" />
 	<property name="config.password" value="read" />
-	<property name="config.rows" value="2000" />
+	<property name="param.rows" value="2000" />
 	<property name="config.apiuri" value="/cms/rest/report/items" />
-
+	<property name="param.fields" value=""/>
+	<property name="param.repo" value=""/>
+	<property name="param.query" value=""/>
 
 	<target name="get-report">
 		<getreport>

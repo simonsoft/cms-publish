@@ -171,6 +171,7 @@ public class RestClientReportRequest {
 		logger.debug("enter");
 		if (!this.initRestGetClient()) {
 			logger.error("Could not initialize RestGetClient");
+			return null;
 
 		}
 		
@@ -180,11 +181,7 @@ public class RestClientReportRequest {
 		}
 		
 		logger.debug("q {}", this.getParams().get("q"));
-		
-		if(this.initRestGetClient()) {
-			logger.error("Could not init Rest Client!");
-			return null;
-		}
+	
 		
 		CmsItemSearchREST rest = new CmsItemSearchREST(this.httpClient);
 		// CmsItemListJSON result = new CmsItemListJSONSimpl	e();
