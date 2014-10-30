@@ -110,14 +110,14 @@ public class PublishSingleTask extends Task{
 	}
 
 	/**
-	 * @return the storelocation
+	 * @return the filename
 	 */
 	public String getFilename() {
 		return filename;
 	}
 
 	/**
-	 * @param storelocation the storelocation to set
+	 * @param filename the storelocation to set
 	 */
 	public void setFilename(String filename) {
 		this.filename = filename;

@@ -37,8 +37,8 @@
 	<property name="e3defaulthtmlfilename" value="e3out.htm" />
 
 	<!-- Report query defaults-->
-	<property name="username" value="report-read" />
-	<property name="password" value="read" />
+	<property name="config.username" value="report-read" />
+	<property name="config.password" value="read" />
 	<property name="config.rows" value="2000" />
 	<property name="config.apiuri" value="/cms/rest/report/items" />
 

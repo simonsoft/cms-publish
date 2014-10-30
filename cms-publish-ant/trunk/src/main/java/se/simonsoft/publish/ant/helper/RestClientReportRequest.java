@@ -174,13 +174,18 @@ public class RestClientReportRequest {
 
 		}
 		
-		if(this.validateRequired("q", PARAMMAP)) {
+		if(!this.validateRequired("q", PARAMMAP)) {
 			logger.error("No valid query parameter set. Aborting");
 			return null;
 		}
 		
 		logger.debug("q {}", this.getParams().get("q"));
-
+		
+		if(this.initRestGetClient()) {
+			logger.error("Could not init Rest Client!");
+			return null;
+		}
+		
 		CmsItemSearchREST rest = new CmsItemSearchREST(this.httpClient);
 		// CmsItemListJSON result = new CmsItemListJSONSimpl	e();
 		// result.fromJSONString(this.sendRequest());
@@ -244,12 +249,12 @@ public class RestClientReportRequest {
 	private boolean validateRequired(String key, String type) 
 	{
 		logger.debug("enter");
-		if(type.equals("configs")) {
+		if(type.equals(CONFIGMAP)) {
 			if(this.getConfigs().get(key) != null || this.getConfigs().get(key) != "") {
 				logger.debug("Config {} is valid", key);
 				return true;
 			}
-		} else if(type.equals("params")) {
+		} else if(type.equals(PARAMMAP)) {
 			if(this.getParams().get(key) != null || this.getParams().get(key) != "") {
 				logger.debug("Param {} is valid", key);
 				return true;
