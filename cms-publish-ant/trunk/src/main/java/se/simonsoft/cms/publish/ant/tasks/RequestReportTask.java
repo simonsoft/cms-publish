@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import se.repos.restclient.javase.RestClientJavaNet;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
@@ -47,6 +49,8 @@ public class RequestReportTask extends Task {
 	
 	protected ConfigsNode configs;
 	protected ParamsNode params;
+	
+	private RepoRevision headRevision; // Head according to Index
 	
 	private RestClientReportRequest request;
 
@@ -86,7 +90,11 @@ public class RequestReportTask extends Task {
 		
 		
 		CmsItemList itemList = this.request.requestCMSItemReport();
+		
+		this.headRevision = this.request.getRevisionCompleted();
+		
 		this.publishItems(itemList);
+		
 		/*
 		// If we require a CMS 3 report
 		if(reportversion.equals(Reportversion.v32.toString())) {
@@ -114,15 +122,17 @@ public class RequestReportTask extends Task {
 			logger.debug("id: {}, checksum {}", item.getId(),
 					item.getChecksum());
 			
-			this.publishItem(item);
+			this.publishItem(item, this.headRevision.getNumber());
 		}
 	}
-	private void publishItem(CmsItem item) 
+	private void publishItem(CmsItem item, Long baseLine) 
 	{
 		logger.debug("enter");
-		this.getProject().setProperty("param.file", item.getId().getLogicalId());
-		this.getProject().setProperty("filename", this.getItemProperty("name", item.getProperties()));
-		this.getProject().setProperty("lang", this.getItemProperty("prop_abx.lang", item.getProperties()));
+		this.getProject().setProperty("param.file", item.getId().withPegRev(baseLine).toString());
+		this.getProject().setProperty("filename", item.getId().getRelPath().getNameBase());
+		this.getProject().setProperty("lang", this.getItemProperty("abx:lang", item.getProperties()));
+		RepoRevision itemRepoRev = item.getRevisionChanged();
+		logger.debug("filename {}", item.getId().getRelPath().getNameBase());
 		this.getProject().executeTarget("publish");
 		/*
 		 * <param name="param.file" value="${file}" />
@@ -142,6 +152,7 @@ public class RequestReportTask extends Task {
 		 for (String name : props.getKeySet()) {
             // p.put(n, props.getString(n));
 			 if(name.equals(propertyName)) {
+				 logger.debug("Fond value {} for prop {}", props.getString(name), propertyName);
 				 return props.getString(name);
 			 }
 		 }

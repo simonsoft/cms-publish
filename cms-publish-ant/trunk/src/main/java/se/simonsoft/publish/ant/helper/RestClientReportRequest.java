@@ -40,7 +40,11 @@ import se.repos.restclient.auth.RestAuthenticationSimple;
 import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
+import se.simonsoft.cms.item.list.CmsItemListMetaMap;
+import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.reporting.client.CmsItemSearchREST;
 import se.simonsoft.cms.reporting.repositem.CmsItemSearchRepositem;
 import se.simonsoft.cms.reporting.rest.itemlist.CmsItemListJSON;
@@ -61,9 +65,11 @@ public class RestClientReportRequest {
 	private HashMap<String, String> params;
 	private HashMap<String, String> requestHeaders;
 	private RestClientJavaNet httpClient;
+	private CmsItemSearchREST itemSearchRest;
 	public CmsItemList itemList;
 	private static final String CONFIGMAP = "configs";
 	private static final String PARAMMAP = "params";
+	
 	
 	/**
 	 * Reportversion enumeration (possible not to be used)
@@ -125,8 +131,30 @@ public class RestClientReportRequest {
 	// http://appdev1.pdsvision.net/cms/rest/report3/items?q=prop_cms.status:In_Translation&repo=demo1
 	
 	/**
-	 * Initializes a RestClientJavaNet 
+	 * Helper method that initializes the CmsItemSearchREST object
 	 * @return
+	 */
+	private boolean initItemSearchRest() 
+	{
+		if (!this.initRestGetClient()) {
+			logger.error("Could not initialize RestGetClient");
+			return false;
+		}
+		
+		if(!this.validateRequired("repo", PARAMMAP)) {
+			logger.error("No valid repo parameter set. Aborting");
+			return false;
+		}
+		
+		this.itemSearchRest = new CmsItemSearchREST(this.httpClient);
+		
+		return true;
+	}
+	
+	/**
+	 * Initializes a RestClientJavaNet with host and auth information from configs map
+	 * 
+	 * @return true if the RestClientJavaNet is initialized
 	 */
 	private boolean initRestGetClient() {
 		logger.debug("enter");
@@ -162,6 +190,23 @@ public class RestClientReportRequest {
 	
 	}
 
+	
+	public RepoRevision getRevisionCompleted() 
+	{
+		
+		if (!this.initItemSearchRest()) {
+			logger.error("Could not initialize CmsItemSearchREST");
+			return null;
+		}
+		
+		RepoRevision repoRev = this.itemSearchRest.getRevisionCompleted( this.getParams().get("repo"), "");
+		logger.debug("repoRev: {}", repoRev.getNumber());
+		logger.debug("Date: {}", repoRev.getDate());
+		logger.debug("Date ISO: {}", repoRev.getDate());
+		
+		return repoRev;
+	}
+	
 	/**
 	 * Using CmsItemSearchREST to query solr for items
 	 * Using config and param maps 
@@ -169,10 +214,11 @@ public class RestClientReportRequest {
 	 */
 	public CmsItemListJSONSimple requestCMSItemReport() {
 		logger.debug("enter");
-		if (!this.initRestGetClient()) {
-			logger.error("Could not initialize RestGetClient");
+		
+		
+		if(!this.initItemSearchRest()) {
+			logger.error("Could not initialize CmsItemSearchREST");
 			return null;
-
 		}
 		
 		if(!this.validateRequired("q", PARAMMAP)) {
@@ -181,27 +227,77 @@ public class RestClientReportRequest {
 		}
 		
 		logger.debug("q {}", this.getParams().get("q"));
-	
 		
-		CmsItemSearchREST rest = new CmsItemSearchREST(this.httpClient);
+
 		// CmsItemListJSON result = new CmsItemListJSONSimpl	e();
 		// result.fromJSONString(this.sendRequest());
 
 		// TODO add validation of params.String q, String fl, String repo,
 		// String sort, String rows
-		CmsItemListJSONSimple result = (CmsItemListJSONSimple) rest.getItems(
+		CmsItemListJSONSimple result = (CmsItemListJSONSimple) this.itemSearchRest.getItems(
 				this.getParams().get("q"), this.getParams().get("fl"), this.getParams().get("repo"),
 				this.getParams().get("sort"), this.getParams().get("rows"));
 		itemList = result;
+		
+		// DEV
 		Iterator<CmsItem> itemIterator = result.iterator();
 		while (itemIterator.hasNext()) {
 			CmsItem item = itemIterator.next();
-			logger.debug("id: {}, checksum {}", item.getId(),
-					item.getChecksum());
+			logger.debug("logId: {}, sha1 {}, kind {}", item.getId().getLogicalId(),
+					item.getChecksum().getSha1(), item.getKind().getKind());
+					CmsItemId itemId = item.getId();
+				
+					RepoRevision itemRepoRev = item.getRevisionChanged();
+					logger.debug("filename {}", item.getId().getRelPath().getNameBase());
+					this.getItemProperty("name", item.getProperties());
+					this.getItemMeta("name", item.getMeta());
+					
 		}
+		
 		logger.debug("CMSItemList size: {}", result.sizeFound());
 		return result;
 
+	}
+	
+	/**
+	 * Helper method to get meta data (for dev right now)
+	 * @param metaName
+	 * @param meta
+	 * @return
+	 */
+	private Object getItemMeta(String metaName, Map<String, Object> meta) 
+	{
+		logger.debug("enter");
+		logger.debug("meta size {}", meta.size());
+		 for (String name : meta.keySet()) {
+			 logger.debug("Meta name {} with value {}",name, meta.get(name));
+            // p.put(n, props.getString(n));
+			 if(name.equals(metaName)) {
+				 logger.debug("Fond value {} for meta {}",meta.get(name), metaName);
+				 return meta.get(name);
+			 }
+		 }
+		return null;
+	}
+	
+	/**
+	 * Helper method to get Property (for dev right now)
+	 * @param propertyName
+	 * @param props
+	 * @return
+	 */
+	private String getItemProperty(String propertyName, CmsItemProperties props) 
+	{
+		logger.debug("enter");
+		 for (String name : props.getKeySet()) {
+			 logger.debug("Prop name {} with value {}",name, props.getString(name));
+            // p.put(n, props.getString(n));
+			 if(name.equals(propertyName)) {
+				 logger.debug("Fond value {} for prop {}", props.getString(name), propertyName);
+				 return props.getString(name);
+			 }
+		 }
+		return "";
 	}
 
 	/**
