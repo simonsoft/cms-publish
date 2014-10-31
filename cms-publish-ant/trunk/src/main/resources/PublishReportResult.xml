@@ -17,19 +17,26 @@
 
 -->
 <project name="ReportRequest" basedir="." default="run">
-
-	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.RequestReportTask" />
+	<!-- 
+		Publishes the result of query to CMS Reporting framework.
+		PublishReportTask queries Reporting and manages the result by passing each resulting item
+		to the PublishRequestPETask for publishing.
+	
+	 -->
+	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.PublishReportTask" />
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
 
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
 
-	<property name="httpresponse" value="" />
-	<property name="outputfolder" value="export" />
+	<!-- <property name="httpresponse" value="" /> -->
+	
 	<!-- Some default properties -->
+	<property name="outputfolder" value="export" />
 	<property name="lang" value="en-US" />
-	<property name="param.file-type" value="xml" />
 	<!-- We will basically always use xml as input format -->
+	<property name="param.file-type" value="xml" />
+	
 	<property name="param.queue-priority" value="4" />
 	<!-- We use a lower priority so other requests should be able to pass -->
 
@@ -40,11 +47,18 @@
 	<property name="config.username" value="report-read" />
 	<property name="config.password" value="read" />
 	<property name="param.rows" value="2000" />
-	<property name="config.apiuri" value="/cms/rest/report/items" />
+	<property name="config.apiuri" value="/cms/rest/report/items" /> <!-- Not used in CMS 3.2 with reporting 1.2.2 -->
 	<property name="param.fields" value=""/>
 	<property name="param.repo" value=""/>
 	<property name="param.query" value=""/>
 
+	<!-- query examples
+	Using timestamp:
+	t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
+	
+	
+	
+	 -->
 	<target name="get-report">
 		<getreport>
 			<configs>
@@ -90,6 +104,32 @@
 						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
+
+				<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.xml_files" />
+						<param name="type" value="xml" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}_A4.pdf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="pdf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				
 			</jobs>
 		</publishrequest>
 		

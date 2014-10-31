@@ -22,38 +22,32 @@ import org.apache.tools.ant.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.repos.restclient.javase.RestClientJavaNet;
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
+import se.simonsoft.cms.publish.ant.FailedToInitializeException;
+import se.simonsoft.cms.publish.ant.MissingPropertiesException;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
-import se.simonsoft.publish.ant.helper.RestClientReportRequest.Reportversion;
 
 /**
- * Sends request to CMS reporting 1.0 and sets the response as ant property
- * Uses JREs default jks for SSL
+ * Sends request to CMS reporting 1.0 and sets the response as ant property Uses
+ * JREs default jks for SSL
  * 
  * @author joakimdurehed
  *
  */
 
-public class RequestReportTask extends Task {
+public class PublishReportTask extends Task {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private RestClientJavaNet httpClient;
-	
+	private RestClientReportRequest request;
+	private RepoRevision headRevision; // Head according to Index
 	protected ConfigsNode configs;
 	protected ParamsNode params;
-	
-	private RepoRevision headRevision; // Head according to Index
-	
-	private RestClientReportRequest request;
-
 
 	/**
 	 * @return the configs
@@ -63,14 +57,16 @@ public class RequestReportTask extends Task {
 	}
 
 	/**
-	 * @param params the params to set
+	 * @param params
+	 *            the params to set
 	 */
 	public void addConfiguredParams(ParamsNode params) {
 		this.params = params;
 	}
-	
+
 	/**
-	 * @param configs the configs to set
+	 * @param configs
+	 *            the configs to set
 	 */
 	public void addConfiguredConfigs(ConfigsNode configs) {
 		this.configs = configs;
@@ -79,109 +75,127 @@ public class RequestReportTask extends Task {
 	/**
 	 * executes the task
 	 */
-	public void execute()
-	{
+	public void execute() {
+
+		// Make sure we have a publish task to use for publishing
+		if (this.getProject().getTargets().get("publish") == null) {
+			throw new BuildException("This task requires PublishRequestPETask");
+		}
+		// Lets start it all
+		this.initPublishingWithQuery();
+	}
+
+	/**
+	 * Method responsible initing RestClientReportRequest and for passing on
+	 * configuration and parameters to it. Then also to init the report request
+	 * and publishing of the resulting items
+	 */
+	private void initPublishingWithQuery() {
+		// Init the ReportRequest Helper
 		this.request = new RestClientReportRequest();
-		//this.request.setApiuri(this.getApiuri());
-		//this.request.setBaseUrl(this.getUrl());
-		
+
 		this.addConfigsToRequest();
 		this.addParamsToRequest();
-		
-		
-		CmsItemList itemList = this.request.requestCMSItemReport();
-		
-		this.headRevision = this.request.getRevisionCompleted();
-		
-		this.publishItems(itemList);
-		
-		/*
-		// If we require a CMS 3 report
-		if(reportversion.equals(Reportversion.v32.toString())) {
-			this.request.requestCMSItemReport();
-		} else {
-			// We'll get a json string
-			String response = this.requestReport();
-			// We set a property with the response for somebody to parse
-			this.getProject().setProperty("requestresponse", response);
-			if(this.getTarget() != null) {
-				log("Call target " + this.getTarget());
-				// Call a target to deal with the response
-				this.getProject().executeTarget(this.getTarget());
-			}
+
+		// Retrieve the CmsItemList with query (set in configs)
+		CmsItemList itemList = null;
+
+		try {
+			itemList = this.request.getItemsWithQuery();
+		} catch (FailedToInitializeException ex) {
+			throw new BuildException(ex.getMessage());
 		}
-		//*/
+
+		// Get the "head according to index"
+		try {
+			this.headRevision = this.request.getRevisionCompleted();
+		} catch (FailedToInitializeException e) {
+			throw new BuildException(e.getMessage());
+		}
+
+		this.publishItems(itemList);
 	}
-	
-	private void publishItems(CmsItemList itemList) 
-	{
+
+	/**
+	 * Iterates CmsItemList and passes each item to publishItem method
+	 * 
+	 * @param itemList
+	 */
+	private void publishItems(CmsItemList itemList) {
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = itemList.iterator();
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			logger.debug("id: {}, checksum {}", item.getId(),
 					item.getChecksum());
-			
+
 			this.publishItem(item, this.headRevision.getNumber());
 		}
 	}
-	private void publishItem(CmsItem item, Long baseLine) 
-	{
+
+	/**
+	 * Calls the publish task for a CmsItem and sets properties needed for
+	 * publishing to work. Adds a baseline pegrev which should be head at the
+	 * time of the query to reporting framework ran.
+	 * 
+	 * @param item
+	 * @param baseLine
+	 */
+	private void publishItem(CmsItem item, Long baseLine) {
 		logger.debug("enter");
-		this.getProject().setProperty("param.file", item.getId().withPegRev(baseLine).toString());
-		this.getProject().setProperty("filename", item.getId().getRelPath().getNameBase());
-		this.getProject().setProperty("lang", this.getItemProperty("abx:lang", item.getProperties()));
+		this.getProject().setProperty("param.file",
+				item.getId().withPegRev(baseLine).toString());
+		this.getProject().setProperty("filename",
+				item.getId().getRelPath().getNameBase());
+		this.getProject().setProperty("lang",
+				this.getItemProperty("abx:lang", item.getProperties()));
 		RepoRevision itemRepoRev = item.getRevisionChanged();
 		logger.debug("filename {}", item.getId().getRelPath().getNameBase());
+
 		this.getProject().executeTarget("publish");
-		/*
-		 * <param name="param.file" value="${file}" />
-					<param name="filename" value="${filename}" />
-					<param name="lang" value="${lang}" />
-		 */
+
 	}
+
 	/**
 	 * Gets a property value by property name
 	 * 
-	 * @param propertyName the name of the property
-	 * @param props the items propeties
+	 * @param propertyName
+	 *            the name of the property
+	 * @param props
+	 *            the items propeties
 	 * @return
 	 */
-	private String getItemProperty(String propertyName, CmsItemProperties props) 
-	{
-		 for (String name : props.getKeySet()) {
-            // p.put(n, props.getString(n));
-			 if(name.equals(propertyName)) {
-				 logger.debug("Fond value {} for prop {}", props.getString(name), propertyName);
-				 return props.getString(name);
-			 }
-		 }
+	private String getItemProperty(String propertyName, CmsItemProperties props) {
+		for (String name : props.getKeySet()) {
+			// p.put(n, props.getString(n));
+			if (name.equals(propertyName)) {
+				logger.debug("Fond value {} for prop {}",
+						props.getString(name), propertyName);
+				return props.getString(name);
+			}
+		}
 		return "";
 	}
-	
-	private String requestReport()
-	{	
+
+	private String requestReport() {
 		log("Request report");
 		String response = this.request.sendRequest();
-		
-		if(response == null) {
+
+		if (response == null) {
 			throw new BuildException("Could not get report response!");
 		}
 		return response;
 	}
-	
-	
-	private void addParamsToRequest()
-	{
+
+	private void addParamsToRequest() {
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
 				this.request.addParam(param.getName(), param.getValue());
 			}
 		}
 	}
-	
-	private void addConfigsToRequest()
-	{
+
+	private void addConfigsToRequest() {
 		if (null != configs && configs.isValid()) {
 			for (final ConfigNode config : configs.getConfigs()) {
 				this.request.addConfig(config.getName(), config.getValue());
