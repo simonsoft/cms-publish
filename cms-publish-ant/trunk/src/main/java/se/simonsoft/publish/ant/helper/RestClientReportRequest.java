@@ -201,7 +201,7 @@ public class RestClientReportRequest {
 		try {
 			this.initItemSearchRest();
 		} catch (MissingPropertiesException e) {
-			throw new FailedToInitializeException(e.getMessage());
+			throw new FailedToInitializeException(e.getMessage(), e);
 		}
 		
 		RepoRevision repoRev = this.itemSearchRest.getRevisionCompleted( this.getParams().get("repo"), "");
@@ -225,7 +225,7 @@ public class RestClientReportRequest {
 			this.initItemSearchRest();
 		} catch (MissingPropertiesException e) {
 			// TODO Auto-generated catch block
-			throw new FailedToInitializeException(e.getMessage());
+			throw new FailedToInitializeException(e.getMessage(), e);
 		}
 		
 		
