@@ -134,12 +134,12 @@ public class RestClientReportRequest {
 		
 		if(!this.validateRequired("repo", PARAMMAP)) {
 			logger.error("No valid repo parameter set. Aborting");
-			throw new MissingPropertiesException("Parameter repo  is required");
+			throw new MissingPropertiesException("Parameter repo is required");
 		}
 		
 		if(!this.validateRequired("q", PARAMMAP)) {
 			logger.error("No valid query parameter set. Aborting");
-			throw new MissingPropertiesException("Parameter q  is required");
+			throw new MissingPropertiesException("Parameter q is required");
 		}
 		
 		this.itemSearchRest = new CmsItemSearchREST(this.httpClient);
@@ -326,21 +326,18 @@ public class RestClientReportRequest {
 	{
 		logger.debug("enter");
 		if(type.equals(CONFIGMAP)) {
-			if(this.getConfigs().get(key) != null || this.getConfigs().get(key) != "") {
-				logger.debug("Config {} is valid", key);
-				return true;
+			if(this.getConfigs().get(key) == null || this.getConfigs().get(key) == "" || this.getConfigs().get(key).length() == 0) {
+				logger.debug("Config {} is not valid", key);
+				return false;
 			}
 		} else if(type.equals(PARAMMAP)) {
-			if(this.getParams().get(key) != null || this.getParams().get(key) != "") {
-				logger.debug("Param {} is valid", key);
-				return true;
+			if(this.getParams().get(key) == null || this.getParams().get(key) == "" || this.getParams().get(key).length() == 0) {
+				logger.debug("Param {} is not valid", key);
+				return false;
 			}
-		} else {
-			logger.debug("Did we get a proper type?");
-			return false;
 		}
 		
-		return false;
+		return true;
 	}
 
 	/*

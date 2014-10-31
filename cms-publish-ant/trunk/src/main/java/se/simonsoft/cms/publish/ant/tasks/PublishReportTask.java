@@ -35,8 +35,7 @@ import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
 /**
- * Sends request to CMS reporting 1.0 and sets the response as ant property Uses
- * JREs default jks for SSL
+ * Publishes the result of query to Reporting framework (1.2.2)
  * 
  * @author joakimdurehed
  *
