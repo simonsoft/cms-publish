@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * 
- */
+
 package se.simonsoft.cms.publish.ant;
 
 /**
@@ -27,8 +25,14 @@ public class FailedToInitializeException extends Exception {
 	/**
 	 * 
 	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
 	public FailedToInitializeException() {
 		// TODO Auto-generated constructor stub
+		super();
 	}
 
 	/**
@@ -55,17 +59,4 @@ public class FailedToInitializeException extends Exception {
 		super(message, cause);
 		// TODO Auto-generated constructor stub
 	}
-
-	/**
-	 * @param message
-	 * @param cause
-	 * @param enableSuppression
-	 * @param writableStackTrace
-	 */
-	public FailedToInitializeException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-		// TODO Auto-generated constructor stub
-	}
-
 }
