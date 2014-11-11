@@ -69,7 +69,7 @@ public class RestClientReportRequest {
 	 *
 	 */
 	public enum Reportversion {
-		v094, v1, v32
+		v094, v100, v320 // v MAJOR MINOR PATCH
 	}
 
 	/**
@@ -172,6 +172,7 @@ public class RestClientReportRequest {
 			// Create RestAuthentication object
 			restAuth = new RestAuthenticationSimple(this.getConfigs().get(
 					"username"), this.getConfigs().get("password"));
+			restAuth.getSSLContext(null);
 		} else {
 			logger.error("Could not load authentication object because username or password is not set");
 			throw new MissingPropertiesException("Parameters for username and password are required");
