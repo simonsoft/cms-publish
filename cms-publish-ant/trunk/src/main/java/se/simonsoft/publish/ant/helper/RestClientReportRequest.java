@@ -155,6 +155,9 @@ public class RestClientReportRequest {
 	private void initRestGetClient() throws MissingPropertiesException {
 		logger.debug("enter");
 		
+		
+		this.httpClient = null; // Reset
+		
 		// Only initialize once
 		if(this.httpClient != null) {
 			logger.debug("RestClientJavaNet already initialized");
