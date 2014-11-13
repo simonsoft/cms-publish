@@ -172,7 +172,8 @@ public class RestClientReportRequest {
 			// Create RestAuthentication object
 			restAuth = new RestAuthenticationSimple(this.getConfigs().get(
 					"username"), this.getConfigs().get("password"));
-			restAuth.getSSLContext(null);
+			restAuth.getSSLContext(this.getConfigs().get("baseurl")); // Might no be needed. But no harm.
+			
 		} else {
 			logger.error("Could not load authentication object because username or password is not set");
 			throw new MissingPropertiesException("Parameters for username and password are required");
@@ -183,7 +184,7 @@ public class RestClientReportRequest {
 			logger.debug("Instantiating RestClientJavaNet with baseurl {}", this.getConfigs().get("baseurl"));
 			this.httpClient = new RestClientJavaNet(this.getConfigs()
 					.get("baseurl"), restAuth);
-
+			
 		} else {
 			logger.error("Could not initialize RestClientJavaNet beceause baseurl was not set");
 			throw new MissingPropertiesException("Parameters for baseurl is required");
