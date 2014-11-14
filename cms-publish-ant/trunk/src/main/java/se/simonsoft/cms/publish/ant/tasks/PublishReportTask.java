@@ -123,13 +123,28 @@ public class PublishReportTask extends Task {
 	private void publishItems(CmsItemList itemList) {
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = itemList.iterator();
+		
+		
+		// Count number of items.
+		long count = 0L;
+		while (itemListIterator.hasNext()) {
+			count++;
+		}
+		
+		logger.debug("Counted {} and sizeFound {} number of items to publish", count, itemList.sizeFound());
+		// TODO Add some filter method that will filter the list of items to publish
+		// based on some criteria.
+		
+		// Publish items
+		count = 0L;
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
-			logger.debug("id: {}, checksum {}", item.getId(),
-					item.getChecksum());
-
+			count++;
+			logger.debug("Item nr {} file: {}", count, item.getId().getRelPath().getName());
+			
 			this.publishItem(item, this.headRevision.getNumber());
 		}
+		logger.debug("leave");
 	}
 
 	/**
@@ -137,22 +152,28 @@ public class PublishReportTask extends Task {
 	 * publishing to work. Adds a baseline pegrev which should be head at the
 	 * time of the query to reporting framework ran.
 	 * 
-	 * @param item
-	 * @param baseLine
+	 * @param item the CmsItem to publish
+	 * @param baseLine the Long baseline to use
 	 */
 	private void publishItem(CmsItem item, Long baseLine) {
 		logger.debug("enter");
+		// TODO ability to set what "properties" should be passed to publish target
+		logger.debug("set Property param.file with {} adding peg {}", item.getId(), baseLine);
+		
 		this.getProject().setProperty("param.file",
 				item.getId().withPegRev(baseLine).toString());
+		
 		this.getProject().setProperty("filename",
 				item.getId().getRelPath().getNameBase());
+		
 		this.getProject().setProperty("lang",
 				this.getItemProperty("abx:lang", item.getProperties()));
+		
 		RepoRevision itemRepoRev = item.getRevisionChanged();
 		logger.debug("filename {}", item.getId().getRelPath().getNameBase());
 
 		this.getProject().executeTarget("publish");
-
+		logger.debug("leave");
 	}
 
 	/**
@@ -168,7 +189,7 @@ public class PublishReportTask extends Task {
 		for (String name : props.getKeySet()) {
 			// p.put(n, props.getString(n));
 			if (name.equals(propertyName)) {
-				logger.debug("Fond value {} for prop {}",
+				logger.debug("Found value {} for prop {}",
 						props.getString(name), propertyName);
 				return props.getString(name);
 			}
