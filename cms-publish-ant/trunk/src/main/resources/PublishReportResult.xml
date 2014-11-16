@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project name="ReportRequest" basedir="." default="run">
+<project name="PublishReportResult" basedir="." default="run">
 	<!-- 
 		Publishes the result of query to CMS Reporting framework.
 		PublishReportTask queries Reporting and manages the result by passing each resulting item
@@ -30,13 +30,13 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
 
 	<!-- <property name="httpresponse" value="" /> -->
-	
+
 	<!-- Some default properties -->
 	<property name="outputfolder" value="export" />
 	<property name="lang" value="en-US" />
 	<!-- We will basically always use xml as input format -->
 	<property name="param.file-type" value="xml" />
-	
+
 	<property name="param.queue-priority" value="4" />
 	<!-- We use a lower priority so other requests should be able to pass -->
 
@@ -47,32 +47,31 @@
 	<property name="config.username" value="report-read" />
 	<property name="config.password" value="read" />
 	<property name="param.rows" value="2000" />
-	<property name="config.apiuri" value="/cms/rest/report/items" /> <!-- Not used in CMS 3.2 with reporting 1.2.2 -->
-	<property name="param.fields" value=""/>
-	<property name="param.repo" value=""/>
-	<property name="param.query" value=""/>
+	<property name="config.apiuri" value="/cms/rest/report/items" />
+	<!-- Not used in CMS 3.2 with reporting 1.2.2 -->
+	<property name="param.fields" value="" />
+	<property name="param.repo" value="" />
+	<property name="param.query" value="" />
 
 	<!-- query examples
 	Using timestamp:
 	t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
 	
-	
-	
 	 -->
 	<target name="get-report">
 		<getreport>
 			<configs>
-				<config name="baseurl" value="${config.host}"/>
-				<config name="apiuri" value="${config.apiuri}"/> <!--  not neded in reporting 1.2.2 -->
-				<config name="username" value="${config.username}"/>
-				<config name="password" value="${config.password}"/>
-				<config name="version" value="v32"/>
-				<config name="target" value="publish"/>
+				<config name="baseurl" value="${config.host}" />
+				<config name="username" value="${config.username}" />
+				<config name="password" value="${config.password}" />
+				<config name="version" value="v32" />
+				<config name="target" value="publish" />
+				<!-- Name of the publish target to call-->
 			</configs>
 			<!-- Query params  -->
 			<params>
 				<param name="q" value="${param.query}" />
-				<param name="repo" value="${param.repo}"/>
+				<param name="repo" value="${param.repo}" />
 				<param name="fl" value="${param.fields}" />
 				<param name="rows" value="${param.rows}" />
 			</params>
@@ -105,7 +104,44 @@
 					</params>
 				</job>
 
-				<job filename="${filename}-${lang}_xml.zip" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
+				<job filename="${filename}-${lang}_A4.pdf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="pdf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}_html.zip" zipoutput="yes" rootfilename="${filename}-${lang}.html">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="zip-output" value="yes" />
+						<param name="zip-graph-dir" value="${filename}-${lang}.html_files" />
+						<param name="graphic-transform" value="pdf:-|eps,jpg,png,tif:jpg" />
+						<param name="type" value="html" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}.rtf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="rtf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+				<job filename="${filename}-${lang}_xml_temp" zipoutput="yes" rootfilename="${filename}-${lang}.xml">
 					<params>
 						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
 						<param name="file" value="${param.file}" />
@@ -129,10 +165,10 @@
 					</params>
 				</job>
 
-				
+
 			</jobs>
 		</publishrequest>
-		
+
 		<!-- File management: Make sure we don't work with empty files (this is an extra precaution)-->
 
 		<condition property="make-html-unzip">
@@ -144,7 +180,7 @@
 		</condition>
 
 		<condition property="make-xml-zip">
-			<length file="${outputfolder}/${filename}-${lang}_xml.zip" when="greater" length="0" />
+			<length file="${outputfolder}/${filename}-${lang}_xml_temp.zip" when="greater" length="0" />
 		</condition>
 
 		<!-- Call our package tasks-->
@@ -153,7 +189,7 @@
 		<antcall target="packagezippedxml" />
 
 	</target>
-	
+
 	<!-- Package tasks begins -->
 	<target name="packageunzippedhtml" if="make-html-unzip">
 		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}.html_temp.zip" dest="${outputfolder}" />
@@ -170,19 +206,33 @@
 	</target>
 
 	<target name="packagezippedxml" if="make-xml-zip">
-		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
-		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
-		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml_temp.zip" dest="${outputfolder}/${filename}-${lang}_xml" />
+		<delete file="${outputfolder}/${filename}-${lang}_xml_temp.zip" />
+		<xslt style="stripComments.xsl" in="${outputfolder}/${filename}-${lang}_xml/${e3defaultxmlfilename}" out="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml">
+		</xslt>
+		<!-- <move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml" />
+		-->
 		<!-- Copy a single XML to output root -->
-		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
-		
-		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
-		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml_temp" />
+		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
+
+		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml" />
+		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml" />
 	</target>
-	
+
 	<!-- the dependency to parsereport makes sure publishing process initiates -->
 	<target name="run" depends="get-report">
-		
+		<!-- Move files. If nothing is to be moved, a warning will output -->
+
+		<!-- Copy export contents to delta folder -->
+		<copy failonerror="false" preservelastmodified="true" todir="${deltadir}" overwrite="true" force="true">
+			<fileset dir="${outputfolder}" />
+		</copy>
+		<!-- Copy export contents to cumulative folder -->
+		<copy failonerror="false" preservelastmodified="true" todir="${cumulativedir}" overwrite="true" force="true">
+			<fileset dir="${outputfolder}" />
+		</copy>
+		<!-- Delete export -->
+		<delete failonerror="false" dir="${outputfolder}" />
 	</target>
 
 </project>

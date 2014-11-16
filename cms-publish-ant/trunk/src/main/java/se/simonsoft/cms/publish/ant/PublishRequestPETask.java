@@ -43,9 +43,12 @@ import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.publish.ant.helper.ErrorLoggerHelper;
 import se.simonsoft.publish.ant.helper.FileManagementHelper;
-/*
- * A Publish Task that publishes whatever "job" one specifies in build file
+/**
+ * Publishes a single or multiple "publish jobs".
+ * Will require at a minimum a logicalid to publish.
  * 
+ * @author joakimdurehed
+ *
  */
 public class PublishRequestPETask extends Task implements PublishRequestTaskInterface {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -123,8 +126,8 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 	}
 	
-	/*
-	 * For all jobs, doPublishRequest
+	/**
+	 * Published the Jobs in the Jobs list
 	 */
 	private void publishJobs()
 	{
@@ -145,10 +148,11 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		this.sendPublishRequest(publishRequest, publishJob);
 	}
 	
-	/*
-	 * Configures a PublishJob object
-	 * @param PublishRequestDefault publishRequest
-	 * @param JobNode job
+	/**
+	 * Condfigures a PublishJob
+	 * @param publishRequest the publishRequest to associate with the PublisJob
+	 * @param job the jonNode (configuration) to associate with the PublishJob
+	 * @return
 	 */
 	private PublishJob createPublishJob(PublishRequestDefault publishRequest, JobNode job)
 	{
@@ -168,9 +172,15 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	 * Send the actual request to PublishService
 	 * For now we take a publishJob too
 	 */
+	/**
+	 * Makes the publish request for the publishJob
+	 * @param publishRequest
+	 * @param publishJob
+	 */
 	private void sendPublishRequest(PublishRequestDefault publishRequest, PublishJob publishJob)
 	{
 		// Send the request
+
 		PublishTicket ticket = publishService.requestPublish(publishRequest); 
 
 		if(ticket == null){

@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.ant.tasks;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.tools.ant.BuildException;
@@ -27,6 +28,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
+import se.simonsoft.cms.publish.ant.FilterResponse;
 import se.simonsoft.cms.publish.ant.MissingPropertiesException;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
@@ -47,6 +49,8 @@ public class PublishReportTask extends Task {
 	private RepoRevision headRevision; // Head according to Index
 	protected ConfigsNode configs;
 	protected ParamsNode params;
+	protected String filter; // Filter to use Should perhaps be a list
+	private ArrayList<CmsItem> itemList;
 
 	/**
 	 * @return the configs
@@ -75,7 +79,7 @@ public class PublishReportTask extends Task {
 	 * executes the task
 	 */
 	public void execute() {
-
+		logger.debug("enter");
 		// Make sure we have a publish task to use for publishing
 		if (this.getProject().getTargets().get("publish") == null) {
 			throw new BuildException("This task requires PublishRequestPETask");
@@ -90,6 +94,7 @@ public class PublishReportTask extends Task {
 	 * and publishing of the resulting items
 	 */
 	private void initPublishingWithQuery() {
+		logger.debug("enter");
 		// Init the ReportRequest Helper
 		this.request = new RestClientReportRequest();
 
@@ -97,10 +102,12 @@ public class PublishReportTask extends Task {
 		this.addParamsToRequest();
 
 		// Retrieve the CmsItemList with query (set in configs)
-		CmsItemList itemList = null;
+		CmsItemList cmsItemList = null;
 
 		try {
-			itemList = this.request.getItemsWithQuery();
+			cmsItemList = this.request.getItemsWithQuery();
+			// Create a itemlist we can work with
+			this.createMutableItemList(cmsItemList);
 		} catch (FailedToInitializeException ex) {
 			throw new BuildException(ex.getMessage());
 		}
@@ -111,17 +118,66 @@ public class PublishReportTask extends Task {
 		} catch (FailedToInitializeException e) {
 			throw new BuildException(e.getMessage());
 		}
-
-		this.publishItems(itemList);
+		// Publish items using our mutable item list
+		this.publishItems(this.itemList);
+	}
+	
+	/**
+	 * Creates a mutable copy of a CmsItemList
+	 * @param CmsItemList itemList
+	 */
+	private void createMutableItemList(CmsItemList itemList) 
+	{
+		logger.debug("enter");
+		if(this.itemList == null) {
+			this.itemList = new ArrayList<CmsItem>();
+		}
+		
+ 		for(CmsItem item: itemList ) {
+			this.itemList.add(item); // Add item to our itemlist
+		}
 	}
 
+	/**
+	 * Filters items using specified filter
+	 */
+	private void filterItems() 
+	{
+		logger.debug("enter");
+		// Dynamically instantiate correct filter. Do we need/want to be this dynamic? 
+		// Could we settle for a switch/ if/else 
+		try {
+			logger.debug("Init filter {}", this.filter.concat("Filter"));
+			// Filters are instantiated by the name of the filter and the suffix Filter
+			Class<?> filterClass = Class.forName(this.filter.concat("Filter"));
+			FilterResponse filterResponse = (FilterResponse) filterClass.newInstance();
+			
+			filterResponse.initFilter(this.request, this.itemList, this.headRevision);
+			filterResponse.runFilter();
+			
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * Iterates CmsItemList and passes each item to publishItem method
 	 * 
 	 * @param itemList
 	 */
-	private void publishItems(CmsItemList itemList) {
+	private void publishItems(ArrayList<CmsItem> itemList) {
 		logger.debug("enter");
+		
+		// First check if we need to filter our itemList
+		if(this.filter != "") {
+			this.filterItems();
+		}
 		Iterator<CmsItem> itemListIterator = itemList.iterator();
 		
 		
@@ -131,7 +187,7 @@ public class PublishReportTask extends Task {
 			count++;
 		}
 		
-		logger.debug("Counted {} and sizeFound {} number of items to publish", count, itemList.sizeFound());
+		logger.debug("Counted {} and sizeFound {} number of items to publish", count, itemList.size());
 		// TODO Add some filter method that will filter the list of items to publish
 		// based on some criteria.
 		
@@ -186,8 +242,8 @@ public class PublishReportTask extends Task {
 	 * @return
 	 */
 	private String getItemProperty(String propertyName, CmsItemProperties props) {
+		logger.debug("enter");
 		for (String name : props.getKeySet()) {
-			// p.put(n, props.getString(n));
 			if (name.equals(propertyName)) {
 				logger.debug("Found value {} for prop {}",
 						props.getString(name), propertyName);

@@ -17,24 +17,29 @@ package se.simonsoft.cms.publish.ant;
 
 import java.util.List;
 
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.list.CmsItemList;
+import se.simonsoft.publish.ant.helper.RestClientReportRequest;
+
 /**
  * @author joakimdurehed
  *
  */
 public interface FilterResponse {
 	
-	/*
-	 * Set the list of items to filter
+	/**
+	 * Initialize the filter with a necessary properties and tools.
+	 * RestClientReportRequest to perform additional queries
+	 * List<CmsItem> the actual list to filter
+	 * RepoRevision the head rev according to index, used for baseline
+	 * 
+	 * @param httpClient
 	 */
-	public void setParsedItems(List items);
+	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev);
 	
-	/*
-	 * Filters a field in CmsItem
+	/**
+	 * Run the filter
 	 */
-	public String filterField(String field);
-	
-	/*
-	 * Initialize filter with name filter
-	 */
-	public void initFilter(String filter);
+	public void runFilter();
 }

@@ -157,16 +157,24 @@
 		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_html.zip" dest="${outputfolder}/${filename}-${lang}_html_temp" />
 		<delete file="${outputfolder}/${filename}-${lang}.html.zip" />
 		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_html_temp/${e3defaulthtmlfilename}" tofile="${outputfolder}/${filename}-${lang}_html_temp/${filename}-${lang}.html" />
-		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lang}_html_temp" />
+		<zip destfile="${outputfolder}/${filename}-${lang}_html.zip" basedir="${outputfolder}/${filename}-${lan	g}_html_temp" />
 		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_html_temp" />
 	</target>
 
 	<target name="packagezippedxml" if="make-xml-zip">
 		<unzip failOnEmptyArchive="false" src="${outputfolder}/${filename}-${lang}_xml.zip" dest="${outputfolder}/${filename}-${lang}_xml_temp" />
 		<delete file="${outputfolder}/${filename}-${lang}_xml.zip" />
-		<move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" />
+		<!-- Make sure comments in XML document are stripped from file -->
+		<xslt style="stripComments.xsl" in="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" out="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml">
+			<factory name="net.sf.saxon.TransformerFactoryImpl">
+				<attribute name="http://saxon.sf.net/feature/version-warning" value="false" />
+			</factory>
+		</xslt>
+		<delete file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" />
+		<!-- <move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml_temp/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" /> -->
 		<!-- Copy a single XML to output root -->
 		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml_temp/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
+
 		<zip destfile="${outputfolder}/${filename}-${lang}_xml.zip" basedir="${outputfolder}/${filename}-${lang}_xml_temp" />
 		<delete failonerror="false" dir="${outputfolder}/${filename}-${lang}_xml_temp" />
 	</target>

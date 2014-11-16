@@ -35,6 +35,7 @@ import se.repos.restclient.RestResponse;
 import se.repos.restclient.auth.RestAuthenticationSimple;
 import se.repos.restclient.base.Codecs;
 import se.repos.restclient.javase.RestClientJavaNet;
+import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
@@ -105,8 +106,8 @@ public class RestClientReportRequest {
 	}
 
 	/**
-	 * Adds param (key) with value
-	 * Use query, field list and such
+	 * Adds param (key) with value and urlencode value
+	 * Use for query, field list and such
 	 * 
 	 * @param key
 	 * @param value
@@ -124,12 +125,26 @@ public class RestClientReportRequest {
 	// http://appdev1.pdsvision.net/cms/rest/report3/items?q=prop_cms.status:In_Translation&repo=demo1
 	
 	/**
+	 * Constructor
+	 */
+	/*
+	public RestClientReportRequest() {
+		try {
+			this.initItemSearchRest();
+		} catch (MissingPropertiesException e) {
+
+		}
+	}
+	//*/
+	
+	/**
 	 * Helper method that initializes the CmsItemSearchREST object
 	 * @return
 	 * @throws MissingPropertiesException 
 	 */
 	private void initItemSearchRest() throws MissingPropertiesException 
 	{
+		logger.debug("enter");
 		this.initRestGetClient();
 		
 		if(!this.validateRequired("repo", PARAMMAP)) {
@@ -145,18 +160,16 @@ public class RestClientReportRequest {
 		this.itemSearchRest = new CmsItemSearchREST(this.httpClient);
 		
 	}
-	
+
 	/**
 	 * Initializes a RestClientJavaNet with host and auth information from configs map
 	 * 
-	 * @return true if the RestClientJavaNet is initialized
 	 * @throws MissingPropertiesException 
 	 */
 	private void initRestGetClient() throws MissingPropertiesException {
 		logger.debug("enter");
 		
-		
-		this.httpClient = null; // Reset
+		//this.httpClient = null; // Reset
 		
 		// Only initialize once
 		if(this.httpClient != null) {
@@ -172,7 +185,7 @@ public class RestClientReportRequest {
 			// Create RestAuthentication object
 			restAuth = new RestAuthenticationSimple(this.getConfigs().get(
 					"username"), this.getConfigs().get("password"));
-			restAuth.getSSLContext(this.getConfigs().get("baseurl")); // Might no be needed. But no harm.
+			restAuth.getSSLContext(this.getConfigs().get("baseurl")); // Might no be needed. But no harm. // Not verified 
 			
 		} else {
 			logger.error("Could not load authentication object because username or password is not set");
@@ -189,8 +202,7 @@ public class RestClientReportRequest {
 			logger.error("Could not initialize RestClientJavaNet beceause baseurl was not set");
 			throw new MissingPropertiesException("Parameters for baseurl is required");
 		}
-		
-	
+
 	}
 	
 	/**
@@ -202,7 +214,7 @@ public class RestClientReportRequest {
 	 */
 	public RepoRevision getRevisionCompleted() throws FailedToInitializeException 
 	{
-		
+		logger.debug("enter");
 		try {
 			this.initItemSearchRest();
 		} catch (MissingPropertiesException e) {
@@ -211,15 +223,13 @@ public class RestClientReportRequest {
 		
 		RepoRevision repoRev = this.itemSearchRest.getRevisionCompleted( this.getParams().get("repo"), "");
 		logger.debug("repoRev: {}", repoRev.getNumber());
-		logger.debug("Date: {}", repoRev.getDate());
-		logger.debug("Date ISO: {}", repoRev.getDate());
 		
 		return repoRev;
 	}
 	
 	/**
 	 * Using CmsItemSearchREST to query solr for items
-	 * Using config and param maps 
+	 * Using config and param maps to build query
 	 * @return CmsItemList
 	 * @throws FailedToInitializeException 
 	 */
@@ -233,11 +243,15 @@ public class RestClientReportRequest {
 			throw new FailedToInitializeException(e.getMessage(), e);
 		}
 		
+		// Validate empty to make sure we at least have empty strings
+		this.validateEmpty("fl", PARAMMAP);
+		this.validateEmpty("sort", PARAMMAP);
+		this.validateEmpty("rows", PARAMMAP);
 		
 		logger.debug("q {}", this.getParams().get("q"));
-
+		
 		// Return as a CmsItemListJSONSimple list
-		CmsItemListJSONSimple resultItemList = (CmsItemListJSONSimple) this.itemSearchRest.getItems(
+		CmsItemListJSONSimple resultItemList =  (CmsItemListJSONSimple) this.itemSearchRest.getItems(
 					this.getParams().get("q"), this.getParams().get("fl"), this.getParams().get("repo"),
 					this.getParams().get("sort"), this.getParams().get("rows"));
 		
@@ -245,6 +259,32 @@ public class RestClientReportRequest {
 		logger.debug("CMSItemList size: {}", resultItemList.sizeFound());
 		return resultItemList;
 
+	}
+	// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
+	/**
+	 * 
+	 * @param itemId
+	 * @param target
+	 * @param base
+	 * @param rev
+	 * @param type
+	 * @param pathArea
+	 * @param head
+	 * @return
+	 * @throws FailedToInitializeException
+	 */
+	public CmsItemListJSONSimple getItemsParents(CmsItemId itemId,String target, String base, String rev, String type, String pathArea, boolean head) throws FailedToInitializeException
+	{
+		try {
+			this.initItemSearchRest();
+		} catch (MissingPropertiesException e) {
+			// TODO Auto-generated catch block
+			throw new FailedToInitializeException(e.getMessage(), e);
+		}
+		
+		CmsItemListJSONSimple resultItemList = (CmsItemListJSONSimple) this.itemSearchRest.getParents(itemId, target, base, rev, type, pathArea, head);
+		
+		return resultItemList;
 	}
 	
 	/**
@@ -344,9 +384,28 @@ public class RestClientReportRequest {
 		
 		return true;
 	}
-
-	/*
-	 * Will create the necessary authentication
+	
+	/**
+	 * Makes sure no values are null
+	 * @param key
+	 * @param type
+	 */
+	private void validateEmpty(String key, String type)
+	{
+		logger.debug("enter");
+		if(!this.validateRequired(key, type)) {
+			logger.debug("Set {} to empty String", key);
+			if(type.equals(CONFIGMAP)) {
+				this.getConfigs().put(key, "");
+			}
+			if(type.equals(PARAMMAP)) {
+				this.getParams().put(key, "");
+			}
+		}
+	}
+	
+	/**
+	 * Creates basic auth headers and adds them to requestheaders HashMap
 	 */
 	private void addAuthHeader() {
 		logger.debug("enter");
@@ -365,8 +424,10 @@ public class RestClientReportRequest {
 		logger.debug("leave");
 	}
 
-	/*
-	 * Constructs URI that should support both reporting 1 and newer
+	/**
+	 * Constructs URI as required by Reporting 0.9.x >
+	 * For use with when requesting without cms-reporing Java API
+	 * @return
 	 */
 	private String constructURI() {
 		logger.debug("enter");
@@ -391,8 +452,10 @@ public class RestClientReportRequest {
 		return uri.toString(); // Return as string
 	}
 
-	/*
-	 * Constructs URL that supports report framework 1.0
+	/**
+	 * Constructs URL as required for Reporting 0.9.x >
+	 * For use with when requesting without cms-reporing Java API
+	 * @return
 	 */
 	private URL constructURL() {
 		logger.debug("enter");
@@ -409,6 +472,11 @@ public class RestClientReportRequest {
 		return returnURL;
 	}
 
+	/**
+	 * URL Encode given value in UTF-8
+	 * @param String value
+	 * @return encoded String
+	 */
 	protected String urlencode(String value) {
 		logger.debug("enter");
 		try {
