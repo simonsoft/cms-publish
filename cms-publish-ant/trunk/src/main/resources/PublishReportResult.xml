@@ -58,8 +58,8 @@
 	t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
 	
 	 -->
-	<target name="get-report">
-		<getreport>
+	<target name="get-report" >
+		<getreport filter="Flir" target="publish">
 			<configs>
 				<config name="baseurl" value="${config.host}" />
 				<config name="username" value="${config.username}" />

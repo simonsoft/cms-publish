@@ -50,6 +50,7 @@ public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
 	protected ParamsNode params;
 	protected String filter; // Filter to use Should perhaps be a list
+	protected String target; // The target name of the target in charge of publishing an item
 	private ArrayList<CmsItem> itemList;
 
 	/**
@@ -74,6 +75,34 @@ public class PublishReportTask extends Task {
 	public void addConfiguredConfigs(ConfigsNode configs) {
 		this.configs = configs;
 	}
+	
+	/**
+	 * @return the filter
+	 */
+	public String getFilter() {
+		return filter;
+	}
+
+	/**
+	 * @param filter the filter to set
+	 */
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+
+	/**
+	 * @return the target
+	 */
+	public String getTarget() {
+		return target;
+	}
+
+	/**
+	 * @param target the target to set
+	 */
+	public void setTarget(String target) {
+		this.target = target;
+	}
 
 	/**
 	 * executes the task
@@ -81,7 +110,7 @@ public class PublishReportTask extends Task {
 	public void execute() {
 		logger.debug("enter");
 		// Make sure we have a publish task to use for publishing
-		if (this.getProject().getTargets().get("publish") == null) {
+		if (this.getProject().getTargets().get(this.getTarget()) == null) {
 			throw new BuildException("This task requires PublishRequestPETask");
 		}
 		// Lets start it all
