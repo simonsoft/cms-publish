@@ -78,7 +78,7 @@ public class FlirFilter implements FilterResponse {
 				logger.debug("Found {} to be a of file name with _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", headRev.toString(), "abx:Dependencies", item.getId().getRelPath().getPath(), true);
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", item.getId().getRelPath().getPath(), true);
 				} catch (FailedToInitializeException e) {
 					logger.debug("Failed to init {}", e.getMessage());
 				}
@@ -86,14 +86,18 @@ public class FlirFilter implements FilterResponse {
 				ArrayList<CmsItem> parents = this.createMutableItemList(itemsParents);
 				logger.debug("Size of parents list: {}", parents.size()); // Expected to be ONE
 				
-				CmsItem parentItem = parents.get(0);
-				this.itemList.remove(item); // Remove now unuseful item
-				this.itemList.add(parentItem); // Add parentitem
+				if(parents.size() > 0) {
+					CmsItem parentItem = parents.get(0);
+					logger.debug("Item contains _ use parent instead {} file: {}", item.getId().getRelPath().getName(), parentItem.getId().getRelPath().getName());
+					this.itemList.remove(item); // Remove now unuseful item
+					this.itemList.add(parentItem); // Add parentitem
+				}
+				
 				
 				// Remove THIS item from list
 				// Add parent to list
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
-				logger.debug("Item contains _ use parent instead {} file: {}", item.getId().getRelPath().getName(), parentItem.getId().getRelPath().getName());
+				
 			}  
 		}
 	}
