@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.ant.filters;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
 import se.simonsoft.cms.publish.ant.FilterResponse;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
@@ -66,7 +68,7 @@ public class FlirFilter implements FilterResponse {
 		
 		logger.debug("enter");
 		//Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		List<CmsItem> itemsParents = null;
+		CmsItemList itemsParents = null;
 		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
 		
@@ -76,25 +78,15 @@ public class FlirFilter implements FilterResponse {
 				logger.debug("Found {} to be a of file name with _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = (List<CmsItem>) this.restReportClient.getItemsParents(item.getId(), "", "", headRev.toString(), "abx:Dependencies", item.getId().getRelPath().getPath(), true);
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", headRev.toString(), "abx:Dependencies", item.getId().getRelPath().getPath(), true);
 				} catch (FailedToInitializeException e) {
 					logger.debug("Failed to init {}", e.getMessage());
 				}
 				
+				ArrayList<CmsItem> parents = this.createMutableItemList(itemsParents);
+				logger.debug("Size of parents list: {}", parents.size()); // Expected to be ONE
 				
-				if(itemsParents.size() > 1) {
-					logger.debug("More than one parent to {}", item.getId().getRelPath().getName() );
-				}
-				Iterator<CmsItem> itemListIterator = itemsParents.iterator();
-				itemsParents.get(0);
-				/*
-				for(CmsItem parentItem : itemsParents) {
-					
-				}
-				*/
-				// Propeties?
-				//CmsItem parentItem = (CmsItem) new CmsItemIdArg(itemsParents.iterator().next().getId().getLogicalId());
-				CmsItem parentItem = itemsParents.get(0);
+				CmsItem parentItem = parents.get(0);
 				this.itemList.remove(item); // Remove now unuseful item
 				this.itemList.add(parentItem); // Add parentitem
 				
@@ -104,5 +96,20 @@ public class FlirFilter implements FilterResponse {
 				logger.debug("Item contains _ use parent instead {} file: {}", item.getId().getRelPath().getName(), parentItem.getId().getRelPath().getName());
 			}  
 		}
+	}
+	
+	/**
+	 * Creates a mutable copy of a CmsItemList
+	 * @param CmsItemList itemList
+	 */
+	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) 
+	{
+		logger.debug("enter");
+		ArrayList<CmsItem> copyItemList = new ArrayList<CmsItem>();
+		
+ 		for(CmsItem item: itemList ) {
+ 			copyItemList.add(item); // Add item to our itemlist
+		}
+ 		return copyItemList;
 	}
 }
