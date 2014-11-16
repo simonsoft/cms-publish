@@ -176,9 +176,11 @@ public class PublishReportTask extends Task {
 		// Dynamically instantiate correct filter. Do we need/want to be this dynamic? 
 		// Could we settle for a switch/ if/else 
 		try {
-			logger.debug("Init filter {}", this.filter.concat("Filter"));
+			
+			String qualifiedClassName = "se.simonsoft.cms.publish.ant.filters." + this.filter.concat("Filter");
+			logger.debug("Init filter {}", qualifiedClassName);
 			// Filters are instantiated by the name of the filter and the suffix Filter
-			Class<?> filterClass = Class.forName(this.filter.concat("Filter"));
+			Class<?> filterClass = Class.forName(qualifiedClassName);
 			FilterResponse filterResponse = (FilterResponse) filterClass.newInstance();
 			
 			filterResponse.initFilter(this.request, this.itemList, this.headRevision);
