@@ -152,10 +152,7 @@ public class RestClientReportRequest {
 			throw new MissingPropertiesException("Parameter repo is required");
 		}
 		
-		if(!this.validateRequired("q", PARAMMAP)) {
-			logger.error("No valid query parameter set. Aborting");
-			throw new MissingPropertiesException("Parameter q is required");
-		}
+		
 		
 		this.itemSearchRest = new CmsItemSearchREST(this.httpClient);
 		
@@ -236,6 +233,32 @@ public class RestClientReportRequest {
 	public CmsItemListJSONSimple getItemsWithQuery() throws FailedToInitializeException  {
 		logger.debug("enter");
 		
+		if(!this.validateRequired("q", PARAMMAP)) {
+			logger.error("No valid query parameter set. Aborting");
+			try {
+				throw new MissingPropertiesException("Parameter q is required");
+				// Catching this right away for now
+			} catch (MissingPropertiesException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		CmsItemListJSONSimple resultItemList = this.getItemsWithQuery(this.getParams().get("q"));
+		return resultItemList;
+
+	}
+	
+	/**
+	 * 
+	 * @param query
+	 * @return
+	 * @throws FailedToInitializeException
+	 */
+	public CmsItemListJSONSimple getItemsWithQuery(String query) throws FailedToInitializeException  
+	{
+		logger.debug("enter");
+		
 		try {
 			this.initItemSearchRest();
 		} catch (MissingPropertiesException e) {
@@ -248,17 +271,16 @@ public class RestClientReportRequest {
 		this.validateEmpty("sort", PARAMMAP);
 		this.validateEmpty("rows", PARAMMAP);
 		
-		logger.debug("q {}", this.getParams().get("q"));
+		logger.debug("query {}", query);
 		
 		// Return as a CmsItemListJSONSimple list
 		CmsItemListJSONSimple resultItemList =  (CmsItemListJSONSimple) this.itemSearchRest.getItems(
-					this.getParams().get("q"), this.getParams().get("fl"), this.getParams().get("repo"),
+					query, this.getParams().get("fl"), this.getParams().get("repo"),
 					this.getParams().get("sort"), this.getParams().get("rows"));
 		
 		
 		logger.debug("CMSItemList size: {}", resultItemList.sizeFound());
 		return resultItemList;
-
 	}
 	// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 	/**

@@ -34,7 +34,9 @@ public interface FilterResponse {
 	 * List<CmsItem> the actual list to filter
 	 * RepoRevision the head rev according to index, used for baseline
 	 * 
-	 * @param httpClient
+	 * @param RestClientReportRequest restReportClient
+	 * @param List<CmsItem> itemList
+	 * @param RepoRevision headRev
 	 */
 	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev);
 	

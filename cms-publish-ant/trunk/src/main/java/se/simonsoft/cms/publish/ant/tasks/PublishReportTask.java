@@ -111,7 +111,7 @@ public class PublishReportTask extends Task {
 		logger.debug("enter");
 		// Make sure we have a publish task to use for publishing
 		if (this.getProject().getTargets().get(this.getTarget()) == null) {
-			throw new BuildException("This task requires PublishRequestPETask");
+			throw new BuildException("This task requires a publush target like: PublishRequestPETask");
 		}
 		// Lets start it all
 		this.initPublishingWithQuery();
@@ -187,16 +187,17 @@ public class PublishReportTask extends Task {
 			filterResponse.runFilter();
 			
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Filter Init resulted in InstantiationException {}", e.getMessage());
+			return;
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Filter Init resulted in IllegalAccessException {}", e.getMessage());
+			return;
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Filter Init resulted in ClassNotFoundException {}", e.getMessage());
+			return;
 		}
 	}
+	
 	/**
 	 * Iterates CmsItemList and passes each item to publishItem method
 	 * 

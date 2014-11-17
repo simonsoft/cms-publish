@@ -29,7 +29,7 @@ import se.simonsoft.cms.publish.ant.FailedToInitializeException;
 import se.simonsoft.cms.publish.ant.FilterResponse;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
-public class FlirFilter implements FilterResponse {
+public class TechSpecFilter implements FilterResponse {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -37,7 +37,7 @@ public class FlirFilter implements FilterResponse {
 	private RestClientReportRequest restReportClient;
 	private RepoRevision headRev;
 	
-	public FlirFilter() {
+	public TechSpecFilter() {
 		// TODO Auto-generated constructor stub
 	}
 
@@ -75,11 +75,14 @@ public class FlirFilter implements FilterResponse {
 		for(CmsItem item : this.itemList) {
 			
 			if(item.getId().getRelPath().getNameBase().contains("_")) {
-				logger.debug("Found {} to be a of file name with _", item.getId().getRelPath().getName());
+				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", item.getId().getRelPath().getParent().toString(), true);
-								 
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","", item.getId().getRelPath().getParent().toString(), true);
+					
+					//String query = "";
+					//itemsParents = this.restReportClient.getItemsWithQuery(query);
+					
 				} catch (FailedToInitializeException e) {
 					logger.debug("Failed to init {}", e.getMessage());
 				}
