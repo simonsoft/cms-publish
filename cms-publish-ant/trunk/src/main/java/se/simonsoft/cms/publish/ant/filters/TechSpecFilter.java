@@ -77,10 +77,11 @@ public class TechSpecFilter implements FilterItems {
 				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", "", true);
+					// Need to understand getParents...it wont work
+					//itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", "", true);
 					
-					//String query = "";
-					//itemsParents = this.restReportClient.getItemsWithQuery(query);
+					String query = "prop_abx.Dependencies:*" + item.getId().getRelPath().getName() + "* AND head:true";
+					itemsParents = this.restReportClient.getItemsWithQuery(query);
 					
 				} catch (FailedToInitializeException e) {
 					logger.debug("Failed to init {}", e.getMessage());
