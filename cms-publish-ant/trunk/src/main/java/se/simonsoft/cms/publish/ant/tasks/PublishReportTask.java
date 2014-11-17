@@ -28,8 +28,8 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
-import se.simonsoft.cms.publish.ant.FilterItems;
 import se.simonsoft.cms.publish.ant.MissingPropertiesException;
+import se.simonsoft.cms.publish.ant.filters.FilterItems;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
@@ -136,7 +136,7 @@ public class PublishReportTask extends Task {
 		try {
 			cmsItemList = this.request.getItemsWithQuery();
 			// Create a itemlist we can work with
-			this.createMutableItemList(cmsItemList);
+			this.itemList = this.createMutableItemList(cmsItemList);
 		} catch (FailedToInitializeException ex) {
 			throw new BuildException(ex.getMessage());
 		}
@@ -156,18 +156,20 @@ public class PublishReportTask extends Task {
 	
 	/**
 	 * Creates a mutable copy of a CmsItemList
-	 * @param CmsItemList itemList
+	 * 
+	 * @param itemList
+	 * @return a ArrayList<CmsItem> copy of CmsItemList items
 	 */
-	private void createMutableItemList(CmsItemList itemList) 
+	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) 
 	{
 		logger.debug("enter");
-		if(this.itemList == null) {
-			this.itemList = new ArrayList<CmsItem>();
-		}
+		ArrayList<CmsItem> copyItemList = new ArrayList<CmsItem>();
 		
  		for(CmsItem item: itemList ) {
-			this.itemList.add(item); // Add item to our itemlist
+ 			copyItemList.add(item); // Add item to our itemlist
 		}
+ 		logger.debug("ItemList created with size {}", copyItemList.size());
+ 		return copyItemList;
 	}
 
 	/**

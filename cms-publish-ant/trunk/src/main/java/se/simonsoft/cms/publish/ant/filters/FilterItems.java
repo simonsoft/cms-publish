@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.ant;
+package se.simonsoft.cms.publish.ant.filters;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import se.simonsoft.publish.ant.helper.RestClientReportRequest;
  * @author joakimdurehed
  *
  */
-public interface FilterResponse {
+public interface FilterItems {
 	
 	/**
 	 * Initialize the filter with a necessary properties and tools.

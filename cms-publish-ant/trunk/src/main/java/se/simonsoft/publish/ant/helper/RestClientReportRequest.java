@@ -235,13 +235,7 @@ public class RestClientReportRequest {
 		
 		if(!this.validateRequired("q", PARAMMAP)) {
 			logger.error("No valid query parameter set. Aborting");
-			try {
-				throw new MissingPropertiesException("Parameter q is required");
-				// Catching this right away for now
-			} catch (MissingPropertiesException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			throw new FailedToInitializeException("Param q is required!");
 		}
 		
 		CmsItemListJSONSimple resultItemList = this.getItemsWithQuery(this.getParams().get("q"));
@@ -262,7 +256,6 @@ public class RestClientReportRequest {
 		try {
 			this.initItemSearchRest();
 		} catch (MissingPropertiesException e) {
-			// TODO Auto-generated catch block
 			throw new FailedToInitializeException(e.getMessage(), e);
 		}
 		

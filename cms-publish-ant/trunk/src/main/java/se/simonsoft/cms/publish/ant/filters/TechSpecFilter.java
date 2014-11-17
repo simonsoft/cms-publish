@@ -26,10 +26,9 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
-import se.simonsoft.cms.publish.ant.FilterResponse;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
-public class TechSpecFilter implements FilterResponse {
+public class TechSpecFilter implements FilterItems {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -78,7 +77,7 @@ public class TechSpecFilter implements FilterResponse {
 				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","", item.getId().getRelPath().getParent().toString(), true);
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","", "", true);
 					
 					//String query = "";
 					//itemsParents = this.restReportClient.getItemsWithQuery(query);
@@ -97,11 +96,9 @@ public class TechSpecFilter implements FilterResponse {
 					this.itemList.add(parentItem); // Add parentitem
 				}
 				
-				
 				// Remove THIS item from list
 				// Add parent to list
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
-				
 			}  
 		}
 	}

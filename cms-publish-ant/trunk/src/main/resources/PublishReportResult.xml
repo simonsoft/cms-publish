@@ -59,7 +59,9 @@
 	
 	 -->
 	<target name="get-report" >
-		<getreport filter="Flir" target="publish">
+		<!-- filter has to be FQ class name -->
+		<getreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish">
+			<!-- Add properties to set in publish target -->
 			<configs>
 				<config name="baseurl" value="${config.host}" />
 				<config name="username" value="${config.username}" />
