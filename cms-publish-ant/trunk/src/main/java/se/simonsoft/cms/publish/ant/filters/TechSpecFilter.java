@@ -63,7 +63,6 @@ public class TechSpecFilter implements FilterItems {
 	 */
 	private void filterItemsToPublish() 
 	{
-		// Return new ItemList?
 		
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
@@ -73,7 +72,7 @@ public class TechSpecFilter implements FilterItems {
 		ArrayList<CmsItem> itemsToRemove = new ArrayList<CmsItem>();
 		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
-		
+		logger.debug("Filter ItemList");
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			if(item.getId().getRelPath().getNameBase().contains("_")) {
@@ -106,10 +105,15 @@ public class TechSpecFilter implements FilterItems {
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 			}  
 		}
+		
+		logger.debug("Size before removing items {}", this.itemList.size());
 		// Remove all items that should not be published.
 		this.itemList.removeAll(itemsToRemove);
+		logger.debug("Size after removing items {}", this.itemList.size());
+		logger.debug("Add items (parents) to itemList");
 		// Add all parents that we need to publish to our modified itemlist
 		this.itemList.addAll(parentsToPublish);
+		logger.debug("Size after adding parent items {}", this.itemList.size());
 	}
 	
 	/**
