@@ -69,6 +69,8 @@ public class TechSpecFilter implements FilterItems {
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
 		CmsItemList itemsParents = null;
 		
+		ArrayList<CmsItem> parentsToPublish = new ArrayList<CmsItem>();
+		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
 		
 		while (itemListIterator.hasNext()) {
@@ -94,7 +96,7 @@ public class TechSpecFilter implements FilterItems {
 					CmsItem parentItem = parents.get(0);
 					logger.debug("Item contains _ use parent instead {} file: {}", item.getId().getRelPath().getName(), parentItem.getId().getRelPath().getName());
 					itemListIterator.remove(); // Remove now unuseful item
-					this.itemList.add(parentItem); // Add parentitem
+					parentsToPublish.add(parentItem); // Add parentitem
 				}
 				
 				// Remove THIS item from list
@@ -102,6 +104,9 @@ public class TechSpecFilter implements FilterItems {
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 			}  
 		}
+		
+		// Add all parents that we need to publish to our modified itemlist
+		this.itemList.addAll(parentsToPublish);
 	}
 	
 	/**
