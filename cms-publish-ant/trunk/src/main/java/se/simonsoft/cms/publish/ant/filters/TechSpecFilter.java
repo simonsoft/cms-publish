@@ -66,13 +66,13 @@ public class TechSpecFilter implements FilterItems {
 		// Return new ItemList?
 		
 		logger.debug("enter");
-		//Iterator<CmsItem> itemListIterator = this.itemList.iterator();
+		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
 		CmsItemList itemsParents = null;
 		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
 		
-		for(CmsItem item : this.itemList) {
-			
+		while (itemListIterator.hasNext()) {
+			CmsItem item = itemListIterator.next();
 			if(item.getId().getRelPath().getNameBase().contains("_")) {
 				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
 				// Get this items parent
@@ -93,7 +93,7 @@ public class TechSpecFilter implements FilterItems {
 				if(parents.size() > 0) {
 					CmsItem parentItem = parents.get(0);
 					logger.debug("Item contains _ use parent instead {} file: {}", item.getId().getRelPath().getName(), parentItem.getId().getRelPath().getName());
-					this.itemList.remove(item); // Remove now unuseful item
+					itemListIterator.remove(); // Remove now unuseful item
 					this.itemList.add(parentItem); // Add parentitem
 				}
 				
