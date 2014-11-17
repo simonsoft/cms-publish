@@ -77,7 +77,7 @@ public class TechSpecFilter implements FilterItems {
 				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","", "", true);
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", "", true);
 					
 					//String query = "";
 					//itemsParents = this.restReportClient.getItemsWithQuery(query);
