@@ -28,7 +28,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
-import se.simonsoft.cms.publish.ant.FilterResponse;
+import se.simonsoft.cms.publish.ant.FilterItems;
 import se.simonsoft.cms.publish.ant.MissingPropertiesException;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
@@ -110,11 +110,11 @@ public class PublishReportTask extends Task {
 	public void execute() {
 		logger.debug("enter");
 		// Make sure we have a publish task to use for publishing
-		if (this.getProject().getTargets().get(this.getTarget()) == null) {
+		if (this.getProject().getTargets().get(this.getTarget()) == null || this.getTarget().equals("")) {
 			throw new BuildException("This task requires a publush target like: PublishRequestPETask");
 		}
 		// Lets start it all
-		this.initPublishingWithQuery();
+		this.initPublishing();
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class PublishReportTask extends Task {
 	 * configuration and parameters to it. Then also to init the report request
 	 * and publishing of the resulting items
 	 */
-	private void initPublishingWithQuery() {
+	private void initPublishing() {
 		logger.debug("enter");
 		// Init the ReportRequest Helper
 		this.request = new RestClientReportRequest();
@@ -147,8 +147,11 @@ public class PublishReportTask extends Task {
 		} catch (FailedToInitializeException e) {
 			throw new BuildException(e.getMessage());
 		}
+		
+		// First check if we need to filter our itemList
+		this.filterItems();
 		// Publish items using our mutable item list
-		this.publishItems(this.itemList);
+		this.publishItems();
 	}
 	
 	/**
@@ -173,15 +176,20 @@ public class PublishReportTask extends Task {
 	private void filterItems() 
 	{
 		logger.debug("enter");
+		
+		if(this.filter == null || this.filter.equals("")) {
+			logger.info("No filter to init");
+			return;
+		}
+		
 		// Dynamically instantiate correct filter. Do we need/want to be this dynamic? 
 		// Could we settle for a switch/ if/else 
 		try {
 			
-			String qualifiedClassName = "se.simonsoft.cms.publish.ant.filters." + this.filter.concat("Filter");
-			logger.debug("Init filter {}", qualifiedClassName);
+			logger.info("Init filter {}", this.filter);
 			// Filters are instantiated by the name of the filter and the suffix Filter
-			Class<?> filterClass = Class.forName(qualifiedClassName);
-			FilterResponse filterResponse = (FilterResponse) filterClass.newInstance();
+			Class<?> filterClass = Class.forName(this.filter);
+			FilterItems filterResponse = (FilterItems) filterClass.newInstance();
 			
 			filterResponse.initFilter(this.request, this.itemList, this.headRevision);
 			filterResponse.runFilter();
@@ -203,15 +211,10 @@ public class PublishReportTask extends Task {
 	 * 
 	 * @param itemList
 	 */
-	private void publishItems(ArrayList<CmsItem> itemList) {
+	private void publishItems() {
 		logger.debug("enter");
 		
-		// First check if we need to filter our itemList
-		if(this.filter != "") {
-			this.filterItems();
-		}
-		Iterator<CmsItem> itemListIterator = itemList.iterator();
-		
+		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
 		
 		// Count number of items.
 		long count = 0L;
@@ -219,7 +222,7 @@ public class PublishReportTask extends Task {
 			count++;
 		}
 		
-		logger.debug("Counted {} and sizeFound {} number of items to publish", count, itemList.size());
+		logger.debug("Counted {} and sizeFound {} number of items to publish", count, this.itemList.size());
 		// TODO Add some filter method that will filter the list of items to publish
 		// based on some criteria.
 		
@@ -230,7 +233,7 @@ public class PublishReportTask extends Task {
 			count++;
 			logger.debug("Item nr {} file: {}", count, item.getId().getRelPath().getName());
 			
-			this.publishItem(item, this.headRevision.getNumber());
+			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
 		logger.debug("leave");
 	}
@@ -240,10 +243,11 @@ public class PublishReportTask extends Task {
 	 * publishing to work. Adds a baseline pegrev which should be head at the
 	 * time of the query to reporting framework ran.
 	 * 
-	 * @param item the CmsItem to publish
-	 * @param baseLine the Long baseline to use
+	 * @param CmsItem item
+	 * @param Long baseLine
+	 * @param ArrayList<String> publishProperties
 	 */
-	private void publishItem(CmsItem item, Long baseLine) {
+	private void publishItem(CmsItem item, Long baseLine, ArrayList<String> publishProperties) {
 		logger.debug("enter");
 		// TODO ability to set what "properties" should be passed to publish target
 		logger.debug("set Property param.file with {} adding peg {}", item.getId(), baseLine);
