@@ -218,22 +218,18 @@ public class PublishReportTask extends Task {
 		
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
 		
-		// Count number of items.
-		long count = 0L;
-		while (itemListIterator.hasNext()) {
-			count++;
-		}
 		
-		logger.debug("Counted {} and sizeFound {} number of items to publish", count, this.itemList.size());
+		//logger.debug("Counted {} and sizeFound {} number of items to publish", count, this.itemList.size());
 		// TODO Add some filter method that will filter the list of items to publish
 		// based on some criteria.
 		
 		// Publish items
-		count = 0L;
+		Long count = 0L;
+		logger.debug("Start publish of each item");
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			count++;
-			logger.debug("Item nr {} file: {}", count, item.getId().getRelPath().getName());
+			logger.debug("Publish item nr {} file: {}", count, item.getId().getRelPath().getName());
 			
 			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
