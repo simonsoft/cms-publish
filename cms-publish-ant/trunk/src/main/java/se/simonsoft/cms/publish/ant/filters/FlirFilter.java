@@ -78,7 +78,8 @@ public class FlirFilter implements FilterResponse {
 				logger.debug("Found {} to be a of file name with _", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
-					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", item.getId().getRelPath().getPath(), true);
+					itemsParents = this.restReportClient.getItemsParents(item.getId(), "", "", "","abx:Dependencies", item.getId().getRelPath().getParent().toString(), true);
+								 
 				} catch (FailedToInitializeException e) {
 					logger.debug("Failed to init {}", e.getMessage());
 				}

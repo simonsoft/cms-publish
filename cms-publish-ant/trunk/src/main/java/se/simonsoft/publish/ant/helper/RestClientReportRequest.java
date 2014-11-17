@@ -273,7 +273,7 @@ public class RestClientReportRequest {
 	 * @return
 	 * @throws FailedToInitializeException
 	 */
-	public CmsItemListJSONSimple getItemsParents(CmsItemId itemId,String target, String base, String rev, String type, String pathArea, boolean head) throws FailedToInitializeException
+	public CmsItemListJSONSimple getItemsParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head) throws FailedToInitializeException
 	{
 		try {
 			this.initItemSearchRest();
