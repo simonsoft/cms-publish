@@ -23,7 +23,7 @@
 		to the PublishRequestPETask for publishing.
 	
 	 -->
-	<taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.tasks.GetPreviousRevisionTask" />
+	<taskdef name="getprevrev" classname="se.simonsoft.cms.publish.ant.tasks.GetPreviousRevisionTask" />
 	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.PublishReportTask" />
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
 
@@ -52,14 +52,33 @@
 	<!-- Not used in CMS 3.2 with reporting 1.2.2 -->
 	<property name="param.fields" value="" />
 	<property name="param.repo" value="" />
-	<property name="param.query" value="" />
+	<property name="prevhead" value="" />
 
 	<!-- query examples
 	Using timestamp:
 	t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
 	
 	 -->
-	<target name="get-report" >
+
+	<target name="get-prevhead">
+		<!-- Will set property prevhead -->
+		<getprevrev file="prevhead.json">
+			<configs>
+				<config name="baseurl" value="${config.host}" />
+				<config name="username" value="${config.username}" />
+				<config name="password" value="${config.password}" />
+				<config name="version" value="v32" />
+				<!-- Name of the publish target to call-->
+			</configs>
+			<!-- Query params  -->
+			<params>
+				<param name="repo" value="${param.repo}" />
+			</params>
+		</getprevrev>
+	</target>
+
+	<target name="get-report">
+		<property name="param.query" value="rev:[${prevhead} TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND head:true" />
 		<!-- filter has to be FQ class name -->
 		<getreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish">
 			<!-- Add properties to set in publish target -->
@@ -223,7 +242,7 @@
 	</target>
 
 	<!-- the dependency to parsereport makes sure publishing process initiates -->
-	<target name="run" depends="get-report">
+	<target name="run" depends="get-prevhead,get-report">
 		<!-- Move files. If nothing is to be moved, a warning will output -->
 
 		<!-- Copy export contents to delta folder -->

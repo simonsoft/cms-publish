@@ -52,6 +52,7 @@ public class GetPreviousRevisionTask extends Task {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected ConfigsNode configs;
+	protected ParamsNode params;
 	protected String file; 
 	
 	/**
@@ -68,6 +69,21 @@ public class GetPreviousRevisionTask extends Task {
 		this.file = file;
 	}
 
+	/**
+	 * @return the params
+	 */
+	public ParamsNode getParams() {
+		return params;
+	}
+
+	/**
+	 * @param params
+	 *            the params to set
+	 */
+	public void addConfiguredParams(ParamsNode params) {
+		this.params = params;
+	}
+	
 	/**
 	 * @return the configs
 	 */

@@ -152,8 +152,6 @@ public class RestClientReportRequest {
 			throw new MissingPropertiesException("Parameter repo is required");
 		}
 		
-		
-		
 		this.itemSearchRest = new CmsItemSearchREST(this.httpClient);
 		
 	}
