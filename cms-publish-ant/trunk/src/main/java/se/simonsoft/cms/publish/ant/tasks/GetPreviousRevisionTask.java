@@ -204,20 +204,27 @@ public class GetPreviousRevisionTask extends Task {
 	 */
 	private HashMap<String, String> parseFile()
 	{
-		
+		logger.debug("enter");
 		HashMap<String, String> values = new HashMap<String, String>();
 		values.put("rev", "0");
 		values.put("date", "");
 		
 		if(this.getFile().equals("") || this.getFile() == null) {
-			logger.info("No revision file is provided! Returning rev 0 as default");
+			logger.info("No revision file path is provided! Returning rev 0 as default");
 			return values; // Return 0
 		}
 		
-		if(!FileUtils.getFile(this.getFile()).exists()){
+		if(!FileUtils.getFile(this.getFile()).exists()) {
 			logger.info("No previous {} file exists. Returning rev 0 as default", this.getFile());
 			return values;	// Return 0
 		}
+		
+		if(!FileUtils.getFile(this.getFile()).canRead()) {
+			logger.info("No read access to {}. Returning rev 0 as default", this.getFile());
+			return values;	// Return 0
+		}
+		
+		logger.debug("Can write: {}", FileUtils.getFile(this.getFile()).canWrite());
 		
 		try {
 			
