@@ -162,8 +162,8 @@ public class GetPreviousRevisionTask extends Task {
 	private String saveAsJSON(RepoRevision head) 
 	{
 		JSONObject obj = new JSONObject();
-		obj.put("rev", head.toString());
-		obj.put("date", head.getDate()); // Adding date just because we can
+		obj.put("rev", String.valueOf(head.getNumber()));
+		obj.put("date", head.getDateIso()); // Adding date just because we can
 		
 		StringWriter out = new StringWriter();
 		
