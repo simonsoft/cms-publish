@@ -43,19 +43,19 @@ import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
 /**
- * Retrieves head revision from index and saves it as JSON to file.
- * Also retrieves previous head stored.
+ * Retrieves head revision from index and saves it as JSON to file. Also
+ * retrieves previous head stored.
  * 
  * @author joakimdurehed
  *
  */
 public class GetPreviousRevisionTask extends Task {
-	
+
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	protected ConfigsNode configs;
 	protected ParamsNode params;
-	protected String file; 
-	
+	protected String file;
+
 	/**
 	 * @return the file
 	 */
@@ -64,7 +64,8 @@ public class GetPreviousRevisionTask extends Task {
 	}
 
 	/**
-	 * @param file the file to set
+	 * @param file
+	 *            the file to set
 	 */
 	public void setFile(String file) {
 		this.file = file;
@@ -84,14 +85,14 @@ public class GetPreviousRevisionTask extends Task {
 	public void addConfiguredParams(ParamsNode params) {
 		this.params = params;
 	}
-	
+
 	/**
 	 * @return the configs
 	 */
 	public ConfigsNode getConfigs() {
 		return configs;
 	}
-	
+
 	/**
 	 * @param configs
 	 *            the configs to set
@@ -99,157 +100,175 @@ public class GetPreviousRevisionTask extends Task {
 	public void addConfiguredConfigs(ConfigsNode configs) {
 		this.configs = configs;
 	}
-	
+
 	/**
 	 * Executes the task
 	 */
-	public void execute() 
-	{
+	public void execute() {
 		HashMap<String, String> prevHead = this.parseFile();
-		
+
 		// Fetch the curreht head according to index
 		RepoRevision currHead = this.requestHeadRevision();
-		
-		if(prevHead != null || !prevHead.get("rev").equals("")) {
+
+		if (prevHead != null || !prevHead.get("rev").equals("")) {
 			this.writeRevisionToFile(currHead); // Save the current head
 		}
-		//DateFormat df =  new SimpleDateFormat();
-		logger.debug("Prev head {} and prev date {}", prevHead.get("rev"), prevHead.get("date"));
-		//RepoRevision previousHead = new RepoRevision(Long.parseLong(prevHead.get("rev")), df.parse(prevHead.get("date")));
-		
-		//if(currHead.isNewer(previousHead))
-		
+		// DateFormat df = new SimpleDateFormat();
+		logger.debug("Prev head {} and prev date {}", prevHead.get("rev"),
+				prevHead.get("date"));
+		// RepoRevision previousHead = new
+		// RepoRevision(Long.parseLong(prevHead.get("rev")),
+		// df.parse(prevHead.get("date")));
+
+		// if(currHead.isNewer(previousHead))
+
 		Long prevHeadRev = 0L;
-		// If the previous head rev is higher than 0 ++ it and set it to property prevhead.
-		if(Long.parseLong(prevHead.get("rev")) > 0L ) {
+		// If the previous head rev is higher than 0 ++ it and set it to
+		// property prevhead.
+		if (Long.parseLong(prevHead.get("rev")) > 0L) {
 			prevHeadRev = Long.parseLong(prevHead.get("rev"));
-			prevHeadRev = prevHeadRev + 1; // Iterate once so we don't re-publish older rev
+			prevHeadRev = prevHeadRev + 1; // Iterate once so we don't
+											// re-publish older rev
 			logger.debug("Setting prevhead to {}", prevHeadRev);
-			
+
 		} else if (prevHead.get("rev").equals("0")) {
 			prevHeadRev = Long.parseLong(prevHead.get("rev"));
 			logger.debug("Setting prevhead to {}", prevHeadRev);
 		}
-		
+
 		this.getProject().setProperty("prevhead", prevHeadRev.toString());
-		
+
 	}
-	
 
 	/**
 	 * Stores revision to file
 	 */
-	private void writeRevisionToFile(RepoRevision head) 
-	{
-		
+	private void writeRevisionToFile(RepoRevision head) {
+
 		File revFile = FileUtils.getFile(this.getFile());
-		
+
 		String revJSONObject = this.saveAsJSON(head);
-		
+
 		try {
 			FileUtils.writeStringToFile(revFile, revJSONObject, "UTF-8");
 		} catch (IOException e) {
-			logger.warn("Could not write to {} with message {}. Stacktrace:\n{}",this.getFile(), e.getMessage(), e.getStackTrace());
+			logger.warn(
+					"Could not write to {} with message {}. Stacktrace:\n{}",
+					this.getFile(), e.getMessage(), e.getStackTrace());
 		}
 
 	}
-	
+
 	/**
 	 * Save RepoRevision as JSON and return as String
+	 * 
 	 * @param head
 	 * @return
 	 */
-	private String saveAsJSON(RepoRevision head) 
-	{
+	private String saveAsJSON(RepoRevision head) {
 		JSONObject obj = new JSONObject();
 		obj.put("rev", String.valueOf(head.getNumber()));
 		obj.put("date", head.getDateIso()); // Adding date just because we can
-		
+
 		StringWriter out = new StringWriter();
-		
+
 		try {
 			obj.writeJSONString(out);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return out.toString();
 	}
+
 	/**
 	 * Get the last indexed revision (most often equal to head) as String
+	 * 
 	 * @return the revision as String
 	 */
-	private RepoRevision requestHeadRevision()
-	{
+	private RepoRevision requestHeadRevision() {
 		RestClientReportRequest req = new RestClientReportRequest();
-		
+
 		// Set the configs
 		this.addConfigsToRequest(req);
 		this.addParamsToRequest(req);
 		RepoRevision revisionCompleted = null;
 		try {
 			revisionCompleted = req.getRevisionCompleted();
-			
+
 		} catch (FailedToInitializeException e) {
-			logger.warn("Could not get RevisionCompleted with message \n{}", e.getMessage());
+			logger.warn("Could not get RevisionCompleted with message \n{}",
+					e.getMessage());
 		}
-		
+
 		return revisionCompleted;
 	}
-	
+
 	/**
 	 * Reads the file storing the previous revision and return its value
+	 * 
 	 * @return String revision value
 	 */
-	private HashMap<String, String> parseFile()
-	{
+	private HashMap<String, String> parseFile() {
 		logger.debug("enter");
 		HashMap<String, String> values = new HashMap<String, String>();
 		values.put("rev", "0");
 		values.put("date", "");
-		
-		if(this.getFile().equals("") || this.getFile() == null) {
+
+		if (this.getFile().equals("") || this.getFile() == null) {
 			logger.info("No revision file path is provided! Returning rev 0 as default");
 			return values; // Return 0
 		}
-		
-		if(!FileUtils.getFile(this.getFile()).exists()) {
-			logger.info("No previous {} file exists. Returning rev 0 as default", this.getFile());
-			return values;	// Return 0
+
+		if (!FileUtils.getFile(this.getFile()).exists()) {
+			logger.info(
+					"No previous {} file exists. Returning rev 0 as default",
+					this.getFile());
+			return values; // Return 0
 		}
-		
-		if(!FileUtils.getFile(this.getFile()).canRead()) {
-			logger.info("No read access to {}. Returning rev 0 as default", this.getFile());
-			return values;	// Return 0
+
+		if (!FileUtils.getFile(this.getFile()).canRead()) {
+			logger.info("No read access to {}. Returning rev 0 as default",
+					this.getFile());
+			return values; // Return 0
 		}
-		
-		logger.debug("Can write: {}", FileUtils.getFile(this.getFile()).canWrite());
-		
+
+		logger.debug("Can write: {}", FileUtils.getFile(this.getFile())
+				.canWrite());
+
 		try {
-			
+
 			JSONParser parser = new JSONParser();
-			
-			JSONObject revInfo = (JSONObject) parser.parse(FileUtils.readFileToString(FileUtils.getFile(this.getFile(), "UTF-8")));
+
+			JSONObject revInfo = (JSONObject) parser.parse(FileUtils
+					.readFileToString(FileUtils.getFile(this.getFile())));
 			logger.debug("revInfo: {}", revInfo);
-			logger.debug("Found rev: {} and date: {}", revInfo.get("rev"), revInfo.get("date"));
+			logger.debug("Found rev: {} and date: {}", revInfo.get("rev"),
+					revInfo.get("date"));
 			values.clear();
-			
+
 			values.put("rev", (String) revInfo.get("rev"));
 			values.put("date", (String) revInfo.get("date"));
-			
+
 		} catch (IOException e) {
-			logger.warn("Could not access {} with message {}. Stacktrace:\n{}",this.getFile(), e.getMessage(), e.getStackTrace());
+			logger.warn("Could not access {} with message {}. Stacktrace:\n{}",
+					this.getFile(), e.getMessage(), e.getStackTrace());
 		} catch (ParseException e) {
-			logger.warn("Could not parse {} at position {} with message {}. Stacktrace:\n{}", this.getFile(), e.getPosition(), e.getMessage(), e.getStackTrace());
+			logger.warn(
+					"Could not parse {} at position {} with message {}. Stacktrace:\n{}",
+					this.getFile(), e.getPosition(), e.getMessage(),
+					e.getStackTrace());
 		}
 		// Return result
-		return values; 
+		return values;
 	}
-	
+
 	/**
 	 * Sets all params to RestClientReportRequest requests param map
-	 * @param request RestClientReportRequest
+	 * 
+	 * @param request
+	 *            RestClientReportRequest
 	 */
 	private void addParamsToRequest(RestClientReportRequest request) {
 		if (null != params && params.isValid()) {
@@ -258,9 +277,10 @@ public class GetPreviousRevisionTask extends Task {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets all configs to RestClientReportRequest configs map
+	 * 
 	 * @param request
 	 */
 	private void addConfigsToRequest(RestClientReportRequest request) {
