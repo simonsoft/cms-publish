@@ -38,6 +38,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
+import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
@@ -185,6 +186,7 @@ public class GetPreviousRevisionTask extends Task {
 		
 		// Set the configs
 		this.addConfigsToRequest(req);
+		this.addParamsToRequest(req);
 		RepoRevision revisionCompleted = null;
 		try {
 			revisionCompleted = req.getRevisionCompleted();
@@ -233,6 +235,18 @@ public class GetPreviousRevisionTask extends Task {
 		}
 		// Return result
 		return values; 
+	}
+	
+	/**
+	 * Sets all params to RestClientReportRequest requests param map
+	 * @param request RestClientReportRequest
+	 */
+	private void addParamsToRequest(RestClientReportRequest request) {
+		if (null != params && params.isValid()) {
+			for (final ParamNode param : params.getParams()) {
+				request.addParam(param.getName(), param.getValue());
+			}
+		}
 	}
 	
 	/**
