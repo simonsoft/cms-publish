@@ -215,7 +215,7 @@ public class GetPreviousRevisionTask extends Task {
 		}
 		
 		if(!FileUtils.getFile(this.getFile()).exists()){
-			logger.info("No previois {} file exists. Returning rev 0 as default", this.getFile());
+			logger.info("No previous {} file exists. Returning rev 0 as default", this.getFile());
 			return values;	// Return 0
 		}
 		
@@ -224,14 +224,17 @@ public class GetPreviousRevisionTask extends Task {
 			JSONParser parser = new JSONParser();
 			
 			JSONObject revInfo = (JSONObject) parser.parse(FileUtils.readFileToString(FileUtils.getFile(this.getFile(), "UTF-8")));
+			logger.debug("revInfo: {}", revInfo);
+			logger.debug("Found rev: {} and date: {}", revInfo.get("rev"), revInfo.get("date"));
 			values.clear();
+			
 			values.put("rev", (String) revInfo.get("rev"));
 			values.put("date", (String) revInfo.get("date"));
 			
 		} catch (IOException e) {
 			logger.warn("Could not access {} with message {}. Stacktrace:\n{}",this.getFile(), e.getMessage(), e.getStackTrace());
 		} catch (ParseException e) {
-			logger.warn("Could not parse {} with message {}. Stacktrace:\n{}", this.getFile(), e.getMessage(), e.getStackTrace());
+			logger.warn("Could not parse {} at position {} with message {}. Stacktrace:\n{}", this.getFile(), e.getPosition(), e.getMessage(), e.getStackTrace());
 		}
 		// Return result
 		return values; 
