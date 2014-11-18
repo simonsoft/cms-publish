@@ -23,6 +23,7 @@
 		to the PublishRequestPETask for publishing.
 	
 	 -->
+	<taskdef name="getrevision" classname="se.simonsoft.cms.publish.ant.tasks.GetPreviousRevisionTask" />
 	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.PublishReportTask" />
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
 

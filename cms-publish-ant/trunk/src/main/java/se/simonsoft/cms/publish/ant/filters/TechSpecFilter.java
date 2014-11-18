@@ -73,10 +73,11 @@ public class TechSpecFilter implements FilterItems {
 		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
 		logger.debug("Filter ItemList");
+		int counter = 0;
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			if(item.getId().getRelPath().getNameBase().contains("_")) {
-				logger.debug("Found {} to to include an underscore _", item.getId().getRelPath().getName());
+				logger.debug("Found {} to to include an underscore, find a parent", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
 					// Need to understand getParents...it wont work
@@ -90,21 +91,23 @@ public class TechSpecFilter implements FilterItems {
 				}
 				
 				ArrayList<CmsItem> parents = this.createMutableItemList(itemsParents);
-				logger.debug("Size of parents list: {}", parents.size()); // Expected to be ONE
+				logger.debug("Size of parents list: {}", parents.size()); // Expected to be at least ONE
 				
 				if(parents.size() > 0) {
+					counter++;
 					CmsItem parentItem = parents.get(0);
-					logger.debug("Item contains _ use parent {} instead of {}", parentItem.getId().getRelPath().getName(), item.getId().getRelPath().getName());
+					logger.debug("Item contains underscore use parent {} instead of {}", parentItem.getId().getRelPath().getName(), item.getId().getRelPath().getName());
 					// itemListIterator.remove(); // Remove now unuseful item
 					itemsToRemove.add(item);
 					parentsToPublish.add(parentItem); // Add parentitem
+				} else {
+					logger.debug("No parent found. Perhaps it's not added to CMS yet.");
 				}
 				
-				// Remove THIS item from list
-				// Add parent to list
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 			}  
 		}
+		logger.info("{} items exchanged for their parents", counter);
 		
 		logger.debug("Size before removing items {}", this.itemList.size());
 		// Remove all items that should not be published.
@@ -114,10 +117,11 @@ public class TechSpecFilter implements FilterItems {
 		// Add all parents that we need to publish to our modified itemlist
 		this.itemList.addAll(parentsToPublish);
 		logger.debug("Size after adding parent items {}", this.itemList.size());
+		logger.debug("leave");
 	}
 	
 	/**
-	 * Creates a mutable copy of a CmsItemList
+	 * Helper method that creates a mutable copy of a CmsItemList
 	 * @param CmsItemList itemList
 	 */
 	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) 

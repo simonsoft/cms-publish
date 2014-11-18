@@ -56,7 +56,14 @@ public class PublishReportTask extends Task {
 	/**
 	 * @return the configs
 	 */
-	public ParamsNode getConfigs() {
+	public ConfigsNode getConfigs() {
+		return configs;
+	}
+	
+	/**
+	 * @return the params
+	 */
+	public ParamsNode getParams() {
 		return params;
 	}
 
@@ -105,7 +112,7 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
-	 * executes the task
+	 * Executes the task after checking that the ant target to use for publishing exists in ant project
 	 */
 	public void execute() {
 		logger.debug("enter");
@@ -127,15 +134,15 @@ public class PublishReportTask extends Task {
 		// Init the ReportRequest Helper
 		this.request = new RestClientReportRequest();
 
-		this.addConfigsToRequest();
-		this.addParamsToRequest();
+		this.addConfigsToRequest(this.request);
+		this.addParamsToRequest(this.request);
 
 		// Retrieve the CmsItemList with query (set in configs)
 		CmsItemList cmsItemList = null;
 
 		try {
 			cmsItemList = this.request.getItemsWithQuery();
-			// Create a itemlist we can work with
+			// Create a itemlist we can work with, for instance the .get(index) method is very useful
 			this.itemList = this.createMutableItemList(cmsItemList);
 		} catch (FailedToInitializeException ex) {
 			throw new BuildException(ex.getMessage());
@@ -187,18 +194,21 @@ public class PublishReportTask extends Task {
 		// Dynamically instantiate correct filter. Do we need/want to be this dynamic? 
 		// Could we settle for a switch/ if/else 
 		try {
-			
+			// TODO check that the filter syntax is a full qualified class path? We will grab any problem
+			// in the exceptions anyways of course.
 			logger.info("Init filter {}", this.filter);
 			// Filters are instantiated by the name of the filter and the suffix Filter
 			Class<?> filterClass = Class.forName(this.filter);
 			FilterItems filterResponse = (FilterItems) filterClass.newInstance();
 			
+			// Todo should/would filter need some other stuff? I think the request object, the list of items and a baseline
+			// should suffice for almost whatever it is we need to do in the filter.
 			filterResponse.initFilter(this.request, this.itemList, this.headRevision);
 			filterResponse.runFilter();
 			
 		} catch (InstantiationException e) {
 			logger.warn("Filter Init resulted in InstantiationException {}", e.getMessage());
-			return;
+			return; // Do I need this?
 		} catch (IllegalAccessException e) {
 			logger.warn("Filter Init resulted in IllegalAccessException {}", e.getMessage());
 			return;
@@ -216,18 +226,11 @@ public class PublishReportTask extends Task {
 	private void publishItems() {
 		logger.debug("enter");
 		
-		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		
-		
-		//logger.debug("Counted {} and sizeFound {} number of items to publish", count, this.itemList.size());
-		// TODO Add some filter method that will filter the list of items to publish
-		// based on some criteria.
-		
 		// Publish items
 		Long count = 0L;
-		logger.debug("Start publish of each item");
-		while (itemListIterator.hasNext()) {
-			CmsItem item = itemListIterator.next();
+		
+		logger.debug("Start publishing items");
+		for(CmsItem item : this.itemList) {
 			count++;
 			logger.debug("Publish item nr {} file: {}", count, item.getId().getRelPath().getName());
 			
@@ -296,19 +299,27 @@ public class PublishReportTask extends Task {
 		}
 		return response;
 	}
-
-	private void addParamsToRequest() {
+	
+	/**
+	 * Sets all params to RestClientReportRequest requests param map
+	 * @param request RestClientReportRequest
+	 */
+	private void addParamsToRequest(RestClientReportRequest request) {
 		if (null != params && params.isValid()) {
 			for (final ParamNode param : params.getParams()) {
-				this.request.addParam(param.getName(), param.getValue());
+				request.addParam(param.getName(), param.getValue());
 			}
 		}
 	}
-
-	private void addConfigsToRequest() {
+	
+	/**
+	 * Sets all configs to RestClientReportRequest configs map
+	 * @param request
+	 */
+	private void addConfigsToRequest(RestClientReportRequest request) {
 		if (null != configs && configs.isValid()) {
 			for (final ConfigNode config : configs.getConfigs()) {
-				this.request.addConfig(config.getName(), config.getValue());
+				request.addConfig(config.getName(), config.getValue());
 			}
 		}
 	}
