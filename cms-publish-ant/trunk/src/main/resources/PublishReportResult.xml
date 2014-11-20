@@ -67,7 +67,7 @@
 				<config name="baseurl" value="${config.host}" />
 				<config name="username" value="${config.username}" />
 				<config name="password" value="${config.password}" />
-				<config name="version" value="v32" />
+				<config name="version" value="v320" />
 				<!-- Name of the publish target to call-->
 			</configs>
 			<!-- Query params  -->

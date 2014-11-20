@@ -193,7 +193,9 @@ public class GetPreviousRevisionTask extends Task {
 		// Set the configs
 		this.addConfigsToRequest(req);
 		this.addParamsToRequest(req);
+		
 		RepoRevision revisionCompleted = null;
+		
 		try {
 			revisionCompleted = req.getRevisionCompleted();
 
@@ -243,7 +245,6 @@ public class GetPreviousRevisionTask extends Task {
 
 			JSONObject revInfo = (JSONObject) parser.parse(FileUtils
 					.readFileToString(FileUtils.getFile(this.getFile())));
-			logger.debug("revInfo: {}", revInfo);
 			logger.debug("Found rev: {} and date: {}", revInfo.get("rev"),
 					revInfo.get("date"));
 			values.clear();

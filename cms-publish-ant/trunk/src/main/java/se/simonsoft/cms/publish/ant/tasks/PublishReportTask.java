@@ -50,8 +50,26 @@ public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
 	protected ParamsNode params;
 	protected String filter; // Filter to use Should perhaps be a list
-	protected String target; // The target name of the target in charge of publishing an item
+	protected String target; // The target name of the target in charge of
+								// publishing an item
 	private ArrayList<CmsItem> itemList;
+	protected String publishtime; // The mean time to publish in seconds. Used
+									// for estimating total publishing time
+
+	/**
+	 * @return the publishtime
+	 */
+	public String getPublishtime() {
+		return publishtime;
+	}
+
+	/**
+	 * @param publishtime
+	 *            the publishtime to set
+	 */
+	public void setPublishtime(String publishtime) {
+		this.publishtime = publishtime;
+	}
 
 	/**
 	 * @return the configs
@@ -59,7 +77,7 @@ public class PublishReportTask extends Task {
 	public ConfigsNode getConfigs() {
 		return configs;
 	}
-	
+
 	/**
 	 * @return the params
 	 */
@@ -82,7 +100,7 @@ public class PublishReportTask extends Task {
 	public void addConfiguredConfigs(ConfigsNode configs) {
 		this.configs = configs;
 	}
-	
+
 	/**
 	 * @return the filter
 	 */
@@ -91,7 +109,8 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
-	 * @param filter the filter to set
+	 * @param filter
+	 *            the filter to set
 	 */
 	public void setFilter(String filter) {
 		this.filter = filter;
@@ -105,20 +124,24 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
-	 * @param target the target to set
+	 * @param target
+	 *            the target to set
 	 */
 	public void setTarget(String target) {
 		this.target = target;
 	}
 
 	/**
-	 * Executes the task after checking that the ant target to use for publishing exists in ant project
+	 * Executes the task after checking that the ant target to use for
+	 * publishing exists in ant project
 	 */
 	public void execute() {
 		logger.debug("enter");
 		// Make sure we have a publish task to use for publishing
-		if (this.getProject().getTargets().get(this.getTarget()) == null || this.getTarget().equals("")) {
-			throw new BuildException("This task requires a publush target like: PublishRequestPETask");
+		if (this.getProject().getTargets().get(this.getTarget()) == null
+				|| this.getTarget().equals("")) {
+			throw new BuildException(
+					"This task requires a publush target like: PublishRequestPETask");
 		}
 		// Lets start it all
 		this.initPublishing();
@@ -142,7 +165,8 @@ public class PublishReportTask extends Task {
 
 		try {
 			cmsItemList = this.request.getItemsWithQuery();
-			// Create a itemlist we can work with, for instance the .get(index) method is very useful
+			// Create a itemlist we can work with, for instance the .get(index)
+			// method is very useful
 			this.itemList = this.createMutableItemList(cmsItemList);
 		} catch (FailedToInitializeException ex) {
 			throw new BuildException(ex.getMessage());
@@ -154,70 +178,78 @@ public class PublishReportTask extends Task {
 		} catch (FailedToInitializeException e) {
 			throw new BuildException(e.getMessage());
 		}
-		
+
 		// First check if we need to filter our itemList
 		this.filterItems();
 		// Publish items using our mutable item list
 		this.publishItems();
 	}
-	
+
 	/**
 	 * Creates a mutable copy of a CmsItemList
 	 * 
 	 * @param itemList
 	 * @return a ArrayList<CmsItem> copy of CmsItemList items
 	 */
-	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) 
-	{
+	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) {
 		logger.debug("enter");
 		ArrayList<CmsItem> copyItemList = new ArrayList<CmsItem>();
-		
- 		for(CmsItem item: itemList ) {
- 			copyItemList.add(item); // Add item to our itemlist
+
+		for (CmsItem item : itemList) {
+			copyItemList.add(item); // Add item to our itemlist
 		}
- 		logger.debug("ItemList created with size {}", copyItemList.size());
- 		return copyItemList;
+		logger.debug("ItemList created with size {}", copyItemList.size());
+		return copyItemList;
 	}
 
 	/**
 	 * Filters items using specified filter
 	 */
-	private void filterItems() 
-	{
+	private void filterItems() {
 		logger.debug("enter");
-		
-		if(this.filter == null || this.filter.equals("")) {
+
+		if (this.filter == null || this.filter.equals("")) {
 			logger.info("No filter to init");
 			return;
 		}
-		
-		// Dynamically instantiate correct filter. Do we need/want to be this dynamic? 
-		// Could we settle for a switch/ if/else 
+
+		// Dynamically instantiate correct filter. Do we need/want to be this
+		// dynamic?
+		// Could we settle for a switch/ if/else
 		try {
-			// TODO check that the filter syntax is a full qualified class path? We will grab any problem
+			// TODO check that the filter syntax is a full qualified class path?
+			// We will grab any problem
 			// in the exceptions anyways of course.
 			logger.info("Init filter {}", this.filter);
-			// Filters are instantiated by the name of the filter and the suffix Filter
+			// Filters are instantiated by the name of the filter and the suffix
+			// Filter
 			Class<?> filterClass = Class.forName(this.filter);
-			FilterItems filterResponse = (FilterItems) filterClass.newInstance();
-			
-			// Todo should/would filter need some other stuff? I think the request object, the list of items and a baseline
-			// should suffice for almost whatever it is we need to do in the filter.
-			filterResponse.initFilter(this.request, this.itemList, this.headRevision);
+			FilterItems filterResponse = (FilterItems) filterClass
+					.newInstance();
+
+			// Todo should/would filter need some other stuff? I think the
+			// request object, the list of items and a baseline
+			// should suffice for almost whatever it is we need to do in the
+			// filter.
+			filterResponse.initFilter(this.request, this.itemList,
+					this.headRevision);
 			filterResponse.runFilter();
-			
+
 		} catch (InstantiationException e) {
-			logger.warn("Filter Init resulted in InstantiationException {}", e.getMessage());
+			logger.warn("Filter Init resulted in InstantiationException {}",
+					e.getMessage());
 			return; // Do I need this?
 		} catch (IllegalAccessException e) {
-			logger.warn("Filter Init resulted in IllegalAccessException {}", e.getMessage());
+			logger.warn("Filter Init resulted in IllegalAccessException {}",
+					e.getMessage());
 			return;
 		} catch (ClassNotFoundException e) {
-			logger.warn("Filter Init resulted in ClassNotFoundException {}", e.getMessage());
+			logger.warn("Filter Init resulted in ClassNotFoundException {}",
+					e.getMessage());
 			return;
 		}
 	}
-	
+
 	/**
 	 * Iterates CmsItemList and passes each item to publishItem method
 	 * 
@@ -225,18 +257,55 @@ public class PublishReportTask extends Task {
 	 */
 	private void publishItems() {
 		logger.debug("enter");
-		
+
 		// Publish items
-		Long count = 0L;
-		
+		int count = 0;
+		logger.info("Estimated total publish time {} for {} number of items",
+				this.estimatedTimeLeft(this.itemList.size()),
+				this.itemList.size());
 		logger.debug("Start publishing items");
-		for(CmsItem item : this.itemList) {
+		for (CmsItem item : this.itemList) {
 			count++;
-			logger.debug("Publish item nr {} file: {}", count, item.getId().getRelPath().getName());
-			
+			logger.debug(
+					"Publish item nr {} with name {} \nEstimated time left: {}",
+					count, item.getId().getRelPath().getName(),
+					this.estimatedTimeLeft(this.itemList.size() - count));
+
 			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
 		logger.debug("leave");
+	}
+
+	/**
+	 * Calculates the estimated time left of publishing based on how long a
+	 * "normal" publishing takes times the number of items to publish
+	 * 
+	 * @param numberOfItems
+	 * @return the estimated time left as hours, minutes, seconds 
+	 */
+	private String estimatedTimeLeft(int numberOfItems) {
+		
+		float totalTime = Float.parseFloat(this.getPublishtime())
+				* (float) numberOfItems;
+		
+		// Calculate totaltime as hours, minutes and seconds
+		int hours = (int) totalTime / 3600;
+		int remainder = (int) totalTime - hours * 3600;
+		int mins = remainder / 60;
+		remainder = remainder - mins * 60;
+		int secs = remainder;
+		
+		// Create a returnString
+		StringBuffer returnString = new StringBuffer();
+		
+		returnString.append(hours);
+		returnString.append(" hour(s)");
+		returnString.append(mins);
+		returnString.append(" minute(s)");
+		returnString.append(secs);
+		returnString.append(" second(s)");
+		 
+		return  returnString.toString();
 	}
 
 	/**
@@ -244,25 +313,31 @@ public class PublishReportTask extends Task {
 	 * publishing to work. Adds a baseline pegrev which should be head at the
 	 * time of the query to reporting framework ran.
 	 * 
-	 * @param CmsItem item
-	 * @param Long baseLine
-	 * @param ArrayList<String> publishProperties
+	 * @param CmsItem
+	 *            item
+	 * @param Long
+	 *            baseLine
+	 * @param ArrayList
+	 *            <String> publishProperties
 	 */
-	private void publishItem(CmsItem item, Long baseLine, ArrayList<String> publishProperties) {
+	private void publishItem(CmsItem item, Long baseLine,
+			ArrayList<String> publishProperties) {
 		logger.debug("enter");
-		// TODO ability to set what "properties" should be passed to publish target
-		logger.debug("set Property param.file with {} adding peg {}", item.getId(), baseLine);
-		
+		// TODO ability to set what "properties" should be passed to publish
+		// target
+		logger.debug("set Property param.file with {} adding peg {}",
+				item.getId(), baseLine);
+
 		this.getProject().setProperty("param.file",
 				item.getId().withPegRev(baseLine).toString());
-		
+
 		this.getProject().setProperty("filename",
 				item.getId().getRelPath().getNameBase());
-		
+
 		this.getProject().setProperty("lang",
 				this.getItemProperty("abx:lang", item.getProperties()));
-		
-		RepoRevision itemRepoRev = item.getRevisionChanged();
+
+		// RepoRevision itemRepoRev = item.getRevisionChanged();
 		logger.debug("filename {}", item.getId().getRelPath().getNameBase());
 
 		this.getProject().executeTarget("publish");
@@ -299,10 +374,12 @@ public class PublishReportTask extends Task {
 		}
 		return response;
 	}
-	
+
 	/**
 	 * Sets all params to RestClientReportRequest requests param map
-	 * @param request RestClientReportRequest
+	 * 
+	 * @param request
+	 *            RestClientReportRequest
 	 */
 	private void addParamsToRequest(RestClientReportRequest request) {
 		if (null != params && params.isValid()) {
@@ -311,9 +388,10 @@ public class PublishReportTask extends Task {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets all configs to RestClientReportRequest configs map
+	 * 
 	 * @param request
 	 */
 	private void addConfigsToRequest(RestClientReportRequest request) {
