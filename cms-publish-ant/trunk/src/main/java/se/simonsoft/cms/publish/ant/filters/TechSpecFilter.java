@@ -37,7 +37,7 @@ public class TechSpecFilter implements FilterItems {
 	private RepoRevision headRev;
 	
 	public TechSpecFilter() {
-		// TODO Auto-generated constructor stub
+		// Empty constructor
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class TechSpecFilter implements FilterItems {
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			if(item.getId().getRelPath().getNameBase().contains("_")) {
-				logger.debug("Found {} to to include an underscore, find a parent", item.getId().getRelPath().getName());
+				logger.info("Found {} to to include an underscore.", item.getId().getRelPath().getName());
 				// Get this items parent
 				try {
 					// Need to understand getParents...it wont work
@@ -91,7 +91,7 @@ public class TechSpecFilter implements FilterItems {
 				}
 				
 				ArrayList<CmsItem> parents = this.createMutableItemList(itemsParents);
-				logger.debug("Size of parents list: {}", parents.size()); // Expected to be ONLY one
+				logger.debug("Size of parents list: {} (Expecting 1)", parents.size()); // Expected to be ONLY one
 				
 				if(parents.size() > 0) {
 					counter++;
@@ -100,12 +100,12 @@ public class TechSpecFilter implements FilterItems {
 
 					// Both the parent and it's child item can be modified, make sure only ONE instance of the item exists in the list
 					if(!this.itemList.contains(parentItem)) {
-						logger.debug("Save parentitem to add it to list later");
+						logger.debug("Save parentitem to add it to the itemlist later in bulk");
 						parentsToPublish.add(parentItem); // Save items to add to list later in bulk
 					}
 					
 				} else {
-					logger.debug("No parent found. Perhaps it's not added to CMS yet.");
+					logger.info("No parent found. Might not be added to CMS yet or {} is not added as a dependency yet.", item.getId().getRelPath().getName());
 				}
 				// itemListIterator.remove(); // We could remove on the fly
 				// No matter if we find a parent or not, we need to remove the item because we can't publish it on its own.

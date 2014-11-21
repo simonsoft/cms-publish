@@ -266,11 +266,19 @@ public class PublishReportTask extends Task {
 		logger.debug("Start publishing items");
 		for (CmsItem item : this.itemList) {
 			count++;
-			logger.debug(
-					"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
-					count, item.getId().getRelPath().getName(),
-					this.estimatedTimeLeft(this.itemList.size() - count), this.itemList.size() - count, this.itemList.size());
-
+			// Output info depending on if this is the first item or not
+			if(count == 1) {
+				logger.info(
+						"\nPublish item nr {} with name {} \nEstimated time left: {}",
+						count, item.getId().getRelPath().getName(),
+						this.estimatedTimeLeft(this.itemList.size()));
+			} else {
+				logger.info(
+						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
+						count, item.getId().getRelPath().getName(),
+						this.estimatedTimeLeft(this.itemList.size() - count), this.itemList.size() - count, this.itemList.size());
+			}
+			
 			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
 		logger.debug("leave");
@@ -284,27 +292,35 @@ public class PublishReportTask extends Task {
 	 * @return the estimated time left as hours, minutes, seconds 
 	 */
 	private String estimatedTimeLeft(int numberOfItems) {
-		
-		float totalTime = Float.parseFloat(this.getPublishtime())
-				* (float) numberOfItems;
-		
-		// Calculate totaltime as hours, minutes and seconds
-		int hours = (int) totalTime / 3600;
-		int remainder = (int) totalTime - hours * 3600;
-		int mins = remainder / 60;
-		remainder = remainder - mins * 60;
-		int secs = remainder;
-		
+		logger.debug("enter");
 		// Create a returnString
 		StringBuffer returnString = new StringBuffer();
 		
-		returnString.append(hours);
-		returnString.append(" hour(s) ");
-		returnString.append(mins);
-		returnString.append(" minute(s) ");
-		returnString.append(secs);
-		returnString.append(" second(s)");
-		 
+		if(this.getPublishtime() == null || this.getPublishtime().equals("")) {
+			logger.debug("Value for publishtime is not set");
+			returnString.append("Unknown");
+		} else {
+			// Calculate total time
+			float totalTime = Float.parseFloat(this.getPublishtime())
+					* (float) numberOfItems;
+			
+			// Calculate totaltime as hours, minutes and seconds
+			int hours = (int) totalTime / 3600;
+			int remainder = (int) totalTime - hours * 3600;
+			int mins = remainder / 60;
+			remainder = remainder - mins * 60;
+			int secs = remainder;
+			
+			
+			
+			returnString.append(hours);
+			returnString.append(" hour(s) ");
+			returnString.append(mins);
+			returnString.append(" minute(s) ");
+			returnString.append(secs);
+			returnString.append(" second(s)");
+		}
+		
 		return  returnString.toString();
 	}
 
