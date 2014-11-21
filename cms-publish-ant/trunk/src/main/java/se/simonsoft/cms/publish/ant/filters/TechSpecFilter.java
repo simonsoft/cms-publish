@@ -91,15 +91,21 @@ public class TechSpecFilter implements FilterItems {
 				}
 				
 				ArrayList<CmsItem> parents = this.createMutableItemList(itemsParents);
-				logger.debug("Size of parents list: {}", parents.size()); // Expected to be at least ONE
+				logger.debug("Size of parents list: {}", parents.size()); // Expected to be ONLY one
 				
 				if(parents.size() > 0) {
 					counter++;
-					CmsItem parentItem = parents.get(0);
+					CmsItem parentItem = parents.get(0); // We always fetch the first item and expect it to not have any more items
 					logger.debug("Item contains underscore use parent {} instead of {}", parentItem.getId().getRelPath().getName(), item.getId().getRelPath().getName());
 					// itemListIterator.remove(); // Remove now unuseful item
-					itemsToRemove.add(item);
-					parentsToPublish.add(parentItem); // Add parentitem
+					itemsToRemove.add(item); // We store the items to be removed and remove them in bulk
+					
+					// Both the parent and it's child item can be modified, make sure only ONE instance of the item exists in the list
+					if(!this.itemList.contains(parentItem)) {
+						logger.debug("Save parentitem to add it to list later");
+						parentsToPublish.add(parentItem); // Save items to add to list later in bulk
+					}
+					
 				} else {
 					logger.debug("No parent found. Perhaps it's not added to CMS yet.");
 				}
