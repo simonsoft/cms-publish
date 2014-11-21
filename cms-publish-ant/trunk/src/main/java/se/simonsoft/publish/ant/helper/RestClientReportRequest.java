@@ -269,8 +269,6 @@ public class RestClientReportRequest {
 					query, this.getParams().get("fl"), this.getParams().get("repo"),
 					this.getParams().get("sort"), this.getParams().get("rows"));
 		
-		
-		logger.debug("CMSItemList size: {}", resultItemList.sizeFound());
 		return resultItemList;
 	}
 	// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)

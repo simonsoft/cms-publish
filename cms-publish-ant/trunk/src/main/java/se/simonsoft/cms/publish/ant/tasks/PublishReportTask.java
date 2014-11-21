@@ -267,9 +267,9 @@ public class PublishReportTask extends Task {
 		for (CmsItem item : this.itemList) {
 			count++;
 			logger.debug(
-					"Publish item nr {} with name {} \nEstimated time left: {}",
+					"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
 					count, item.getId().getRelPath().getName(),
-					this.estimatedTimeLeft(this.itemList.size() - count));
+					this.estimatedTimeLeft(this.itemList.size() - count), this.itemList.size() - count, this.itemList.size());
 
 			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
@@ -299,9 +299,9 @@ public class PublishReportTask extends Task {
 		StringBuffer returnString = new StringBuffer();
 		
 		returnString.append(hours);
-		returnString.append(" hour(s)");
+		returnString.append(" hour(s) ");
 		returnString.append(mins);
-		returnString.append(" minute(s)");
+		returnString.append(" minute(s) ");
 		returnString.append(secs);
 		returnString.append(" second(s)");
 		 

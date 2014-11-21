@@ -78,9 +78,12 @@
 	</target>
 
 	<target name="get-report">
-		<property name="param.query" value="rev:[${prevhead} TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND head:true" />
+		<!-- 
+		rev:[18000 TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND  prop_abx.ContentType:xml AND type:file AND head:true
+		-->
+		<property name="param.query" value="rev:[${prevhead} TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND type:file AND head:true" />
 		<!-- filter has to be FQ class name -->
-		<getreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish">
+		<getreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish" publishtime="90">
 			<!-- Add properties to set in publish target -->
 			<configs>
 				<config name="baseurl" value="${config.host}" />

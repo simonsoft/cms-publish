@@ -97,9 +97,7 @@ public class TechSpecFilter implements FilterItems {
 					counter++;
 					CmsItem parentItem = parents.get(0); // We always fetch the first item and expect it to not have any more items
 					logger.debug("Item contains underscore use parent {} instead of {}", parentItem.getId().getRelPath().getName(), item.getId().getRelPath().getName());
-					// itemListIterator.remove(); // Remove now unuseful item
-					itemsToRemove.add(item); // We store the items to be removed and remove them in bulk
-					
+
 					// Both the parent and it's child item can be modified, make sure only ONE instance of the item exists in the list
 					if(!this.itemList.contains(parentItem)) {
 						logger.debug("Save parentitem to add it to list later");
@@ -109,6 +107,9 @@ public class TechSpecFilter implements FilterItems {
 				} else {
 					logger.debug("No parent found. Perhaps it's not added to CMS yet.");
 				}
+				// itemListIterator.remove(); // We could remove on the fly
+				// No matter if we find a parent or not, we need to remove the item because we can't publish it on its own.
+				itemsToRemove.add(item); // We store the items to be removed and remove them in bulk
 				
 				// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 			}  
