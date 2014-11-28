@@ -183,8 +183,7 @@ public class PublishReportTask extends Task {
 		// Retrieve the CmsItemList with query (set in configs)
 		CmsItemList cmsItemList = null;
 		
-		this.runPreFilters();
-		
+		this.runFilters(FilterOrder.PRE);
 		
 		// 1 Get the "head according to index"
 		try {
@@ -205,20 +204,22 @@ public class PublishReportTask extends Task {
 		}
 
 		// First check if we need to filter our itemList
-		this.runPostFilters();
+		this.runFilters(FilterOrder.POST);
 		// Publish items using our mutable item list
 		this.publishItems();
 	}
 
 	/**
-	 * Runs any filters that needs to be run pre anything else
+	 * Runs any filters that needs to be run with FilterOrder order
+	 * @param FilterOrder order
 	 */
-	private void runPreFilters() {
-		logger.debug("enter");
+	private void runFilters(FilterOrder order) {
+		logger.debug("Find fitlers to run with order {}", order.toString());
 		if (null != this.getFilters() && this.filters.isValid()) {
 			for (final FilterNode filter : this.filters.getFilters()) {
-				if (filter.getOrder().equals(FilterOrder.PRE.toString())) {
-					
+				
+				if (filter.getOrder().equals(order.toString())) {
+					logger.debug("Filter {} with order {}",filter.getClasspath(), filter.getOrder());
 					// Will most likely send null for itemlist and headrevision
 					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
 							this.itemList, this.request, this.headRevision,
@@ -228,22 +229,6 @@ public class PublishReportTask extends Task {
 		}
 	}
 
-	/**
-	 * Runs any filters that needs to be run post anything else
-	 */
-	private void runPostFilters() {
-		logger.debug("enter");
-		if (null != this.getFilters() && this.filters.isValid()) {
-			for (final FilterNode filter : this.filters.getFilters()) {
-				if (filter.getOrder().equals(FilterOrder.POST.toString())) {
-
-					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
-							this.itemList, this.request, this.headRevision,
-							this.getProject());
-				}
-			}
-		}
-	}
 
 	/**
 	 * Creates a mutable copy of a CmsItemList
