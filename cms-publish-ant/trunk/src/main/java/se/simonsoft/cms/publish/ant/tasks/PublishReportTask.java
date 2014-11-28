@@ -218,7 +218,7 @@ public class PublishReportTask extends Task {
 		if (null != this.getFilters() && this.filters.isValid()) {
 			for (final FilterNode filter : this.filters.getFilters()) {
 				
-				if (filter.getOrder().equals(order.toString())) {
+				if (filter.getOrder().toUpperCase().equals(order.toString())) {
 					logger.debug("Filter {} with order {}",filter.getClasspath(), filter.getOrder());
 					// Will most likely send null for itemlist and headrevision
 					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
