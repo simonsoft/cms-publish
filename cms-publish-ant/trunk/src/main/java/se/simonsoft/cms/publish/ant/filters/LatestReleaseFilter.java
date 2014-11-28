@@ -62,7 +62,7 @@ public class LatestReleaseFilter implements FilterItems {
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
 		logger.debug("LatestReleaseFilter");
 		String releaseLabel = "";
-		
+		this.highestReleaseLabel = "";
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			releaseLabel = RequestHelper.getItemProperty("prop_abx.ReleaseLabel", item.getProperties());
