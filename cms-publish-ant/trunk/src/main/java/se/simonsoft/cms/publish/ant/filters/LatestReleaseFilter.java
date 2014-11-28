@@ -65,7 +65,7 @@ public class LatestReleaseFilter implements FilterItems {
 		this.highestReleaseLabel = "";
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
-			releaseLabel = RequestHelper.getItemProperty("abx.ReleaseLabel", item.getProperties());
+			releaseLabel =item.getProperties().getString("abx:ReleaseLabel");
 			
 			if(releaseLabel.compareToIgnoreCase(this.highestReleaseLabel) > 0 || this.highestReleaseLabel.equals("")) {
 				logger.debug("Set highestReleaseLabel to {}", releaseLabel);
@@ -76,8 +76,8 @@ public class LatestReleaseFilter implements FilterItems {
 		
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
-			
-			releaseLabel = RequestHelper.getItemProperty("prop_abx.ReleaseLabel", item.getProperties());
+			item.getProperties().getString("abx.ReleaseLabel");
+			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
 			if(!releaseLabel.equals(this.highestReleaseLabel)) {
 				logger.debug("Remove item with label {}", releaseLabel);
 				itemsToRemove.add(item);
