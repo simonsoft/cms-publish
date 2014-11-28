@@ -15,8 +15,11 @@
  */
 package se.simonsoft.cms.publish.ant.nodes;
 
-/*
+/**
  * Object that have necessary information about whats unique for a specific publishjob
+ * 
+ * @author joakimdurehed
+ *
  */
 public class JobNode {
 	

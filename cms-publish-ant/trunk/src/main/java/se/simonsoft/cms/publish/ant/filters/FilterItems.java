@@ -17,6 +17,9 @@ package se.simonsoft.cms.publish.ant.filters;
 
 import java.util.List;
 
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
+
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
@@ -28,20 +31,31 @@ import se.simonsoft.publish.ant.helper.RestClientReportRequest;
  */
 public interface FilterItems {
 	
+	public enum FilterOrder {
+		PRE, POST
+	}
 	/**
 	 * Initialize the filter with a necessary properties and tools.
+	 * Might be used for simply filter out items while running additional queries and so on.
 	 * RestClientReportRequest to perform additional queries
 	 * List<CmsItem> the actual list to filter
 	 * RepoRevision the head rev according to index, used for baseline
+	 * Project the current ANT project
 	 * 
-	 * @param RestClientReportRequest restReportClient
-	 * @param List<CmsItem> itemList
-	 * @param RepoRevision headRev
+	 * @param restReportClient
+	 * @param itemList
+	 * @param headRev
+	 * @param project
 	 */
-	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev);
+	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev, Project project);
 	
 	/**
 	 * Run the filter
 	 */
 	public void runFilter();
+	
 }
+
+// TODO support types of filter? 
+// query filter: for when you need to perform two or more queries to get build the final query used for getting items to publish
+// items filter for when you need to filter the result

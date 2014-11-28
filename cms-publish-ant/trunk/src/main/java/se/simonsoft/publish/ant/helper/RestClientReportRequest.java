@@ -271,6 +271,7 @@ public class RestClientReportRequest {
 		
 		return resultItemList;
 	}
+	
 	// getParents(CmsItemId itemId, String target, String base, String rev, String type, String pathArea, boolean head)
 	/**
 	 * 

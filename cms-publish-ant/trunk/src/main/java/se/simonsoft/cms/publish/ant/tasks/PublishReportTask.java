@@ -30,10 +30,14 @@ import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.FailedToInitializeException;
 import se.simonsoft.cms.publish.ant.MissingPropertiesException;
 import se.simonsoft.cms.publish.ant.filters.FilterItems;
+import se.simonsoft.cms.publish.ant.filters.FilterItems.FilterOrder;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
+import se.simonsoft.cms.publish.ant.nodes.FilterNode;
+import se.simonsoft.cms.publish.ant.nodes.FiltersNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamsNode;
+import se.simonsoft.publish.ant.helper.RequestHelper;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
 /**
@@ -49,6 +53,7 @@ public class PublishReportTask extends Task {
 	private RepoRevision headRevision; // Head according to Index
 	protected ConfigsNode configs;
 	protected ParamsNode params;
+	protected FiltersNode filters;
 	protected String filter; // Filter to use Should perhaps be a list
 	protected String target; // The target name of the target in charge of
 								// publishing an item
@@ -91,6 +96,21 @@ public class PublishReportTask extends Task {
 	 */
 	public void addConfiguredParams(ParamsNode params) {
 		this.params = params;
+	}
+
+	/**
+	 * @return the filters
+	 */
+	public FiltersNode getFilters() {
+		return filters;
+	}
+
+	/**
+	 * @param filters
+	 *            the filters to set
+	 */
+	public void addConfiguredFilters(FiltersNode filters) {
+		this.filters = filters;
 	}
 
 	/**
@@ -157,32 +177,72 @@ public class PublishReportTask extends Task {
 		// Init the ReportRequest Helper
 		this.request = new RestClientReportRequest();
 
-		this.addConfigsToRequest(this.request);
-		this.addParamsToRequest(this.request);
+		RequestHelper.copyConfigsToRequest(this.getConfigs(), this.request);
+		RequestHelper.copyParamsToRequest(this.getParams(), this.request);
 
 		// Retrieve the CmsItemList with query (set in configs)
 		CmsItemList cmsItemList = null;
-
-		try {
-			cmsItemList = this.request.getItemsWithQuery();
-			// Create a itemlist we can work with, for instance the .get(index)
-			// method is very useful
-			this.itemList = this.createMutableItemList(cmsItemList);
-		} catch (FailedToInitializeException ex) {
-			throw new BuildException(ex.getMessage());
-		}
-
-		// Get the "head according to index"
+		
+		this.runPreFilters();
+		
+		
+		// 1 Get the "head according to index"
 		try {
 			this.headRevision = this.request.getRevisionCompleted();
 		} catch (FailedToInitializeException e) {
 			throw new BuildException(e.getMessage());
 		}
+		
+		// 2 Perform the query for publishable items
+		try {
+			cmsItemList = this.request.getItemsWithQuery();
+			// Create a itemlist we can work with, for instance the .get(index)
+			// method is very useful
+			// this.itemList = this.createMutableItemList(cmsItemList);
+			this.itemList = RequestHelper.createMutableItemList(cmsItemList);
+		} catch (FailedToInitializeException ex) {
+			throw new BuildException(ex.getMessage());
+		}
 
 		// First check if we need to filter our itemList
-		this.filterItems();
+		this.runPostFilters();
 		// Publish items using our mutable item list
 		this.publishItems();
+	}
+
+	/**
+	 * Runs any filters that needs to be run pre anything else
+	 */
+	private void runPreFilters() {
+		logger.debug("enter");
+		if (null != this.getFilters() && this.filters.isValid()) {
+			for (final FilterNode filter : this.filters.getFilters()) {
+				if (filter.getOrder().equals(FilterOrder.PRE.toString())) {
+					
+					// Will most likely send null for itemlist and headrevision
+					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
+							this.itemList, this.request, this.headRevision,
+							this.getProject());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Runs any filters that needs to be run post anything else
+	 */
+	private void runPostFilters() {
+		logger.debug("enter");
+		if (null != this.getFilters() && this.filters.isValid()) {
+			for (final FilterNode filter : this.filters.getFilters()) {
+				if (filter.getOrder().equals(FilterOrder.POST.toString())) {
+
+					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
+							this.itemList, this.request, this.headRevision,
+							this.getProject());
+				}
+			}
+		}
 	}
 
 	/**
@@ -208,46 +268,38 @@ public class PublishReportTask extends Task {
 	private void filterItems() {
 		logger.debug("enter");
 
-		if (this.filter == null || this.filter.equals("")) {
+		if (this.getFilter() == null || this.getFilter().equals("")) {
 			logger.info("No filter to init");
 			return;
 		}
 
-		// Dynamically instantiate correct filter. Do we need/want to be this
-		// dynamic?
-		// Could we settle for a switch/ if/else
-		try {
-			// TODO check that the filter syntax is a full qualified class path?
-			// We will grab any problem
-			// in the exceptions anyways of course.
-			logger.info("Init filter {}", this.filter);
-			// Filters are instantiated by the name of the filter and the suffix
-			// Filter
-			Class<?> filterClass = Class.forName(this.filter);
-			FilterItems filterResponse = (FilterItems) filterClass
-					.newInstance();
-
-			// Todo should/would filter need some other stuff? I think the
-			// request object, the list of items and a baseline
-			// should suffice for almost whatever it is we need to do in the
-			// filter.
-			filterResponse.initFilter(this.request, this.itemList,
-					this.headRevision);
-			filterResponse.runFilter();
-
-		} catch (InstantiationException e) {
-			logger.warn("Filter Init resulted in InstantiationException {}",
-					e.getMessage());
-			return; // Do I need this?
-		} catch (IllegalAccessException e) {
-			logger.warn("Filter Init resulted in IllegalAccessException {}",
-					e.getMessage());
-			return;
-		} catch (ClassNotFoundException e) {
-			logger.warn("Filter Init resulted in ClassNotFoundException {}",
-					e.getMessage());
-			return;
-		}
+		RequestHelper.runFilterWithClassPath(this.getFilter(), itemList,
+				request, headRevision, this.getProject());
+		/*
+		 * // Dynamically instantiate correct filter. Do we need/want to be this
+		 * // dynamic? // Could we settle for a switch/ if/else try { // TODO
+		 * check that the filter syntax is a full qualified class path? // We
+		 * will grab any problem // in the exceptions anyways of course.
+		 * logger.info("Init filter {}", this.filter); // Filters are
+		 * instantiated by the name of the filter and the suffix // Filter
+		 * Class<?> filterClass = Class.forName(this.filter); FilterItems
+		 * filterResponse = (FilterItems) filterClass .newInstance();
+		 * 
+		 * // Todo should/would filter need some other stuff? I think the //
+		 * request object, the list of items and a baseline // should suffice
+		 * for almost whatever it is we need to do in the // filter.
+		 * filterResponse.initFilter(this.request, this.itemList,
+		 * this.headRevision); filterResponse.runFilter();
+		 * 
+		 * } catch (InstantiationException e) {
+		 * logger.warn("Filter Init resulted in InstantiationException {}",
+		 * e.getMessage()); return; // Do I need this? } catch
+		 * (IllegalAccessException e) {
+		 * logger.warn("Filter Init resulted in IllegalAccessException {}",
+		 * e.getMessage()); return; } catch (ClassNotFoundException e) {
+		 * logger.warn("Filter Init resulted in ClassNotFoundException {}",
+		 * e.getMessage()); return; } //
+		 */
 	}
 
 	/**
@@ -267,7 +319,7 @@ public class PublishReportTask extends Task {
 		for (CmsItem item : this.itemList) {
 			count++;
 			// Output info depending on if this is the first item or not
-			if(count == 1) {
+			if (count == 1) {
 				logger.info(
 						"\nPublish item nr {} with name {} \nEstimated time left: {}",
 						count, item.getId().getRelPath().getName(),
@@ -276,9 +328,10 @@ public class PublishReportTask extends Task {
 				logger.info(
 						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
 						count, item.getId().getRelPath().getName(),
-						this.estimatedTimeLeft(this.itemList.size() - count), this.itemList.size() - count, this.itemList.size());
+						this.estimatedTimeLeft(this.itemList.size() - count),
+						this.itemList.size() - count, this.itemList.size());
 			}
-			
+
 			this.publishItem(item, this.headRevision.getNumber(), null);
 		}
 		logger.debug("leave");
@@ -289,30 +342,28 @@ public class PublishReportTask extends Task {
 	 * "normal" publishing takes times the number of items to publish
 	 * 
 	 * @param numberOfItems
-	 * @return the estimated time left as hours, minutes, seconds 
+	 * @return the estimated time left as hours, minutes, seconds
 	 */
 	private String estimatedTimeLeft(int numberOfItems) {
 		logger.debug("enter");
 		// Create a returnString
 		StringBuffer returnString = new StringBuffer();
-		
-		if(this.getPublishtime() == null || this.getPublishtime().equals("")) {
+
+		if (this.getPublishtime() == null || this.getPublishtime().equals("")) {
 			logger.debug("Value for publishtime is not set");
 			returnString.append("Unknown");
 		} else {
 			// Calculate total time
 			float totalTime = Float.parseFloat(this.getPublishtime())
 					* (float) numberOfItems;
-			
+
 			// Calculate totaltime as hours, minutes and seconds
 			int hours = (int) totalTime / 3600;
 			int remainder = (int) totalTime - hours * 3600;
 			int mins = remainder / 60;
 			remainder = remainder - mins * 60;
 			int secs = remainder;
-			
-			
-			
+
 			returnString.append(hours);
 			returnString.append(" hour(s) ");
 			returnString.append(mins);
@@ -320,8 +371,8 @@ public class PublishReportTask extends Task {
 			returnString.append(secs);
 			returnString.append(" second(s)");
 		}
-		
-		return  returnString.toString();
+
+		return returnString.toString();
 	}
 
 	/**

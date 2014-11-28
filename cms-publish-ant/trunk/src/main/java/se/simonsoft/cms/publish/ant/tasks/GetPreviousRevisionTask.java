@@ -105,8 +105,15 @@ public class GetPreviousRevisionTask extends Task {
 	 * Executes the task
 	 */
 	public void execute() {
+		
+		// If we have already get a prevhead set (probably 0) somebody wants to perform a republish i ALL items or want to 
+		// republish from a certain point
+		if(!this.getProject().getProperty("prevhead").isEmpty()) {
+			logger.debug("Use provided prevhead {}", this.getProject().getProperty("prevhead") );
+			return;
+		}
 		HashMap<String, String> prevHead = this.parseFile();
-
+		
 		// Fetch the curreht head according to index
 		RepoRevision currHead = this.requestHeadRevision();
 

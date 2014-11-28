@@ -16,21 +16,17 @@
     limitations under the License.
 
 -->
-<project name="PublishReportResult" basedir="." default="run">
+<project name="PublishSelectedItems" basedir="." default="run">
 	<!-- 
-		Publishes the result of query to CMS Reporting framework.
-		PublishReportTask queries Reporting and manages the result by passing each resulting item
-		to the PublishRequestPETask for publishing.
-	
+		Publishes each XML file by searching for it's pathname: name.xml
+		The input list of files is separated by comma.
+		Can publish ANY file in CMS
 	 -->
-	<taskdef name="getprevrev" classname="se.simonsoft.cms.publish.ant.tasks.GetPreviousRevisionTask" />
-	<taskdef name="getreport" classname="se.simonsoft.cms.publish.ant.tasks.PublishReportTask" />
+	<taskdef name="publishreport" classname="se.simonsoft.cms.publish.ant.tasks.PublishReportTask" />
 	<taskdef name="publishrequest" classname="se.simonsoft.cms.publish.ant.PublishRequestPETask" />
 
 	<!-- Support for antcontrib. Must be present in Ant Lib or otherwise specified by classpath -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
-
-	<!-- <property name="httpresponse" value="" /> -->
 
 	<!-- Some default properties -->
 	<property name="outputfolder" value="export" />
@@ -55,42 +51,33 @@
 	<property name="prevhead" value="" />
 
 	<!-- query examples
-	Using timestamp:
-	t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
-	
-	 -->
-
-	<!-- gets the previous head revision from file stored in Jenkis Job folder -->
-	<target name="get-prevhead">
-		<!-- Will set property prevhead -->
-		<getprevrev file="prevhead.json">
-			<configs>
-				<config name="baseurl" value="${config.host}" />
-				<config name="username" value="${config.username}" />
-				<config name="password" value="${config.password}" />
-				<config name="version" value="v320" />
-				<!-- Name of the publish target to call-->
-			</configs>
-			<!-- Query params  -->
-			<params>
-				<param name="repo" value="${param.repo}" />
-			</params>
-		</getprevrev>
+		Using timestamp:
+		t:[2014-09-19T23:59:59.999Z TO *] AND head:true AND patharea:release AND prop_cms.status:Released
+		
+		 -->
+	<!-- Builds the query for each item in items property and then calls publish-report -->
+	<target name="publish-selected">
+		<for list="${items}" delimiter="," param="item">
+			<sequential>
+				
+				<propertyregex property="itemstripped" input="@{item}" regexp=" " replace="" override="true" global="true"/>
+				
+				<condition property="itemstripped-or-orig" else="@{item}">
+					<isset property="itemstripped"/>
+				</condition>
+				
+				<antcall target="publish-report">
+					<param name="query" value="pathname:@{item}.xml AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND head:true" />
+				</antcall>
+			</sequential>
+		</for>
 	</target>
 
-	<target name="get-report">
-		<!-- 
-		rev:[18000 TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND  prop_abx.ContentType:xml AND type:file AND head:true
-		-->
-		<property name="param.query" value="rev:[${prevhead} TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND type:file AND head:true" />
+	<!-- Publishes the result of report result by requesting report result and then call publish task -->
+	<target name="publish-report">
+		<!--<property name="param.query" value="rev:[${prevhead} TO *] AND (pathpart:td-spec-cur OR pathpart:non-thg-swe) AND head:true" /> -->
 		<!-- filter has to be FQ class name -->
-		<getreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish" publishtime="90">
-			
-			<!-- Query filters are used to perform queries that need to be run before the final publish query can be performed 
-			<queryfilters>
-				<queryfilter class="" query=""/>
-			</queryfilters>
-			-->
+		<publishreport filter="se.simonsoft.cms.publish.ant.filters.TechSpecFilter" target="publish">
 			<!-- Add properties to set in publish target -->
 			<configs>
 				<config name="baseurl" value="${config.host}" />
@@ -102,12 +89,12 @@
 			</configs>
 			<!-- Query params  -->
 			<params>
-				<param name="q" value="${param.query}" />
+				<param name="q" value="${query}" />
 				<param name="repo" value="${param.repo}" />
 				<param name="fl" value="${param.fields}" />
 				<param name="rows" value="${param.rows}" />
 			</params>
-		</getreport>
+		</publishreport>
 	</target>
 
 	<target name="publish" description="Publish an item">
@@ -141,18 +128,6 @@
 						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
 						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
 						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
-						<param name="file" value="${param.file}" />
-						<param name="file-type" value="${param.file-type}" />
-						<param name="type" value="pdf" />
-						<param name="queue-priority" value="${param.queue-priority}" />
-					</params>
-				</job>
-				
-				<job filename="${filename}-${lang}_USL.pdf">
-					<params>
-						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
-						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
-						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_letter.style" />
 						<param name="file" value="${param.file}" />
 						<param name="file-type" value="${param.file-type}" />
 						<param name="type" value="pdf" />
@@ -196,6 +171,20 @@
 						<param name="queue-priority" value="${param.queue-priority}" />
 					</params>
 				</job>
+
+				<job filename="${filename}-${lang}_A4.pdf">
+					<params>
+						<param name="profile" value="logicalexpression=&lt;ProfileRef alias=&quot;Features&quot; value=&quot;External&quot;/&gt;" />
+						<param name="app-config" value="$aptpath/application/se.simonsoft.flir/app/standard.3sppdf" />
+						<param name="stylesheet" value="$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style" />
+						<param name="file" value="${param.file}" />
+						<param name="file-type" value="${param.file-type}" />
+						<param name="type" value="pdf" />
+						<param name="queue-priority" value="${param.queue-priority}" />
+					</params>
+				</job>
+
+
 			</jobs>
 		</publishrequest>
 
@@ -241,7 +230,7 @@
 		<xslt style="stripComments.xsl" in="${outputfolder}/${filename}-${lang}_xml/${e3defaultxmlfilename}" out="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml">
 		</xslt>
 		<!-- <move failonerror="false" file="${outputfolder}/${filename}-${lang}_xml/${e3defaultxmlfilename}" tofile="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml" />
-		-->
+			-->
 		<!-- Copy a single XML to output root -->
 		<copy failonerror="false" preservelastmodified="true" file="${outputfolder}/${filename}-${lang}_xml/${filename}-${lang}.xml" tofile="${outputfolder}/${filename}-${lang}.xml" />
 
@@ -250,19 +239,15 @@
 	</target>
 
 	<!-- the dependency to parsereport makes sure publishing process initiates -->
-	<target name="run" depends="get-prevhead,get-report">
+	<target name="run" depends="publish-selected">
 		<!-- Move files. If nothing is to be moved, a warning will output -->
+		<copy failonerror="false" todir="${manualdir}" preservelastmodified="true" overwrite="true" force="true">
+			<fileset dir="${outputfolder}" />
+		</copy>
 
-		<!-- Copy export contents to delta folder -->
-		<copy failonerror="false" preservelastmodified="true" todir="${deltadir}" overwrite="true" force="true">
-			<fileset dir="${outputfolder}" />
-		</copy>
-		<!-- Copy export contents to cumulative folder -->
-		<copy failonerror="false" preservelastmodified="true" todir="${cumulativedir}" overwrite="true" force="true">
-			<fileset dir="${outputfolder}" />
-		</copy>
 		<!-- Delete export -->
 		<delete failonerror="false" dir="${outputfolder}" />
 	</target>
+
 
 </project>

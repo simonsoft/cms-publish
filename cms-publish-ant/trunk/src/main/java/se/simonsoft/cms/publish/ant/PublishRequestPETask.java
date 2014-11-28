@@ -62,6 +62,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	protected boolean fail;
 	private final ErrorLoggerHelper errorLogger = new ErrorLoggerHelper();
 	private FileManagementHelper fileHelper = new FileManagementHelper();
+	private static final long SLEEP = 2000; // Milliseconds to sleep btw PE checks
 	
 	@Override
 	public void addConfiguredJobs(JobsNode jobs) {
@@ -278,7 +279,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			}
 			
 			try {
-				Thread.sleep(2000);  // Be patient
+				Thread.sleep(SLEEP);  // Be patient
 			} catch (InterruptedException e) {
 				log("Error when checking for completed jobs: " + e.getMessage());
 			}
@@ -354,6 +355,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		}
 	}
 	
+	/**
+	 * Creates a FileOutputStream at the outputfolder/filename location and returns it
+	 * @param outputFolder
+	 * @param fileName
+	 * @return
+	 */
 	private FileOutputStream getStorageLocation(String outputFolder, String fileName) {
 		
 		File outputfile = null;

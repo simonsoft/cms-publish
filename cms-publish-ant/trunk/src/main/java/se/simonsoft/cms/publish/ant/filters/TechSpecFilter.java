@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +43,12 @@ public class TechSpecFilter implements FilterItems {
 	}
 
 	@Override
-	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev) {
+	public void initFilter(RestClientReportRequest restReportClient, List<CmsItem> itemList, RepoRevision headRev, Project project) {
 		logger.debug("enter");
 		this.restReportClient = restReportClient;
 		this.itemList = itemList;
 		this.headRev = headRev;
+
 	}
 
 	@Override
