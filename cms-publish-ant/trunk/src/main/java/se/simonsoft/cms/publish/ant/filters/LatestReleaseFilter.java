@@ -57,9 +57,6 @@ public class LatestReleaseFilter implements FilterItems {
 	public void runFilter() {
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		CmsItemList itemsParents = null;
-		
-		ArrayList<CmsItem> parentsToPublish = new ArrayList<CmsItem>();
 		ArrayList<CmsItem> itemsToRemove = new ArrayList<CmsItem>();
 		
 		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
@@ -71,20 +68,24 @@ public class LatestReleaseFilter implements FilterItems {
 			releaseLabel = RequestHelper.getItemProperty("prop_abx.ReleaseLabel", item.getProperties());
 			
 			if(releaseLabel.compareToIgnoreCase(this.highestReleaseLabel) > 0) {
-				
 				this.highestReleaseLabel = releaseLabel;
 			}
 			
 		}
 		
-		// Update the main query
-		String updatedQuery = this.restReportClient.getParams().get("q");
-		updatedQuery.concat(" AND prop_abx.ReleaseLabel:" + this.highestReleaseLabel);
-		logger.debug("Replace q: {} for : {}", this.restReportClient.getParams().get("q"), updatedQuery);
-		this.restReportClient.getParams().put("q", updatedQuery);
+		while (itemListIterator.hasNext()) {
+			CmsItem item = itemListIterator.next();
+			
+			releaseLabel = RequestHelper.getItemProperty("prop_abx.ReleaseLabel", item.getProperties());
+			if(!releaseLabel.equals(this.highestReleaseLabel)) {
+				logger.debug("Remove item with label {}", releaseLabel);
+				itemsToRemove.add(item);
+			} 
+		}
 		
-
+		this.itemList.removeAll(itemsToRemove);
 	}
+	
 	
 	// TODO add method that check what kind of releaselabel it is: numeric, alphanumeric, alpha
 }
