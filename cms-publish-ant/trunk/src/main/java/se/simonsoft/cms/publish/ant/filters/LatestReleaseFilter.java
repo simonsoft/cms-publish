@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectComponent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,12 +71,18 @@ public class LatestReleaseFilter implements FilterItems {
 			releaseLabel = RequestHelper.getItemProperty("prop_abx.ReleaseLabel", item.getProperties());
 			
 			if(releaseLabel.compareToIgnoreCase(this.highestReleaseLabel) > 0) {
+				
 				this.highestReleaseLabel = releaseLabel;
 			}
 			
 		}
 		
-		this.project.setProperty(this.propertyName, this.highestReleaseLabel);
+		// Update the main query
+		String updatedQuery = this.restReportClient.getParams().get("q");
+		updatedQuery.concat(" AND prop_abx.ReleaseLabel:" + this.highestReleaseLabel);
+		logger.debug("Replace q: {} for : {}", this.restReportClient.getParams().get("q"), updatedQuery);
+		this.restReportClient.getParams().put("q", updatedQuery);
+		
 
 	}
 	
