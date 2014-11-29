@@ -36,7 +36,6 @@ public class LatestReleaseFilter implements FilterItems {
 	private RestClientReportRequest restReportClient;
 	private RepoRevision headRev;
 	private Project project;
-	private String highestReleaseLabel;
 	private String propertyName = "releaselabel";
 	
 	public LatestReleaseFilter() {
@@ -57,34 +56,41 @@ public class LatestReleaseFilter implements FilterItems {
 	public void runFilter() {
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		ArrayList<CmsItem> itemsToRemove = new ArrayList<CmsItem>();
+		ArrayList<CmsItem> itemsToKepp = new ArrayList<CmsItem>();
 		
-		//List<CmsItem> itemListCopy = (List<CmsItem>) this.itemList;
+		// Filter will just keep items with the highestreleaselabel. 
+		// It does not check for any translations. But takes for granted that tye
+		// publish query included translation area. 
+		// Also this filter works on releaselabels system A, B, C and so on for  now
+		
 		logger.debug("LatestReleaseFilter");
 		String releaseLabel = "";
-		this.highestReleaseLabel = "";
+		String highestReleaseLabel = "";
+		// Find higehst releaseLabel 
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
-			releaseLabel =item.getProperties().getString("abx:ReleaseLabel");
+			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
 			
-			if(releaseLabel.compareToIgnoreCase(this.highestReleaseLabel) > 0 || this.highestReleaseLabel.equals("")) {
+			if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
 				logger.debug("Set highestReleaseLabel to {}", releaseLabel);
-				this.highestReleaseLabel = releaseLabel;
+				highestReleaseLabel = releaseLabel;
 			}
 			
 		}
 		
+		// Remove items that is not of highest release label
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
-			item.getProperties().getString("abx.ReleaseLabel");
+			
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			if(!releaseLabel.equals(this.highestReleaseLabel)) {
-				logger.debug("Remove item with label {}", releaseLabel);
-				itemsToRemove.add(item);
+			
+			if(releaseLabel.equals(highestReleaseLabel)) {
+				logger.debug("Keep item with label {}", releaseLabel);
+				itemsToKepp.add(item);
 			} 
 		}
-		
-		this.itemList.removeAll(itemsToRemove);
+		this.itemList.clear(); // Remove all
+		this.itemList.addAll(itemsToKepp); // Add items to publish
 	}
 	
 	
