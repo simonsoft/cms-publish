@@ -62,10 +62,11 @@ public class LatestReleaseFilter implements FilterItems {
 		// Also this filter works on releaselabels system A, B, C and so on for  now
 		
 		logger.debug("LatestReleaseFilter");
-		String releaseLabel = "";
+		
 		String highestReleaseLabel = "";
 		// Find higehst releaseLabel 
 		while (itemListIterator.hasNext()) {
+			String releaseLabel = "";
 			CmsItem item = itemListIterator.next();
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
 			logger.debug("releaselabel: {}", releaseLabel);
@@ -79,6 +80,7 @@ public class LatestReleaseFilter implements FilterItems {
 		
 		// Remove items that is not of highest release label
 		while (itemListIterator.hasNext()) {
+			String releaseLabel = "";
 			CmsItem item = itemListIterator.next();
 			
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
