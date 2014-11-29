@@ -70,7 +70,9 @@ public class LatestReleaseFilter implements FilterItems {
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			
+			logger.debug("1: releaselabel: {}", releaseLabel);
+			releaseLabel = RequestHelper.getItemProperty("abx:ReleaseLabel", item.getProperties());
+			logger.debug("2: releaselabel: {}", releaseLabel);
 			if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
 				logger.debug("Set highestReleaseLabel to {}", releaseLabel);
 				highestReleaseLabel = releaseLabel;
