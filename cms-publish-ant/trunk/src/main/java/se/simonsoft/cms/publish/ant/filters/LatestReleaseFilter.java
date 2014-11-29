@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.RepoRevision;
-import se.simonsoft.cms.item.list.CmsItemList;
-import se.simonsoft.publish.ant.helper.RequestHelper;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
 public class LatestReleaseFilter implements FilterItems {
@@ -36,7 +34,7 @@ public class LatestReleaseFilter implements FilterItems {
 	private RestClientReportRequest restReportClient;
 	private RepoRevision headRev;
 	private Project project;
-	private String propertyName = "releaselabel";
+	private String propRelease = "abx:ReleaseLabel";
 	
 	public LatestReleaseFilter() {
 		// TODO Auto-generated constructor stub
@@ -56,7 +54,7 @@ public class LatestReleaseFilter implements FilterItems {
 	public void runFilter() {
 		logger.debug("enter");
 		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		ArrayList<CmsItem> itemsToKepp = new ArrayList<CmsItem>();
+		ArrayList<CmsItem> itemsToKeep = new ArrayList<CmsItem>();
 		
 		// Filter will just keep items with the highestreleaselabel. 
 		// It does not check for any translations. But takes for granted that tye
@@ -70,9 +68,8 @@ public class LatestReleaseFilter implements FilterItems {
 		while (itemListIterator.hasNext()) {
 			CmsItem item = itemListIterator.next();
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			logger.debug("1: releaselabel: {}", releaseLabel);
-			releaseLabel = RequestHelper.getItemProperty("abx:ReleaseLabel", item.getProperties());
-			logger.debug("2: releaselabel: {}", releaseLabel);
+			logger.debug("releaselabel: {}", releaseLabel);
+			
 			if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
 				logger.debug("Set highestReleaseLabel to {}", releaseLabel);
 				highestReleaseLabel = releaseLabel;
@@ -85,14 +82,15 @@ public class LatestReleaseFilter implements FilterItems {
 			CmsItem item = itemListIterator.next();
 			
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			
+			logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, highestReleaseLabel);
 			if(releaseLabel.equals(highestReleaseLabel)) {
 				logger.debug("Keep item with label {}", releaseLabel);
-				itemsToKepp.add(item);
-			} 
+				itemsToKeep.add(item);
+			}
 		}
+		logger.debug("itemList size bfr clear: {} itemsToKeep size {}", this.itemList.size(), itemsToKeep.size());
 		this.itemList.clear(); // Remove all
-		this.itemList.addAll(itemsToKepp); // Add items to publish
+		this.itemList.addAll(itemsToKeep); // Add items to publish
 	}
 	
 	
