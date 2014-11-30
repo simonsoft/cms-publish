@@ -78,6 +78,7 @@ public class LatestReleaseFilter implements FilterItems {
 			
 		}
 		
+		itemListIterator =  this.itemList.iterator(); // Reset iterator
 		// Remove items that is not of highest release label
 		while (itemListIterator.hasNext()) {
 			String releaseLabel = "";
@@ -90,6 +91,7 @@ public class LatestReleaseFilter implements FilterItems {
 				itemsToKeep.add(item);
 			}
 		}
+		
 		logger.debug("itemList size bfr clear: {} itemsToKeep size {}", this.itemList.size(), itemsToKeep.size());
 		this.itemList.clear(); // Remove all
 		this.itemList.addAll(itemsToKeep); // Add items to publish
