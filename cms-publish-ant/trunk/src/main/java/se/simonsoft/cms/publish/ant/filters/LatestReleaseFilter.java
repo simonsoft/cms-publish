@@ -71,7 +71,10 @@ public class LatestReleaseFilter implements FilterItems {
 		// TODO add method that check what kind of releaselabel it is: numeric, alphanumeric, alpha
 		String release = this.getHighestReleaseLabel();
 		
-		this.filterItemsByRelease(release);
+		if(!release.equals("")) {
+			this.filterItemsByRelease(release);
+		}
+		
 		logger.debug("end");
 	}
 	
@@ -142,8 +145,12 @@ public class LatestReleaseFilter implements FilterItems {
 			}
 		}
 		logger.debug("itemList size bfr clear: {} itemsToKeep size {}", this.itemList.size(), itemsToKeep.size());
-		this.itemList.clear(); // Remove all
-		this.itemList.addAll(itemsToKeep); // Add items to publish
+		// Make sure we don't clear list if we've not found anything to filter
+		if(itemsToKeep.size() > 0) {
+			this.itemList.clear(); // Remove all
+			this.itemList.addAll(itemsToKeep); // Add items to publish
+		}
+	
 	}
 	
 
