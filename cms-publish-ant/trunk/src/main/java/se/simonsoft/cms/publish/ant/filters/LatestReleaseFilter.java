@@ -28,6 +28,13 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 
+/**
+ * Filters item based on release label. 
+ * Only supports A, B, C etc system right now.
+ * 
+ * @author joakimdurehed
+ *
+ */
 public class LatestReleaseFilter implements FilterItems {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private List<CmsItem> itemList;
@@ -53,40 +60,75 @@ public class LatestReleaseFilter implements FilterItems {
 	@Override
 	public void runFilter() {
 		logger.debug("enter");
-		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
-		ArrayList<CmsItem> itemsToKeep = new ArrayList<CmsItem>();
+		
 		
 		// Filter will just keep items with the highestreleaselabel. 
 		// It does not check for any translations. But takes for granted that tye
 		// publish query included translation area. 
 		// Also this filter works on releaselabels system A, B, C and so on for  now
 		
-		logger.debug("LatestReleaseFilter");
+		
+		// TODO add method that check what kind of releaselabel it is: numeric, alphanumeric, alpha
+		String release = this.getHighestReleaseLabel();
+		this.filterItemsByRelease(release);
+		logger.debug("end");
+	}
+	
+	/**
+	 * Finds the highest (latest) release label in itemList or uses the one set
+	 * in Jenkins/ANT with property param.releaselabel. 
+	 * 
+	 * @return String release label
+	 */
+	private String getHighestReleaseLabel()
+	{
+		Iterator<CmsItem> itemListIterator = this.itemList.iterator();
+		
+		logger.info("Running release filter. Supports param.releaselabel");
 		
 		String highestReleaseLabel = "";
-		// Find higehst releaseLabel 
-		while (itemListIterator.hasNext()) {
-			String releaseLabel = "";
-			CmsItem item = itemListIterator.next();
-			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			logger.debug("releaselabel: {}", releaseLabel);
-			
-			if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
-				logger.debug("Set highestReleaseLabel to {}", releaseLabel);
-				highestReleaseLabel = releaseLabel;
-			}
-			
-		}
 		
-		itemListIterator =  this.itemList.iterator(); // Reset iterator
-		// Remove items that is not of highest release label
+		// If a releaselabel has not been set by Jenkins/ANT find the highest and use that, else use the one given
+		if(this.project.getProperty("param.releaselabel").equals("") || this.project.getProperty("param.releaselabel") == null) {
+			
+			// Find higehst releaseLabel 
+			while (itemListIterator.hasNext()) {
+				String releaseLabel = "";
+				CmsItem item = itemListIterator.next();
+				releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
+				logger.debug("releaselabel: {}", releaseLabel);
+				
+				if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
+					logger.debug("Set highestReleaseLabel to {}", releaseLabel);
+					highestReleaseLabel = releaseLabel;
+				}
+			}
+		} else {
+			logger.debug("Set highestReleaseLabel to param.releaselabel: {}", this.project.getProperty("param.releaselabel"));
+			highestReleaseLabel = this.project.getProperty("param.releaselabel");
+		}
+				
+		logger.info("Release label to use: {}", highestReleaseLabel);
+		return highestReleaseLabel;
+	}
+	
+	/**
+	 * Filters the item list by release label. Any items that do not match the release label are removed.
+	 * @param release
+	 */
+	private void filterItemsByRelease(String release)
+	{
+		Iterator<CmsItem> itemListIterator =  this.itemList.iterator(); 
+		ArrayList<CmsItem> itemsToKeep = new ArrayList<CmsItem>(); // List of items to publish
+		
+		// Filter out items that is not of highest release label
 		while (itemListIterator.hasNext()) {
 			String releaseLabel = "";
 			CmsItem item = itemListIterator.next();
 			
 			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, highestReleaseLabel);
-			if(releaseLabel.equals(highestReleaseLabel)) {
+			logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, release);
+			if(releaseLabel.equals(release)) {
 				logger.debug("Keep item with label {}", releaseLabel);
 				itemsToKeep.add(item);
 			}
@@ -97,6 +139,5 @@ public class LatestReleaseFilter implements FilterItems {
 		this.itemList.addAll(itemsToKeep); // Add items to publish
 	}
 	
-	
-	// TODO add method that check what kind of releaselabel it is: numeric, alphanumeric, alpha
+
 }
