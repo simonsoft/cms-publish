@@ -70,6 +70,7 @@ public class LatestReleaseFilter implements FilterItems {
 		
 		// TODO add method that check what kind of releaselabel it is: numeric, alphanumeric, alpha
 		String release = this.getHighestReleaseLabel();
+		
 		this.filterItemsByRelease(release);
 		logger.debug("end");
 	}
@@ -96,11 +97,13 @@ public class LatestReleaseFilter implements FilterItems {
 				String releaseLabel = "";
 				CmsItem item = itemListIterator.next();
 				releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-				logger.debug("releaselabel: {}", releaseLabel);
 				
-				if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
-					logger.debug("Set highestReleaseLabel to {}", releaseLabel);
-					highestReleaseLabel = releaseLabel;
+				if(releaseLabel != null) {
+					
+					if(releaseLabel.compareToIgnoreCase(highestReleaseLabel) > 0 || highestReleaseLabel.equals("")) {
+						logger.debug("Set highestReleaseLabel to {}", releaseLabel);
+						highestReleaseLabel = releaseLabel;
+					}
 				}
 			}
 		} else {
@@ -118,22 +121,26 @@ public class LatestReleaseFilter implements FilterItems {
 	 */
 	private void filterItemsByRelease(String release)
 	{
+		
 		Iterator<CmsItem> itemListIterator =  this.itemList.iterator(); 
 		ArrayList<CmsItem> itemsToKeep = new ArrayList<CmsItem>(); // List of items to publish
-		
-		// Filter out items that is not of highest release label
-		while (itemListIterator.hasNext()) {
-			String releaseLabel = "";
-			CmsItem item = itemListIterator.next();
-			
-			releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
-			logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, release);
-			if(releaseLabel.equals(release)) {
-				logger.debug("Keep item with label {}", releaseLabel);
-				itemsToKeep.add(item);
+		if(release != null) {
+			// Filter out items that is not of highest release label
+			while (itemListIterator.hasNext()) {
+				String releaseLabel = "";
+				CmsItem item = itemListIterator.next();
+				
+				releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
+				
+				if(releaseLabel != null) {
+					logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, release);
+					if(releaseLabel.equals(release)) {
+						logger.debug("Keep item with label {}", releaseLabel);
+						itemsToKeep.add(item);
+					}
+				}
 			}
 		}
-		
 		logger.debug("itemList size bfr clear: {} itemsToKeep size {}", this.itemList.size(), itemsToKeep.size());
 		this.itemList.clear(); // Remove all
 		this.itemList.addAll(itemsToKeep); // Add items to publish
