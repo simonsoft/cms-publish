@@ -334,7 +334,7 @@ public class PublishReportTask extends Task {
 
 			this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
 			// A test:
-			this.project.getProperties().put("CMSITEM", 	item);
+			this.getProject().getProperties().put("CMSITEM",item);
 			// RepoRevision itemRepoRev = item.getRevisionChanged();
 			logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
 
