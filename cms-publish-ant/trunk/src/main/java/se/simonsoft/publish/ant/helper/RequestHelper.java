@@ -110,44 +110,67 @@ public final class RequestHelper {
 			RepoRevision headRevision, Project project) {
 		logger.debug("enter");
 
+		// If class exists continue
+		if (filterExistsWithClassName(filterClassPath)) {
+			
+			// Dynamically instantiate correct filter.
+			// Could we settle for a switch/ if/else
+			try {
+				// TODO check that the filter syntax is a full qualified class path?
+				// We will grab any problem
+				// in the exceptions anyways of course.
+				logger.info("Init filter {}", filterClassPath);
+				// Filters are instantiated by the name of the filter and the suffix
+				// Filter
+				Class<?> filterClass = Class.forName(filterClassPath);
+				FilterItems filterResponse = (FilterItems) filterClass
+						.newInstance();
+	
+				// Todo should/would filter need some other stuff? I think the
+				// request object, the list of items and a baseline
+				// should suffice for almost whatever it is we need to do in the
+				// filter.
+				filterResponse.initFilter(request, itemList, headRevision, project);
+				filterResponse.runFilter();
+	
+			} catch (InstantiationException e) {
+				logger.warn("Filter Init resulted in InstantiationException {}",
+						e.getMessage());
+				
+			} catch (IllegalAccessException e) {
+				logger.warn("Filter Init resulted in IllegalAccessException {}",
+						e.getMessage());
+			
+			} catch (ClassNotFoundException e) {
+				logger.warn("Filter Init resulted in ClassNotFoundException {}",
+						e.getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * Validates that a filter exists and returns true if that is the case, false if not
+	 * 
+	 * @param filterClassPath
+	 * @return
+	 */
+	public static boolean filterExistsWithClassName(String filterClassPath)
+	{
+		boolean classExists = true;
+		
 		if (filterClassPath == null || filterClassPath.equals("")) {
-			logger.info("No filter to init");
-			return;
+			logger.info("No filter class name set");
+			classExists = false;
 		}
-
-		// Dynamically instantiate correct filter.
-		// Could we settle for a switch/ if/else
+		
 		try {
-			// TODO check that the filter syntax is a full qualified class path?
-			// We will grab any problem
-			// in the exceptions anyways of course.
-			logger.info("Init filter {}", filterClassPath);
-			// Filters are instantiated by the name of the filter and the suffix
-			// Filter
-			Class<?> filterClass = Class.forName(filterClassPath);
-			FilterItems filterResponse = (FilterItems) filterClass
-					.newInstance();
-
-			// Todo should/would filter need some other stuff? I think the
-			// request object, the list of items and a baseline
-			// should suffice for almost whatever it is we need to do in the
-			// filter.
-			filterResponse.initFilter(request, itemList, headRevision, project);
-			filterResponse.runFilter();
-
-		} catch (InstantiationException e) {
-			logger.warn("Filter Init resulted in InstantiationException {}",
-					e.getMessage());
-			return; // Do I need this?
-		} catch (IllegalAccessException e) {
-			logger.warn("Filter Init resulted in IllegalAccessException {}",
-					e.getMessage());
-			return;
+			Class.forName(filterClassPath, false, null);
 		} catch (ClassNotFoundException e) {
-			logger.warn("Filter Init resulted in ClassNotFoundException {}",
-					e.getMessage());
-			return;
+			logger.warn("Filter Init resulted in ClassNotFoundException {}", e.getMessage());
+			classExists = false;
 		}
+		
+		return classExists;
 	}
 
 	/**
