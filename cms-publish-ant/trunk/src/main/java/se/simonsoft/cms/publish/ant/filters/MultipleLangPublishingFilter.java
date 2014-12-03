@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.ant.filters;
 
-import java.util.List;
 
 import org.apache.tools.ant.Project;
 import org.slf4j.Logger;
@@ -48,11 +47,16 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 
 	@Override
 	public void runFilter() {
-		// TODO Auto-generated method stub
+		
 		this.publishItem(this.determineOutputPath());
 		
 	}
 	
+	/**
+	 * Determines the outputpath to be used for publishing
+	 * 
+	 * @return
+	 */
 	private String determineOutputPath() 
 	{	
 		String outputpath = this.project.getProperty("outputfolder");
@@ -69,8 +73,13 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 		return outputpath;
 	}
 	
+	/**
+	 * Publishes an item using the publishTarget
+	 * @param outputPath
+	 */
 	private void publishItem(String outputPath) 
 	{
+		
 		this.project.setProperty("param.file",
 				item.getId().withPegRev(this.headRev.getNumber()).toString());
 

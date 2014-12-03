@@ -127,13 +127,15 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			this.getPublishResult(); // Download the result
 		}
 		
-		// A Test:
+		// A Test: // Does not work.
+		/*
 		CmsItem cmsitem = (CmsItem) this.getProject().getProperties().get("CMSITEM");
 		if(cmsitem != null) {
 			logger.debug("CmsItem: {}", cmsitem.getId().getRelPath().getNameBase());
 		} else {
 			logger.debug("cmsitem NOT passed to publish");
 		}
+		//*/
 		
 	}
 	

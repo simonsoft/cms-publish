@@ -56,10 +56,11 @@ public class PublishReportTask extends Task {
 	protected FiltersNode filters;
 	protected String filter; // Filter to use Should perhaps be a list
 	protected String target; // The target name of the target in charge of
-								// publishing an item
-	private ArrayList<CmsItem> itemList;
 	protected String publishtime; // The mean time to publish in seconds. Used
-									// for estimating total publishing time
+	// for estimating total publishing time
+	// publishing an item
+	private ArrayList<CmsItem> itemList;
+	private CmsItem currentItem; // Current cmsitem being published
 
 	/**
 	 * @return the publishtime
@@ -182,16 +183,16 @@ public class PublishReportTask extends Task {
 
 		// Retrieve the CmsItemList with query (set in configs)
 		CmsItemList cmsItemList = null;
-		
+
 		this.runFilters(FilterOrder.PREQUERY);
-		
+
 		// 1 Get the "head according to index"
 		try {
 			this.headRevision = this.request.getRevisionCompleted();
 		} catch (FailedToInitializeException e) {
 			throw new BuildException(e.getMessage());
 		}
-		
+
 		// 2 Perform the query for publishable items
 		try {
 			cmsItemList = this.request.getItemsWithQuery();
@@ -208,25 +209,45 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
-	 * Runs any filters that needs to be run with FilterOrder order
-	 * @param FilterOrder order
+	 * Runs filters with specified order. Returns true if filter has run, false if not
+	 *  
+	 * @param order
+	 * @return true if any filter has run with specified order
 	 */
-	private void runFilters(FilterOrder order) {
+	private boolean runFilters(FilterOrder order) {
 		logger.debug("Find fitlers to run with order {}", order.toString());
+		boolean filterHasRun = false;
 		if (null != this.getFilters() && this.filters.isValid()) {
 			for (final FilterNode filter : this.filters.getFilters()) {
-				
+
 				if (filter.getOrder().toUpperCase().equals(order.toString())) {
-					logger.debug("Filter {} with order {}",filter.getClasspath(), filter.getOrder());
-					
-					
-					// Will most likely send null for itemlist and headrevision
-					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
-							this.itemList, this.request, this.headRevision,
-							this.getProject());
+					logger.debug("Filter {} with order {}",
+							filter.getClasspath(), filter.getOrder());
+
+					// Publish filter run
+					if (order.equals(FilterOrder.PUBLISH)) {
+						if (RequestHelper.runPublishFilterWithClassPath(
+								filter.getClasspath(), this.currentItem,
+								this.headRevision, this.getProject(),
+								this.getTarget())) {
+							filterHasRun = true;
+						}
+					}
+					// Items filters run
+					if (order.equals(FilterOrder.POSTQUERY)
+							|| order.equals(FilterOrder.PREQUERY)) {
+						if (RequestHelper.runItemsFilterWithClassPath(
+								filter.getClasspath(), this.itemList,
+								this.request, this.headRevision,
+								this.getProject())) {
+							filterHasRun = true;
+						}
+					}
+
 				}
 			}
 		}
+		return filterHasRun;
 	}
 
 	/**
@@ -317,14 +338,19 @@ public class PublishReportTask extends Task {
 	private void publishItem(CmsItem item, Long baseLine,
 			ArrayList<String> publishProperties) {
 		logger.debug("enter");
-		// TODO ability to set what "properties" should be passed to publish
-		// target
+
+		this.currentItem = item; // Set current item
 		
+		// Run publish filter if any exists
+		boolean filterRan = this.runFilters(FilterOrder.PUBLISH);
 		
-		if(!RequestHelper.filterExistsWithClassName(this.getFilter())) {
-		
-			logger.debug("No filter, passing logicalid ({}), filename ({}), lang ({}) to publish target ({}) ",
-					item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(), item.getProperties().getString("abx:lang"), this.getTarget());
+		if (!filterRan) {
+
+			logger.debug(
+					"No filter, passing logicalid ({}), filename ({}), lang ({}) to publish target ({}) ",
+					item.getId().withPegRev(baseLine).toString(), item.getId()
+							.getRelPath().getNameBase(), item.getProperties()
+							.getString("abx:lang"), this.getTarget());
 
 			this.getProject().setProperty("param.file",
 					item.getId().withPegRev(baseLine).toString());
@@ -332,18 +358,20 @@ public class PublishReportTask extends Task {
 			this.getProject().setProperty("filename",
 					item.getId().getRelPath().getNameBase());
 
-			this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
+			this.getProject().setProperty("lang",
+					item.getProperties().getString("abx:lang"));
 			// A test:
-			this.getProject().getProperties().put("CMSITEM",item);
+			/* DID NOT WORK
+			this.getProject().getProperties().put("CMSITEM", item);
+			//*/
 			// RepoRevision itemRepoRev = item.getRevisionChanged();
-			logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
+			logger.debug("file: {} filename: {} lang {} ", item.getId()
+					.withPegRev(baseLine).toString(), item.getId().getRelPath()
+					.getNameBase(), item.getProperties().getString("abx:lang"));
 
 			this.getProject().executeTarget(this.getTarget());
-		} else {
-			// Run publish propertis filter
-			this.runFilters(FilterOrder.PUBLISH);
-		}
-		
+		} 
+
 		logger.debug("leave");
 	}
 }

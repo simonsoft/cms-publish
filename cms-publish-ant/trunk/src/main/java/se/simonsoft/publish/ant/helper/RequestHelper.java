@@ -27,6 +27,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.list.CmsItemList;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.publish.ant.filters.FilterItems;
+import se.simonsoft.cms.publish.ant.filters.FilterPublishProperties;
 import se.simonsoft.cms.publish.ant.nodes.ConfigNode;
 import se.simonsoft.cms.publish.ant.nodes.ConfigsNode;
 import se.simonsoft.cms.publish.ant.nodes.ParamNode;
@@ -105,73 +106,140 @@ public final class RequestHelper {
 	/**
 	 * Filters items using specified filter
 	 */
-	public static void runFilterWithClassPath(String filterClassPath,
+	public static boolean runItemsFilterWithClassPath(String filterClassPath,
 			ArrayList<CmsItem> itemList, RestClientReportRequest request,
 			RepoRevision headRevision, Project project) {
 		logger.debug("enter");
 
 		// If class exists continue
 		if (filterExistsWithClassName(filterClassPath)) {
-			
+
 			// Dynamically instantiate correct filter.
 			// Could we settle for a switch/ if/else
 			try {
-				// TODO check that the filter syntax is a full qualified class path?
+				// TODO check that the filter syntax is a full qualified class
+				// path?
 				// We will grab any problem
 				// in the exceptions anyways of course.
 				logger.info("Init filter {}", filterClassPath);
-				// Filters are instantiated by the name of the filter and the suffix
+				// Filters are instantiated by the name of the filter and the
+				// suffix
 				// Filter
 				Class<?> filterClass = Class.forName(filterClassPath);
 				FilterItems filterResponse = (FilterItems) filterClass
 						.newInstance();
-	
+
 				// Todo should/would filter need some other stuff? I think the
 				// request object, the list of items and a baseline
 				// should suffice for almost whatever it is we need to do in the
 				// filter.
-				filterResponse.initFilter(request, itemList, headRevision, project);
+				filterResponse.initFilter(request, itemList, headRevision,
+						project);
 				filterResponse.runFilter();
-	
+
 			} catch (InstantiationException e) {
-				logger.warn("Filter Init resulted in InstantiationException {}",
+				logger.warn(
+						"Filter Init resulted in InstantiationException {}",
 						e.getMessage());
-				
+
 			} catch (IllegalAccessException e) {
-				logger.warn("Filter Init resulted in IllegalAccessException {}",
+				logger.warn(
+						"Filter Init resulted in IllegalAccessException {}",
 						e.getMessage());
-			
+
 			} catch (ClassNotFoundException e) {
-				logger.warn("Filter Init resulted in ClassNotFoundException {}",
+				logger.warn(
+						"Filter Init resulted in ClassNotFoundException {}",
 						e.getMessage());
 			}
+			return true;
 		}
+		return false;
+	}
+
+	/**
+	 * Runs a PublishProps filter
+	 * @param filterClassPath
+	 * @param item
+	 * @param headRev
+	 * @param project
+	 * @param publishTarget
+	 */
+	public static boolean runPublishFilterWithClassPath(String filterClassPath,
+			CmsItem item, RepoRevision headRev, Project project,
+			String publishTarget) {
+
+		// If class exists continue
+		if (filterExistsWithClassName(filterClassPath)) {
+
+			// Dynamically instantiate correct filter.
+			// Could we settle for a switch/ if/else
+			try {
+				// TODO check that the filter syntax is a full qualified class
+				// path?
+				// We will grab any problem
+				// in the exceptions anyways of course.
+				logger.info("Init filter {}", filterClassPath);
+				// Filters are instantiated by the name of the filter and the
+				// suffix
+				// Filter
+				Class<?> filterClass = Class.forName(filterClassPath);
+				FilterPublishProperties filterPublishingProps = (FilterPublishProperties) filterClass
+						.newInstance();
+
+				// Todo should/would filter need some other stuff? I think the
+				// request object, the list of items and a baseline
+				// should suffice for almost whatever it is we need to do in the
+				// filter.
+				filterPublishingProps.initFilter(item, headRev, project,
+						publishTarget);
+				filterPublishingProps.runFilter();
+
+			} catch (InstantiationException e) {
+				logger.warn(
+						"Filter Init resulted in InstantiationException {}",
+						e.getMessage());
+
+			} catch (IllegalAccessException e) {
+				logger.warn(
+						"Filter Init resulted in IllegalAccessException {}",
+						e.getMessage());
+
+			} catch (ClassNotFoundException e) {
+				logger.warn(
+						"Filter Init resulted in ClassNotFoundException {}",
+						e.getMessage());
+			}
+			return true;
+		}
+		return false;
+		
 	}
 	
-	
 	/**
-	 * Validates that a filter exists and returns true if that is the case, false if not
+	 * Validates that a filter exists and returns true if that is the case,
+	 * false if not
 	 * 
 	 * @param filterClassPath
 	 * @return
 	 */
-	public static boolean filterExistsWithClassName(String filterClassPath)
-	{
+	public static boolean filterExistsWithClassName(String filterClassPath) {
 		boolean classExists = true;
-		
+
 		if (filterClassPath == null || filterClassPath.equals("")) {
 			logger.info("No filter class name set");
 			classExists = false;
 		}
-		
+
 		try {
 			Class.forName(filterClassPath, false, null);
 		} catch (ClassNotFoundException e) {
-			logger.warn("Filter Init resulted in ClassNotFoundException {}", e.getMessage());
+			logger.warn("Filter Init resulted in ClassNotFoundException {}",
+					e.getMessage());
 			classExists = false;
 		}
 		// Avoid this method for now
-		return true;
+		return classExists;
 	}
 
 	/**
