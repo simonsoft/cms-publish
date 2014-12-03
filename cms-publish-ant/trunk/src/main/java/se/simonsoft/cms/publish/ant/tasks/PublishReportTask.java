@@ -218,6 +218,8 @@ public class PublishReportTask extends Task {
 				
 				if (filter.getOrder().toUpperCase().equals(order.toString())) {
 					logger.debug("Filter {} with order {}",filter.getClasspath(), filter.getOrder());
+					
+					
 					// Will most likely send null for itemlist and headrevision
 					RequestHelper.runFilterWithClassPath(filter.getClasspath(),
 							this.itemList, this.request, this.headRevision,
@@ -331,7 +333,8 @@ public class PublishReportTask extends Task {
 					item.getId().getRelPath().getNameBase());
 
 			this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
-
+			// A test:
+			this.project.getProperties().put("CMSITEM", 	item);
 			// RepoRevision itemRepoRev = item.getRevisionChanged();
 			logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
 
