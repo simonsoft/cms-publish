@@ -148,6 +148,7 @@ public final class RequestHelper {
 		}
 	}
 	
+	
 	/**
 	 * Validates that a filter exists and returns true if that is the case, false if not
 	 * 
@@ -169,8 +170,8 @@ public final class RequestHelper {
 			logger.warn("Filter Init resulted in ClassNotFoundException {}", e.getMessage());
 			classExists = false;
 		}
-		
-		return classExists;
+		// Avoid this method for now
+		return true;
 	}
 
 	/**
