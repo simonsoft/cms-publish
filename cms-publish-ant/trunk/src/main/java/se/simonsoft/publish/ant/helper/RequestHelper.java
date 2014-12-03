@@ -114,8 +114,6 @@ public final class RequestHelper {
 		// If class exists continue
 		if (filterExistsWithClassName(filterClassPath)) {
 
-			// Dynamically instantiate correct filter.
-			// Could we settle for a switch/ if/else
 			try {
 				// TODO check that the filter syntax is a full qualified class
 				// path?
@@ -172,8 +170,6 @@ public final class RequestHelper {
 		// If class exists continue
 		if (filterExistsWithClassName(filterClassPath)) {
 
-			// Dynamically instantiate correct filter.
-			// Could we settle for a switch/ if/else
 			try {
 				// TODO check that the filter syntax is a full qualified class
 				// path?
@@ -223,21 +219,22 @@ public final class RequestHelper {
 	 * @param filterClassPath
 	 * @return
 	 */
-	public static boolean filterExistsWithClassName(String filterClassPath) {
+	private static boolean filterExistsWithClassName(String filterClassPath) {
 		boolean classExists = true;
 
 		if (filterClassPath == null || filterClassPath.equals("")) {
 			logger.info("No filter class name set");
 			classExists = false;
 		}
-
+		/*
 		try {
-			Class.forName(filterClassPath, false, null);
+			Class.forName(filterClassPath, false,null );
 		} catch (ClassNotFoundException e) {
 			logger.warn("Filter Init resulted in ClassNotFoundException {}",
 					e.getMessage());
 			classExists = false;
 		}
+		//*/
 		// Avoid this method for now
 		return classExists;
 	}
