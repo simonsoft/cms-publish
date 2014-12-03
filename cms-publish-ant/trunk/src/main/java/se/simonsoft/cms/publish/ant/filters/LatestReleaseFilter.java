@@ -111,7 +111,8 @@ public class LatestReleaseFilter implements FilterItems {
 			}
 		} else {
 			logger.debug("Set highestReleaseLabel to param.releaselabel: {}", this.project.getProperty("param.releaselabel"));
-			highestReleaseLabel = this.project.getProperty("param.releaselabel");
+			highestReleaseLabel = this.project.getProperty("param.releaselabel"); 
+			// Todo, find out if 
 		}
 				
 		logger.info("Release label to use: {}", highestReleaseLabel);
@@ -133,11 +134,11 @@ public class LatestReleaseFilter implements FilterItems {
 				String releaseLabel = "";
 				CmsItem item = itemListIterator.next();
 				
-				releaseLabel = item.getProperties().getString("abx:ReleaseLabel");
+				releaseLabel = item.getProperties().getString("abx:ReleaseLabel").toUpperCase();
 				
 				if(releaseLabel != null) {
 					logger.debug("releaseLabel: {} highestReleaseLabel: {}", releaseLabel, release);
-					if(releaseLabel.equals(release)) {
+					if(releaseLabel.equals(release.toUpperCase())) {
 						logger.debug("Keep item with label {}", releaseLabel);
 						itemsToKeep.add(item);
 					}
