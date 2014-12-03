@@ -229,64 +229,6 @@ public class PublishReportTask extends Task {
 		}
 	}
 
-
-	/**
-	 * Creates a mutable copy of a CmsItemList
-	 * 
-	 * @param itemList
-	 * @return a ArrayList<CmsItem> copy of CmsItemList items
-	 */
-	private ArrayList<CmsItem> createMutableItemList(CmsItemList itemList) {
-		logger.debug("enter");
-		ArrayList<CmsItem> copyItemList = new ArrayList<CmsItem>();
-
-		for (CmsItem item : itemList) {
-			copyItemList.add(item); // Add item to our itemlist
-		}
-		logger.debug("ItemList created with size {}", copyItemList.size());
-		return copyItemList;
-	}
-
-	/**
-	 * Filters items using specified filter
-	 */
-	private void filterItems() {
-		logger.debug("enter");
-
-		if (this.getFilter() == null || this.getFilter().equals("")) {
-			logger.info("No filter to init");
-			return;
-		}
-
-		RequestHelper.runFilterWithClassPath(this.getFilter(), itemList,
-				request, headRevision, this.getProject());
-		/*
-		 * // Dynamically instantiate correct filter. Do we need/want to be this
-		 * // dynamic? // Could we settle for a switch/ if/else try { // TODO
-		 * check that the filter syntax is a full qualified class path? // We
-		 * will grab any problem // in the exceptions anyways of course.
-		 * logger.info("Init filter {}", this.filter); // Filters are
-		 * instantiated by the name of the filter and the suffix // Filter
-		 * Class<?> filterClass = Class.forName(this.filter); FilterItems
-		 * filterResponse = (FilterItems) filterClass .newInstance();
-		 * 
-		 * // Todo should/would filter need some other stuff? I think the //
-		 * request object, the list of items and a baseline // should suffice
-		 * for almost whatever it is we need to do in the // filter.
-		 * filterResponse.initFilter(this.request, this.itemList,
-		 * this.headRevision); filterResponse.runFilter();
-		 * 
-		 * } catch (InstantiationException e) {
-		 * logger.warn("Filter Init resulted in InstantiationException {}",
-		 * e.getMessage()); return; // Do I need this? } catch
-		 * (IllegalAccessException e) {
-		 * logger.warn("Filter Init resulted in IllegalAccessException {}",
-		 * e.getMessage()); return; } catch (ClassNotFoundException e) {
-		 * logger.warn("Filter Init resulted in ClassNotFoundException {}",
-		 * e.getMessage()); return; } //
-		 */
-	}
-
 	/**
 	 * Iterates CmsItemList and passes each item to publishItem method
 	 * 
@@ -313,7 +255,7 @@ public class PublishReportTask extends Task {
 				logger.info(
 						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
 						count, item.getId().getRelPath().getName(),
-						this.estimatedTimeLeft(this.itemList.size() - count),
+						this.estimatedTimeLeft(this.itemList.size() - count--),
 						this.itemList.size() - count, this.itemList.size());
 			}
 
@@ -386,71 +328,12 @@ public class PublishReportTask extends Task {
 		this.getProject().setProperty("filename",
 				item.getId().getRelPath().getNameBase());
 
-		this.getProject().setProperty("lang",
-				this.getItemProperty("abx:lang", item.getProperties()));
+		this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
 
 		// RepoRevision itemRepoRev = item.getRevisionChanged();
-		logger.debug("filename {}", item.getId().getRelPath().getNameBase());
+		logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
 
-		this.getProject().executeTarget("publish");
+		this.getProject().executeTarget(this.getTarget());
 		logger.debug("leave");
-	}
-
-	/**
-	 * Gets a property value by property name
-	 * 
-	 * @param propertyName
-	 *            the name of the property
-	 * @param props
-	 *            the items propeties
-	 * @return
-	 */
-	private String getItemProperty(String propertyName, CmsItemProperties props) {
-		logger.debug("enter");
-		for (String name : props.getKeySet()) {
-			if (name.equals(propertyName)) {
-				logger.debug("Found value {} for prop {}",
-						props.getString(name), propertyName);
-				return props.getString(name);
-			}
-		}
-		return "";
-	}
-
-	private String requestReport() {
-		log("Request report");
-		String response = this.request.sendRequest();
-
-		if (response == null) {
-			throw new BuildException("Could not get report response!");
-		}
-		return response;
-	}
-
-	/**
-	 * Sets all params to RestClientReportRequest requests param map
-	 * 
-	 * @param request
-	 *            RestClientReportRequest
-	 */
-	private void addParamsToRequest(RestClientReportRequest request) {
-		if (null != params && params.isValid()) {
-			for (final ParamNode param : params.getParams()) {
-				request.addParam(param.getName(), param.getValue());
-			}
-		}
-	}
-
-	/**
-	 * Sets all configs to RestClientReportRequest configs map
-	 * 
-	 * @param request
-	 */
-	private void addConfigsToRequest(RestClientReportRequest request) {
-		if (null != configs && configs.isValid()) {
-			for (final ConfigNode config : configs.getConfigs()) {
-				request.addConfig(config.getName(), config.getValue());
-			}
-		}
 	}
 }
