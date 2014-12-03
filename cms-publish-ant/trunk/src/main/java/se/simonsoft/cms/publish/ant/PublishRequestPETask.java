@@ -27,6 +27,7 @@ import org.apache.tools.ant.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishRequest;
@@ -125,6 +126,10 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		if(this.isCompleted()) { // Check if the jobs are ready
 			this.getPublishResult(); // Download the result
 		}
+		
+		// A Test:
+		CmsItem cmsitem = (CmsItem) this.getProject().getProperties().get("CMSITEM");
+		logger.debug("CmsItem: {}", cmsitem.getId().getRelPath().getNameBase());
 	}
 	
 	/**

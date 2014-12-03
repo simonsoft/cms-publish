@@ -183,7 +183,7 @@ public class PublishReportTask extends Task {
 		// Retrieve the CmsItemList with query (set in configs)
 		CmsItemList cmsItemList = null;
 		
-		this.runFilters(FilterOrder.PRE);
+		this.runFilters(FilterOrder.PREQUERY);
 		
 		// 1 Get the "head according to index"
 		try {
@@ -202,9 +202,7 @@ public class PublishReportTask extends Task {
 		} catch (FailedToInitializeException ex) {
 			throw new BuildException(ex.getMessage());
 		}
-
-		// First check if we need to filter our itemList
-		this.runFilters(FilterOrder.POST);
+		this.runFilters(FilterOrder.POSTQUERY);
 		// Publish items using our mutable item list
 		this.publishItems();
 	}
@@ -319,21 +317,30 @@ public class PublishReportTask extends Task {
 		logger.debug("enter");
 		// TODO ability to set what "properties" should be passed to publish
 		// target
-		logger.debug("set Property param.file with {} adding peg {}",
-				item.getId(), baseLine);
+		
+		
+		if(!RequestHelper.filterExistsWithClassName(this.getFilter())) {
+		
+			logger.debug("No filter, passing logicalid ({}), filename ({}), lang ({}) to publish target ({}) ",
+					item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(), item.getProperties().getString("abx:lang"), this.getTarget());
 
-		this.getProject().setProperty("param.file",
-				item.getId().withPegRev(baseLine).toString());
+			this.getProject().setProperty("param.file",
+					item.getId().withPegRev(baseLine).toString());
 
-		this.getProject().setProperty("filename",
-				item.getId().getRelPath().getNameBase());
+			this.getProject().setProperty("filename",
+					item.getId().getRelPath().getNameBase());
 
-		this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
+			this.getProject().setProperty("lang", item.getProperties().getString("abx:lang"));
 
-		// RepoRevision itemRepoRev = item.getRevisionChanged();
-		logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
+			// RepoRevision itemRepoRev = item.getRevisionChanged();
+			logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(baseLine).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
 
-		this.getProject().executeTarget(this.getTarget());
+			this.getProject().executeTarget(this.getTarget());
+		} else {
+			// Run publish propertis filter
+			this.runFilters(FilterOrder.PUBLISH);
+		}
+		
 		logger.debug("leave");
 	}
 }

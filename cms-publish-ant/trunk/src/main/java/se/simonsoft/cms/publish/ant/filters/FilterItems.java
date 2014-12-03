@@ -32,7 +32,7 @@ import se.simonsoft.publish.ant.helper.RestClientReportRequest;
 public interface FilterItems {
 	
 	public enum FilterOrder {
-		PRE, POST
+		PREQUERY, POSTQUERY,PUBLISH
 	}
 	/**
 	 * Initialize the filter with a necessary properties and tools.
