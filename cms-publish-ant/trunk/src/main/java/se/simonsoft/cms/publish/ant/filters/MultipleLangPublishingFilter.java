@@ -61,15 +61,15 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	{	
 		String outputpath = this.project.getProperty("outputfolder");
 		String masterlang = this.project.getProperty("masterlang");
-		logger.debug("outputpath {} masterlang {}", outputpath, masterlang);
-		
+		logger.debug("outputfolder {} masterlang {}", outputpath, masterlang);
+		 
 		//${outputfolder}/${filename}/translations/${lang}
 		if(!masterlang.equals(item.getProperties().getString("abx:lang"))) {
-			logger.debug("Is translation");
+			logger.debug("Change outputpath for translation");
 			outputpath.concat("/" + this.item.getId().getRelPath().getNameBase());
 			outputpath.concat("/translations/" + item.getProperties().getString("abx:lang"));
+			
 		} 
-		
 		return outputpath;
 	}
 	
@@ -94,7 +94,7 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 		this.project.getProperties().put("CMSITEM", this.item);
 		
 		// RepoRevision itemRepoRev = item.getRevisionChanged();
-		logger.debug("file: {} filename: {} lang {} ", item.getId().withPegRev(this.headRev.getNumber()).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"));
+		logger.debug("file: {} filename: {} lang {}  path {}", item.getId().withPegRev(this.headRev.getNumber()).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"), outputPath);
 
 		this.project.executeTarget(this.publishTarget);
 	}
