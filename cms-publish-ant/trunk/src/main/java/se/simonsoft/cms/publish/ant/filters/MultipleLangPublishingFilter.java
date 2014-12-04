@@ -29,6 +29,7 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	private RepoRevision headRev;
 	private Project project;
 	private String publishTarget;
+	private boolean hasTranslations = false;
 
 	public MultipleLangPublishingFilter() {
 		// TODO Auto-generated constructor stub
@@ -75,8 +76,10 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 			newpath.append("/translations/"
 					+ item.getProperties().getString("abx:lang"));
 			logger.debug("Path for translation: {}", newpath.toString());
+			this.hasTranslations = true;
 
 		}
+		
 		return newpath.toString();
 	}
 
@@ -97,10 +100,15 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 		this.project.setProperty("lang",
 				item.getProperties().getString("abx:lang"));
 
+		// If we have translations in project, set a prop for that
+		if(this.hasTranslations) {
+			this.project.setProperty("hastranslations", String.valueOf(this.hasTranslations));
+		}
+		
 		this.project.setProperty("outputpath", outputPath);
 
-		// A test:
-		this.project.getProperties().put("CMSITEM", this.item);
+		// A test: does not work
+		//this.project.getProperties().put("CMSITEM", this.item);
 
 		// RepoRevision itemRepoRev = item.getRevisionChanged();
 		logger.debug("file: {} filename: {} lang {}  path {}", item.getId()
