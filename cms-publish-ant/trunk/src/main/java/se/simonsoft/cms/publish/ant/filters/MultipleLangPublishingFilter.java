@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.ant.filters;
 
-
 import org.apache.tools.ant.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,19 +24,19 @@ import se.simonsoft.cms.item.RepoRevision;
 
 public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
 	private CmsItem item;
 	private RepoRevision headRev;
 	private Project project;
 	private String publishTarget;
-	
+
 	public MultipleLangPublishingFilter() {
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public void initFilter(CmsItem item, RepoRevision headRev,
-			Project project, String publishTarget) {
+	public void initFilter(CmsItem item, RepoRevision headRev, Project project,
+			String publishTarget) {
 		this.item = item;
 		this.headRev = headRev;
 		this.project = project;
@@ -47,54 +46,73 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 
 	@Override
 	public void runFilter() {
-		
-		this.publishItem(this.determineOutputPath());
-		
+
+		this.publishItem();
+
 	}
-	
+
 	/**
 	 * Determines the outputpath to be used for publishing
 	 * 
 	 * @return
 	 */
-	private String determineOutputPath() 
-	{	
+	private String determineOutputPath() {
 		String outputpath = this.project.getProperty("outputfolder");
 		String masterlang = this.project.getProperty("masterlang");
 		logger.debug("outputfolder {} masterlang {}", outputpath, masterlang);
-		 
-		//${outputfolder}/${filename}/translations/${lang}
-		if(!masterlang.equals(item.getProperties().getString("abx:lang"))) {
+
+		// ${outputfolder}/${filename}/translations/${lang}
+		if (!masterlang.equals(item.getProperties().getString("abx:lang"))) {
 			logger.debug("Change outputpath for translation");
-			outputpath.concat("/" + this.item.getId().getRelPath().getNameBase());
-			outputpath.concat("/translations/" + item.getProperties().getString("abx:lang"));
-			
-		} 
+			outputpath.concat("/"
+					+ this.item.getId().getRelPath().getNameBase());
+			outputpath.concat("/translations/"
+					+ item.getProperties().getString("abx:lang"));
+			logger.debug("Path for translation: {}", outputpath);
+
+		}
 		return outputpath;
 	}
-	
+
 	/**
 	 * Publishes an item using the publishTarget
+	 * 
 	 * @param outputPath
 	 */
-	private void publishItem(String outputPath) 
-	{
+	private void publishItem() {
+
+		String outputpath = this.project.getProperty("outputfolder");
+		String masterlang = this.project.getProperty("masterlang");
 		
+		if (!masterlang.equals(item.getProperties().getString("abx:lang"))) {
+			logger.debug("Change outputpath for translation");
+			outputpath.concat("/"
+					+ this.item.getId().getRelPath().getNameBase());
+			outputpath.concat("/translations/"
+					+ item.getProperties().getString("abx:lang"));
+			logger.debug("Path for translation: {}", outputpath);
+
+		}
+
 		this.project.setProperty("param.file",
 				item.getId().withPegRev(this.headRev.getNumber()).toString());
 
-		this.project.setProperty("filename",
-				item.getId().getRelPath().getNameBase());
+		this.project.setProperty("filename", item.getId().getRelPath()
+				.getNameBase());
 
-		this.project.setProperty("lang", item.getProperties().getString("abx:lang"));
-		
-		this.project.setProperty("outputpath", outputPath);
-		
+		this.project.setProperty("lang",
+				item.getProperties().getString("abx:lang"));
+
+		this.project.setProperty("outputpath", outputpath);
+
 		// A test:
 		this.project.getProperties().put("CMSITEM", this.item);
-		
+
 		// RepoRevision itemRepoRev = item.getRevisionChanged();
-		logger.debug("file: {} filename: {} lang {}  path {}", item.getId().withPegRev(this.headRev.getNumber()).toString(), item.getId().getRelPath().getNameBase(),item.getProperties().getString("abx:lang"), outputPath);
+		logger.debug("file: {} filename: {} lang {}  path {}", item.getId()
+				.withPegRev(this.headRev.getNumber()).toString(), item.getId()
+				.getRelPath().getNameBase(),
+				item.getProperties().getString("abx:lang"), outputpath);
 
 		this.project.executeTarget(this.publishTarget);
 	}
