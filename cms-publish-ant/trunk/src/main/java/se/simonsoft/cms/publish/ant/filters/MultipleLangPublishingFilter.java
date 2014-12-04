@@ -47,7 +47,7 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	@Override
 	public void runFilter() {
 
-		this.publishItem();
+		this.publishItem(this.determineOutputPath());
 
 	}
 
@@ -57,21 +57,27 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	 * @return
 	 */
 	private String determineOutputPath() {
+		
+		StringBuilder newpath = new StringBuilder();
+		
 		String outputpath = this.project.getProperty("outputfolder");
 		String masterlang = this.project.getProperty("masterlang");
+		
 		logger.debug("outputfolder {} masterlang {}", outputpath, masterlang);
-
+		
+		newpath.append(outputpath);
+		
 		// ${outputfolder}/${filename}/translations/${lang}
 		if (!masterlang.equals(item.getProperties().getString("abx:lang"))) {
 			logger.debug("Change outputpath for translation");
-			outputpath.concat("/"
+			newpath.append("/"
 					+ this.item.getId().getRelPath().getNameBase());
-			outputpath.concat("/translations/"
+			newpath.append("/translations/"
 					+ item.getProperties().getString("abx:lang"));
-			logger.debug("Path for translation: {}", outputpath);
+			logger.debug("Path for translation: {}", newpath.toString());
 
 		}
-		return outputpath;
+		return newpath.toString();
 	}
 
 	/**
@@ -79,20 +85,8 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 	 * 
 	 * @param outputPath
 	 */
-	private void publishItem() {
+	private void publishItem(String outputPath) {
 
-		String outputpath = this.project.getProperty("outputfolder");
-		String masterlang = this.project.getProperty("masterlang");
-		
-		if (!masterlang.equals(item.getProperties().getString("abx:lang"))) {
-			logger.debug("Change outputpath for translation");
-			outputpath.concat("/"
-					+ this.item.getId().getRelPath().getNameBase());
-			outputpath.concat("/translations/"
-					+ item.getProperties().getString("abx:lang"));
-			logger.debug("Path for translation: {}", outputpath);
-
-		}
 
 		this.project.setProperty("param.file",
 				item.getId().withPegRev(this.headRev.getNumber()).toString());
@@ -103,7 +97,7 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 		this.project.setProperty("lang",
 				item.getProperties().getString("abx:lang"));
 
-		this.project.setProperty("outputpath", outputpath);
+		this.project.setProperty("outputpath", outputPath);
 
 		// A test:
 		this.project.getProperties().put("CMSITEM", this.item);
@@ -112,7 +106,7 @@ public class MultipleLangPublishingFilter implements FilterPublishProperties {
 		logger.debug("file: {} filename: {} lang {}  path {}", item.getId()
 				.withPegRev(this.headRev.getNumber()).toString(), item.getId()
 				.getRelPath().getNameBase(),
-				item.getProperties().getString("abx:lang"), outputpath);
+				item.getProperties().getString("abx:lang"), outputPath);
 
 		this.project.executeTarget(this.publishTarget);
 	}
