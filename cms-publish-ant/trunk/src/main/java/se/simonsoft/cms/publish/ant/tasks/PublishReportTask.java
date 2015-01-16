@@ -66,6 +66,9 @@ public class PublishReportTask extends Task {
 	 * @return the publishtime
 	 */
 	public String getPublishtime() {
+		if(publishtime == null) {
+			publishtime = "";
+		}
 		return publishtime;
 	}
 
@@ -123,21 +126,6 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
-	 * @return the filter
-	 */
-	public String getFilter() {
-		return filter;
-	}
-
-	/**
-	 * @param filter
-	 *            the filter to set
-	 */
-	public void setFilter(String filter) {
-		this.filter = filter;
-	}
-
-	/**
 	 * @return the target
 	 */
 	public String getTarget() {
@@ -162,7 +150,7 @@ public class PublishReportTask extends Task {
 		if (this.getProject().getTargets().get(this.getTarget()) == null
 				|| this.getTarget().equals("")) {
 			throw new BuildException(
-					"This task requires a publush target like: PublishRequestPETask");
+					"This task requires a publish task target like: PublishRequestPETask");
 		}
 		// Lets start it all
 		this.initPublishing();
