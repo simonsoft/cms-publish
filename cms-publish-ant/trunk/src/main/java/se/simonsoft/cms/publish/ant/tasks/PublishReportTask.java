@@ -54,7 +54,6 @@ public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
 	protected ParamsNode params;
 	protected FiltersNode filters;
-	protected String filter; // Filter to use Should perhaps be a list
 	protected String target; // The target name of the target in charge of
 	protected String publishtime; // The mean time to publish in seconds. Used
 	// for estimating total publishing time
@@ -347,10 +346,14 @@ public class PublishReportTask extends Task {
 					item.getId().getRelPath().getNameBase());
 
 			// Not setting if no value is present. 
-			if(item.getProperties().getString("abx:lang") != "" || item.getProperties().getString("abx:lang") == null) {
+			if("".equals(item.getProperties().getString("abx:lang"))) {
 				this.getProject().setProperty("lang",
 						item.getProperties().getString("abx:lang"));
-			} 
+			} else {
+				// Set to default (default in ant gets overridden it seems
+				this.getProject().setProperty("lang",
+						this.getProject().getProperty("lang"));
+			}
 			
 			// A test:
 			/* DID NOT WORK
