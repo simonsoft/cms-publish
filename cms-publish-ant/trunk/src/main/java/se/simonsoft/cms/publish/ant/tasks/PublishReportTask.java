@@ -264,7 +264,7 @@ public class PublishReportTask extends Task {
 				logger.info(
 						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
 						count, item.getId().getRelPath().getName(),
-						this.estimatedTimeLeft(this.itemList.size() - count--),
+						this.estimatedTimeLeft(this.itemList.size() - count - 1),
 						this.itemList.size() - count, this.itemList.size());
 			}
 
@@ -346,8 +346,12 @@ public class PublishReportTask extends Task {
 			this.getProject().setProperty("filename",
 					item.getId().getRelPath().getNameBase());
 
-			this.getProject().setProperty("lang",
-					item.getProperties().getString("abx:lang"));
+			// Not setting if no value is present. 
+			if(item.getProperties().getString("abx:lang") != "" || item.getProperties().getString("abx:lang") == null) {
+				this.getProject().setProperty("lang",
+						item.getProperties().getString("abx:lang"));
+			} 
+			
 			// A test:
 			/* DID NOT WORK
 			this.getProject().getProperties().put("CMSITEM", item);
