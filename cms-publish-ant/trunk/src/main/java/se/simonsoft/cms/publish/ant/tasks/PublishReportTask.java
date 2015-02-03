@@ -234,6 +234,7 @@ public class PublishReportTask extends Task {
 				}
 			}
 		}
+		
 		return filterHasRun;
 	}
 
@@ -347,12 +348,13 @@ public class PublishReportTask extends Task {
 
 			// Not setting if no value is present. 
 			if("".equals(item.getProperties().getString("abx:lang"))) {
+				logger.debug("Found lang property, using it");
 				this.getProject().setProperty("lang",
 						item.getProperties().getString("abx:lang"));
 			} else {
+				logger.debug("No lang property set, use default");
 				// Set to default (default in ant gets overridden it seems
-				this.getProject().setProperty("lang",
-						this.getProject().getProperty("lang"));
+				this.getProject().setProperty("lang", "en-US");
 			}
 			
 			// A test:
