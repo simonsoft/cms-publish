@@ -347,7 +347,7 @@ public class PublishReportTask extends Task {
 					item.getId().getRelPath().getNameBase());
 
 			// Not setting if no value is present. 
-			if("".equals(item.getProperties().getString("abx:lang"))) {
+			if(!"".equals(item.getProperties().getString("abx:lang"))) {
 				logger.debug("Found lang property, using it");
 				this.getProject().setProperty("lang",
 						item.getProperties().getString("abx:lang"));
