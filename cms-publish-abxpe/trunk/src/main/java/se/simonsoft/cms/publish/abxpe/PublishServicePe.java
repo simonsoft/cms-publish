@@ -120,11 +120,6 @@ public class PublishServicePe implements PublishService {
 	}
 
 	@Override
-	/*
-	 * Implements the requestPublish method that will send the Publish Request to Publishing Engine.
-	 * (non-Javadoc)
-	 * @see se.simonsoft.cms.publish.PublishService#requestPublish(se.simonsoft.cms.publish.PublishRequest)
-	 */
 	public PublishTicket requestPublish(PublishRequest request) {
 		logger.debug("Start");
 		// Create the uri
@@ -139,14 +134,12 @@ public class PublishServicePe implements PublishService {
 		// Mandatory client params
 		uri.append("&file=").append(urlencode(request.getFile().getURI()));// The file to convert
 		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
-		//uri.append("&type=pdf");; // Only for now. Use above later.
 		
 		logger.debug("URI: " + uri.toString());
 		
 		// Additional params if there are any
 		if(request.getParams().size() > 0){
 			for(Map.Entry<String, String> entry: request.getParams().entrySet()){
-
 				uri.append("&" + entry.getKey() + "=" + urlencode(entry.getValue()));
 			}
 		}
@@ -161,19 +154,16 @@ public class PublishServicePe implements PublishService {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
-						logger.info("Got response from PE" );
-						logger.debug("Responseheaders: " + headers);
+						logger.debug("Got response with headers {}", headers);
 					return byteOutputStream; // Returns to our outputstream
 				}
 			});
 			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			return this.getQueueTicket( new ByteArrayInputStream(byteOutputStream.toByteArray())); 
 		} catch (HttpStatusError e) {
-			logger.debug("Publication error: " + e.getResponse());
-			e.printStackTrace();
+			logger.debug("Publication Error! \n Response: {} \nStacktrace:{} ", e.getResponse(), e.getStackTrace());
 		} catch (IOException e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
+			logger.debug("IO Error: \n Message: {} \nStacktrace:{} ", e.getMessage(), e.getStackTrace());
 		}
 		return null;
 	}
@@ -205,8 +195,7 @@ public class PublishServicePe implements PublishService {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
-						logger.info("Got response from PE");
-						logger.debug("Responseheaders: " + headers);
+						logger.debug("Got response from PE with headers {}", headers);
 					return byteOutputStream; // The httpclient will stream the content to tempfile
 				}
 			});
@@ -231,9 +220,9 @@ public class PublishServicePe implements PublishService {
 		
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
-		// Create the uri
-		StringBuffer uri = new StringBuffer();
-		uri.append(this.peUri);
+			// Create the uri
+			StringBuffer uri = new StringBuffer();
+			uri.append(this.peUri);
 		
 		// General always mandatory params
 		uri.append("?&f=qt-retrieve");// The retrieve req
@@ -246,7 +235,7 @@ public class PublishServicePe implements PublishService {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
-						logger.info("Got response from PE with status: " + headers.getStatus());
+						logger.debug("Got response from PE with status: " + headers.getStatus());
 						
 					return outputStream; // The httpclient will stream the content to tempfile
 				}
@@ -258,19 +247,47 @@ public class PublishServicePe implements PublishService {
 			throw new RuntimeException("Publishing Engine communication failed", e);
 		}
 	}
-
+	
 	@Override
 	public void getLogStream(PublishTicket ticket, PublishRequest request,
 			OutputStream outStream) {
-		//TODO Implement
+		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
+		// THIS IS NOT WORKING YET. 
+		// Create the uri
+		StringBuffer uri = new StringBuffer();
+		uri.append(this.peUri);
+
+		// General always mandatory params
+		uri.append("?&f=qt-retrieve");// The retrieve req
+		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+
+		final OutputStream outputStream = outStream;
+
+		try {
+			this.httpClient.get(uri.toString(), new RestResponse() {
+				@Override
+				public OutputStream getResponseStream(
+						ResponseHeaders headers) {
+					logger.info("Got response from PE with status: " + headers.getStatus());
+
+					return outputStream; // The httpclient will stream the content to tempfile
+				}
+			});
+
+		} catch (HttpStatusError e) {
+			//throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
+		} catch (IOException e) {
+			throw new RuntimeException("Publishing Engine communication failed", e);
+		}
 	}
 	
-	/*
-	 * Method to parse the response XML from PE and find specific values on
-	 * on a specific element (in our case the Transaction ele
-	 * @author jdurehed
-	 * In the future we might need to use xPath instead, 
-	 * but for now element and attribute parsing will suffice.
+	/**
+	 * Parse the response XML from PE looking for specified attribtue value on specified element
+	 * Is dependent on PE response XML not changing. 
+	 * @param element
+	 * @param attribute
+	 * @param content
+	 * @return
 	 */
 	private String parseResponse(String element, String attribute, InputStream content){
 		logger.debug("Start");
@@ -286,9 +303,10 @@ public class PublishServicePe implements PublishService {
 	    	Node node = doc.getElementsByTagName(element).item(0);
 			Element foundElement = (Element)node;
 			String attributeValue = foundElement.getAttribute(attribute);
-			logger.debug("attributeValue: " + attributeValue);
+			logger.debug("{}:{} ",attribute, attributeValue);
 			return attributeValue;
 						
+			// TODO handle the exceptions in some better way?
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -302,9 +320,11 @@ public class PublishServicePe implements PublishService {
 		return null;
 	}
 	
-	/*
-	 * Method to parse the response XML from PE and get the queue ID.
-	 * @author jdurehed
+	
+	/**
+	 * Parse repsonse XML to get queue ID
+	 * @param response
+	 * @return
 	 */
 	private PublishTicket getQueueTicket(InputStream response){
 		logger.debug("Start");
@@ -313,6 +333,11 @@ public class PublishServicePe implements PublishService {
 		return queueTicket;
 	}
 	
+	/**
+	 * URL encode value
+	 * @param value
+	 * @return encoded value
+	 */
 	protected String urlencode(String value) {
 		try {
 			return URLEncoder.encode(value, PE_URL_ENCODING);
