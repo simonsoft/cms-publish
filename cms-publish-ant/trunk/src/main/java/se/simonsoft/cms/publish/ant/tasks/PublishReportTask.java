@@ -166,6 +166,7 @@ public class PublishReportTask extends Task {
 			throw new BuildException(
 					"This task requires a publish task target like: PublishRequestPETask");
 		}
+	
 		// Lets start it all
 		this.initPublishing();
 	}
@@ -191,12 +192,14 @@ public class PublishReportTask extends Task {
 		// 1 Get the "head according to index" or not
 		if(this.getBaseline() == null) {
 			try {
+				logger.debug("No beseline set, find head according to index");
 				this.headRevision = this.request.getRevisionCompleted();
 			} catch (FailedToInitializeException e) {
 				throw new BuildException(e.getMessage());
 			}
 		}
-
+		logger.debug("Value of baseline getter {}, value of get project property {}", this.getBaseline(), this.getProject().getProperty("baseline"));
+		
 		// 2 Perform the query for publishable items
 		try {
 			cmsItemList = this.request.getItemsWithQuery();
@@ -305,8 +308,6 @@ public class PublishReportTask extends Task {
 	 * 
 	 * @param CmsItem
 	 *            item
-	 * @param Long
-	 *            baseLine
 	 * @param ArrayList
 	 *            <String> publishProperties
 	 */
