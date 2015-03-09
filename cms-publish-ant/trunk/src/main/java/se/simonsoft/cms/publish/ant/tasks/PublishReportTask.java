@@ -54,6 +54,7 @@ public class PublishReportTask extends Task {
 	protected ConfigsNode configs;
 	protected ParamsNode params;
 	protected FiltersNode filters;
+	protected Long baseline;
 	protected String target; // The target name of the target in charge of
 	protected String publishtime; // The mean time to publish in seconds. Used
 	// for estimating total publishing time
@@ -140,6 +141,20 @@ public class PublishReportTask extends Task {
 	}
 
 	/**
+	 * @return the baseline
+	 */
+	public Long getBaseline() {
+		return baseline;
+	}
+
+	/**
+	 * @param baseline the baseline to set
+	 */
+	public void setBaseline(Long baseline) {
+		this.baseline = baseline;
+	}
+
+	/**
 	 * Executes the task after checking that the ant target to use for
 	 * publishing exists in ant project
 	 */
@@ -173,11 +188,13 @@ public class PublishReportTask extends Task {
 
 		this.runFilters(FilterOrder.PREQUERY);
 
-		// 1 Get the "head according to index"
-		try {
-			this.headRevision = this.request.getRevisionCompleted();
-		} catch (FailedToInitializeException e) {
-			throw new BuildException(e.getMessage());
+		// 1 Get the "head according to index" or not
+		if(this.getBaseline() == null) {
+			try {
+				this.headRevision = this.request.getRevisionCompleted();
+			} catch (FailedToInitializeException e) {
+				throw new BuildException(e.getMessage());
+			}
 		}
 
 		// 2 Perform the query for publishable items
@@ -276,11 +293,68 @@ public class PublishReportTask extends Task {
 						this.itemList.size() - count, this.itemList.size());
 			}
 
-			this.publishItem(item, this.headRevision.getNumber());
+			this.publishItem(item);
 		}
 		logger.debug("leave");
 	}
 
+	/**
+	 * Calls the publish task for a CmsItem and sets properties needed for
+	 * publishing to work. Adds a baseline pegrev which should be head at the
+	 * time of the query to reporting framework ran.
+	 * 
+	 * @param CmsItem
+	 *            item
+	 * @param Long
+	 *            baseLine
+	 * @param ArrayList
+	 *            <String> publishProperties
+	 */
+	private void publishItem(CmsItem item) {
+		logger.debug("enter");
+
+		this.currentItem = item; // Set current item
+		
+		// Run publish filter if any exists
+		boolean filtersDidRun = this.runFilters(FilterOrder.PUBLISH);
+		
+		// If no filter ran, use default properties 
+		// param.file = path to file (logicalid)
+		// filename = the filename to use 
+		// lang = abx:lang (if it is present)
+		if (!filtersDidRun) {
+			logger.info("No {} filter to run", FilterOrder.PUBLISH.toString());
+			
+			logger.debug(
+					"Passing logicalid ({}), filename ({}) to publish target ({}) ",
+					item.getId().withPegRev(this.headRevision.getNumber()).toString(), item.getId()
+							.getRelPath().getNameBase(), item.getProperties()
+							.getString("abx:lang"), this.getTarget());
+
+			// Defaults to use file and filename as properties to pass on to publish target
+			this.getProject().setProperty("param.file",
+					item.getId().withPegRev(this.headRevision.getNumber()).toString());
+
+			this.getProject().setProperty("filename",
+					item.getId().getRelPath().getNameBase());
+			
+			// If we find a lang, lets set it to lang property. 
+			if(!"".equals(item.getProperties().getString("abx:lang"))) {
+				logger.debug("Found lang: {}, passing it to {}",item.getProperties().getString("abx:lang"), this.getTarget());
+				this.getProject().setProperty("lang",
+						item.getProperties().getString("abx:lang"));
+			}
+			// A test:
+			/* DID NOT WORK
+			this.getProject().getProperties().put("CMSITEM", item);
+			//*/
+
+			this.getProject().executeTarget(this.getTarget());
+		} 
+
+		logger.debug("leave");
+	}
+	
 	/**
 	 * Calculates the estimated time left of publishing based on how long a
 	 * "normal" publishing takes times the number of items to publish
@@ -317,62 +391,5 @@ public class PublishReportTask extends Task {
 		}
 
 		return returnString.toString();
-	}
-
-	/**
-	 * Calls the publish task for a CmsItem and sets properties needed for
-	 * publishing to work. Adds a baseline pegrev which should be head at the
-	 * time of the query to reporting framework ran.
-	 * 
-	 * @param CmsItem
-	 *            item
-	 * @param Long
-	 *            baseLine
-	 * @param ArrayList
-	 *            <String> publishProperties
-	 */
-	private void publishItem(CmsItem item, Long baseLine) {
-		logger.debug("enter");
-
-		this.currentItem = item; // Set current item
-		
-		// Run publish filter if any exists
-		boolean filtersDidRun = this.runFilters(FilterOrder.PUBLISH);
-		
-		// If no filter ran, use default properties 
-		// param.file = path to file (logicalid)
-		// filename = the filename to use 
-		// lang = abx:lang (if it is present)
-		if (!filtersDidRun) {
-			logger.info("No {} filter to run", FilterOrder.PUBLISH.toString());
-			
-			logger.debug(
-					"Passing logicalid ({}), filename ({}) to publish target ({}) ",
-					item.getId().withPegRev(baseLine).toString(), item.getId()
-							.getRelPath().getNameBase(), item.getProperties()
-							.getString("abx:lang"), this.getTarget());
-
-			// Defaults to use file and filename as properties to pass on to publish target
-			this.getProject().setProperty("param.file",
-					item.getId().withPegRev(baseLine).toString());
-
-			this.getProject().setProperty("filename",
-					item.getId().getRelPath().getNameBase());
-			
-			// If we find a lang, lets set it to lang property. 
-			if(!"".equals(item.getProperties().getString("abx:lang"))) {
-				logger.debug("Found lang: {}, passing it to {}",item.getProperties().getString("abx:lang"), this.getTarget());
-				this.getProject().setProperty("lang",
-						item.getProperties().getString("abx:lang"));
-			}
-			// A test:
-			/* DID NOT WORK
-			this.getProject().getProperties().put("CMSITEM", item);
-			//*/
-
-			this.getProject().executeTarget(this.getTarget());
-		} 
-
-		logger.debug("leave");
 	}
 }
