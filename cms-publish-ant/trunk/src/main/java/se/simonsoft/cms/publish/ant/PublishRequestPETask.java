@@ -240,16 +240,14 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 									new CmsItemIdArg(param.getValue())
 									));
 					log("PublishRequestFile: " + publishRequest.getFile().getURI());
-				}
-				// For the type we create a publishformat to set
-				if(param.getName().equals("type")) {
+				} else if(param.getName().equals("type")) { // For the type we create a publishformat to set
 					final String type = param.getValue();
 					publishRequest.setFormat(this.publishService.getPublishFormat(param.getValue()));
 					log("publishRequest Format: " + publishRequest.getFormat().getFormat());
+				} else {
+					// For arbitrary params just add them
+					publishRequest.addParam	(param.getName(), param.getValue());
 				}
-				
-				// For arbitrary params just add them
-				publishRequest.addParam	(param.getName(), param.getValue());
 			}
 		}
 		return publishRequest;
@@ -273,7 +271,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
-						log("Ticket id: " + publishJob.getTicket().toString() +" completed after " + checks + " checks.");					
+						log("Ticket id: " + publishJob.getTicket().toString() +" completed after approx " + checks * SLEEP + " seconds.");					
 					}
 				}
 				checks++;
@@ -347,6 +345,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 							" with errors: " + e.getMessage() + "\n");
+					
 					
 				} else {
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
