@@ -230,7 +230,8 @@ public class PublishReportTask extends Task {
 				if (filter.getOrder().toUpperCase().equals(order.toString())) {
 					logger.debug("Filter {} with order {}",
 							filter.getClasspath(), filter.getOrder());
-
+					// Is it better just giving publish filter a baseline and not a complete headRev object?
+					// more options of course with a complete object
 					// Publish filter run
 					if (order.equals(FilterOrder.PUBLISH)) {
 						if (RequestHelper.runPublishFilterWithClassPath(
@@ -316,9 +317,19 @@ public class PublishReportTask extends Task {
 
 		this.currentItem = item; // Set current item
 		
+		
+		Long currentBaseline = null;
+		if(this.getBaseline() == null) {
+			currentBaseline = this.headRevision.getNumber();
+		} else {
+			currentBaseline = this.getBaseline();
+			this.getProject().setProperty("baseline", this.getBaseline().toString());
+		}
+		
 		// Run publish filter if any exists
 		boolean filtersDidRun = this.runFilters(FilterOrder.PUBLISH);
 		
+	
 		// If no filter ran, use default properties 
 		// param.file = path to file (logicalid)
 		// filename = the filename to use 
@@ -328,13 +339,13 @@ public class PublishReportTask extends Task {
 			
 			logger.debug(
 					"Passing logicalid ({}), filename ({}) to publish target ({}) ",
-					item.getId().withPegRev(this.headRevision.getNumber()).toString(), item.getId()
+					item.getId().withPegRev(currentBaseline).toString(), item.getId()
 							.getRelPath().getNameBase(), item.getProperties()
 							.getString("abx:lang"), this.getTarget());
 
 			// Defaults to use file and filename as properties to pass on to publish target
 			this.getProject().setProperty("param.file",
-					item.getId().withPegRev(this.headRevision.getNumber()).toString());
+					item.getId().withPegRev(currentBaseline).toString());
 
 			this.getProject().setProperty("filename",
 					item.getId().getRelPath().getNameBase());
