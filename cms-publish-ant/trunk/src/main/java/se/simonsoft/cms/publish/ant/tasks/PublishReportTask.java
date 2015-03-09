@@ -260,7 +260,15 @@ public class PublishReportTask extends Task {
 						"\nPublish item nr {} with name {} \nEstimated time left: {}",
 						count, item.getId().getRelPath().getName(),
 						this.estimatedTimeLeft(this.itemList.size()));
-			} else {
+			} 
+			else if (count == this.itemList.size()) {
+				logger.info(
+						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
+						count, item.getId().getRelPath().getName(),
+						this.estimatedTimeLeft(this.itemList.size() - count),
+						this.itemList.size() - count, this.itemList.size());
+			}
+			else {
 				logger.info(
 						"\nPublish item nr {} with name {} \nEstimated time left: {} with {}/{} items left",
 						count, item.getId().getRelPath().getName(),
@@ -268,7 +276,7 @@ public class PublishReportTask extends Task {
 						this.itemList.size() - count, this.itemList.size());
 			}
 
-			this.publishItem(item, this.headRevision.getNumber(), null);
+			this.publishItem(item, this.headRevision.getNumber());
 		}
 		logger.debug("leave");
 	}
@@ -323,48 +331,44 @@ public class PublishReportTask extends Task {
 	 * @param ArrayList
 	 *            <String> publishProperties
 	 */
-	private void publishItem(CmsItem item, Long baseLine,
-			ArrayList<String> publishProperties) {
+	private void publishItem(CmsItem item, Long baseLine) {
 		logger.debug("enter");
 
 		this.currentItem = item; // Set current item
 		
 		// Run publish filter if any exists
-		boolean filterRan = this.runFilters(FilterOrder.PUBLISH);
+		boolean filtersDidRun = this.runFilters(FilterOrder.PUBLISH);
 		
-		if (!filterRan) {
-
+		// If no filter ran, use default properties 
+		// param.file = path to file (logicalid)
+		// filename = the filename to use 
+		// lang = abx:lang (if it is present)
+		if (!filtersDidRun) {
+			logger.info("No {} filter to run", FilterOrder.PUBLISH.toString());
+			
 			logger.debug(
-					"No filter, passing logicalid ({}), filename ({}), lang ({}) to publish target ({}) ",
+					"Passing logicalid ({}), filename ({}) to publish target ({}) ",
 					item.getId().withPegRev(baseLine).toString(), item.getId()
 							.getRelPath().getNameBase(), item.getProperties()
 							.getString("abx:lang"), this.getTarget());
 
+			// Defaults to use file and filename as properties to pass on to publish target
 			this.getProject().setProperty("param.file",
 					item.getId().withPegRev(baseLine).toString());
 
 			this.getProject().setProperty("filename",
 					item.getId().getRelPath().getNameBase());
-
-			// Not setting if no value is present. 
+			
+			// If we find a lang, lets set it to lang property. 
 			if(!"".equals(item.getProperties().getString("abx:lang"))) {
-				logger.debug("Found lang property, using it");
+				logger.debug("Found lang: {}, passing it to {}",item.getProperties().getString("abx:lang"), this.getTarget());
 				this.getProject().setProperty("lang",
 						item.getProperties().getString("abx:lang"));
-			} else {
-				logger.debug("No lang property set, use default");
-				// Set to default (default in ant gets overridden it seems
-				this.getProject().setProperty("lang", "en-US");
 			}
-			
 			// A test:
 			/* DID NOT WORK
 			this.getProject().getProperties().put("CMSITEM", item);
 			//*/
-			// RepoRevision itemRepoRev = item.getRevisionChanged();
-			logger.debug("file: {} filename: {} lang {} ", item.getId()
-					.withPegRev(baseLine).toString(), item.getId().getRelPath()
-					.getNameBase(), item.getProperties().getString("abx:lang"));
 
 			this.getProject().executeTarget(this.getTarget());
 		} 

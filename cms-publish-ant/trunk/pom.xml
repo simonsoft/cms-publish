@@ -18,7 +18,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>cms-publish-ant</artifactId>
-	<version>1-SNAPSHOT</version>
+	<version>0.1-Beta</version>
 	<packaging>jar</packaging>
 	
 	<name>Simonsoft CMS Open Source project</name>
@@ -85,11 +85,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback-version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>se.simonsoft</groupId>
-			<artifactId>cms-xmlsource</artifactId>
-			<version>0.12-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
