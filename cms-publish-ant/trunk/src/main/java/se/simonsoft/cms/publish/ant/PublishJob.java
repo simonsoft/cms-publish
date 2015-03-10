@@ -32,6 +32,7 @@ public class PublishJob {
 	private String filename;
 	private String isZip = "";
 	private boolean completed = false;
+	private boolean retreived = false;
 	private int numberOfTries = 2;
 	private CmsItem cmsItem;
 	
@@ -128,6 +129,20 @@ public class PublishJob {
 		this.completed = completed;
 	}
 	
+	/**
+	 * @return the retreived
+	 */
+	public boolean isRetreived() {
+		return retreived;
+	}
+
+	/**
+	 * @param retreived the retreived to set
+	 */
+	public void setRetreived(boolean retreived) {
+		this.retreived = retreived;
+	}
+
 	/**
 	 * @return the ticket
 	 */

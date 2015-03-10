@@ -62,7 +62,6 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	private PublishServicePe publishService;
 	protected boolean fail;
 	private final ErrorLoggerHelper errorLogger = new ErrorLoggerHelper();
-	private FileManagementHelper fileHelper = new FileManagementHelper();
 	private static final long SLEEP = 2000; // Milliseconds to sleep btw PE checks
 	
 	@Override
@@ -328,9 +327,14 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					
 					publishJob.setNumberOfTries(publishJob.getNumberOfTries() - 1); // Count one try down
 					log("Retrieve result: " + fileName + " try: " + publishJob.getNumberOfTries());
-					this.publishService.getResultStream(publishJob.getTicket(),
+					// If we have not retrieved this job before, retrieve it
+					if(!publishJob.isRetreived()) {
+						publishJob.setRetreived(true); // Mark it retrieved
+						this.publishService.getResultStream(publishJob.getTicket(),
 							publishJob.getPublishRequest(), 
 							this.getStorageLocation(this.outputfolder, fileName));
+					}
+					
 				}
 				
 			} catch (PublishException e) {
@@ -339,23 +343,25 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 								publishJob.getPublishRequest().getFile().getURI());
 				// Remove 
 				fileHelper.delete(new File(this.outputfolder + "/" + fileName));
+				publishJob.setRetreived(false); // Reset retrieve state
 				
 				if(publishJob.getNumberOfTries() == 0) {
 					
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
 							" with errors: " + e.getMessage() + "\n");
-					
+					// Here we would like to download and parse error log from PE
 					
 				} else {
 					log("Trying to publish " + publishJob.getPublishRequest().getFile().getURI() + " again");
 					
 					// Remove this publishJob from the stack of jobs
-					//this.publishedJobs.remove(publishJob);
+					// this.publishedJobs.remove(publishJob);
 						
 					// Then send it to publishing again
 					publishJob.setCompleted(false); // Reset completed state
 					this.sendPublishRequest((PublishRequestDefault) publishJob.getPublishRequest(), publishJob);
+					// 
 					if(this.isCompleted()) {
 						this.getPublishResult();
 					}
