@@ -58,6 +58,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 	protected JobsNode jobs;
 	protected String zipoutput;
 	protected String outputfolder;
+	protected String errorlogpath;
 	private ArrayList<PublishJob> publishedJobs;
 	private PublishServicePe publishService;
 	protected boolean fail;
@@ -114,6 +115,20 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 		this.fail = fail;
 	}
 	
+	/**
+	 * @return the errorlogpath
+	 */
+	public String getErrorlogpath() {
+		return errorlogpath;
+	}
+
+	/**
+	 * @param errorlogpath the errorlogpath to set
+	 */
+	public void setErrorlogpath(String errorlogpath) {
+		this.errorlogpath = errorlogpath;
+	}
+
 	public void execute() {
 		
 		// Instantiate some stuff we need
@@ -270,7 +285,8 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
-						log("Ticket id: " + publishJob.getTicket().toString() +" completed after approx " + checks * SLEEP + " seconds.");					
+						int seconds = (int)(checks * SLEEP / 1000) % 60;
+						log("Ticket id: " + publishJob.getTicket().toString() +" completed after approx " + seconds + " seconds.");					
 					}
 				}
 				checks++;
@@ -290,11 +306,12 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 			try {
 				Thread.sleep(SLEEP);  // Be patient
 			} catch (InterruptedException e) {
-				log("Error when checking for completed jobs: " + e.getMessage());
+				logger.error("Interrupted when checking for completed jobs: {}", e.getMessage());
 			}
 		}
 		return true;
 	}
+	
 	
 	
 	 // Not now
@@ -349,7 +366,7 @@ public class PublishRequestPETask extends Task implements PublishRequestTaskInte
 					
 					errorLogger.addToErrorLog("PublishException for ticket: " + publishJob.getTicket().toString() + 
 							". Publish failed for file: " + publishJob.getPublishRequest().getFile().getURI() + 
-							" with errors: " + e.getMessage() + "\n");
+							" with errors: " + e.getMessage() + "\n", this.getErrorlogpath());
 					// Here we would like to download and parse error log from PE
 					
 				} else {

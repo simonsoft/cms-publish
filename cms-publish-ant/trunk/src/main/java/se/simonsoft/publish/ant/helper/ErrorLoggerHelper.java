@@ -26,13 +26,16 @@ public class ErrorLoggerHelper {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	/*
-	 * Write errors to our error log file
+	/**
+	 * Writes error to error log file, filePath. This method might be moved to ANT in the future.
+	 * Already now ANT is responsible for creating the path to logfile and logfile
+	 * @param error
+	 * @param filePath
 	 */
-	public void addToErrorLog(String error){
+	public void addToErrorLog(String error, String filePath){
 	
 		try {
-			FileUtils.writeStringToFile(new File("errors.log"), error, "utf-8", true);
+			FileUtils.writeStringToFile(new File(filePath), error, "utf-8", true);
 		} catch (IOException e) {
 			logger.debug("Could not write to error log! " + e.getMessage());
 		}
