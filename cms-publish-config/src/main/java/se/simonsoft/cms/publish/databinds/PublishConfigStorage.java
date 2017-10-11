@@ -1,14 +1,11 @@
 package se.simonsoft.cms.publish.databinds;
 
+import java.util.Map;
+
 public class PublishConfigStorage {
 	private String type;
-	private PublishConfigParams params;
+	private Map <String, String> params;
 	
-	public PublishConfigStorage(String type, PublishConfigParams params) {
-		super();
-		this.type = type;
-		this.params = params;
-	}
 	public PublishConfigStorage() {
 		
 	}
@@ -18,15 +15,10 @@ public class PublishConfigStorage {
 	public void setType(String type) {
 		this.type = type;
 	}
-	public PublishConfigParams getParams() {
+	public Map <String, String> getParams() {
 		return params;
 	}
-	public void setParams(PublishConfigParams params) {
+	public void setParams(Map <String, String> params) {
 		this.params = params;
 	}
-	@Override
-	public String toString() {
-		return "PublishConfigStorage [type=" + type + ", params=" + params + "]";
-	}
-	
 }

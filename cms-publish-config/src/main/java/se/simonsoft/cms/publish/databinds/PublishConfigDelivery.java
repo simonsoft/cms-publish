@@ -1,14 +1,13 @@
 package se.simonsoft.cms.publish.databinds;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown=false)
 public class PublishConfigDelivery {
 	private String type;
 
-	public PublishConfigDelivery(String type) {
-		super();
-		this.type = type;
-	}
 	public PublishConfigDelivery() {
-		
+		super();
 	}
 	public String getType() {
 		return type;
@@ -16,8 +15,5 @@ public class PublishConfigDelivery {
 	public void setType(String type) {
 		this.type = type;
 	}
-	@Override
-	public String toString() {
-		return "PublishConfigDelivery [type=" + type + ", getType()=" + getType() + "]";
-	}
+	
 }

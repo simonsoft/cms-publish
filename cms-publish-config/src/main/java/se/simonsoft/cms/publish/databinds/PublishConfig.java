@@ -1,8 +1,10 @@
 package se.simonsoft.cms.publish.databinds;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown=false)
 public class PublishConfig {
 
 	private boolean active;
@@ -15,15 +17,6 @@ public class PublishConfig {
 	private String pathNameTemplate;
 	private PublishConfigPublish publish;
 	
-	public PublishConfig(boolean active, boolean visible, List<String> statusInclude, List<String> profilingInclude,
-			String pathNameTemplate, PublishConfigPublish publish) {
-		this.active = active;
-		this.visible = visible;
-		this.statusInclude = statusInclude;
-		this.profilingInclude = profilingInclude;
-		this.pathNameTemplate = pathNameTemplate;
-		this.publish = publish;
-	}
 	public PublishConfig() {
 	}
 	public boolean isActive() {
@@ -62,11 +55,4 @@ public class PublishConfig {
 	public void setPublish(PublishConfigPublish publish) {
 		this.publish = publish;
 	}
-	@Override
-	public String toString() {
-		return "PublishConfig [active=" + active + ", visible=" + visible + ", statusInclude=" + statusInclude
-				+ ", profilingInclude=" + profilingInclude + ", pathNameTemplate=" + pathNameTemplate + ", publish="
-				+ publish + "]";
-	}
-	
 }
