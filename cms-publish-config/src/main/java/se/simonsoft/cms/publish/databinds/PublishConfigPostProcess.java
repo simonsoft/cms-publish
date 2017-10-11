@@ -1,16 +1,16 @@
 package se.simonsoft.cms.publish.databinds;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown=false)
 public class PublishConfigPostProcess {
 	private String type;
-	private PublishConfigParams params;
+	private Map <String, String> params;
 	
-	public PublishConfigPostProcess(String type, PublishConfigParams params) {
-		super();
-		this.type = type;
-		this.params = params;
-	}
 	public PublishConfigPostProcess() {
-		
+		super();
 	}
 	public String getType() {
 		return type;
@@ -18,15 +18,10 @@ public class PublishConfigPostProcess {
 	public void setType(String type) {
 		this.type = type;
 	}
-	public PublishConfigParams getParams() {
+	public Map<String, String> getParams() {
 		return params;
 	}
-	public void setParams(PublishConfigParams params) {
+	public void setParams(Map<String, String> params) {
 		this.params = params;
 	}
-	@Override
-	public String toString() {
-		return "PublishConfigPostProcess [type=" + type + ", params=" + params + "]";
-	}
-	
 }

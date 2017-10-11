@@ -1,47 +1,100 @@
 package se.simonsoft.cms.publish.databinds;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import junit.framework.TestCase;
 
 public class TestJsonDeserialization extends TestCase {
+	private ObjectReader reader;
 
+	@BeforeClass
 	protected void setUp() throws Exception {
-		super.setUp();
+		ObjectMapper mapper = new ObjectMapper();
+		reader = mapper.reader(PublishConfig.class);
 	}
-	
+
 	@Test
-	public void testJsonDeserialization()throws JsonParseException, JsonMappingException, IOException {
-		JsonDeserialization jDeserialize = new JsonDeserialization();
-		
-		List <String> statusInclude = new ArrayList();
-		statusInclude.add("Review");
-		statusInclude.add("Released");
-		List <String> profilingInclude = new ArrayList();
-		profilingInclude.add("*");
-		
-		PublishConfigParams pcParams = new PublishConfigParams("...", "...,", "great", null);
-		PublishConfigParams pcParams2 = new PublishConfigParams(null, null, null, "parameter for future destination types");
-		PublishConfigStorage pcStorage = new PublishConfigStorage("s3", pcParams2);
-		PublishConfigPostProcess pcPostProcess = new PublishConfigPostProcess("future stuff", pcParams2);
-		PublishConfigDelivery pcDelivery = new PublishConfigDelivery("webhook");
-		PublishConfigPublish pcPublish = new PublishConfigPublish("abxpe", "pdf", pcParams, pcStorage, pcPostProcess, pcDelivery);
-		PublishConfig pc = new PublishConfig(true, true, statusInclude, profilingInclude, "velocity-stuff.pdf", pcPublish);
+	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
 		PublishConfig jsonPc = new PublishConfig();
-		
-		jsonPc = jDeserialize.JsonDeserialize("/home/anton/git/cms-publish/cms-publish-config/src/main/java/se/simonsoft/cms/publish/databinds/publish-config.json");
-		
-		assertEquals(pc.toString(), jsonPc.toString());
+		jsonPc = reader.readValue(getJsonString());
+
+		assertEquals("velocity-stuff.pdf", jsonPc.getPathNameTemplate());
+		assertEquals("*", jsonPc.getProfilingInclude().get(0));
+		assertEquals("Review", jsonPc.getStatusInclude().get(0));
+		assertEquals("Released", jsonPc.getStatusInclude().get(1));
+		assertEquals(true, jsonPc.isActive());
+		assertEquals(true, jsonPc.isVisible());
+		assertEquals("abxpe", jsonPc.getPublish().getType());
+		assertEquals("pdf", jsonPc.getPublish().getFormat());
+		assertEquals("...", jsonPc.getPublish().getParams().get("stylesheet"));
+		assertEquals("...,", jsonPc.getPublish().getParams().get("pdfconfig"));
+		assertEquals("great", jsonPc.getPublish().getParams().get("whatever"));
+		assertEquals("s3", jsonPc.getPublish().getStorage().getType());
+		assertEquals("parameter for future destination types", jsonPc.getPublish().getStorage().getParams().get("specific"));
+		assertEquals("future stuff", jsonPc.getPublish().getPostProcess().getType());
+		assertEquals("parameter for future destination types", jsonPc.getPublish().getPostProcess().getParams().get("specific"));
+		assertEquals("webhook", jsonPc.getPublish().getDelivery().getType());
 	}
+
 	@Test
-	public void testCompare() {
-		assertTrue("1"=="1");
-		assertTrue(new String("1") == new String("1"));
+	public void testUnkownProperty() {
+		//Getting data from Json
+		try {
+			PublishConfig jsonPc = new PublishConfig();
+			ObjectReader r = new ObjectMapper().reader(PublishConfig.class);
+			jsonPc = r.readValue(getJsonString2());
+
+			fail("Expectected UnrecognizedPropertyException to be thrown");
+
+		}catch(UnrecognizedPropertyException e){
+			e.printStackTrace();
+		}catch (JsonParseException e) {
+			e.printStackTrace();
+		}catch(JsonMappingException e) {
+			e.printStackTrace();
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private String getJsonString() throws FileNotFoundException, IOException {
+		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
+		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
+		StringBuilder out = new StringBuilder();
+		String line;
+		while((line = reader.readLine()) != null) {
+			out.append(line);
+		}
+
+		reader.close();
+		return out.toString();
+	}
+	private String getJsonString2() throws FileNotFoundException, IOException {
+		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config2.json";
+		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
+		StringBuilder out = new StringBuilder();
+		String line;
+		while((line = reader.readLine()) != null) {
+			out.append(line);
+		}
+
+		reader.close();
+		return out.toString();
 	}
 }
