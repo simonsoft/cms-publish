@@ -10,8 +10,8 @@
       "type": "abxpe",
       "format": "pdf",
       "params": {
-          "stylesheet": "...",
-          "pdfconfig": "...,",
+          "stylesheet": "file.css",
+          "pdfconfig": "file.pdf",
           "whatever": "great"
       },
       "storage": {

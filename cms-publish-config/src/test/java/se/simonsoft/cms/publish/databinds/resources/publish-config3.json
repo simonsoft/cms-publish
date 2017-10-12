@@ -3,14 +3,15 @@
   "visible": true,
   "status-include": ["Review", "Released"],
   "profiling-include": ["*"],
-  "pathname-template": "velocity-stuff.pdf",
+  "pathname-template": "",
+  "pathname-config": "",
 
   "publish" : {
       "type": "abxpe",
       "format": "pdf",
       "params": {
-          "stylesheet": "file.css",
-          "pdfconfig": "file.pdf",
+          "stylesheet": "...",
+          "pdfconfig": "...,",
           "whatever": "great"
       },
       "storage": {
@@ -30,5 +31,5 @@
       "delivery": {
           "type": "webhook"
       }
-  }
+  } 
 }

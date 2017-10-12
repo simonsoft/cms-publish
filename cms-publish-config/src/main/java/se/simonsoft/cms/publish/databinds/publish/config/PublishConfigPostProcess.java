@@ -1,10 +1,10 @@
-package se.simonsoft.cms.publish.databinds;
+package se.simonsoft.cms.publish.databinds.publish.config;
 
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown=false)
+@JsonIgnoreProperties (ignoreUnknown=false)
 public class PublishConfigPostProcess {
 	private String type;
 	private Map <String, String> params;

@@ -1,4 +1,4 @@
-package se.simonsoft.cms.publish.databinds;
+package se.simonsoft.cms.publish.databinds.publish.config;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,8 +16,9 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import junit.framework.TestCase;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 
-public class TestJsonDeserialization extends TestCase {
+public class TestPublishConfig extends TestCase {
 	private ObjectReader reader;
 
 	@BeforeClass
@@ -39,8 +40,8 @@ public class TestJsonDeserialization extends TestCase {
 		assertEquals(true, jsonPc.isVisible());
 		assertEquals("abxpe", jsonPc.getPublish().getType());
 		assertEquals("pdf", jsonPc.getPublish().getFormat());
-		assertEquals("...", jsonPc.getPublish().getParams().get("stylesheet"));
-		assertEquals("...,", jsonPc.getPublish().getParams().get("pdfconfig"));
+		assertEquals("file.css", jsonPc.getPublish().getParams().get("stylesheet"));
+		assertEquals("file.pdf", jsonPc.getPublish().getParams().get("pdfconfig"));
 		assertEquals("great", jsonPc.getPublish().getParams().get("whatever"));
 		assertEquals("s3", jsonPc.getPublish().getStorage().getType());
 		assertEquals("parameter for future destination types", jsonPc.getPublish().getStorage().getParams().get("specific"));
@@ -60,13 +61,18 @@ public class TestJsonDeserialization extends TestCase {
 			fail("Expectected UnrecognizedPropertyException to be thrown");
 
 		}catch(UnrecognizedPropertyException e){
+			assertNotNull(e);
 			e.printStackTrace();
 		}catch (JsonParseException e) {
+			assertNotNull(e);
 			e.printStackTrace();
 		}catch(JsonMappingException e) {
+			assertNotNull(e);
 			e.printStackTrace();
 		}catch(IOException e) {
+			assertNotNull(e);
 			e.printStackTrace();
+			
 		}
 
 	}

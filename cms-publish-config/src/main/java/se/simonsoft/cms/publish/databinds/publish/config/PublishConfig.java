@@ -1,4 +1,4 @@
-package se.simonsoft.cms.publish.databinds;
+package se.simonsoft.cms.publish.databinds.publish.config;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -9,15 +9,24 @@ public class PublishConfig {
 
 	private boolean active;
 	private boolean visible;
-	@JsonProperty("status-include")
+	@JsonProperty ("status-include")
 	private List<String> statusInclude;
-	@JsonProperty("profiling-include")
+	@JsonProperty ("profiling-include")
 	private List<String> profilingInclude;
-	@JsonProperty("pathname-template")
+	@JsonProperty ("pathname-template")
 	private String pathNameTemplate;
 	private PublishConfigPublish publish;
 	
+	public PublishConfig(PublishConfig pc) {
+		this.active = pc.isActive();
+		this.visible = pc.isVisible();
+		this.statusInclude = pc.getStatusInclude();
+		this.profilingInclude = pc.getProfilingInclude();
+		this.pathNameTemplate = pc.getPathNameTemplate();
+		this.publish = pc.getPublish();
+	}
 	public PublishConfig() {
+		
 	}
 	public boolean isActive() {
 		return active;
