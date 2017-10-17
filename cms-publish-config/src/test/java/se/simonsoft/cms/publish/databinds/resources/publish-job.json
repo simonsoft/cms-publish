@@ -67,6 +67,7 @@
 					},
 					"properties": {
 						"svn:mime-type": "image/jpeg",
+						"cms:status": "In_Work",
 						"cms:keywords": "photo"
 					}
 				}

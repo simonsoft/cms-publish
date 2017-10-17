@@ -127,6 +127,23 @@ public class TestPublishJob {
 		assertEquals("photo", properties.get("cms:keywords"));
 		
 	}
+	
+	@Test
+	public void testImplementedMethods() throws JsonProcessingException, FileNotFoundException, IOException {
+		PublishJob jsonPj = new PublishJob();
+		jsonPj = reader.readValue(getJsonString());
+		
+		//Asserts getItemId
+		PublishJobItem item = jsonPj.getPublish().getReport3().getItems().get(0);
+		CmsItemId itemId = item.getId();
+		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg", itemId.getRepositoryUrl());
+		assertEquals(157, itemId.getPegRev().longValue());
+		
+		RepoRevision revision = item.getRevisionChanged();
+		assertEquals("2013-01-06T16:36:05", revision.getDateIso());
+		assertEquals("In_Work", item.getStatus());
+		assertEquals(1278231, item.getFilesize());
+	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);

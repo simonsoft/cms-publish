@@ -13,13 +13,14 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.CmsItemPath;
+import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobItem implements CmsItem {
-	
+
 	private String logicalhead;
 	private String date;
 	private String repourl;
@@ -37,7 +38,7 @@ public class PublishJobItem implements CmsItem {
 	private String name;
 	private PublishJobItemChecksum checksum;
 	private CmsItemPropertiesMap properties;
-	
+
 	public String getLogicalhead() {
 		return logicalhead;
 	}
@@ -146,21 +147,25 @@ public class PublishJobItem implements CmsItem {
 	@Override
 	public CmsItemId getId() {
 		CmsItemPath itemPath = new CmsItemPath(this.path);
-		CmsItemId itemId = getId().withRelPath(itemPath);
-		
+		CmsRepository repo = new CmsRepository(this.url);
+		long rev = this.revision;
+		CmsItemId itemId = repo.getItemId().withRelPath(itemPath).withPegRev(rev);
+
 		return itemId;
 	}
 	@Override
 	public RepoRevision getRevisionChanged() {
 		Date date = null;
 		try {
-		DateFormat format = new SimpleDateFormat("yyyy-mm-ddThh:mm:ss.SSSZ");
-		date = format.parse(this.date);
+			String jsonDate = this.date;
+			jsonDate = jsonDate.replaceAll("T", " ");
+			DateFormat format = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss.SSS");
+			date = format.parse(jsonDate);
 		}catch(ParseException e) {
 			e.printStackTrace();
 		}
 		RepoRevision repoR = new RepoRevision(this.revision, date);
-		
+
 		return repoR;
 	}
 	@Override
@@ -174,7 +179,11 @@ public class PublishJobItem implements CmsItem {
 	}
 	@Override
 	public String getStatus() {
-		throw new UnsupportedOperationException("Status is not available");
+		String status = null;
+		if(this.properties.get("cms:status") != null) {
+			status = this.properties.getString("cms:status");
+		}
+		return status;
 	}
 	@Override
 	public long getFilesize() {
@@ -183,6 +192,6 @@ public class PublishJobItem implements CmsItem {
 	@Override
 	public void getContents(OutputStream receiver) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException("Content is not available");
-		
+
 	}
 }
