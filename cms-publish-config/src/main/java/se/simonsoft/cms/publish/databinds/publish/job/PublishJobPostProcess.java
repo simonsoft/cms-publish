@@ -5,7 +5,7 @@ import java.util.Map;
 public class PublishJobPostProcess {
 	private String type;
 	private Map<String, String> params;
-	
+
 	public String getType() {
 		return type;
 	}

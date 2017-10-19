@@ -11,7 +11,7 @@ public class PublishJobPublish {
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
 	private PublishJobDelivery delivery;
-	
+
 	public String getType() {
 		return type;
 	}
@@ -60,7 +60,4 @@ public class PublishJobPublish {
 	public void setDelivery(PublishJobDelivery delivery) {
 		this.delivery = delivery;
 	}
-	
-	
-
 }

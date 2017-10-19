@@ -1,10 +1,10 @@
 package se.simonsoft.cms.publish.databinds.publish.job;
 
 public class PublishJobProfiling {
-	
+
 	private String name;
 	private String logicalexpr;
-	
+
 	public String getName() {
 		return name;
 	}

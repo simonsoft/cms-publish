@@ -6,10 +6,7 @@ public class PublishJobMeta {
 	public String getPathname() {
 		return pathname;
 	}
-
 	public void setPathname(String pathname) {
 		this.pathname = pathname;
 	}
-	
-	
 }

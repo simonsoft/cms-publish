@@ -13,23 +13,14 @@ public class PublishJobItemChecksum extends HashMap<String, String> implements C
 	public boolean has(Algorithm algorithm) {
 		return this.containsKey(algorithm.toString());
 	}
-
-	@Override
-	public String getHex(Algorithm algorithm) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	@Override
 	public String getMd5() throws UnsupportedOperationException {
-		return this.get("MD5");
+		return getHex(Algorithm.MD5);
 	}
-
 	@Override
 	public String getSha1() throws UnsupportedOperationException {
-		return this.get("SHA1");
+		return getHex(Algorithm.SHA1);
 	}
-
 	@Override
 	public boolean equalsKnown(Checksum obj) {
 		for (Algorithm a : Algorithm.values()) {
@@ -37,5 +28,9 @@ public class PublishJobItemChecksum extends HashMap<String, String> implements C
 		}
 		return false;
 	}
-
+	@Override
+	public String getHex(Algorithm algorithm) {
+		// TODO Auto-generated method stub
+		return this.get(algorithm.toString());
+	}
 }

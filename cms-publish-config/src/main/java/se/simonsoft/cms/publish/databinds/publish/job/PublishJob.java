@@ -4,11 +4,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJob {
-	
+
 	private String configname;
 	private String type;
 	private String action;
@@ -19,7 +17,7 @@ public class PublishJob {
 	private List<String> statusInclude;
 	private List<String> profilingInclude;
 	private String pathnameTemplate;
-	
+
 	public PublishJob(PublishJob pj) {
 		this.configname = pj.getConfigname();
 		this.type = pj.getType();
@@ -35,7 +33,6 @@ public class PublishJob {
 	public PublishJob() {
 		super();
 	}
-	
 	public String getConfigname() {
 		return configname;
 	}
@@ -96,5 +93,4 @@ public class PublishJob {
 	public void setPathnameTemplate(String pathnameTemplate) {
 		this.pathnameTemplate = pathnameTemplate;
 	}
-	
 }

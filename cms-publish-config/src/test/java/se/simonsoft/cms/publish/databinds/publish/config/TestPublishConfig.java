@@ -26,7 +26,6 @@ public class TestPublishConfig extends TestCase {
 		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader(PublishConfig.class);
 	}
-
 	@Test
 	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
 		PublishConfig jsonPc = new PublishConfig();
@@ -59,7 +58,6 @@ public class TestPublishConfig extends TestCase {
 			jsonPc = r.readValue(getJsonString2());
 
 			fail("Expectected UnrecognizedPropertyException to be thrown");
-
 		}catch(UnrecognizedPropertyException e){
 			assertNotNull(e);
 			e.printStackTrace();
@@ -72,11 +70,8 @@ public class TestPublishConfig extends TestCase {
 		}catch(IOException e) {
 			assertNotNull(e);
 			e.printStackTrace();
-			
 		}
-
 	}
-
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
@@ -86,7 +81,6 @@ public class TestPublishConfig extends TestCase {
 		while((line = reader.readLine()) != null) {
 			out.append(line);
 		}
-
 		reader.close();
 		return out.toString();
 	}
@@ -99,7 +93,6 @@ public class TestPublishConfig extends TestCase {
 		while((line = reader.readLine()) != null) {
 			out.append(line);
 		}
-
 		reader.close();
 		return out.toString();
 	}

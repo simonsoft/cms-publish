@@ -155,16 +155,9 @@ public class PublishJobItem implements CmsItem {
 	}
 	@Override
 	public RepoRevision getRevisionChanged() {
-		Date date = null;
-		try {
-			String jsonDate = this.date;
-			jsonDate = jsonDate.replaceAll("T", " ");
-			DateFormat format = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss.SSS");
-			date = format.parse(jsonDate);
-		}catch(ParseException e) {
-			e.printStackTrace();
-		}
-		RepoRevision repoR = new RepoRevision(this.revision, date);
+		RepoRevision repoR = null;
+		Date date = repoR.parseDate(this.date);
+		repoR = new RepoRevision(this.revision, date);
 
 		return repoR;
 	}
@@ -175,6 +168,7 @@ public class PublishJobItem implements CmsItem {
 	@Override
 	public CmsItemKind getKind() {
 		CmsItemKind itemKind = CmsItemKind.fromString(this.kind);
+		
 		return itemKind;
 	}
 	@Override
@@ -192,6 +186,5 @@ public class PublishJobItem implements CmsItem {
 	@Override
 	public void getContents(OutputStream receiver) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException("Content is not available");
-
 	}
 }
