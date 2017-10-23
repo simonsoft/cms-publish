@@ -1,9 +1,9 @@
 {
   "active": true,
   "visible": true,
-  "status-include": ["Review", "Released"],
-  "profiling-include": ["*"],
-  "pathname-template": "velocity-stuff.pdf",
+  "statusInclude": ["Review", "Released"],
+  "profilingInclude": ["*"],
+  "pathnameTemplate": "velocity-stuff.pdf",
 
   "publish" : {
       "type": "abxpe",

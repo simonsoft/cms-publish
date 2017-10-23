@@ -7,14 +7,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown=false)
 public class PublishConfig {
 
-	private boolean active;
-	private boolean visible;
-	@JsonProperty ("status-include")
-	private List<String> statusInclude;
-	@JsonProperty ("profiling-include")
-	private List<String> profilingInclude;
-	@JsonProperty ("pathname-template")
-	private String pathNameTemplate;
+	protected boolean active;
+	protected boolean visible;
+	protected List<String> statusInclude;
+	protected List<String> profilingInclude;
+	protected String pathnameTemplate;
 	private PublishConfigPublish publish;
 	
 	public PublishConfig(PublishConfig pc) {
@@ -22,7 +19,7 @@ public class PublishConfig {
 		this.visible = pc.isVisible();
 		this.statusInclude = pc.getStatusInclude();
 		this.profilingInclude = pc.getProfilingInclude();
-		this.pathNameTemplate = pc.getPathNameTemplate();
+		this.pathnameTemplate = pc.getPathnameTemplate();
 		this.publish = pc.getPublish();
 	}
 	public PublishConfig() {
@@ -52,11 +49,11 @@ public class PublishConfig {
 	public void setProfilingInclude(List<String> profilingInclude) {
 		this.profilingInclude = profilingInclude;
 	}
-	public String getPathNameTemplate() {
-		return pathNameTemplate;
+	public String getPathnameTemplate() {
+		return pathnameTemplate;
 	}
-	public void setPathNameTemplate(String pathNameTemplate) {
-		this.pathNameTemplate = pathNameTemplate;
+	public void setPathnameTemplate(String pathNameTemplate) {
+		this.pathnameTemplate = pathNameTemplate;
 	}
 	public PublishConfigPublish getPublish() {
 		return publish;

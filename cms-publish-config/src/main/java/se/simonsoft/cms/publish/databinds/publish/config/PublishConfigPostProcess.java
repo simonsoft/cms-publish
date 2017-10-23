@@ -9,9 +9,7 @@ public class PublishConfigPostProcess {
 	private String type;
 	private Map <String, String> params;
 	
-	public PublishConfigPostProcess() {
-		super();
-	}
+	public PublishConfigPostProcess() { }
 	public String getType() {
 		return type;
 	}

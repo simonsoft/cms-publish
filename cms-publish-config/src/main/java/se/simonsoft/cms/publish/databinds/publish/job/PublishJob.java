@@ -4,26 +4,23 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PublishJob {
+public class PublishJob extends PublishConfig {
 
 	private String configname;
 	private String type;
 	private String action;
 	private String itemid;
 	private PublishJobPublish publish;
-	private boolean active;
-	private boolean visible;
-	private List<String> statusInclude;
-	private List<String> profilingInclude;
-	private String pathnameTemplate;
 
 	public PublishJob(PublishJob pj) {
 		this.configname = pj.getConfigname();
 		this.type = pj.getType();
 		this.action = pj.getAction();
 		this.itemid = pj.getItemid();
-		this.publish = pj.getPublish();
+		this.publish = pj.getPublishJob();
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
 		this.statusInclude = pj.getStatusInclude();
@@ -57,7 +54,7 @@ public class PublishJob {
 	public void setItemid(String itemid) {
 		this.itemid = itemid;
 	}
-	public PublishJobPublish getPublish() {
+	public PublishJobPublish getPublishJob() {
 		return publish;
 	}
 	public void setPublish(PublishJobPublish publish) {

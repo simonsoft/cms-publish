@@ -31,7 +31,7 @@ public class TestPublishConfig extends TestCase {
 		PublishConfig jsonPc = new PublishConfig();
 		jsonPc = reader.readValue(getJsonString());
 
-		assertEquals("velocity-stuff.pdf", jsonPc.getPathNameTemplate());
+		assertEquals("velocity-stuff.pdf", jsonPc.getPathnameTemplate());
 		assertEquals("*", jsonPc.getProfilingInclude().get(0));
 		assertEquals("Review", jsonPc.getStatusInclude().get(0));
 		assertEquals("Released", jsonPc.getStatusInclude().get(1));
@@ -44,8 +44,8 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("great", jsonPc.getPublish().getParams().get("whatever"));
 		assertEquals("s3", jsonPc.getPublish().getStorage().getType());
 		assertEquals("parameter for future destination types", jsonPc.getPublish().getStorage().getParams().get("specific"));
-		assertEquals("future stuff", jsonPc.getPublish().getPostProcess().getType());
-		assertEquals("parameter for future destination types", jsonPc.getPublish().getPostProcess().getParams().get("specific"));
+		assertEquals("future stuff", jsonPc.getPublish().getPostprocess().getType());
+		assertEquals("parameter for future destination types", jsonPc.getPublish().getPostprocess().getParams().get("specific"));
 		assertEquals("webhook", jsonPc.getPublish().getDelivery().getType());
 	}
 

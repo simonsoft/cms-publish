@@ -12,8 +12,7 @@ public class PublishConfigPublish {
 	private String format;
 	private Map <String, String> params;
 	private PublishConfigStorage storage;
-	@JsonProperty ("postprocess")
-	private PublishConfigPostProcess postProcess;
+	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;
 	
 	public PublishConfigPublish() {
@@ -43,11 +42,11 @@ public class PublishConfigPublish {
 	public void setStorage(PublishConfigStorage storage) {
 		this.storage = storage;
 	}
-	public PublishConfigPostProcess getPostProcess() {
-		return postProcess;
+	public PublishConfigPostProcess getPostprocess() {
+		return postprocess;
 	}
-	public void setPostProcess(PublishConfigPostProcess postProcess) {
-		this.postProcess = postProcess;
+	public void setPostprocess(PublishConfigPostProcess postProcess) {
+		this.postprocess = postProcess;
 	}
 	public PublishConfigDelivery getDelivery() {
 		return delivery;

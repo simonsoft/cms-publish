@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.item.CmsItem;
@@ -30,7 +31,7 @@ public class PublishJobItem implements CmsItem {
 	private String uri;
 	private String url;
 	private String logical;
-	private int revision;
+	private long revision;
 	private boolean head;
 	private String path;
 	private PublishJobItemFile file;
@@ -90,10 +91,10 @@ public class PublishJobItem implements CmsItem {
 	public void setLogical(String logical) {
 		this.logical = logical;
 	}
-	public int getRevision() {
+	public long getRevision() {
 		return revision;
 	}
-	public void setRevision(int revision) {
+	public void setRevision(long revision) {
 		this.revision = revision;
 	}
 	public boolean isHead() {
@@ -138,21 +139,16 @@ public class PublishJobItem implements CmsItem {
 	public void setProperties(CmsItemPropertiesMap properties) {
 		this.properties = properties;
 	}
-	@Override
-	public String toString() {
-		return "PublishJobItem [locicalhead=" + logicalhead + ", date=" + date + ", repourl=" + repourl + ", kind=" + kind + ", namebase=" + namebase + ", commit=" + commit + ", uri=" + uri + ", url="
-				+ url + ", logical=" + logical + ", revision=" + revision + ", head=" + head + ", path=" + path + ", file=" + file + ", meta=" + meta + ", name=" + name + ", checksum=" + checksum
-				+ ", properties=" + properties + "]";
-	}
+	@JsonIgnore
 	@Override
 	public CmsItemId getId() {
 		CmsItemPath itemPath = new CmsItemPath(this.path);
-		CmsRepository repo = new CmsRepository(this.url);
-		long rev = this.revision;
-		CmsItemId itemId = repo.getItemId().withRelPath(itemPath).withPegRev(rev);
+		CmsRepository repo = new CmsRepository(this.repourl);
+		CmsItemId itemId = repo.getItemId(itemPath, this.revision);
 
 		return itemId;
 	}
+	@JsonIgnore
 	@Override
 	public RepoRevision getRevisionChanged() {
 		RepoRevision repoR = null;
@@ -161,16 +157,20 @@ public class PublishJobItem implements CmsItem {
 
 		return repoR;
 	}
+	@JsonIgnore
 	@Override
 	public String getRevisionChangedAuthor() {
-		throw new UnsupportedOperationException("Author is not available");
+		//throw new UnsupportedOperationException("Author is not available");
+		return null;
 	}
+	@JsonIgnore
 	@Override
 	public CmsItemKind getKind() {
 		CmsItemKind itemKind = CmsItemKind.fromString(this.kind);
 		
 		return itemKind;
 	}
+	@JsonIgnore
 	@Override
 	public String getStatus() {
 		String status = null;
@@ -179,12 +179,14 @@ public class PublishJobItem implements CmsItem {
 		}
 		return status;
 	}
+	@JsonIgnore
 	@Override
 	public long getFilesize() {
 		return this.file.getSize();
 	}
+	@JsonIgnore
 	@Override
 	public void getContents(OutputStream receiver) throws UnsupportedOperationException {
-		throw new UnsupportedOperationException("Content is not available");
+		//throw new UnsupportedOperationException("Content is not available");
 	}
 }

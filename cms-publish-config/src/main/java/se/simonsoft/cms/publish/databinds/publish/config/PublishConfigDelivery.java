@@ -6,9 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class PublishConfigDelivery {
 	private String type;
 
-	public PublishConfigDelivery() {
-		super();
-	}
+	public PublishConfigDelivery() { }
 	public String getType() {
 		return type;
 	}
