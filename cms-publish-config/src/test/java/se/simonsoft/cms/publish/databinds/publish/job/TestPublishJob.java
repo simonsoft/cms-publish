@@ -189,6 +189,10 @@ public class TestPublishJob {
 		PublishJobReport3 report3 = jsonPj.getPublishJob().getReport3();
 		String writeValueAsString = writer.writeValueAsString(report3);
 
+		ObjectReader report3JsonReader = reader.forType(PublishJobReport3Json.class);
+		PublishJobReport3Json report3Json = report3JsonReader.readValue(writeValueAsString);
+
+
 
 		PublishJobItem pjItem = new PublishJobItem();
 		pjItem.setLogicalhead("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg");
