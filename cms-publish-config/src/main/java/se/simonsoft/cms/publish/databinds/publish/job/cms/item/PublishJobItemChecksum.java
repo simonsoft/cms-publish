@@ -30,7 +30,6 @@ public class PublishJobItemChecksum extends HashMap<String, String> implements C
 	}
 	@Override
 	public String getHex(Algorithm algorithm) {
-		// TODO Auto-generated method stub
 		return this.get(algorithm.toString());
 	}
 }

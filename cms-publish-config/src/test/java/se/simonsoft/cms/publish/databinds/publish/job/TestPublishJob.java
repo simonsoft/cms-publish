@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.BeforeClass;
@@ -23,6 +25,8 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemChecksum;
+import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemCommit;
+import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemFile;
 
 public class TestPublishJob {
 	private static ObjectReader reader;
@@ -157,7 +161,7 @@ public class TestPublishJob {
 			fail("Expected IllegalArgumentException to be thrown");
 		} catch(IllegalArgumentException e) {
 			assertNotNull(e);
-			e.printStackTrace();
+			//	e.printStackTrace();
 		}
 	}
 	//Test for implemented CheckSum.getHex() method in PublishJobCheckSum.java
@@ -185,10 +189,62 @@ public class TestPublishJob {
 		PublishJobReport3 report3 = jsonPj.getPublishJob().getReport3();
 		String writeValueAsString = writer.writeValueAsString(report3);
 
-		ObjectReader report3JsonReader = reader.forType(PublishJobReport3Json.class);
-		PublishJobReport3Json report3Json = report3JsonReader.readValue(writeValueAsString);
 
-		assertEquals(getTestItemString(),report3Json.getItemsString());
+		PublishJobItem pjItem = new PublishJobItem();
+		pjItem.setLogicalhead("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg");
+		pjItem.setDate("2013-11-06T17:36:05.941Z");
+		pjItem.setRepourl("http://demo-dev.simonsoftcms.se/svn/demo1");
+		pjItem.setKind("file");
+		pjItem.setNamebase("VV10084_25193");
+		PublishJobItemCommit pjCommit = new PublishJobItemCommit();
+		pjCommit.setDate("2013-11-06T17:36:05.941Z");
+		pjCommit.setRevision(157);
+		pjItem.setCommit(pjCommit);
+		pjItem.setUri("/svn/demo1/vvab/graphics/VV10084_25193.jpg");
+		pjItem.setUrl("http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg");
+		pjItem.setLogical("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg?p=157");
+		pjItem.setRevision(157);
+		pjItem.setHead(true);
+		pjItem.setPath("/vvab/graphics/VV10084_25193.jpg");
+		PublishJobItemFile pjFile = new PublishJobItemFile();
+		pjFile.setSize(1278231);
+		pjItem.setFile(pjFile);
+		pjItem.setMeta(null);
+		pjItem.setName("VV10084_25193.jpg");
+		PublishJobItemChecksum checksum = new PublishJobItemChecksum();
+		pjItem.setChecksum(checksum);
+		pjItem.setProperties(null);
+
+		PublishJobReport3Json reportJson = new PublishJobReport3Json();
+		PublishJobMeta pjMeta = new PublishJobMeta();
+		pjMeta.setPathname("testPathName");
+		reportJson.setMeta(pjMeta);
+		List<PublishJobItem> items = new ArrayList();
+		items.add(pjItem);
+		reportJson.setItems(items);
+
+		jsonPj.getPublishJob().setReport3(reportJson);
+
+		PublishJobReport3 pjReport = jsonPj.getPublishJob().getReport3();
+		assertEquals("testPathName", pjReport.getMeta().getPathname());
+
+		PublishJobItem publishJobItem = jsonPj.getPublishJob().getReport3().getItems().get(0);
+		assertEquals("2013-11-06T17:36:05.941Z", publishJobItem.getDate());
+		assertEquals("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg", publishJobItem.getLogicalhead());
+		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1", publishJobItem.getRepourl());
+		assertEquals("VV10084_25193", publishJobItem.getNamebase());
+		assertEquals("2013-11-06T17:36:05.941Z", publishJobItem.getCommit().getDate());
+		assertEquals(157, publishJobItem.getCommit().getRevision());
+		assertEquals("/svn/demo1/vvab/graphics/VV10084_25193.jpg", publishJobItem.getUri());
+		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg", publishJobItem.getUrl());
+		assertEquals("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg?p=157", publishJobItem.getLogical());
+		assertEquals(157 , publishJobItem.getRevision());
+		assertEquals(true, publishJobItem.isHead());
+		assertEquals("/vvab/graphics/VV10084_25193.jpg", publishJobItem.getPath());
+		assertEquals(1278231, publishJobItem.getFile().getSize());
+		assertEquals(null, publishJobItem.getMeta());
+		assertEquals("VV10084_25193.jpg", publishJobItem.getName());
+		assertEquals(null, publishJobItem.getProperties());
 	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
@@ -202,7 +258,7 @@ public class TestPublishJob {
 		reader.close();
 		return out.toString();
 	}
-	private String getItemStringFromFIle() throws IOException {
+	private String getItemStringFromFile() throws IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job-item.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
