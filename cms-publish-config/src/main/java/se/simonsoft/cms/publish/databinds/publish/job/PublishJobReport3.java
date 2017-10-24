@@ -2,8 +2,11 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobReport3 {
 	private PublishJobMeta meta;
 	private List<PublishJobItem> items;

@@ -9,30 +9,30 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
-import javax.swing.plaf.basic.BasicTreeUI.CellEditorHandler;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.Checksum.Algorithm;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemChecksum;
 
 public class TestPublishJob {
 	private static ObjectReader reader;
+	private static ObjectWriter writer;
 
 	@BeforeClass
 	public static void setUp() {
 		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader(PublishJob.class);
+		writer = mapper.writer();
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class TestPublishJob {
 		assertEquals("pdf/html/web/rtf/...", publish.getFormat());
 
 		//Asserts for PublishJob Params
-		Map<String, String> params = jsonPj.getPublish().getParams();
+		Map<String, String> params = jsonPj.getPublishJob().getParams();
 		assertEquals("stylesheet.css", params.get("stylesheet"));
 		assertEquals("config.pdf", params.get("pdfconfig"));
 		assertEquals("great", params.get("whatever"));
@@ -81,7 +81,7 @@ public class TestPublishJob {
 		assertEquals("900108 or profiling.name", storage.getPathnamebase());
 
 		//Asserts for PublishJobStorage's params
-		Map<String, String> pJSParams = jsonPj.getPublish().getStorage().getParams();
+		Map<String, String> pJSParams = jsonPj.getPublishJob().getStorage().getParams();
 		assertEquals("parameter for future destination types", pJSParams.get("specific"));
 		assertEquals("cms-automation", pJSParams.get("s3bucket"));
 		assertEquals("\\\\?\\C:\\my_dir", pJSParams.get("fspath"));
@@ -92,14 +92,13 @@ public class TestPublishJob {
 		assertEquals("parameter for future destination types", postProcess.getParams().get("specific"));
 
 		//Testing PublishJobDelivery
-		assertEquals("webhook / s3copy", jsonPj.getPublish().getDelivery().getType());
+		assertEquals("webhook / s3copy", jsonPj.getPublishJob().getDelivery().getType());
 
 		// Asserts for PublishJobItem
 		PublishJobItem item = jsonPj.getPublishJob().getReport3().getItems().get(0);
 		assertEquals("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg", item.getLogicalhead());
 		assertEquals("2013-11-06T17:36:05.941Z", item.getDate());
 		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1", item.getRepourl());
-		assertEquals(true, item.getKind().isFile());
 		assertEquals("VV10084_25193", item.getNamebase());
 		assertEquals("2013-11-06T17:36:05.941Z", item.getCommit().getDate());
 		assertEquals(157, item.getCommit().getRevision());
@@ -167,27 +166,29 @@ public class TestPublishJob {
 		PublishJob jsonPj = new PublishJob();
 		jsonPj = reader.readValue(getJsonString());
 		PublishJobItemChecksum checksum = jsonPj.getPublishJob().getReport3().getItems().get(0).getChecksum();
-		
+
 		assertEquals("36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0", checksum.getHex(Algorithm.SHA256));
 		assertEquals("280f99fb1e13e5834209fa70e65fa322", checksum.getHex(Algorithm.MD5));
 		assertEquals("2f55113d0efbf47f3888742346e29bde582942a0", checksum.getHex(Algorithm.SHA1));
-		
+
 		assertEquals("280f99fb1e13e5834209fa70e65fa322", checksum.getMd5());
 		assertEquals("2f55113d0efbf47f3888742346e29bde582942a0", checksum.getSha1());
-		
+
 		assertEquals(true, checksum.has(Algorithm.SHA256));
 		assertEquals(true, checksum.equalsKnown(checksum));
 	}
 	@Test
 	public void testGettingItemsAsJsonString() throws JsonProcessingException, FileNotFoundException, IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		reader = mapper.reader(PublishJob.class);
 		PublishJob jsonPj = new PublishJob();
 		jsonPj = reader.readValue(getJsonString());
-		
-		String itemsString = mapper.writeValueAsString(jsonPj.getPublishJob().getReport3().getItems().get(0));
-		
-		assertEquals(getItemString(), itemsString);
+
+		PublishJobReport3 report3 = jsonPj.getPublishJob().getReport3();
+		String writeValueAsString = writer.writeValueAsString(report3);
+
+		ObjectReader report3JsonReader = reader.forType(PublishJobReport3Json.class);
+		PublishJobReport3Json report3Json = report3JsonReader.readValue(writeValueAsString);
+
+		assertEquals(getTestItemString(),report3Json.getItemsString());
 	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
@@ -201,7 +202,7 @@ public class TestPublishJob {
 		reader.close();
 		return out.toString();
 	}
-	private String getItemString() throws IOException {
+	private String getItemStringFromFIle() throws IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job-item.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
@@ -212,5 +213,8 @@ public class TestPublishJob {
 		}
 		reader.close();
 		return out.toString();
+	}
+	private String getTestItemString() {
+		return "[{\"logicalhead\":\"x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg\",\"date\":\"2013-11-06T17:36:05.941Z\",\"repourl\":\"http://demo-dev.simonsoftcms.se/svn/demo1\",\"namebase\":\"VV10084_25193\",\"commit\":{\"date\":\"2013-11-06T17:36:05.941Z\",\"revision\":157},\"uri\":\"/svn/demo1/vvab/graphics/VV10084_25193.jpg\",\"url\":\"http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg\",\"logical\":\"x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg?p=157\",\"revision\":157,\"head\":true,\"path\":\"/vvab/graphics/VV10084_25193.jpg\",\"file\":{\"size\":1278231},\"meta\":{\"xmp_dc.description\":\"                               \",\"xmp_tiff.ImageWidth\":\"3958\",\"xmp_tiff.XResolution\":\"300.0\",\"xmp_tiff.ImageLength\":\"2208\",\"xmp_xmpMM.DocumentID\":\"adobe:docid:photoshop:8de8ca65-4384-11de-b5f4-c6ba9a188b9c\",\"xmp_tiff.SamplesPerPixel\":\"4\",\"xmp_tiff.Orientation\":\"1\",\"xmp_tiff.ResolutionUnit\":\"Inch\",\"xmp_tiff.BitsPerSample\":\"8\",\"xmp_tiff.YResolution\":\"300.0\"},\"name\":\"VV10084_25193.jpg\",\"checksum\":{\"SHA256\":\"36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0\",\"SHA1\":\"2f55113d0efbf47f3888742346e29bde582942a0\",\"MD5\":\"280f99fb1e13e5834209fa70e65fa322\"},\"properties\":{\"svn:mime-type\":\"image/jpeg\",\"cms:status\":\"In_Work\",\"cms:keywords\":\"photo\"}}]";
 	}
 }
