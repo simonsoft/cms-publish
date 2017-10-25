@@ -7,10 +7,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.runtime.RuntimeServices;
+import org.apache.velocity.runtime.RuntimeSingleton;
+import org.apache.velocity.runtime.parser.ParseException;
+import org.apache.velocity.runtime.parser.node.SimpleNode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -53,7 +62,7 @@ public class TestPublishJob {
 		assertEquals("Review", jsonPj.getStatusInclude().get(0));
 		assertEquals("Released", jsonPj.getStatusInclude().get(1));
 		assertEquals("*", jsonPj.getProfilingInclude().get(0));
-		assertEquals("velocity-stuff.pdf", jsonPj.getPathnameTemplate());
+		assertEquals("DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf", jsonPj.getPathnameTemplate());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123", jsonPj.getItemid());
 
 		//Asserts for PublishJobParams
@@ -130,7 +139,6 @@ public class TestPublishJob {
 		CmsItemPropertiesMap properties = (CmsItemPropertiesMap) jsonPj.getPublishJob().getReport3().getItems().get(0).getProperties();
 		assertEquals("image/jpeg", properties.get("svn:mime-type"));
 		assertEquals("photo", properties.get("cms:keywords"));
-
 	}
 	//Tests if the implemented methods from CmsItem runs correctly
 	@Test
@@ -193,7 +201,6 @@ public class TestPublishJob {
 		PublishJobReport3Json report3Json = report3JsonReader.readValue(writeValueAsString);
 
 
-
 		PublishJobItem pjItem = new PublishJobItem();
 		pjItem.setLogicalhead("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg");
 		pjItem.setDate("2013-11-06T17:36:05.941Z");
@@ -249,6 +256,30 @@ public class TestPublishJob {
 		assertEquals(null, publishJobItem.getMeta());
 		assertEquals("VV10084_25193.jpg", publishJobItem.getName());
 		assertEquals(null, publishJobItem.getProperties());
+	}
+	@Test
+	public void testVelocityPathname() throws JsonProcessingException, FileNotFoundException, IOException, ParseException {
+		PublishJob jsonPj = new PublishJob();
+		jsonPj = reader.readValue(getJsonString());
+		
+		Velocity.init();
+		VelocityContext context = new VelocityContext();
+		
+		PublishJobItem publishJobItem = jsonPj.getPublishJob().getReport3().getItems().get(0);
+		context.put("item", publishJobItem);
+		
+		RuntimeServices runtimeServices = RuntimeSingleton.getRuntimeServices();
+		StringReader reader = new StringReader(jsonPj.getPathnameTemplate());
+		Template template = new Template();
+		SimpleNode node = runtimeServices.parse(reader, template);
+		template.setRuntimeServices(runtimeServices);
+		template.setData(node);
+		template.initDocument();
+		
+		StringWriter writer = new StringWriter();
+		template.merge(context, writer);
+		
+		assertEquals("DOC_VV10084_25193_In_Work.pdf" , writer.toString());
 	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
