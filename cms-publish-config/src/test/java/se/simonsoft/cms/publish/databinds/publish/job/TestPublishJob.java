@@ -7,19 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.runtime.RuntimeServices;
-import org.apache.velocity.runtime.RuntimeSingleton;
-import org.apache.velocity.runtime.parser.ParseException;
-import org.apache.velocity.runtime.parser.node.SimpleNode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -269,7 +260,6 @@ public class TestPublishJob {
 		String evaluate = templateString.evaluate();
 		
 		assertEquals("DOC_VV10084_25193_In_Work.pdf" , evaluate);
-
 	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
