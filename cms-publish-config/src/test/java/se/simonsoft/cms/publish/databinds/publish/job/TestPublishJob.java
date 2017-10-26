@@ -32,6 +32,7 @@ import se.simonsoft.cms.item.Checksum.Algorithm;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemChecksum;
 import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItemCommit;
@@ -258,28 +259,17 @@ public class TestPublishJob {
 		assertEquals(null, publishJobItem.getProperties());
 	}
 	@Test
-	public void testVelocityPathname() throws JsonProcessingException, FileNotFoundException, IOException, ParseException {
+	public void testPublishCOnfigTemplateString() throws JsonProcessingException, FileNotFoundException, IOException {
 		PublishJob jsonPj = new PublishJob();
 		jsonPj = reader.readValue(getJsonString());
+
+		PublishConfigTemplateString templateString = new PublishConfigTemplateString(jsonPj.getPathnameTemplate());
+
+		templateString.withEntry("item", jsonPj.getPublishJob().getReport3().getItems().get(0));
+		String evaluate = templateString.evaluate();
 		
-		Velocity.init();
-		VelocityContext context = new VelocityContext();
-		
-		PublishJobItem publishJobItem = jsonPj.getPublishJob().getReport3().getItems().get(0);
-		context.put("item", publishJobItem);
-		
-		RuntimeServices runtimeServices = RuntimeSingleton.getRuntimeServices();
-		StringReader reader = new StringReader(jsonPj.getPathnameTemplate());
-		Template template = new Template();
-		SimpleNode node = runtimeServices.parse(reader, template);
-		template.setRuntimeServices(runtimeServices);
-		template.setData(node);
-		template.initDocument();
-		
-		StringWriter writer = new StringWriter();
-		template.merge(context, writer);
-		
-		assertEquals("DOC_VV10084_25193_In_Work.pdf" , writer.toString());
+		assertEquals("DOC_VV10084_25193_In_Work.pdf" , evaluate);
+
 	}
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
