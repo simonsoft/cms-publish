@@ -1,8 +1,17 @@
 package se.simonsoft.cms.publish.databinds.publish.job;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-public class PublishJobPublish {
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
+
+public class PublishJobOptions {
+	private String pathname;
 	private String type;
 	private String format;
 	private Map<String, String> params;
@@ -10,6 +19,7 @@ public class PublishJobPublish {
 	private PublishJobReport3 report3;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
+	private PublishJobProgress progress;
 	private PublishJobDelivery delivery;
 
 	public String getType() {
@@ -54,10 +64,51 @@ public class PublishJobPublish {
 	public void setPostprocess(PublishJobPostProcess postprocess) {
 		this.postprocess = postprocess;
 	}
+	public String getPathname() {
+		return pathname;
+	}
+	public void setPathname(String pathname) {
+		this.pathname = pathname;
+	}
+	public PublishJobProgress getProgress() {
+		return progress;
+	}
+	public void setProgress(PublishJobProgress progress) {
+		this.progress = progress;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+//		ArrayList<Entry<String, JsonNode>> fieldNames = Lists.newArrayList(progress.fields());
+//		Map<String, Map<String, String>> returnList = new HashMap<String, Map<String, String>>();
+//		Map<String, String> values = new HashMap<String, String>();
+//
+//		for(Entry<String, JsonNode> f : fieldNames) {
+//			String fieldName = f.getKey();
+//			ArrayList<Entry<String, JsonNode>> fields = Lists.newArrayList(f.getValue().fields());
+//			
+//			for(Entry<String, JsonNode> x : fields) {
+//				String key = x.getKey();
+//				String value = x.getValue().toString();
+//			}
+//			returnList.put(f, values);
+//		}
+//		System.out.println(returnList);
+//
+//		this.progress = returnList;
+	}
 	public PublishJobDelivery getDelivery() {
 		return delivery;
 	}
 	public void setDelivery(PublishJobDelivery delivery) {
 		this.delivery = delivery;
+	}
+	public void whatsInProgress() {
+		System.out.println(this.progress);
 	}
 }

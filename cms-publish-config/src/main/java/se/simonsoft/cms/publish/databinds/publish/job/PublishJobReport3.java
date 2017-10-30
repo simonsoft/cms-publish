@@ -1,6 +1,7 @@
 package se.simonsoft.cms.publish.databinds.publish.job;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -8,13 +9,13 @@ import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobReport3 {
-	private PublishJobMeta meta;
+	private Map<String, String> meta;
 	private List<PublishJobItem> items;
 	
-	public PublishJobMeta getMeta() {
+	public Map<String, String> getMeta() {
 		return meta;
 	}
-	public void setMeta(PublishJobMeta meta) {
+	public void setMeta(Map<String, String> meta) {
 		this.meta = meta;
 	}
 	public List<PublishJobItem> getItems() {

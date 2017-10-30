@@ -47,8 +47,8 @@ public class TestPublishJob {
 
 		//Asserts for PublishJob
 		assertEquals("name-from-cmsconfig-publish", jsonPj.getConfigname());
-		assertEquals("publish", jsonPj.getType());
-		assertEquals("publish-report3", jsonPj.getAction());
+		assertEquals("publish-job", jsonPj.getType());
+		assertEquals("publish-noop", jsonPj.getAction());
 		assertEquals(true, jsonPj.isActive());
 		assertEquals(true, jsonPj.isVisible());
 		assertEquals("Review", jsonPj.getStatusInclude().get(0));
@@ -56,51 +56,55 @@ public class TestPublishJob {
 		assertEquals("*", jsonPj.getProfilingInclude().get(0));
 		assertEquals("DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf", jsonPj.getPathnameTemplate());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123", jsonPj.getItemid());
+		
 
-		//Asserts for PublishJobParams
-		PublishJobPublish publish = jsonPj.getPublishJob();
+		//Asserts for PublishJobOptions
+		PublishJobOptions publish = jsonPj.getOptions();
 		assertEquals("abxpe",publish.getType());
 		assertEquals("pdf/html/web/rtf/...", publish.getFormat());
-
-		//Asserts for PublishJob Params
-		Map<String, String> params = jsonPj.getPublishJob().getParams();
+		assertEquals("evaluated from pathname-template", publish.getPathname());
+		
+		//Asserts for PublishJobProgress
+		PublishJobOptions options = jsonPj.getOptions();
+		assertEquals("whatever engine needs to store",options.getProgress().get("engine").get("map"));
+		assertEquals("value", options.getProgress().get("engine").get("key"));
+		assertEquals("whatever they need to store", options.getProgress().get("webapp").get("map"));
+		assertEquals("value", options.getProgress().get("webapp").get("key"));
+		
+		//Asserts for PublishJobParams
+		Map<String, String> params = jsonPj.getOptions().getParams();
 		assertEquals("stylesheet.css", params.get("stylesheet"));
 		assertEquals("config.pdf", params.get("pdfconfig"));
 		assertEquals("great", params.get("whatever"));
 
 		//Asserts for PublishJobProfiling
-		PublishJobProfiling profiling = jsonPj.getPublishJob().getProfiling();
+		PublishJobProfiling profiling = jsonPj.getOptions().getProfiling();
 		assertEquals("profilingName", profiling.getName());
 		assertEquals("logical.expr", profiling.getLogicalexpr());
 
-		//Asserts for PublishJobReport3
-		PublishJobMeta meta = jsonPj.getPublishJob().getReport3().getMeta();
-		assertEquals("evaluated from pathname-template", meta.getPathname());
-
 		//Asserts for PublishJobStorage
-		PublishJobStorage storage = jsonPj.getPublishJob().getStorage();
+		PublishJobStorage storage = jsonPj.getOptions().getStorage();
 		assertEquals("s3 / fs / ...", storage.getType());
 		assertEquals("/cms4", storage.getPathprefix());
 		assertEquals("/name-from-cmsconfig-publish", storage.getPathconfigname());
 		assertEquals("/vvab/xml/documents/900108.xml", storage.getPathdir());
-		assertEquals("900108 or profiling.name", storage.getPathnamebase());
-
+		
 		//Asserts for PublishJobStorage's params
-		Map<String, String> pJSParams = jsonPj.getPublishJob().getStorage().getParams();
+		Map<String, String> pJSParams = jsonPj.getOptions().getStorage().getParams();
 		assertEquals("parameter for future destination types", pJSParams.get("specific"));
 		assertEquals("cms-automation", pJSParams.get("s3bucket"));
 		assertEquals("\\\\?\\C:\\my_dir", pJSParams.get("fspath"));
 
 		//Asserts for PbulishJobPostProcess
-		PublishJobPostProcess postProcess = jsonPj.getPublishJob().getPostprocess();
+		PublishJobPostProcess postProcess = jsonPj.getOptions().getPostprocess();
 		assertEquals("future stuff", postProcess.getType());
-		assertEquals("parameter for future destination types", postProcess.getParams().get("specific"));
+		assertEquals("parameter for future postprocess stuff", postProcess.getParams().get("specific"));
 
 		//Testing PublishJobDelivery
-		assertEquals("webhook / s3copy", jsonPj.getPublishJob().getDelivery().getType());
+		assertEquals("webhook / s3copy", jsonPj.getOptions().getDelivery().getType());
 
 		// Asserts for PublishJobItem
-		PublishJobItem item = jsonPj.getPublishJob().getReport3().getItems().get(0);
+		PublishJobItem item = jsonPj.getOptions().getReport3().getItems().get(0);
 		assertEquals("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg", item.getLogicalhead());
 		assertEquals("2013-11-06T17:36:05.941Z", item.getDate());
 		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1", item.getRepourl());
@@ -122,13 +126,13 @@ public class TestPublishJob {
 		assertEquals("VV10084_25193.jpg", item.getName());
 
 		//Asserts for PublishJobItemChecksum
-		PublishJobItemChecksum checksum = jsonPj.getPublishJob().getReport3().getItems().get(0).getChecksum();
+		PublishJobItemChecksum checksum = jsonPj.getOptions().getReport3().getItems().get(0).getChecksum();
 		assertEquals("36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0", checksum.get("SHA256"));
 		assertEquals("2f55113d0efbf47f3888742346e29bde582942a0", checksum.get("SHA1"));
 		assertEquals("280f99fb1e13e5834209fa70e65fa322", checksum.get("MD5"));
 
 		//Asserts for PublishJobItem's properties
-		CmsItemPropertiesMap properties = (CmsItemPropertiesMap) jsonPj.getPublishJob().getReport3().getItems().get(0).getProperties();
+		CmsItemPropertiesMap properties = (CmsItemPropertiesMap) jsonPj.getOptions().getReport3().getItems().get(0).getProperties();
 		assertEquals("image/jpeg", properties.get("svn:mime-type"));
 		assertEquals("photo", properties.get("cms:keywords"));
 	}
@@ -139,7 +143,7 @@ public class TestPublishJob {
 		jsonPj = reader.readValue(getJsonString());
 
 		//Asserts getItemId
-		PublishJobItem item = jsonPj.getPublishJob().getReport3().getItems().get(0);
+		PublishJobItem item = jsonPj.getOptions().getReport3().getItems().get(0);
 		CmsItemId itemId = item.getId();
 		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg", itemId.getUrl());
 		assertEquals(157, itemId.getPegRev().longValue());
@@ -156,12 +160,11 @@ public class TestPublishJob {
 			PublishJob jsonPj = new PublishJob();
 			jsonPj = reader.readValue(getJsonString());
 
-			jsonPj.getPublishJob().getReport3().getItems().get(0).setDate("09/22/1993T35:20:44.3821Z");
-			RepoRevision repoR = jsonPj.getPublishJob().getReport3().getItems().get(0).getRevisionChanged();
+			jsonPj.getOptions().getReport3().getItems().get(0).setDate("09/22/1993T35:20:44.3821Z");
+			RepoRevision repoR = jsonPj.getOptions().getReport3().getItems().get(0).getRevisionChanged();
 			fail("Expected IllegalArgumentException to be thrown");
 		} catch(IllegalArgumentException e) {
 			assertNotNull(e);
-			//	e.printStackTrace();
 		}
 	}
 	//Test for implemented CheckSum.getHex() method in PublishJobCheckSum.java
@@ -169,7 +172,7 @@ public class TestPublishJob {
 	public void testPublishJobItemCheckSum() throws JsonProcessingException, FileNotFoundException, IOException {
 		PublishJob jsonPj = new PublishJob();
 		jsonPj = reader.readValue(getJsonString());
-		PublishJobItemChecksum checksum = jsonPj.getPublishJob().getReport3().getItems().get(0).getChecksum();
+		PublishJobItemChecksum checksum = jsonPj.getOptions().getReport3().getItems().get(0).getChecksum();
 
 		assertEquals("36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0", checksum.getHex(Algorithm.SHA256));
 		assertEquals("280f99fb1e13e5834209fa70e65fa322", checksum.getHex(Algorithm.MD5));
@@ -186,7 +189,7 @@ public class TestPublishJob {
 		PublishJob jsonPj = new PublishJob();
 		jsonPj = reader.readValue(getJsonString());
 
-		PublishJobReport3 report3 = jsonPj.getPublishJob().getReport3();
+		PublishJobReport3 report3 = jsonPj.getOptions().getReport3();
 		String writeValueAsString = writer.writeValueAsString(report3);
 
 		ObjectReader report3JsonReader = reader.forType(PublishJobReport3Json.class);
@@ -219,19 +222,15 @@ public class TestPublishJob {
 		pjItem.setProperties(null);
 
 		PublishJobReport3Json reportJson = new PublishJobReport3Json();
-		PublishJobMeta pjMeta = new PublishJobMeta();
-		pjMeta.setPathname("testPathName");
-		reportJson.setMeta(pjMeta);
 		List<PublishJobItem> items = new ArrayList();
 		items.add(pjItem);
 		reportJson.setItems(items);
 
-		jsonPj.getPublishJob().setReport3(reportJson);
+		jsonPj.getOptions().setReport3(reportJson);
 
-		PublishJobReport3 pjReport = jsonPj.getPublishJob().getReport3();
-		assertEquals("testPathName", pjReport.getMeta().getPathname());
+		PublishJobReport3 pjReport = jsonPj.getOptions().getReport3();
 
-		PublishJobItem publishJobItem = jsonPj.getPublishJob().getReport3().getItems().get(0);
+		PublishJobItem publishJobItem = jsonPj.getOptions().getReport3().getItems().get(0);
 		assertEquals("2013-11-06T17:36:05.941Z", publishJobItem.getDate());
 		assertEquals("x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg", publishJobItem.getLogicalhead());
 		assertEquals("http://demo-dev.simonsoftcms.se/svn/demo1", publishJobItem.getRepourl());
@@ -249,6 +248,7 @@ public class TestPublishJob {
 		assertEquals("VV10084_25193.jpg", publishJobItem.getName());
 		assertEquals(null, publishJobItem.getProperties());
 	}
+	//Testing the Velocity template parsing function
 	@Test
 	public void testPublishCOnfigTemplateString() throws JsonProcessingException, FileNotFoundException, IOException {
 		PublishJob jsonPj = new PublishJob();
@@ -256,7 +256,7 @@ public class TestPublishJob {
 
 		PublishConfigTemplateString templateString = new PublishConfigTemplateString(jsonPj.getPathnameTemplate());
 
-		templateString.withEntry("item", jsonPj.getPublishJob().getReport3().getItems().get(0));
+		templateString.withEntry("item", jsonPj.getOptions().getReport3().getItems().get(0));
 		String evaluate = templateString.evaluate();
 		
 		assertEquals("DOC_VV10084_25193_In_Work.pdf" , evaluate);
@@ -272,20 +272,5 @@ public class TestPublishJob {
 		}
 		reader.close();
 		return out.toString();
-	}
-	private String getItemStringFromFile() throws IOException {
-		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job-item.json";
-		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
-		StringBuilder out = new StringBuilder();
-		String line;
-		while((line = reader.readLine()) != null) {
-			out.append(line);
-		}
-		reader.close();
-		return out.toString();
-	}
-	private String getTestItemString() {
-		return "[{\"logicalhead\":\"x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg\",\"date\":\"2013-11-06T17:36:05.941Z\",\"repourl\":\"http://demo-dev.simonsoftcms.se/svn/demo1\",\"namebase\":\"VV10084_25193\",\"commit\":{\"date\":\"2013-11-06T17:36:05.941Z\",\"revision\":157},\"uri\":\"/svn/demo1/vvab/graphics/VV10084_25193.jpg\",\"url\":\"http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg\",\"logical\":\"x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg?p=157\",\"revision\":157,\"head\":true,\"path\":\"/vvab/graphics/VV10084_25193.jpg\",\"file\":{\"size\":1278231},\"meta\":{\"xmp_dc.description\":\"                               \",\"xmp_tiff.ImageWidth\":\"3958\",\"xmp_tiff.XResolution\":\"300.0\",\"xmp_tiff.ImageLength\":\"2208\",\"xmp_xmpMM.DocumentID\":\"adobe:docid:photoshop:8de8ca65-4384-11de-b5f4-c6ba9a188b9c\",\"xmp_tiff.SamplesPerPixel\":\"4\",\"xmp_tiff.Orientation\":\"1\",\"xmp_tiff.ResolutionUnit\":\"Inch\",\"xmp_tiff.BitsPerSample\":\"8\",\"xmp_tiff.YResolution\":\"300.0\"},\"name\":\"VV10084_25193.jpg\",\"checksum\":{\"SHA256\":\"36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0\",\"SHA1\":\"2f55113d0efbf47f3888742346e29bde582942a0\",\"MD5\":\"280f99fb1e13e5834209fa70e65fa322\"},\"properties\":{\"svn:mime-type\":\"image/jpeg\",\"cms:status\":\"In_Work\",\"cms:keywords\":\"photo\"}}]";
 	}
 }

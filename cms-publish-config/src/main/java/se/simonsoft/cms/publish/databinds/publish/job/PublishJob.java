@@ -13,14 +13,15 @@ public class PublishJob extends PublishConfig {
 	private String type;
 	private String action;
 	private String itemid;
-	private PublishJobPublish publish;
+	private PublishJobOptions options;
+	private String pathnameTemplate;
 
 	public PublishJob(PublishJob pj) {
 		this.configname = pj.getConfigname();
 		this.type = pj.getType();
 		this.action = pj.getAction();
 		this.itemid = pj.getItemid();
-		this.publish = pj.getPublishJob();
+		this.options = pj.getOptions();
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
 		this.statusInclude = pj.getStatusInclude();
@@ -54,11 +55,11 @@ public class PublishJob extends PublishConfig {
 	public void setItemid(String itemid) {
 		this.itemid = itemid;
 	}
-	public PublishJobPublish getPublishJob() {
-		return publish;
+	public PublishJobOptions getOptions() {
+		return options;
 	}
-	public void setPublish(PublishJobPublish publish) {
-		this.publish = publish;
+	public void setOptions(PublishJobOptions publish) {
+		this.options = publish;
 	}
 	public boolean isActive() {
 		return active;
