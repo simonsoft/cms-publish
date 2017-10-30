@@ -32,10 +32,14 @@ public class PublishConfigTemplateString {
 	 */
 	public String evaluate() {
 		Writer writer = new StringWriter();
-		ve.evaluate(context, writer, "ve.evaluate", templateString);
+		ve.evaluate(context, writer, "PublishConfigTemplateString", templateString);
 		return writer.toString();
 	}
-	private VelocityEngine getVelocityEngine() {	
+	private VelocityEngine getVelocityEngine() {
+		if(ve == null) {
 		return new VelocityEngine();
+		}else {
+			return this.ve;
+		}
 	}
 }
