@@ -16,7 +16,6 @@ public class PublishConfigTemplateString {
 	 */
 	public PublishConfigTemplateString(String templateString) {
 		this.templateString = templateString;
-		ve = getVelocityEngine();
 	}
 	/**
 	 * Sets up a VelocityContext for later use in withEntry()
@@ -32,14 +31,14 @@ public class PublishConfigTemplateString {
 	 */
 	public String evaluate() {
 		Writer writer = new StringWriter();
-		ve.evaluate(context, writer, "PublishConfigTemplateString", templateString);
+		getVelocityEngine().evaluate(context, writer, "PublishConfigTemplateString", templateString);
 		return writer.toString();
 	}
 	private VelocityEngine getVelocityEngine() {
-		if(ve == null) {
-		return new VelocityEngine();
-		}else {
+		if(this.ve != null) {
 			return this.ve;
 		}
+		this.ve = new VelocityEngine();
+		return this.ve;
 	}
 }
