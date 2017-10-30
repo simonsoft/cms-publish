@@ -1,0 +1,116 @@
+{
+	"configname": "name-from-cmsconfig-publish",
+	"type": "publish-job",
+	"action": "publish-noop",
+	"active": true,
+	"visible": true,
+	"statusInclude": [
+		"Review",
+		"Released"
+	],
+	"profilingInclude": [
+		"*"
+	],
+	"pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
+	"itemid": "x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123",
+	"options": {
+		"pathname": "evaluated from pathname-template",
+		"type": "abxpe",
+		"format": "pdf/html/web/rtf/...",
+		"params": {
+			"stylesheet": "stylesheet.css",
+			"pdfconfig": "config.pdf",
+			"whatever": "great"
+		},
+		"profiling": {
+			"name": "profilingName",
+			"logicalexpr": "logical.expr"
+		},
+		"progress": {
+			"engine": {
+				"map": "whatever engine needs to store",
+				"key": "value"
+			},
+			"webapp": {
+				"map": "whatever they need to store",
+				"key": "value"
+			}
+		},
+		"report3": {
+			"meta": {
+				
+			},
+			"items": [
+				{
+					"logicalhead": "x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg",
+					"date": "2013-11-06T17:36:05.941Z",
+					"repourl": "http://demo-dev.simonsoftcms.se/svn/demo1",
+					"kind": "file",
+					"namebase": "VV10084_25193",
+					"commit": {
+						"date": "2013-11-06T17:36:05.941Z",
+						"revision": 157
+					},
+					"uri": "/svn/demo1/vvab/graphics/VV10084_25193.jpg",
+					"url": "http://demo-dev.simonsoftcms.se/svn/demo1/vvab/graphics/VV10084_25193.jpg",
+					"logical": "x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/graphics/VV10084_25193.jpg?p=157",
+					"revision": 157,
+					"head": true,
+					"path": "/vvab/graphics/VV10084_25193.jpg",
+					"file": {
+						"size": 1278231
+					},
+					"meta": {
+						"xmp_dc.description": "                               ",
+						"xmp_tiff.ImageWidth": "3958",
+						"xmp_tiff.XResolution": "300.0",
+						"xmp_tiff.ImageLength": "2208",
+						"xmp_xmpMM.DocumentID": "adobe:docid:photoshop:8de8ca65-4384-11de-b5f4-c6ba9a188b9c",
+						"xmp_tiff.SamplesPerPixel": "4",
+						"xmp_tiff.Orientation": "1",
+						"xmp_tiff.ResolutionUnit": "Inch",
+						"xmp_tiff.BitsPerSample": "8",
+						"xmp_tiff.YResolution": "300.0"
+					},
+					"name": "VV10084_25193.jpg",
+					"checksum": {
+						"SHA256": "36f526d2abd89abe071c122cfa4930021d1a49824a408174023028aa026dc3e0",
+						"SHA1": "2f55113d0efbf47f3888742346e29bde582942a0",
+						"MD5": "280f99fb1e13e5834209fa70e65fa322"
+					},
+					"properties": {
+						"svn:mime-type": "image/jpeg",
+						"cms:status": "In_Work",
+						"cms:keywords": "photo"
+					}
+				}
+			]
+		},
+		"storage": {
+			"type": "s3 / fs / ...",
+			"pathprefix": "/cms4",
+			"pathconfigname": "/name-from-cmsconfig-publish",
+			"pathdir": "/vvab/xml/documents/900108.xml",
+			"pathnamebase": "900108 or profiling.name, ",
+			"params": {
+				"specific": "parameter for future destination types",
+				"s3bucket": "cms-automation",
+				"fspath": "\\\\?\\C:\\my_dir"
+			}
+		},
+		"postprocess": {
+			"type": "future stuff",
+			"params": {
+				"specific": "parameter for future postprocess stuff",
+				"key": "value"
+			}
+		},
+		"delivery": {
+			"type": "webhook / s3copy",
+			"params": {
+				"specific": "parameter for future postprocess stuff",
+				"key": "value"
+			}
+		}
+	}
+}

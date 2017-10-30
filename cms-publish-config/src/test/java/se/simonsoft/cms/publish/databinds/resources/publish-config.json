@@ -1,0 +1,34 @@
+{
+  "active": true,
+  "visible": true,
+  "statusInclude": ["Review", "Released"],
+  "profilingInclude": ["*"],
+  "pathnameTemplate": "velocity-stuff.pdf",
+
+  "publish" : {
+      "type": "abxpe",
+      "format": "pdf",
+      "params": {
+          "stylesheet": "file.css",
+          "pdfconfig": "file.pdf",
+          "whatever": "great"
+      },
+      "storage": {
+        "type": "s3",
+        "params": {
+            "specific": "parameter for future destination types"
+        }
+      },
+      
+      "postprocess": {
+          "type": "future stuff",
+          "params": {
+            "specific": "parameter for future destination types"
+          }
+      },
+      
+      "delivery": {
+          "type": "webhook"
+      }
+  }
+}
