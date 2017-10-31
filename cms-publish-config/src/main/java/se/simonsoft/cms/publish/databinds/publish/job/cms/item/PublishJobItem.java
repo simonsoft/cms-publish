@@ -160,7 +160,6 @@ public class PublishJobItem implements CmsItem {
 	@JsonIgnore
 	@Override
 	public String getRevisionChangedAuthor() {
-		//throw new UnsupportedOperationException("Author is not available");
 		return null;
 	}
 	@JsonIgnore
@@ -187,6 +186,5 @@ public class PublishJobItem implements CmsItem {
 	@JsonIgnore
 	@Override
 	public void getContents(OutputStream receiver) throws UnsupportedOperationException {
-		//throw new UnsupportedOperationException("Content is not available");
 	}
 }

@@ -56,8 +56,8 @@ public class TestPublishConfig extends TestCase {
 			PublishConfig jsonPc = new PublishConfig();
 			ObjectReader r = new ObjectMapper().reader(PublishConfig.class);
 			jsonPc = r.readValue(getJsonString2());
-
 			fail("Expectected UnrecognizedPropertyException to be thrown");
+			
 		}catch(UnrecognizedPropertyException e){
 			assertNotNull(e);
 			e.printStackTrace();

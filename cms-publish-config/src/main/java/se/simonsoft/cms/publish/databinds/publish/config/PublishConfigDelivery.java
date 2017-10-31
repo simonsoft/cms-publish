@@ -6,12 +6,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class PublishConfigDelivery {
 	private String type;
 
-	public PublishConfigDelivery() { }
 	public String getType() {
 		return type;
 	}
 	public void setType(String type) {
 		this.type = type;
 	}
-	
 }
