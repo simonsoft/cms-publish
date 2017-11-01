@@ -51,7 +51,10 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return a;
+		for(Object o : a) {
+			this.add((PublishProfilingRecipe) o);
+		}
+		return (T[])((PublishProfilingSet) this.map).toArray();
 	}
 	@Override
 	public boolean add(PublishProfilingRecipe e) {
