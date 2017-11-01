@@ -3,6 +3,9 @@ package se.simonsoft.cms.publish.databinds.publish.profiling;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishProfilingRecipe {
 	private String name;
 	private String logicalexpr;

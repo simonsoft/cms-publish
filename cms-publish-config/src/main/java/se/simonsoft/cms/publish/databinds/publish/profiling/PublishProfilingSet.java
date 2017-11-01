@@ -1,86 +1,108 @@
 package se.simonsoft.cms.publish.databinds.publish.profiling;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
-	private List<PublishProfilingRecipe> list = new ArrayList<PublishProfilingRecipe>();
+	private Map<String, PublishProfilingRecipe> map = new HashMap<String, PublishProfilingRecipe>();
 
-
-
-
-
-
-	public PublishProfilingRecipe get(int index) {
-		return list.get(index);
+	public PublishProfilingRecipe get(String index) {
+		return map.get(index);
 	}
-	public List<PublishProfilingRecipe> getList() {
-		return list;
+	public Map<String, PublishProfilingRecipe> getMap() {
+		return this.map;
 	}
-	public void setList(List<PublishProfilingRecipe> list) {
-		this.list = list;
-	}
-	public PublishProfilingSet(PublishProfilingRecipe...profilingRecipes) {
-		this.list = Arrays.asList(profilingRecipes);
+	public void setMap(Map<String, PublishProfilingRecipe> list) {
+		this.map = list;
 	}
 	public PublishProfilingSet() {
 	}
 	@Override
 	public int size() {
-		return list.size();
+		return map.size();
 	}
 	@Override
 	public boolean isEmpty() {
-		return list.isEmpty();
+		return map.isEmpty();
 	}
 	@Override
 	public boolean contains(Object o) {
-		return list.contains(o);
+		if (o.getClass() != String.class){
+			throw new UnsupportedOperationException("The input of PublishProfilingSet.contains(Object o) must be a string");
+		}
+		return map.containsKey(o);
 	}
 	@Override
 	public Iterator<PublishProfilingRecipe> iterator() {
-		return list.iterator();
+		Collection<PublishProfilingRecipe> collection = map.values();
+		return collection.iterator();
 	}
 	@Override
 	public Object[] toArray() {
-		return list.toArray();
+		return map.values().toArray();
 	}
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return list.toArray(a);
+		return a;
 	}
 	@Override
 	public boolean add(PublishProfilingRecipe e) {
-		return list.add(e);
+		boolean changed = false;
+		if (map.containsKey(e.getName())) {
+			throw new UnsupportedOperationException("Duplicate names in PublishProfilingSet is not allowed.");
+		}
+		if(!changed) {
+			changed = !map.containsValue(e);
+		}
+		map.put(e.getName(), e);
+		return true;
 	}
 	@Override
 	public boolean remove(Object o) {
-		return list.remove(o);
+		boolean changed = false;
+		if (o.getClass() != String.class){
+			throw new UnsupportedOperationException("The input of PublishProfilingSet.remove(Object) must be a string");
+		}
+		if (map.containsKey(o)) {
+			changed = true;
+		}
+		map.remove(o);
+		return changed;
 	}
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return list.containsAll(c);
+		throw new UnsupportedOperationException("PublishProfilingSet.containsAll(Collection<?> c) is not supported");
 	}
 	@Override
 	public boolean addAll(Collection<? extends PublishProfilingRecipe> c) {
-		return list.addAll(c);
+		boolean changed = false;
+
+		for (PublishProfilingRecipe e : c) {
+			if (!changed) {
+				changed = !map.containsValue(e);
+			}
+			map.put(e.getName(), e);
+		}
+		return changed;
 	}
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return list.retainAll(c);
+		throw new UnsupportedOperationException("PublishProfilingSet.retainAll(Collection<?> c) is not supported");
 	}
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return list.removeAll(c);
+		throw new UnsupportedOperationException("PublishProfilingSet.removeAll(Collection<?> c) is not supported");
 	}
 	@Override
 	public void clear() {
-		list.clear();
+		map.clear();
 	}
 }
