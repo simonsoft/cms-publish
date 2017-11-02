@@ -9,9 +9,6 @@ public class PublishConfigStorage {
 	private String type;
 	private Map <String, String> params;
 	
-	public PublishConfigStorage() {
-		
-	}
 	public String getType() {
 		return type;
 	}

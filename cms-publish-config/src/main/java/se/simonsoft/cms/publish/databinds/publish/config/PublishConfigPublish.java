@@ -15,9 +15,6 @@ public class PublishConfigPublish {
 	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;
 	
-	public PublishConfigPublish() {
-
-	}
 	public String getType() {
 		return type;
 	}
