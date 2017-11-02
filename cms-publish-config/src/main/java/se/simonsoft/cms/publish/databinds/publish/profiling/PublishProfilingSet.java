@@ -8,7 +8,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
 	private Map<String, PublishProfilingRecipe> map = new HashMap<String, PublishProfilingRecipe>();
@@ -41,7 +40,7 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public Iterator<PublishProfilingRecipe> iterator() {
-		throw new UnsupportedOperationException("PublishProfilingSet.iterator() is not supported");
+		return map.values().iterator();
 	}
 	@Override
 	public Object[] toArray() {
@@ -65,15 +64,7 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public boolean remove(Object o) {
-		boolean changed = false;
-		if (o.getClass() != String.class){
-			throw new IllegalArgumentException("The input of PublishProfilingSet.remove(Object) must be a string");
-		}
-		if (map.containsKey(o)) {
-			changed = true;
-		}
-		map.remove(o);
-		return changed;
+		throw new UnsupportedOperationException("PublishingProfilingSet.remove() is not supported");
 	}
 	@Override
 	public boolean containsAll(Collection<?> c) {
@@ -81,15 +72,7 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public boolean addAll(Collection<? extends PublishProfilingRecipe> c) {
-		boolean changed = false;
-
-		for (PublishProfilingRecipe e : c) {
-			if (!changed) {
-				changed = !map.containsValue(e);
-			}
-			map.put(e.getName(), e);
-		}
-		return changed;
+		throw new UnsupportedOperationException("PublishingProfilingSet.addAll(Collectio<? extends PublishProfilingRecipe> c) is not supported");
 	}
 	@Override
 	public boolean retainAll(Collection<?> c) {
@@ -101,6 +84,6 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public void clear() {
-		map.clear();
+		throw new UnsupportedOperationException("PublishingProfilingSet.clear() is not supported");
 	}
 }
