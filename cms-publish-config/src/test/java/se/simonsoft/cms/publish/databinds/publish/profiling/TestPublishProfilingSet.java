@@ -76,7 +76,6 @@ public class TestPublishProfilingSet {
 		
 		ppSet.clear();
 		assertTrue(ppSet.isEmpty());
-		
 	}
 	private String getJsonString() {
 		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";

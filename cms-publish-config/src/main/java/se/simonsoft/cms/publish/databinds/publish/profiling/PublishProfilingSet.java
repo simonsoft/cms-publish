@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -35,15 +34,14 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public boolean contains(Object o) {
-		if (o.getClass() != String.class){
-			throw new UnsupportedOperationException("The input of PublishProfilingSet.contains(Object o) must be a string");
+		if (!(o instanceof String) ){
+			throw new IllegalArgumentException("The input of PublishProfilingSet.contains(Object o) must be a string");
 		}
 		return map.containsKey(o);
 	}
 	@Override
 	public Iterator<PublishProfilingRecipe> iterator() {
-		Collection<PublishProfilingRecipe> collection = map.values();
-		return collection.iterator();
+		throw new UnsupportedOperationException("PublishProfilingSet.iterator() is not supported");
 	}
 	@Override
 	public Object[] toArray() {
@@ -51,16 +49,13 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	}
 	@Override
 	public <T> T[] toArray(T[] a) {
-		for(Object o : a) {
-			this.add((PublishProfilingRecipe) o);
-		}
-		return (T[])((PublishProfilingSet) this.map).toArray();
+		throw new UnsupportedOperationException("PublishProfilingSet.toArray(T[] a) is not supported");
 	}
 	@Override
 	public boolean add(PublishProfilingRecipe e) {
 		boolean changed = false;
 		if (map.containsKey(e.getName())) {
-			throw new UnsupportedOperationException("Duplicate names in PublishProfilingSet is not allowed.");
+			throw new IllegalArgumentException("Duplicate names in PublishProfilingSet is not allowed.");
 		}
 		if(!changed) {
 			changed = !map.containsValue(e);
@@ -72,7 +67,7 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	public boolean remove(Object o) {
 		boolean changed = false;
 		if (o.getClass() != String.class){
-			throw new UnsupportedOperationException("The input of PublishProfilingSet.remove(Object) must be a string");
+			throw new IllegalArgumentException("The input of PublishProfilingSet.remove(Object) must be a string");
 		}
 		if (map.containsKey(o)) {
 			changed = true;
