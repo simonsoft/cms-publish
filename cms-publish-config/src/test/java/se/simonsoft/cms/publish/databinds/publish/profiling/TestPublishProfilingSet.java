@@ -7,10 +7,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -156,7 +154,9 @@ public class TestPublishProfilingSet {
 			PublishProfilingRecipe ppRecipe2 = new PublishProfilingRecipe();
 			ppRecipe2.setName("Nicke");
 			ppSet.add(ppRecipe2);
+			
 			fail("Should throw IllegalArgumentException, duplicate names are not allowed in PublishProfilingSet");
+			
 		} catch(IllegalArgumentException e) {
 			assertEquals("Duplicate names in PublishProfilingSet is not allowed.", e.getMessage());
 		}
