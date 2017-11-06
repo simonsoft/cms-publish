@@ -75,7 +75,6 @@ public class TestPublishConfig extends TestCase {
 			
 		}catch(UnrecognizedPropertyException e){
 			assertNotNull(e);
-			e.printStackTrace();
 		}catch (JsonParseException e) {
 			assertNotNull(e);
 			e.printStackTrace();
