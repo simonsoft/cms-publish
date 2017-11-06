@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>se.simonsoft.cms-publish</groupId>
+	<artifactId>cms-publish</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<!-- An aggregate pom, soul purpose is to start build processes in its listed modules.
+	 This is not a parent pom, it do not define any own dependencies that it shares with its modules and it should not-->
+	
+	<modules>
+		<module>cms-publish-abxpe</module>
+		<module>cms-publish-ant</module>
+		<module>cms-publish-config</module>
+		<module>cms-publish-interface</module>
+		<module>cms-publish-rest</module>
+		<module>cms-publish-worker-webapp</module>
+	</modules>
+</project>
