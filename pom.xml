@@ -13,10 +13,10 @@
 	 This is not a parent pom, it do not define any own dependencies that it shares with its modules and it should not-->
 	
 	<modules>
-		<module>cms-publish-abxpe</module>
-		<module>cms-publish-ant</module>
 		<module>cms-publish-config</module>
 		<module>cms-publish-interface</module>
+		<module>cms-publish-abxpe</module>
+		<module>cms-publish-ant</module>
 		<module>cms-publish-rest</module>
 		<module>cms-publish-worker-webapp</module>
 	</modules>
