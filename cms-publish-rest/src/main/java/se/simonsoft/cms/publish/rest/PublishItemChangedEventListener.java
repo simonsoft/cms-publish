@@ -50,8 +50,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	@Override
 	public void onItemChange(CmsItem item) {
 		logger.debug("publish");
-		// TODO Auto-generated method stub
-		
+		//TODO: get read config and start a publish.
 	}
 	
 }
