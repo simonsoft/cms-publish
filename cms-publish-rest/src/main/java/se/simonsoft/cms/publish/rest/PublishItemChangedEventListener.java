@@ -22,34 +22,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
+import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
-import se.simonsoft.cms.reporting.CmsItemLookupReporting;
-import se.simonsoft.cms.reporting.repositem.CmsItemSearch;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
-	private final CmsItemSearch itemSearch;
-//	private final CmsItemLookupReporting lookupReporting;
-	private WorkflowExecutor<WorkflowItemInput> workflowExecutor;
+	private final CmsRepositoryLookup lookup;
+	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishItemChangedEventListener.class);
 
 	@Inject
 	public PublishItemChangedEventListener(
-			CmsItemSearch itemSearch,
-//			CmsItemLookupReporting lookupReporting,
+			CmsRepositoryLookup lookup,
 			@Named("config:se.simonsoft.cms.aws.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor) {
-
-		this.itemSearch = itemSearch;
-//		this.lookupReporting = lookupReporting;
+		
+		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 	}
 
 	@Override
 	public void onItemChange(CmsItem item) {
 		logger.debug("publish");
+		CmsResourceContext config = this.lookup.getConfig(item.getId(), item.getKind());
 		//TODO: get read config and start a publish.
 	}
 	
