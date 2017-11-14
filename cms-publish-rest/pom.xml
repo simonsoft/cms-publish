@@ -6,7 +6,7 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
-	<name>Simonsoft CMS Open Source project</name>
+	<name>Simonsoft CMS publish rest</name>
 	<url>http://www.simonsoft.se/</url>
 	
 	<parent>
@@ -35,20 +35,26 @@
 		
 		<dependency>
 		    <groupId>se.simonsoft</groupId>
-		    <artifactId>cms-reporting</artifactId>
-		    <version>[1.4.0,)</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>se.simonsoft</groupId>
 		    <artifactId>cms-publish-config</artifactId>
 		    <version>0.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 		    <groupId>se.simonsoft</groupId>
+		    <artifactId>cms-reporting</artifactId>
+		    <version>[1.4.0,)</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>se.simonsoft</groupId>
 		    <artifactId>cms-release</artifactId>
 		    <version>2.3.0-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+    		<groupId>com.amazonaws</groupId>
+    		<artifactId>aws-java-sdk-stepfunctions</artifactId>
+    		<version>1.11.218</version>
 		</dependency>
 		
 	</dependencies>
