@@ -66,22 +66,13 @@
 	</dependencyManagement>
 
 	<dependencies>
-	
+
 		<!-- Guice dependencies -->
-		<!--  
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject.extensions</groupId>
-            <artifactId>guice-servlet</artifactId>
-            <version>2.0</version>
-        </dependency>
-		-->
-	
-	
+		<!-- <dependency> <groupId>com.google.inject</groupId> <artifactId>guice</artifactId> 
+			<version>2.0</version> </dependency> <dependency> <groupId>com.google.inject.extensions</groupId> 
+			<artifactId>guice-servlet</artifactId> <version>2.0</version> </dependency> -->
+
+
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
@@ -94,6 +85,16 @@
 		</dependency>
 		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId> 
 			<artifactId>jersey-media-json-binding</artifactId> </dependency> -->
+		<dependency>
+			<groupId>se.simonsoft</groupId>
+			<artifactId>cms-publish-abxpe</artifactId>
+			<version>0.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity-engine-core</artifactId>
+			<version>2.0</version>
+		</dependency>
 	</dependencies>
 	<properties>
 		<jersey.version>2.26</jersey.version>

@@ -1,5 +1,4 @@
-<%--
-
+#**
     Copyright (C) 2009-2017 Simonsoft Nordic AB
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +13,20 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
---%>
-<html>
-<body>
-    <h2>Jersey RESTful Web Application!</h2>
-    <p><a href="rest/myresource">Jersey resource</a>
-    <p><a href="rest/test/form">Start job</a></p>
-    <p><a href="rest/test/ticketform">Get job</a></p>
-    <p>Visit <a href="http://jersey.java.net">Project Jersey website</a>
-    for more information on Jersey!
-</body>
+*#
+<!DOCTYPE html>
+	<html>
+		<head>
+		<meta charset="UTF-8">
+		<title>Insert title here</title>
+		</head>
+	<body>
+		<form action="http://localhost:8080/worker/rest/test/publish" method="post">
+			<h3>Item id:</h3>
+			<input type="text" name="itemId">
+			<h3>Format</h3>
+			<input type="text" name="format">
+			<input type="submit" value="Submit">
+		</form>
+	</body>
 </html>

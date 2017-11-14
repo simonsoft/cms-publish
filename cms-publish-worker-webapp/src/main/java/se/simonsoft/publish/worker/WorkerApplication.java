@@ -18,6 +18,8 @@ package se.simonsoft.publish.worker;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+
 public class WorkerApplication extends ResourceConfig {
 
 	public WorkerApplication()  {
@@ -28,6 +30,7 @@ public class WorkerApplication extends ResourceConfig {
             @Override
             protected void configure() {
             	bind("injected").to(String.class).named("TEST");
+            	bind(new PublishServicePe()).to(PublishServicePe.class);
             }
         });
 		
