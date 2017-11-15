@@ -20,8 +20,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigOptions;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigStorage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJob extends PublishConfig {
