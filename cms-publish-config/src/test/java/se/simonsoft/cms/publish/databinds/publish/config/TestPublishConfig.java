@@ -94,6 +94,7 @@ public class TestPublishConfig extends TestCase {
 		config = reader.readValue(getJsonString());
 		PublishJob job = new PublishJob(config);
 		
+		assertEquals("abxpe", job.getType());
 		assertEquals("velocity-stuff.pdf", job.getPathnameTemplate());
 		assertEquals("*", job.getProfilingInclude().get(0));
 		assertEquals("Review", job.getStatusInclude().get(0));
@@ -110,8 +111,6 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("future stuff", job.getOptions().getPostprocess().getType());
 		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
 		assertEquals("webhook", job.getOptions().getDelivery().getType());
-		
-		
 	}
 	
 	private String getJsonString() throws FileNotFoundException, IOException {

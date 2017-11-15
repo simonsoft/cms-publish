@@ -47,7 +47,7 @@ public class PublishJob extends PublishConfig {
 	public PublishJob(PublishConfig publishConfig) {
 		
 // 		Following setters in PublishJob can not be satisfied by PublishConfig alone.		
-//		this.type = publishConfig.get
+		
 //		this.configname = publishConfig.getOptions().get
 //		this.action = publishConfig.getAction();
 //		this.itemid = publishConfig.getItemid();
@@ -90,6 +90,7 @@ public class PublishJob extends PublishConfig {
 		this.statusInclude = publishConfig.getStatusInclude();
 		this.profilingInclude = publishConfig.getProfilingInclude();
 		this.pathnameTemplate = publishConfig.getPathnameTemplate();
+		this.type = publishConfig.getOptions().getType();
 	}
 	
 	public PublishJob() {
