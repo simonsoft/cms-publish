@@ -7,7 +7,7 @@ public class PublishConfigFilterStatus implements PublishConfigFilter {
 
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
-		return false;
+		return config.getStatusInclude().contains(item.getStatus());
 	}
 
 }
