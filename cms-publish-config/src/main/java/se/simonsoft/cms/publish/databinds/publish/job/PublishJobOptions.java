@@ -15,13 +15,10 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
-import java.util.Map;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigOptions;
 
-public class PublishJobOptions {
+public class PublishJobOptions extends PublishConfigOptions{
 	private String pathname;
-	private String type;
-	private String format;
-	private Map<String, String> params;
 	private PublishJobProfiling profiling;
 	private PublishJobReport3 report3;
 	private PublishJobStorage storage;
@@ -29,24 +26,6 @@ public class PublishJobOptions {
 	private PublishJobProgress progress;
 	private PublishJobDelivery delivery;
 
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
-	public String getFormat() {
-		return format;
-	}
-	public void setFormat(String format) {
-		this.format = format;
-	}
-	public Map<String, String> getParams() {
-		return params;
-	}
-	public void setParams(Map<String, String> params) {
-		this.params = params;
-	}
 	public PublishJobProfiling getProfiling() {
 		return profiling;
 	}

@@ -18,10 +18,9 @@ package se.simonsoft.cms.publish.databinds.publish.config;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties (ignoreUnknown=false)
-public class PublishConfigPublish {
+public class PublishConfigOptions {
 
 	private String type;
 	private String format;

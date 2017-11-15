@@ -52,16 +52,16 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("Released", jsonPc.getStatusInclude().get(1));
 		assertEquals(true, jsonPc.isActive());
 		assertEquals(true, jsonPc.isVisible());
-		assertEquals("abxpe", jsonPc.getPublish().getType());
-		assertEquals("pdf", jsonPc.getPublish().getFormat());
-		assertEquals("file.css", jsonPc.getPublish().getParams().get("stylesheet"));
-		assertEquals("file.pdf", jsonPc.getPublish().getParams().get("pdfconfig"));
-		assertEquals("great", jsonPc.getPublish().getParams().get("whatever"));
-		assertEquals("s3", jsonPc.getPublish().getStorage().getType());
-		assertEquals("parameter for future destination types", jsonPc.getPublish().getStorage().getParams().get("specific"));
-		assertEquals("future stuff", jsonPc.getPublish().getPostprocess().getType());
-		assertEquals("parameter for future destination types", jsonPc.getPublish().getPostprocess().getParams().get("specific"));
-		assertEquals("webhook", jsonPc.getPublish().getDelivery().getType());
+		assertEquals("abxpe", jsonPc.getOptions().getType());
+		assertEquals("pdf", jsonPc.getOptions().getFormat());
+		assertEquals("file.css", jsonPc.getOptions().getParams().get("stylesheet"));
+		assertEquals("file.pdf", jsonPc.getOptions().getParams().get("pdfconfig"));
+		assertEquals("great", jsonPc.getOptions().getParams().get("whatever"));
+		assertEquals("s3", jsonPc.getOptions().getStorage().getType());
+		assertEquals("parameter for future destination types", jsonPc.getOptions().getStorage().getParams().get("specific"));
+		assertEquals("future stuff", jsonPc.getOptions().getPostprocess().getType());
+		assertEquals("parameter for future destination types", jsonPc.getOptions().getPostprocess().getParams().get("specific"));
+		assertEquals("webhook", jsonPc.getOptions().getDelivery().getType());
 	}
 
 	@Test
