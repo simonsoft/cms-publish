@@ -15,6 +15,8 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.config;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import junit.framework.TestCase;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 
 public class TestPublishConfig extends TestCase {
 	private ObjectReader reader;
@@ -86,6 +89,34 @@ public class TestPublishConfig extends TestCase {
 			e.printStackTrace();
 		}
 	}
+	
+	@Test
+	public void testGetJobFromConfig() throws Exception {
+		
+		PublishConfig config = new PublishConfig();
+		config = reader.readValue(getJsonString());
+		PublishJob job = new PublishJob(config);
+		
+		assertEquals("velocity-stuff.pdf", job.getPathnameTemplate());
+		assertEquals("*", job.getProfilingInclude().get(0));
+		assertEquals("Review", job.getStatusInclude().get(0));
+		assertEquals("Released", job.getStatusInclude().get(1));
+		assertEquals(true, job.isActive());
+		assertEquals(true, job.isVisible());
+		assertEquals("abxpe", job.getOptions().getType());
+		assertEquals("pdf", job.getOptions().getFormat());
+		assertEquals("file.css", job.getOptions().getParams().get("stylesheet"));
+		assertEquals("file.pdf", job.getOptions().getParams().get("pdfconfig"));
+		assertEquals("great", job.getOptions().getParams().get("whatever"));
+		assertEquals("s3", job.getOptions().getStorage().getType());
+		assertEquals("parameter for future destination types", job.getOptions().getStorage().getParams().get("specific"));
+		assertEquals("future stuff", job.getOptions().getPostprocess().getType());
+		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
+		assertEquals("webhook", job.getOptions().getDelivery().getType());
+		
+		
+	}
+	
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
