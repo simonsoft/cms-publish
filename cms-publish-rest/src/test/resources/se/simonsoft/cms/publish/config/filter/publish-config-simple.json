@@ -1,0 +1,20 @@
+{
+  "active": true,
+  "visible": true,
+  "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf",
+
+  "publish" : {
+      "type": "abxpe",
+      "format": "pdf",
+      "params": {
+          "stylesheet": "axdocbook.style",
+          "pdfconfig": "smallfile.pdfcf"
+      },
+      
+      "storage": {
+        "type": "s3"
+        
+      }
+      
+  }
+}
