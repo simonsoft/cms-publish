@@ -12,6 +12,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -65,7 +68,39 @@ public class PublishConfigFilterTest {
 		when(itemMockInWork.getStatus()).thenReturn("In_work");
 		assertFalse(filter.accept(publishConfig, itemMockInWork));
 		
+		publishConfig.setStatusInclude(new ArrayList<String>());
+		assertFalse(filter.accept(publishConfig, itemMockReview));
+		
+		publishConfig.setStatusInclude(null);
+		assertTrue(filter.accept(publishConfig, itemMockReview));
+		
 	}
+	
+	@Test
+	public void testActiveFilter() throws Exception {
+		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfigFilter filter = new PublishConfigFilterActive();
+		assertTrue(filter.accept(publishConfig, null));
+	}
+	
+	@Test
+	public void testTypeFilter() throws Exception {
+		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfigFilter filter = new PublishConfigFilterType();
+		
+		CmsItem itemMockTypeAbxpe = mock(CmsItem.class);
+		Map<String, Object> meta = new HashMap<String, Object>();
+		meta.put("embd_xml_a_type", "abxpe");
+		when(itemMockTypeAbxpe.getMeta()).thenReturn(meta);
+		assertTrue(filter.accept(publishConfig, itemMockTypeAbxpe));
+		
+		CmsItem itemMockNoType = mock(CmsItem.class);
+		Map<String, Object> emptyMeta = new HashMap<String, Object>();
+		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);
+		assertFalse(filter.accept(publishConfig, itemMockNoType));
+		
+	}
+	
 	
 	private PublishConfig getPublishConfigStatus() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
