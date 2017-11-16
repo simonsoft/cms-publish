@@ -10,16 +10,14 @@ public class PublishConfigFilterStatus implements PublishConfigFilter {
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
 		
+		boolean accept = false;
 		List<String> statusInclude = config.getStatusInclude();
-		if (statusInclude == null) {
-			return true;
-		} else if (statusInclude.isEmpty()) {
-			return false;
-		} else if (config.getStatusInclude().contains(item.getStatus())) {
-			return true;
-		} else {
-			return false;
+		
+		if (statusInclude == null || config.getStatusInclude().contains(item.getStatus())) {
+			accept = true;
 		}
+		
+		return accept;
 	}
 
 }
