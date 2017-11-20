@@ -16,20 +16,22 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.management.RuntimeErrorException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
@@ -37,6 +39,10 @@ import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
+import se.simonsoft.cms.publish.workflow.WorkflowItemInputPublish;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -63,36 +69,50 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
+		this.reader = reader.forType(PublishConfig.class);
 	}
 
 	@Override
 	public void onItemChange(CmsItem item) {
-		logger.debug("publish");
+		logger.debug("Got an item change event with id: {}", item.getId());
 		CmsResourceContext context = this.lookup.getConfig(item.getId(), item.getKind());
-		PublishConfig parseConfig = parseConfig(context);
 		
-		for (PublishConfigFilter filter: filters) {
-			filter.accept(parseConfig, item);
+		Map<String, PublishConfig> publishConfigs = deserializeConfig(context);
+		publishConfigs = filterConfigs(publishConfigs, item);
+		
+		Iterator<String> iterator = publishConfigs.keySet().iterator();
+		while (iterator.hasNext()) {
+			String key = iterator.next();
+			executeJobWithConfig(key, publishConfigs.get(key), item);
 		}
-		
 	}
 	
-	
-	private PublishConfig parseConfig(CmsResourceContext context) {
-		logger.debug("Parsing context to PublishConfig... ");
-		ObjectWriter contextWriter = writer.forType(CmsResourceContext.class);
-		ObjectReader configReader = reader.forType(PublishConfig.class);
-		PublishConfig config = null;
-		try {
-			String contextStr = contextWriter.writeValueAsString(context);
-			config = configReader.readValue(contextStr);
-			
-		} catch (JsonProcessingException e) {
-			logger.error("Could not parse ResourceContext to a String");
-			throw new IllegalArgumentException("PublishItem needs a valid CmsResourceContext", e);
-		} catch (IOException e) {
-			logger.debug("Trying to deserilze context to publishConfig caused filed with: {}", e.getMessage());
-			throw new RuntimeException();
+	private void executeJobWithConfig(String configName, PublishConfig c, CmsItem item) {
+		logger.debug("Building PublishJob and starting execution...");
+		
+		PublishJob pj = new PublishJob(c);
+		pj.setItemid(item.getId().getLogicalId());
+		pj.setAction("publish-noop");
+		pj.setType("publish-job");
+		pj.setConfigname(configName);
+		
+		PublishJobStorage storage = pj.getOptions().getStorage();
+		storage.setPathdir(item.getId().getRelPath().getPath());
+		storage.setPathnamebase(item.getId().getRelPath().getNameBase());
+		storage.setPathprefix(this.pathPrefix);
+		storage.setPathconfigname("/".concat(configName));
+		if (!storage.getParams().containsKey("s3bucket")) {
+			storage.getParams().put("s3bucket", this.s3Bucket);
+		}
+		
+		//TODO: set reporting3 should be json string from reporting service.
+		
+		String pathname = evaluatePathNameTmpl(c.getPathnameTemplate(), item);
+		pj.getOptions().setPathname(pathname);
+		
+		workflowExecutor.startExecution(new WorkflowItemInputPublish(item.getId(), pj));
+		logger.debug("Execution started.");
+	}
 
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
 
