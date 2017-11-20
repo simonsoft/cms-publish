@@ -29,7 +29,7 @@
             "pathdir": "/vvab/release/B/xml/documents/900108.xml",
             "pathnamebase": "900108",
             "params": {
-                "s3bucket#": "cms-automation"
+                "s3bucket": "cms-automation"
             }
         }
     }
