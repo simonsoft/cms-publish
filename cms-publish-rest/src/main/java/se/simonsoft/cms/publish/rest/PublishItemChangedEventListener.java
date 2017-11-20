@@ -94,6 +94,20 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		}
 		
 		return config; 
+	private Map<String, PublishConfig> filterConfigs(Map<String, PublishConfig> configs, CmsItem item) {
+		
+		Iterator<String> iterator = configs.keySet().iterator();
+		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
+		while (iterator.hasNext()) {
+			String next = iterator.next();
+			for (PublishConfigFilter f: filters) {
+				if (f.accept(configs.get(next), item)) {
+					logger.debug("Config {} where accepted.", next);
+					filteredConfigs.put(next, configs.get(next));
+				}
+			}
+		}
+		return configs;
 	}
 	
 	private String evaluatePathNameTmpl(String template, CmsItem item) {
