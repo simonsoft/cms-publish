@@ -51,16 +51,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	@Inject
 	public PublishItemChangedEventListener(
 			CmsRepositoryLookup lookup,
-			@Named("config:se.simonsoft.cms.aws.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
+			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
-			ObjectWriter writer,
 			ObjectReader reader) {
 		
 		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
-		this.writer = writer;
-		this.reader = reader;
 	}
 
 	@Override
