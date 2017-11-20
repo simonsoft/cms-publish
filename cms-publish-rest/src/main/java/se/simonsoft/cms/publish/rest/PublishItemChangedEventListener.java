@@ -96,5 +96,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		return config; 
 	}
 	
+	private String evaluatePathNameTmpl(String template, CmsItem item) {
+		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString(template);
+		tmplStr.withEntry("item", item);
+		return tmplStr.evaluate();
+	}
 }
 
