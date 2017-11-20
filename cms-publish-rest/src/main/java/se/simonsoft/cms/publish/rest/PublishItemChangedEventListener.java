@@ -93,9 +93,33 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		} catch (IOException e) {
 			logger.debug("Trying to deserilze context to publishConfig caused filed with: {}", e.getMessage());
 			throw new RuntimeException();
+
+	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
+
+		Map<String, PublishConfig> configs = new LinkedHashMap<>();
+		Iterator<CmsConfigOption> iterator = context.iterator();
+		while (iterator.hasNext()) {
+			CmsConfigOption next = iterator.next();
+			String configOptionName = next.getNamespace();
+			if (configOptionName.startsWith(PUBLISH_CONFIG_KEY)) {
+				try {
+					PublishConfig publishConfig = reader.readValue(next.getValueString());
+					configs.put(next.getKey(), publishConfig);
+				} catch (JsonProcessingException e) {
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName);
+					throw new RuntimeException(e);
+				} catch (IOException e) {
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName);
+					throw new RuntimeException(e);
+				}
+			}
 		}
 		
-		return config; 
+		logger.debug("Context had {} number of valid cmsconfig-publish objects", configs.size());
+		
+		return configs;
+	}
+	
 	private Map<String, PublishConfig> filterConfigs(Map<String, PublishConfig> configs, CmsItem item) {
 		
 		Iterator<String> iterator = configs.keySet().iterator();
