@@ -49,6 +49,8 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final String pathPrefix = "/cms4";
 	private final String s3Bucket = "cms-automation";
 	
+	private static final String PUBLISH_CONFIG_KEY = "cmsconfig-publish";  
+	
 	private static final Logger logger = LoggerFactory.getLogger(PublishItemChangedEventListener.class);
 
 	@Inject
