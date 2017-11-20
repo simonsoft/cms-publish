@@ -42,10 +42,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 
 	private final CmsRepositoryLookup lookup;
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
+	
 	private List<PublishConfigFilter> filters;
-	private ObjectWriter writer;
 	private ObjectReader reader;
-
+	
+	private final String pathPrefix = "/cms4";
+	private final String s3Bucket = "cms-automation";
+	
 	private static final Logger logger = LoggerFactory.getLogger(PublishItemChangedEventListener.class);
 
 	@Inject
