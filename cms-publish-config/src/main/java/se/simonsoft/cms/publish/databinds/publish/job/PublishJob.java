@@ -46,43 +46,29 @@ public class PublishJob extends PublishConfig {
 	
 	public PublishJob(PublishConfig publishConfig) {
 		
-// 		Following setters in PublishJob can not be satisfied by PublishConfig alone.		
-		
-//		this.configname = publishConfig.getOptions().get
-//		this.action = publishConfig.getAction();
-//		this.itemid = publishConfig.getItemid();
+		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
+		if (publishConfig.getOptions().getDelivery() != null) {
+			publishJobDelivery.setParams(publishConfig.getOptions().getDelivery().getParams());
+			publishJobDelivery.setType(publishConfig.getOptions().getDelivery().getType());
+		}
 		
 		PublishJobOptions publishJobOptions = new PublishJobOptions();
-		
-		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
-		publishJobDelivery.setParams(publishConfig.getOptions().getDelivery().getParams());
-		publishJobDelivery.setType(publishConfig.getOptions().getDelivery().getType());
-		
 		publishJobOptions.setDelivery(publishJobDelivery);
 		publishJobOptions.setFormat(publishConfig.getOptions().getFormat());
 		publishJobOptions.setParams(publishConfig.getOptions().getParams());
 		
 		PublishJobPostProcess publishJobPostProcess = new PublishJobPostProcess();
-		publishJobPostProcess.setParams(publishConfig.getOptions().getPostprocess().getParams());
-		publishJobPostProcess.setType(publishConfig.getOptions().getPostprocess().getType());
-		publishJobOptions.setPostprocess(publishJobPostProcess);
+		if (publishConfig.getOptions().getPostprocess() != null) {
+			publishJobPostProcess.setParams(publishConfig.getOptions().getPostprocess().getParams());
+			publishJobPostProcess.setType(publishConfig.getOptions().getPostprocess().getType());
+			publishJobOptions.setPostprocess(publishJobPostProcess);
+		}
 		
 		PublishJobStorage storage = new PublishJobStorage();
 		storage.setParams(publishConfig.getOptions().getStorage().getParams());
 		storage.setType(publishConfig.getOptions().getStorage().getType());
-//		storage.setPathconfigname(confStorage.get);
-//		storage.setPathdir(pathdir);
-//		storage.setPathnamebase(pathnamebase);
-//		storage.setPathprefix(pathprefix);
 		publishJobOptions.setStorage(storage);
 		publishJobOptions.setType(publishConfig.getOptions().getType());
-		
-		
-// 		Following setters in option can not be satisfied by PublishConfig alone. 		
-//		this.options.setPathname();
-//		this.options.setProfiling();
-//		this.options.setProgress();
-//		this.options.setReport3();
 		
 		this.options = publishJobOptions;
 		this.active = publishConfig.isActive();
@@ -90,7 +76,6 @@ public class PublishJob extends PublishConfig {
 		this.statusInclude = publishConfig.getStatusInclude();
 		this.profilingInclude = publishConfig.getProfilingInclude();
 		this.pathnameTemplate = publishConfig.getPathnameTemplate();
-		this.type = publishConfig.getOptions().getType();
 	}
 	
 	public PublishJob() {
