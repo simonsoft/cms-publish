@@ -18,10 +18,6 @@
             "stylesheet": "axdocbook.style",
             "pdfconfig": "smallfile.pdfcf"
         },
-        "report3": {
-            "meta": {},
-            "items": [{}]
-        },
         "storage": {
             "type": "s3",
             "pathprefix": "/cms4",
