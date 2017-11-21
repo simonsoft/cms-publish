@@ -20,7 +20,6 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigOptions;
 public class PublishJobOptions extends PublishConfigOptions{
 	private String pathname;
 	private PublishJobProfiling profiling;
-	private PublishJobReport3 report3;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
 	private PublishJobProgress progress;
@@ -31,12 +30,6 @@ public class PublishJobOptions extends PublishConfigOptions{
 	}
 	public void setProfiling(PublishJobProfiling profiling) {
 		this.profiling = profiling;
-	}
-	public PublishJobReport3 getReport3() {
-		return report3;
-	}
-	public void setReport3(PublishJobReport3 report3) {
-		this.report3 = report3;
 	}
 	public PublishJobStorage getStorage() {
 		return storage;
