@@ -24,8 +24,8 @@ public class PublishConfig {
 
 	protected boolean active;
 	protected boolean visible;
-	protected List<String> statusInclude = new ArrayList<>();;
-	protected List<String> profilingInclude = new ArrayList<>();;;
+	protected List<String> statusInclude;
+	protected List<String> profilingInclude = new ArrayList<>();
 	protected String pathnameTemplate;
 	private PublishConfigOptions options;
 	

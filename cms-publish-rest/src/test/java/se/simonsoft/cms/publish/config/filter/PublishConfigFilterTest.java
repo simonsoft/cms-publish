@@ -15,10 +15,7 @@
  */
 package se.simonsoft.cms.publish.config.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,11 +39,12 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 public class PublishConfigFilterTest {
 	
 	private ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
+	private String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
 	
 	@Test
 	public void testStatusJacksonParse() throws Exception {
 		
-		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus);
 		assertTrue(publishConfig.isActive());
 		assertTrue(publishConfig.isVisible());
 		assertEquals(2, publishConfig.getStatusInclude().size());
@@ -68,39 +66,40 @@ public class PublishConfigFilterTest {
 	
 	@Test
 	public void testStatusFilter() throws Exception {
-		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfig publishConfigStatus = getConfigJsonTestData(pathConfigStatus);
 		PublishConfigFilter filter = new PublishConfigFilterStatus();
 		
 		CmsItem itemMockReleased = mock(CmsItem.class);
 		when(itemMockReleased.getStatus()).thenReturn("Released");
-		assertTrue(filter.accept(publishConfig, itemMockReleased));
+		assertTrue(filter.accept(publishConfigStatus, itemMockReleased));
 		
 		CmsItem itemMockReview = mock(CmsItem.class);
 		when(itemMockReview.getStatus()).thenReturn("Review");
-		assertTrue(filter.accept(publishConfig, itemMockReview));
+		assertTrue(filter.accept(publishConfigStatus, itemMockReview));
 		
 		CmsItem itemMockInWork = mock(CmsItem.class);
 		when(itemMockInWork.getStatus()).thenReturn("In_work");
-		assertFalse(filter.accept(publishConfig, itemMockInWork));
+		assertFalse(filter.accept(publishConfigStatus, itemMockInWork));
 		
-		publishConfig.setStatusInclude(new ArrayList<String>());
-		assertFalse(filter.accept(publishConfig, itemMockReview));
+		publishConfigStatus.setStatusInclude(new ArrayList<String>());
+		assertFalse(filter.accept(publishConfigStatus, itemMockReview));
 		
-		publishConfig.setStatusInclude(null);
-		assertTrue(filter.accept(publishConfig, itemMockReview));
-		
+		publishConfigStatus.setStatusInclude(null);
+		assertTrue(filter.accept(publishConfigStatus, itemMockReleased));
+		assertTrue(filter.accept(publishConfigStatus, itemMockReview));
+		assertTrue(filter.accept(publishConfigStatus, itemMockInWork));
 	}
 	
 	@Test
 	public void testActiveFilter() throws Exception {
-		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus);
 		PublishConfigFilter filter = new PublishConfigFilterActive();
 		assertTrue(filter.accept(publishConfig, null));
 	}
 	
 	@Test
 	public void testTypeFilter() throws Exception {
-		PublishConfig publishConfig = getPublishConfigStatus();
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus);
 		PublishConfigFilter filter = new PublishConfigFilterType();
 		
 		CmsItem itemMockTypeAbxpe = mock(CmsItem.class);
@@ -117,9 +116,9 @@ public class PublishConfigFilterTest {
 	}
 	
 	
-	private PublishConfig getPublishConfigStatus() throws FileNotFoundException, IOException {
-		String jsonPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
+	private PublishConfig getConfigJsonTestData(String path) throws FileNotFoundException, IOException {
+		
+		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(path);
 		BufferedReader br = new BufferedReader(new InputStreamReader(resourceAsStream));
 		StringBuilder out = new StringBuilder();
 		String line;
