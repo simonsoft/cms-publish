@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package se.simonsoft.cms.publish.databinds.publish.config;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=false)
 public class PublishConfig {
@@ -25,9 +25,9 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
-	protected List<String> profilingInclude;
+	protected List<String> profilingInclude = new ArrayList<>();
 	protected String pathnameTemplate;
-	private PublishConfigPublish publish;
+	private PublishConfigOptions options;
 	
 	public PublishConfig(PublishConfig pc) {
 		this.active = pc.isActive();
@@ -35,7 +35,7 @@ public class PublishConfig {
 		this.statusInclude = pc.getStatusInclude();
 		this.profilingInclude = pc.getProfilingInclude();
 		this.pathnameTemplate = pc.getPathnameTemplate();
-		this.publish = pc.getPublish();
+		this.options = pc.getOptions();
 	}
 	public PublishConfig() {
 		
@@ -70,10 +70,10 @@ public class PublishConfig {
 	public void setPathnameTemplate(String pathNameTemplate) {
 		this.pathnameTemplate = pathNameTemplate;
 	}
-	public PublishConfigPublish getPublish() {
-		return publish;
+	public PublishConfigOptions getOptions() {
+		return options;
 	}
-	public void setPublish(PublishConfigPublish publish) {
-		this.publish = publish;
+	public void setOptions(PublishConfigOptions options) {
+		this.options = options;
 	}
 }

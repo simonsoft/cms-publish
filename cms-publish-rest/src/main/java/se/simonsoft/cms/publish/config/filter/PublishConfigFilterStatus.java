@@ -13,9 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.databinds.publish.job;
+package se.simonsoft.cms.publish.config.filter;
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigPostProcess;
+import java.util.List;
 
-public class PublishJobPostProcess extends PublishConfigPostProcess {
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+
+public class PublishConfigFilterStatus implements PublishConfigFilter {
+
+	@Override
+	public boolean accept(PublishConfig config, CmsItem item) {
+		
+		boolean accept = false;
+		List<String> statusInclude = config.getStatusInclude();
+		if (statusInclude == null || config.getStatusInclude().contains(item.getStatus())) { 
+			accept = true;
+		}
+		
+		return accept;
+	}
+
 }

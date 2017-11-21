@@ -6,7 +6,7 @@
   "pathname-template": "velocity-stuff.pdf",
   "pathname-config": "something",
 
-  "publish" : {
+  "options" : {
       "type": "abxpe",
       "format": "pdf",
       "params": {

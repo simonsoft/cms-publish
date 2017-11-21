@@ -17,12 +17,16 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PublishJob extends PublishConfig {
+public class PublishJob extends PublishConfig implements WorkflowItemInput{
 
 	private String configname;
 	private String type;
@@ -43,6 +47,41 @@ public class PublishJob extends PublishConfig {
 		this.profilingInclude = pj.getProfilingInclude();
 		this.pathnameTemplate = pj.getPathnameTemplate();
 	}
+	
+	public PublishJob(PublishConfig publishConfig) {
+		
+		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
+		if (publishConfig.getOptions().getDelivery() != null) {
+			publishJobDelivery.setParams(publishConfig.getOptions().getDelivery().getParams());
+			publishJobDelivery.setType(publishConfig.getOptions().getDelivery().getType());
+		}
+		
+		PublishJobOptions publishJobOptions = new PublishJobOptions();
+		publishJobOptions.setDelivery(publishJobDelivery);
+		publishJobOptions.setFormat(publishConfig.getOptions().getFormat());
+		publishJobOptions.setParams(publishConfig.getOptions().getParams());
+		
+		PublishJobPostProcess publishJobPostProcess = new PublishJobPostProcess();
+		if (publishConfig.getOptions().getPostprocess() != null) {
+			publishJobPostProcess.setParams(publishConfig.getOptions().getPostprocess().getParams());
+			publishJobPostProcess.setType(publishConfig.getOptions().getPostprocess().getType());
+			publishJobOptions.setPostprocess(publishJobPostProcess);
+		}
+		
+		PublishJobStorage storage = new PublishJobStorage();
+		storage.setParams(publishConfig.getOptions().getStorage().getParams());
+		storage.setType(publishConfig.getOptions().getStorage().getType());
+		publishJobOptions.setStorage(storage);
+		publishJobOptions.setType(publishConfig.getOptions().getType());
+		
+		this.options = publishJobOptions;
+		this.active = publishConfig.isActive();
+		this.visible = publishConfig.isVisible();
+		this.statusInclude = publishConfig.getStatusInclude();
+		this.profilingInclude = publishConfig.getProfilingInclude();
+		this.pathnameTemplate = publishConfig.getPathnameTemplate();
+	}
+	
 	public PublishJob() {
 		super();
 	}
@@ -105,5 +144,11 @@ public class PublishJob extends PublishConfig {
 	}
 	public void setPathnameTemplate(String pathnameTemplate) {
 		this.pathnameTemplate = pathnameTemplate;
+	}
+
+	@Override
+	@JsonIgnore
+	public CmsItemId getItemId() {
+		return new CmsItemIdArg(this.itemid);
 	}
 }

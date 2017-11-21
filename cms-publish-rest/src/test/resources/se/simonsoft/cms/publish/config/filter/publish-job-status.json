@@ -1,0 +1,32 @@
+{
+    "configname": "simple-pdf",
+    "type": "publish-job",
+    "action": "publish-noop",
+    "active": true,
+    "visible": true,
+    "statusInclude": [
+        "Review",
+        "Released"
+    ],
+    "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
+    "itemid": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
+    "options": {
+        "pathname": "DOC_900108_Released.pdf",
+        "type": "abxpe",
+        "format": "pdf",
+        "params": {
+            "stylesheet": "axdocbook.style",
+            "pdfconfig": "smallfile.pdfcf"
+        },
+        "storage": {
+            "type": "s3",
+            "pathprefix": "/cms4",
+            "pathconfigname": "/simple-pdf",
+            "pathdir": "/vvab/release/B/xml/documents/900108.xml",
+            "pathnamebase": "900108",
+            "params": {
+                "s3bucket": "cms-automation"
+            }
+        }
+    }
+}

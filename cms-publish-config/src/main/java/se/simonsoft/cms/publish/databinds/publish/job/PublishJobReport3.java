@@ -15,6 +15,8 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,8 +26,8 @@ import se.simonsoft.cms.publish.databinds.publish.job.cms.item.PublishJobItem;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobReport3 {
-	private Map<String, String> meta;
-	private List<PublishJobItem> items;
+	private Map<String, String> meta = new HashMap<>();
+	private List<PublishJobItem> items = new ArrayList<>();
 	
 	public Map<String, String> getMeta() {
 		return meta;
