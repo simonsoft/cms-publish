@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 package se.simonsoft.cms.publish.workflow;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 
 public class WorkflowItemInputPublish implements WorkflowItemInput {
 	
 	private static final String PUBLISH = "publish";
-	private final CmsItemId itemId;
+	private CmsItemId itemId;
 	private final PublishJob publishJob;
 	
 	public WorkflowItemInputPublish(CmsItemId itemId, PublishJob publishJob) {
@@ -33,8 +38,19 @@ public class WorkflowItemInputPublish implements WorkflowItemInput {
 	public String getAction() {
 		return PUBLISH;
 	}
+	
+	@JsonSetter("itemid")
+	public void setId(String itemId) {
+		this.itemId = new CmsItemIdArg(itemId);
+	}
+	
+	@JsonGetter("itemid")
+	public String getItemIdJson() {
+		return this.itemId.getLogicalIdFull();
+	}
 
 	@Override
+	@JsonIgnore
 	public CmsItemId getItemId() {
 		return this.itemId;
 	}
