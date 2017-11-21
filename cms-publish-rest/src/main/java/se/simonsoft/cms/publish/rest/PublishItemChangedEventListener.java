@@ -110,7 +110,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		String pathname = evaluatePathNameTmpl(c.getPathnameTemplate(), item);
 		pj.getOptions().setPathname(pathname);
 		
-		workflowExecutor.startExecution(new WorkflowItemInputPublish(item.getId(), pj));
+		workflowExecutor.startExecution(pj);
 		logger.debug("Execution started.");
 	}
 

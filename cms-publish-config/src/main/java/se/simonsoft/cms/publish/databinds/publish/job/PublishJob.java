@@ -17,12 +17,16 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PublishJob extends PublishConfig {
+public class PublishJob extends PublishConfig implements WorkflowItemInput{
 
 	private String configname;
 	private String type;
@@ -140,5 +144,11 @@ public class PublishJob extends PublishConfig {
 	}
 	public void setPathnameTemplate(String pathnameTemplate) {
 		this.pathnameTemplate = pathnameTemplate;
+	}
+
+	@Override
+	@JsonIgnore
+	public CmsItemId getItemId() {
+		return new CmsItemIdArg(this.itemid);
 	}
 }

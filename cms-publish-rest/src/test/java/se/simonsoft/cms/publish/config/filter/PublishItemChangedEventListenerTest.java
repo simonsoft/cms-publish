@@ -60,7 +60,6 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
-import se.simonsoft.cms.publish.workflow.WorkflowItemInputPublish;
 
 public class PublishItemChangedEventListenerTest {
 
@@ -123,15 +122,11 @@ public class PublishItemChangedEventListenerTest {
 		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		
 		
-		ArgumentCaptor<WorkflowItemInputPublish> argCaptor = ArgumentCaptor.forClass(WorkflowItemInputPublish.class); 
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
 		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
 		
-		WorkflowItemInputPublish input = argCaptor.getValue();
-		assertEquals("publish", input.getAction());
-		assertEquals(mockItem.getId(), input.getItemId());
-		
-		PublishJob publishJob = input.getPublishJob();
-		assertEquals("status" ,publishJob.getConfigname());
+		PublishJob publishJob = argCaptor.getValue();
+		assertEquals("status", publishJob.getConfigname());
 		assertEquals("publish-noop", publishJob.getAction());
 		assertTrue(publishJob.getStatusInclude().contains("Review"));
 		assertTrue(publishJob.getStatusInclude().contains("Released"));
@@ -187,10 +182,10 @@ public class PublishItemChangedEventListenerTest {
 																mapper.reader());
 		
 		eventListener.onItemChange(mockItem);
-		ArgumentCaptor<WorkflowItemInputPublish> argCaptor = ArgumentCaptor.forClass(WorkflowItemInputPublish.class); 
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
 		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
 		
-		PublishJob publishJob = argCaptor.getValue().getPublishJob();
+		PublishJob publishJob = argCaptor.getValue();
 		
 		String publishJobStatus = "se/simonsoft/cms/publish/config/filter/publish-job-status.json";
 		String statusJobFromFile = getPublishConfigFromPath(publishJobStatus);
