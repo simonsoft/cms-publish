@@ -42,7 +42,6 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
-import se.simonsoft.cms.publish.workflow.WorkflowItemInputPublish;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -54,6 +53,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 	private final String pathPrefix = "/cms4";
 	private final String s3Bucket = "cms-automation";
+	private final String type = "publish-job";
 	
 	private static final String PUBLISH_CONFIG_KEY = "cmsconfig-publish";  
 	
@@ -74,11 +74,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 
 	@Override
 	public void onItemChange(CmsItem item) {
-		logger.debug("Got an item change event with id: {}", item.getId());
-		CmsResourceContext context = this.lookup.getConfig(item.getId(), item.getKind());
+		logger.debug("Got an publishItemChangeEvent with id: {}", item.getId());
 		
-		Map<String, PublishConfig> publishConfigs = deserializeConfig(context);
-		publishConfigs = filterConfigs(publishConfigs, item);
+		CmsResourceContext context = this.lookup.getConfig(item.getId(), item.getKind());
+		Map<String, PublishConfig> publishConfigs = deserializeAndValidateConfig(context, item);
 		
 		Iterator<String> iterator = publishConfigs.keySet().iterator();
 		while (iterator.hasNext()) {
@@ -93,7 +92,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJob pj = new PublishJob(c);
 		pj.setItemid(item.getId().getLogicalId());
 		pj.setAction("publish-noop");
-		pj.setType("publish-job");
+		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
 		PublishJobStorage storage = pj.getOptions().getStorage();
@@ -101,35 +100,39 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		storage.setPathnamebase(item.getId().getRelPath().getNameBase());
 		storage.setPathprefix(this.pathPrefix);
 		storage.setPathconfigname("/".concat(configName));
+		
 		if (!storage.getParams().containsKey("s3bucket")) {
 			storage.getParams().put("s3bucket", this.s3Bucket);
 		}
-		
-		//TODO: set reporting3 should be json string from reporting service.
 		
 		String pathname = evaluatePathNameTmpl(c.getPathnameTemplate(), item);
 		pj.getOptions().setPathname(pathname);
 		
 		workflowExecutor.startExecution(pj);
-		logger.debug("Execution started.");
+		logger.debug("Execution started with publishJob: {}", pj);
 	}
 
-	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
+	private Map<String, PublishConfig> deserializeAndValidateConfig(CmsResourceContext context, CmsItem item) {
 		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
+		
 		Map<String, PublishConfig> configs = new LinkedHashMap<>();
 		Iterator<CmsConfigOption> iterator = context.iterator();
+		
 		while (iterator.hasNext()) {
-			CmsConfigOption next = iterator.next();
-			String configOptionName = next.getNamespace();
+			CmsConfigOption configOption = iterator.next();
+			String configOptionName = configOption.getNamespace();
 			if (configOptionName.startsWith(PUBLISH_CONFIG_KEY)) {
+				
 				try {
-					PublishConfig publishConfig = reader.readValue(next.getValueString());
-					configs.put(next.getKey(), publishConfig);
+					PublishConfig publishConfig = reader.readValue(configOption.getValueString());
+					if (isValidConfig(publishConfig, item)) {
+						configs.put(configOption.getKey(), publishConfig);
+					}
 				} catch (JsonProcessingException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + next.getKey()));
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
 					throw new RuntimeException(e);
 				} catch (IOException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName);
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
 					throw new RuntimeException(e);
 				}
 			}
@@ -140,20 +143,15 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		return configs;
 	}
 	
-	private Map<String, PublishConfig> filterConfigs(Map<String, PublishConfig> configs, CmsItem item) {
-		
-		Iterator<String> iterator = configs.keySet().iterator();
-		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
-		while (iterator.hasNext()) {
-			String next = iterator.next();
-			for (PublishConfigFilter f: filters) {
-				if (f.accept(configs.get(next), item)) {
-					logger.debug("Config {} where accepted.", next);
-					filteredConfigs.put(next, configs.get(next));
-				}
+	private boolean isValidConfig(PublishConfig config, CmsItem item) {
+		boolean isValidConfig = true;
+		for (PublishConfigFilter f: filters) {
+			if (!f.accept(config, item)) {
+				isValidConfig = false;
+				logger.debug("Config {} where not accepted.", config);
 			}
 		}
-		return configs;
+		return isValidConfig;
 	}
 	
 	private String evaluatePathNameTmpl(String template, CmsItem item) {

@@ -64,7 +64,7 @@ import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
 public class PublishItemChangedEventListenerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
-	//Declaring all mocked objects. @Before will init them and each individual test has to specify the mocks own behaviors. 
+	//Declaring all mocked objects. @Before will init them as clean mocks before each test and each individual test has to specify the mocks own behaviors. 
 	@Mock CmsResourceContext mockContext;
 	@Mock CmsItem mockItem;
 	@Mock CmsRepositoryLookup mockLookup;
@@ -99,11 +99,12 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating nockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
-		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time hasNext(); is called answer true, second time answer false.
+		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
 		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath ));
-		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(configStatusPath));
+		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 		
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
@@ -125,6 +126,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Verifies that our mocks and spies has been called a certain amount of times.
 		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
+		verify(mockOptionIterator, times(2)).next();
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
