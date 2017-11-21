@@ -50,7 +50,7 @@ public class PublishJobItem implements CmsItem {
 	private boolean head;
 	private String path;
 	private PublishJobItemFile file;
-	private HashMap<String, Object> meta;
+	private HashMap<String, Object> meta = new HashMap<>();
 	private String name;
 	private PublishJobItemChecksum checksum;
 	private CmsItemPropertiesMap properties;

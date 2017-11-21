@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import junit.framework.TestCase;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 
 public class TestPublishConfig extends TestCase {
 	private ObjectReader reader;
@@ -44,7 +44,7 @@ public class TestPublishConfig extends TestCase {
 	@Test
 	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
 		PublishConfig jsonPc = new PublishConfig();
-		jsonPc = reader.readValue(getJsonString());
+		jsonPc = reader.readValue(getPublishConfigAsString());
 
 		assertEquals("velocity-stuff.pdf", jsonPc.getPathnameTemplate());
 		assertEquals("*", jsonPc.getProfilingInclude().get(0));
@@ -52,16 +52,16 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("Released", jsonPc.getStatusInclude().get(1));
 		assertEquals(true, jsonPc.isActive());
 		assertEquals(true, jsonPc.isVisible());
-		assertEquals("abxpe", jsonPc.getPublish().getType());
-		assertEquals("pdf", jsonPc.getPublish().getFormat());
-		assertEquals("file.css", jsonPc.getPublish().getParams().get("stylesheet"));
-		assertEquals("file.pdf", jsonPc.getPublish().getParams().get("pdfconfig"));
-		assertEquals("great", jsonPc.getPublish().getParams().get("whatever"));
-		assertEquals("s3", jsonPc.getPublish().getStorage().getType());
-		assertEquals("parameter for future destination types", jsonPc.getPublish().getStorage().getParams().get("specific"));
-		assertEquals("future stuff", jsonPc.getPublish().getPostprocess().getType());
-		assertEquals("parameter for future destination types", jsonPc.getPublish().getPostprocess().getParams().get("specific"));
-		assertEquals("webhook", jsonPc.getPublish().getDelivery().getType());
+		assertEquals("abxpe", jsonPc.getOptions().getType());
+		assertEquals("pdf", jsonPc.getOptions().getFormat());
+		assertEquals("file.css", jsonPc.getOptions().getParams().get("stylesheet"));
+		assertEquals("file.pdf", jsonPc.getOptions().getParams().get("pdfconfig"));
+		assertEquals("great", jsonPc.getOptions().getParams().get("whatever"));
+		assertEquals("s3", jsonPc.getOptions().getStorage().getType());
+		assertEquals("parameter for future destination types", jsonPc.getOptions().getStorage().getParams().get("specific"));
+		assertEquals("future stuff", jsonPc.getOptions().getPostprocess().getType());
+		assertEquals("parameter for future destination types", jsonPc.getOptions().getPostprocess().getParams().get("specific"));
+		assertEquals("webhook", jsonPc.getOptions().getDelivery().getType());
 	}
 
 	@Test
@@ -70,7 +70,7 @@ public class TestPublishConfig extends TestCase {
 		try {
 			PublishConfig jsonPc = new PublishConfig();
 			ObjectReader r = new ObjectMapper().reader(PublishConfig.class);
-			jsonPc = r.readValue(getJsonString2());
+			jsonPc = r.readValue(getPublishConfig2AsString());
 			fail("Expectected UnrecognizedPropertyException to be thrown");
 			
 		}catch(UnrecognizedPropertyException e){
@@ -86,7 +86,33 @@ public class TestPublishConfig extends TestCase {
 			e.printStackTrace();
 		}
 	}
-	private String getJsonString() throws FileNotFoundException, IOException {
+	
+	@Test
+	public void testGetJobFromConfig() throws Exception {
+		
+		PublishConfig config = new PublishConfig();
+		config = reader.readValue(getPublishConfigAsString());
+		PublishJob job = new PublishJob(config);
+		
+		assertEquals("velocity-stuff.pdf", job.getPathnameTemplate());
+		assertEquals("*", job.getProfilingInclude().get(0));
+		assertEquals("Review", job.getStatusInclude().get(0));
+		assertEquals("Released", job.getStatusInclude().get(1));
+		assertEquals(true, job.isActive());
+		assertEquals(true, job.isVisible());
+		assertEquals("abxpe", job.getOptions().getType());
+		assertEquals("pdf", job.getOptions().getFormat());
+		assertEquals("file.css", job.getOptions().getParams().get("stylesheet"));
+		assertEquals("file.pdf", job.getOptions().getParams().get("pdfconfig"));
+		assertEquals("great", job.getOptions().getParams().get("whatever"));
+		assertEquals("s3", job.getOptions().getStorage().getType());
+		assertEquals("parameter for future destination types", job.getOptions().getStorage().getParams().get("specific"));
+		assertEquals("future stuff", job.getOptions().getPostprocess().getType());
+		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
+		assertEquals("webhook", job.getOptions().getDelivery().getType());
+	}
+	
+	private String getPublishConfigAsString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
@@ -98,7 +124,7 @@ public class TestPublishConfig extends TestCase {
 		reader.close();
 		return out.toString();
 	}
-	private String getJsonString2() throws FileNotFoundException, IOException {
+	private String getPublishConfig2AsString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config2.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));

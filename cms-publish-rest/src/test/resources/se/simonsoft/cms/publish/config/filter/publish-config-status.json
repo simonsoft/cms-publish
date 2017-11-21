@@ -1,0 +1,21 @@
+{
+  "active": true,
+  "visible": true,
+  "statusInclude": ["Review", "Released"],
+  "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
+
+  "options" : {
+      "type": "abxpe",
+      "format": "pdf",
+      "params": {
+          "stylesheet": "axdocbook.style",
+          "pdfconfig": "smallfile.pdfcf"
+      },
+      
+      "storage": {
+        "type": "s3"
+        
+      }
+      
+  }
+}

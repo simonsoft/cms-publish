@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.databinds.publish.job;
+package se.simonsoft.cms.publish.config.filter;
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigPostProcess;
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 
-public class PublishJobPostProcess extends PublishConfigPostProcess {
+public interface PublishConfigFilter {
+	
+	boolean accept(PublishConfig config, CmsItem item);
+
 }

@@ -15,22 +15,15 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
-import java.util.HashMap;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigStorage;
 
-public class PublishJobStorage {
-	private String type;
+public class PublishJobStorage extends PublishConfigStorage {
+	
 	private String pathprefix;
 	private String pathconfigname;
 	private String pathdir;
 	private String pathnamebase;
-	private HashMap<String, String> params;
 	
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
 	public String getPathprefix() {
 		return pathprefix;
 	}
@@ -54,11 +47,5 @@ public class PublishJobStorage {
 	}
 	public void setPathnamebase(String pathnamebase) {
 		this.pathnamebase = pathnamebase;
-	}
-	public HashMap<String, String> getParams() {
-		return params;
-	}
-	public void setParams(HashMap<String, String> params) {
-		this.params = params;
 	}
 }
