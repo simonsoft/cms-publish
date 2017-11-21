@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package se.simonsoft.cms.publish.databinds.publish.config;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,8 +24,8 @@ public class PublishConfig {
 
 	protected boolean active;
 	protected boolean visible;
-	protected List<String> statusInclude;
-	protected List<String> profilingInclude;
+	protected List<String> statusInclude = new ArrayList<>();;
+	protected List<String> profilingInclude = new ArrayList<>();;;
 	protected String pathnameTemplate;
 	private PublishConfigOptions options;
 	

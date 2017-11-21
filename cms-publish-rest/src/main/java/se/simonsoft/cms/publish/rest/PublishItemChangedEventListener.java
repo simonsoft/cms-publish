@@ -115,7 +115,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	}
 
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
-
+		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
 		Map<String, PublishConfig> configs = new LinkedHashMap<>();
 		Iterator<CmsConfigOption> iterator = context.iterator();
 		while (iterator.hasNext()) {
@@ -126,7 +126,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 					PublishConfig publishConfig = reader.readValue(next.getValueString());
 					configs.put(next.getKey(), publishConfig);
 				} catch (JsonProcessingException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName);
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + next.getKey()));
 					throw new RuntimeException(e);
 				} catch (IOException e) {
 					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName);
