@@ -64,7 +64,15 @@ import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
 public class PublishItemChangedEventListenerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
+	//Declaring all mocked objects. @Before will init them and each individual test has to specify the mocks own behaviors. 
 	@Mock CmsResourceContext mockContext;
+	@Mock CmsItem mockItem;
+	@Mock CmsRepositoryLookup mockLookup;
+	@Mock Iterator<CmsConfigOption> mockOptionIterator;
+	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
+	
+	private final String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	private final String publishJobStatus = "se/simonsoft/cms/publish/config/filter/publish-job-status.json";
 	
 	@Before
 	public void setUp() {
@@ -74,7 +82,7 @@ public class PublishItemChangedEventListenerTest {
 	@Test
 	public void testDefaultItemEvent() throws Exception {
 		
-		CmsItem mockItem = mock(CmsItem.class);
+		//CmsItem mock. Not possible to get a real CmsItem in this context.
 		CmsItemIdArg itemId = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
 		itemId.setHostname("ubuntu-cheftest1.pdsvision.net");
 		when(mockItem.getId()).thenReturn(itemId);
@@ -86,20 +94,18 @@ public class PublishItemChangedEventListenerTest {
 		metaMap.put("embd_xml_a_type", "abxpe");
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
-		CmsRepositoryLookup mockLookup = mock(CmsRepositoryLookup.class);
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
 		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
 		
-		Iterator<CmsConfigOption> mockOptionIterator = mock(Iterator.class);
+		//Mocking the iterator in mockContext. Easier way then instantiating nockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
-		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
+		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time hasNext(); is called answer true, second time answer false.
 		
-		String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath));
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath ));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
 		
-		WorkflowExecutor<WorkflowItemInput> mockWorkflowExec = mock(WorkflowExecutor.class);
-		
-		
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
 		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
 		filters.add(activeFilterSpy);
@@ -114,17 +120,20 @@ public class PublishItemChangedEventListenerTest {
 																mockWorkflowExec,
 																filters,
 																mapper.reader());
+		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
+		//Verifies that our mocks and spies has been called a certain amount of times.
 		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		
-		
+		//Caputures PublishJob arguments that our mocked workflow been called with.
 		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
 		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
 		
+		//Asserts on argument that executor has been called with.
 		PublishJob publishJob = argCaptor.getValue();
 		assertEquals("status", publishJob.getConfigname());
 		assertEquals("publish-noop", publishJob.getAction());
@@ -146,7 +155,7 @@ public class PublishItemChangedEventListenerTest {
 	@Test
 	public void testValidateItemChangedWithValidated() throws Exception {
 		
-		CmsItem mockItem = mock(CmsItem.class);
+		//CmsItem mock. Not possible to get a real CmsItem in this context.
 		CmsItemIdArg itemId = (CmsItemIdArg) new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/release/B/xml/documents/900108.xml")).withPegRev(145L);
 		itemId.setHostname("ubuntu-cheftest1.pdsvision.net");
 		when(mockItem.getId()).thenReturn(itemId);
@@ -158,18 +167,16 @@ public class PublishItemChangedEventListenerTest {
 		metaMap.put("embd_xml_a_type", "abxpe");
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
-		CmsRepositoryLookup mockLookup = mock(CmsRepositoryLookup.class);
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
 		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
 		
-		Iterator<CmsConfigOption> mockOptionIterator = mock(Iterator.class);
+		//Mocking the iterator in mockContext. Easier way then instantiating nockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
-		String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
 		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
-		
-		WorkflowExecutor<WorkflowItemInput> mockWorkflowExec = mock(WorkflowExecutor.class);
 		
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
 		filters.add(new PublishConfigFilterActive());
@@ -180,14 +187,16 @@ public class PublishItemChangedEventListenerTest {
 																mockWorkflowExec,
 																filters,
 																mapper.reader());
-		
 		eventListener.onItemChange(mockItem);
-		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class);
+		
+		//Verifies that our mocked workflowExecutor has been called a certain amount of times.
 		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String publishJobStatus = "se/simonsoft/cms/publish/config/filter/publish-job-status.json";
 		String statusJobFromFile = getPublishConfigFromPath(publishJobStatus);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
@@ -213,20 +222,12 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getParams().get("stylesheet"), options.getParams().get("stylesheet"));
 		assertEquals(optionsValidated.getParams().get("pdfconfig"), options.getParams().get("pdfconfig"));
 		
-//		assertEquals(optionsValidated.getReport3(), options.getReport3());
-		
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
 		assertEquals(optionsValidated.getStorage().getPathprefix(), options.getStorage().getPathprefix());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
 		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));
-		
-		
-		
-		
-		
-		
 	}
 	
 	
