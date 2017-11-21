@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,7 +25,7 @@ public class PublishConfigOptions {
 
 	private String type;
 	private String format;
-	private Map <String, String> params;
+	private Map <String, String> params = new HashMap<>();
 	private PublishConfigStorage storage;
 	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;

@@ -44,7 +44,7 @@ public class TestPublishConfig extends TestCase {
 	@Test
 	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
 		PublishConfig jsonPc = new PublishConfig();
-		jsonPc = reader.readValue(getJsonString());
+		jsonPc = reader.readValue(getPublishConfigAsString());
 
 		assertEquals("velocity-stuff.pdf", jsonPc.getPathnameTemplate());
 		assertEquals("*", jsonPc.getProfilingInclude().get(0));
@@ -70,7 +70,7 @@ public class TestPublishConfig extends TestCase {
 		try {
 			PublishConfig jsonPc = new PublishConfig();
 			ObjectReader r = new ObjectMapper().reader(PublishConfig.class);
-			jsonPc = r.readValue(getJsonString2());
+			jsonPc = r.readValue(getPublishConfig2AsString());
 			fail("Expectected UnrecognizedPropertyException to be thrown");
 			
 		}catch(UnrecognizedPropertyException e){
@@ -91,10 +91,9 @@ public class TestPublishConfig extends TestCase {
 	public void testGetJobFromConfig() throws Exception {
 		
 		PublishConfig config = new PublishConfig();
-		config = reader.readValue(getJsonString());
+		config = reader.readValue(getPublishConfigAsString());
 		PublishJob job = new PublishJob(config);
 		
-		assertEquals("abxpe", job.getType());
 		assertEquals("velocity-stuff.pdf", job.getPathnameTemplate());
 		assertEquals("*", job.getProfilingInclude().get(0));
 		assertEquals("Review", job.getStatusInclude().get(0));
@@ -113,7 +112,7 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("webhook", job.getOptions().getDelivery().getType());
 	}
 	
-	private String getJsonString() throws FileNotFoundException, IOException {
+	private String getPublishConfigAsString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
@@ -125,7 +124,7 @@ public class TestPublishConfig extends TestCase {
 		reader.close();
 		return out.toString();
 	}
-	private String getJsonString2() throws FileNotFoundException, IOException {
+	private String getPublishConfig2AsString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config2.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
