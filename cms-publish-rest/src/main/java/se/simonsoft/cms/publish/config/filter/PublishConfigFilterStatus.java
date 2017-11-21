@@ -27,8 +27,7 @@ public class PublishConfigFilterStatus implements PublishConfigFilter {
 		
 		boolean accept = false;
 		List<String> statusInclude = config.getStatusInclude();
-		//item.getStatus() is not supported. Getting it from properties map instead.
-		if (statusInclude == null || config.getStatusInclude().contains(item.getProperties().getString("cms:status"))) { 
+		if (statusInclude == null || config.getStatusInclude().contains(item.getStatus())) { 
 			accept = true;
 		}
 		
