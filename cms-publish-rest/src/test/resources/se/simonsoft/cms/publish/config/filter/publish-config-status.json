@@ -11,7 +11,14 @@
           "stylesheet": "axdocbook.style",
           "pdfconfig": "smallfile.pdfcf"
       },
-      
+      "manifest": {
+            "customTemplates": {
+                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}"
+            },
+            "metaTemplates": {
+                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString()}"
+            }
+        },
       "storage": {
         "type": "s3"
         
