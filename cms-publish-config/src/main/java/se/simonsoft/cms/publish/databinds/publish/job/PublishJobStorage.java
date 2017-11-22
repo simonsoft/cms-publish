@@ -20,6 +20,7 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigStorage;
 public class PublishJobStorage extends PublishConfigStorage {
 	
 	private String pathprefix;
+	private String pathcloudid;
 	private String pathconfigname;
 	private String pathdir;
 	private String pathnamebase;
@@ -29,6 +30,12 @@ public class PublishJobStorage extends PublishConfigStorage {
 	}
 	public void setPathprefix(String pathprefix) {
 		this.pathprefix = pathprefix;
+	}
+	public String getPathcloudid() {
+		return pathcloudid;
+	}
+	public void setPathcloudid(String pathcloudid) {
+		this.pathcloudid = pathcloudid;
 	}
 	public String getPathconfigname() {
 		return pathconfigname;
