@@ -18,7 +18,10 @@ package se.simonsoft.publish.worker;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 public class WorkerApplication extends ResourceConfig {
 
@@ -31,6 +34,8 @@ public class WorkerApplication extends ResourceConfig {
             protected void configure() {
             	bind("injected").to(String.class).named("TEST");
             	bind(new PublishServicePe()).to(PublishServicePe.class);
+            	bind(new ObjectMapper()).to(ObjectMapper.class);
+            	bind(new PublishRequestDefault()).to(PublishRequestDefault.class);
             }
         });
 		
