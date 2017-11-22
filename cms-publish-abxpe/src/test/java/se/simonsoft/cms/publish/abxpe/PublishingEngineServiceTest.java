@@ -25,25 +25,22 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishSourceUrl;
 import se.simonsoft.cms.publish.PublishTicket;
-
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PublishingEngineServiceTest {
 	private String publishHost = "http://pds-suse-svn3.pdsvision.net";
 	private String publishPath = "/e3/servlet/e3";
 	
-	@Test
+	@Test @Ignore
 	public void publishRequestTest() throws MalformedURLException, InterruptedException, PublishException {
 		PublishServicePe peService = new PublishServicePe();
 		PublishRequestDefault request = new PublishRequestDefault();
@@ -53,19 +50,20 @@ public class PublishingEngineServiceTest {
 		request.addConfig("path", this.publishPath);
 		// Add Params
 		request.addParam("profile", "<LogicalExpression><LogicalGroup operator=\"OR\"><ProfileRef alias=\"Features\" value=\"FeatureX\"/><ProfileRef alias=\"Features\" value=\"FeatureD\"/></LogicalGroup></LogicalExpression>");
-		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.flir/doctypes/FLIR/flir_technote_A4.style");
-		request.addParam("app-config", "$aptpath/application/se.simonsoft.flir/app/standard.3sppdf");
+		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.techdoc/doctypes/techdoc/techdoc.style");
+		request.addParam("app-config", "$aptpath/application/se.simonsoft.techdoc/app/standard.3sppdf");
 		
 		//URL path = new URL("C:/Program Files/e3/e3/e3demo.xml"); // DEMO xml.
 		//PublishSourceUrl url = new PublishSourceUrl(path);
-		CmsItemId id = new CmsItemIdArg("x-svn:///svn/flir^/thg-swe/td/td-xml/thg-swe/td-spec/03198-000.xml");
+		CmsItemId id = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml");
 		
 		PublishSourceCmsItemId source = new PublishSourceCmsItemId(id);
 		
 		request.setFile(source);
 		request.setFormat(new PublishFormatPDF());
 		PublishTicket ticket = peService.requestPublish(request);
-		assertNotNull("Ticket should not be null", ticket.toString());
+		assertNotNull("Ticket should not be null", ticket);
+		assertFalse("Ticket should not be empty", ticket.toString().isEmpty());
 	
 		boolean isComplete = false;
 		while(!isComplete){
@@ -89,6 +87,32 @@ public class PublishingEngineServiceTest {
 		} catch (IOException e) {
 
 			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void publishRequestUnknownHostTest() throws MalformedURLException, InterruptedException, PublishException {
+		PublishServicePe peService = new PublishServicePe();
+		PublishRequestDefault request = new PublishRequestDefault();
+		
+		// Add config
+		request.addConfig("host", "http://bogus.pdsvision.net");
+		request.addConfig("path", this.publishPath);
+		// Add Params
+		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.techdoc/doctypes/techdoc/techdoc.style");
+		request.addParam("app-config", "$aptpath/application/se.simonsoft.techdoc/app/standard.3sppdf");
+		
+		URL path = new URL("file:///C:/Program%20Files/e3/e3/e3demo.xml"); // DEMO xml.
+		PublishSourceUrl url = new PublishSourceUrl(path);
+		
+		request.setFile(url);
+		request.setFormat(new PublishFormatPDF());
+		try {
+			PublishTicket ticket = peService.requestPublish(request);
+			assertNotNull("Ticket should not be null", ticket);
+			assertFalse("Ticket should not be empty", ticket.toString().isEmpty());
+		} catch (Exception e) {
+			assertEquals("Publishing failed (java.net.UnknownHostException): bogus.pdsvision.net", e.getMessage());
 		}
 	}
 }

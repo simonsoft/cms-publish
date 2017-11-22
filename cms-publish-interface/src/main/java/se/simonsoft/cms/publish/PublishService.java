@@ -46,13 +46,12 @@ public interface PublishService {
 	/**
 	 * Start publishing a CMS item into a specified format. 
 	 * The publish job will be added to the queue (implementation specific).
-	 * A PublishTicket will be added to the request.
 	 * @param item
 	 * @param format
 	 * @param params
-	 * @return
+	 * @return a PublishTicket identifying the job
 	 */
-	PublishTicket requestPublish(PublishRequest request);
+	PublishTicket requestPublish(PublishRequest request) throws PublishException;
 	
 	
 	/**
@@ -60,7 +59,7 @@ public interface PublishService {
 	 * @param request
 	 * @return true if the publish has completed, which does not necessarily mean it was successful.
 	 */
-	Boolean isCompleted(PublishTicket ticket, PublishRequest request);
+	Boolean isCompleted(PublishTicket ticket, PublishRequest request) throws PublishException;
 
 	
 	/** Provide the result as a stream.
@@ -76,7 +75,7 @@ public interface PublishService {
 	/** Provide the log as a stream. Might be empty if the publish was a successful. 
 	 * These have the concept: PE, Saxon, DITA-OT (lots of console, any readable?), Jenkins (console) 
 	 */
-	void getLogStream(PublishTicket ticket, PublishRequest request, OutputStream outStream);
+	void getLogStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) throws PublishException;
 
 	
 	

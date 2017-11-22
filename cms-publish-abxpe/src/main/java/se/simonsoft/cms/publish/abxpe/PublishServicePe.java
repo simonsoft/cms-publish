@@ -17,8 +17,6 @@ package se.simonsoft.cms.publish.abxpe;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -120,7 +118,7 @@ public class PublishServicePe implements PublishService {
 	}
 
 	@Override
-	public PublishTicket requestPublish(PublishRequest request) {
+	public PublishTicket requestPublish(PublishRequest request) throws PublishException {
 		logger.debug("Start");
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
@@ -162,15 +160,16 @@ public class PublishServicePe implements PublishService {
 			return this.getQueueTicket( new ByteArrayInputStream(byteOutputStream.toByteArray())); 
 		} catch (HttpStatusError e) {
 			logger.debug("Publication Error! \n Response: {} \nStacktrace:{} ", e.getResponse(), e.getStackTrace());
+			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
-			logger.debug("IO Error: \n Message: {} \nStacktrace:{} ", e.getMessage(), e.getStackTrace());
+			logger.debug("IOException: Message: {}", e.getMessage(), e);
+			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
 		}
-		return null;
 	}
 
-	@SuppressWarnings("finally")
+
 	@Override
-	public Boolean isCompleted(PublishTicket ticket, PublishRequest request) {
+	public Boolean isCompleted(PublishTicket ticket, PublishRequest request) throws PublishException {
 		logger.debug("Start");
 		
 		// Create the uri
@@ -210,9 +209,8 @@ public class PublishServicePe implements PublishService {
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
 			throw new RuntimeException("Publishing Engine communication failed", e);
-		}finally{
-			return result;
 		}
+		return result;
 	}
 
 	@Override
