@@ -24,13 +24,13 @@ import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishFormatPDF;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 public class PublishJobServiceTest {
 	
 	ObjectMapper mapper = new ObjectMapper();
-	ObjectReader reader = mapper.reader(PublishJob.class);
+	ObjectReader reader = mapper.reader(PublishJobOptions.class);
 	PublishServicePe pe;
 	
 	@Test
@@ -38,7 +38,7 @@ public class PublishJobServiceTest {
 		pe = Mockito.mock(PublishServicePe.class);
 		PublishFormat format = new PublishFormatPDF();
 		PublishJobService service = new PublishJobService(pe);
-		PublishJob job = reader.readValue(getJsonString());
+		PublishJobOptions job = reader.readValue(getJsonString());
 		PublishTicket publishTicket = new PublishTicket("2");
 		
 		when(pe.isCompleted(Mockito.any(PublishTicket.class), Mockito.any(PublishRequestDefault.class))).thenReturn(true);
@@ -54,13 +54,13 @@ public class PublishJobServiceTest {
         assertEquals("http://localhost:8080", pr.getConfig().get("host"));
         assertEquals("/e3/servlet/e3", pr.getConfig().get("path"));
         assertEquals("yes", pr.getParams().get("zip-output"));
-        assertEquals(job.getOptions().getPathname(), pr.getParams().get("zip-root"));
-        assertEquals(job.getOptions().getType(), pr.getParams().get("type"));
-        assertEquals(job.getOptions().getFormat(), pr.getParams().get("format"));
-        assertEquals(job.getOptions().getParams().get("stylesheet"), pr.getParams().get("stylesheet"));
-        assertEquals(job.getOptions().getParams().get("pdfconfig"), pr.getParams().get("pdfconfig"));
-        assertEquals(job.getOptions().getParams().get("whatever"), pr.getParams().get("whatever"));
-        assertEquals(job.getItemid(), pr.getFile().getURI());
+        assertEquals(job.getPathname(), pr.getParams().get("zip-root"));
+        assertEquals(job.getType(), pr.getParams().get("type"));
+        assertEquals(job.getFormat(), pr.getParams().get("format"));
+        assertEquals(job.getParams().get("stylesheet"), pr.getParams().get("stylesheet"));
+        assertEquals(job.getParams().get("pdfconfig"), pr.getParams().get("pdfconfig"));
+        assertEquals(job.getParams().get("whatever"), pr.getParams().get("whatever"));
+        assertEquals(job.getSource(), pr.getFile().getURI());
         assertEquals(format, pr.getFormat());
         
         ArgumentCaptor<PublishTicket> ticketCaptor = ArgumentCaptor.forClass(PublishTicket.class);
