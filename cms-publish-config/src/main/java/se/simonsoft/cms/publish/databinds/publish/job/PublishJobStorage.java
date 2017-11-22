@@ -25,7 +25,6 @@ public class PublishJobStorage extends PublishConfigStorage {
 	private String pathdir;
 	private String pathnamebase;
 	
-	
 	public PublishJobStorage() {
 		super();
 	}
