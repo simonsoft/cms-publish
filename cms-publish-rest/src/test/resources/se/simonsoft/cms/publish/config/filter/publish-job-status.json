@@ -13,6 +13,7 @@
     "options": {
         "pathname": "DOC_900108_Released.pdf",
         "type": "abxpe",
+        "source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
         "format": "pdf",
         "params": {
             "stylesheet": "axdocbook.style",
