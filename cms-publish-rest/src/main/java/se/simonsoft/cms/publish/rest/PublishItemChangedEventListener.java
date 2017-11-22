@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
