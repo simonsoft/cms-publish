@@ -186,7 +186,12 @@ public class PublishJobsTask extends Task {
 		PublishRequestDefault publishRequest = this.createRequestDefault(job.getParams());
 
 		// Send the request
-		PublishTicket ticket = publishService.requestPublish(publishRequest);
+		PublishTicket ticket;
+		try {
+			ticket = publishService.requestPublish(publishRequest);
+		} catch (PublishException e) {
+			throw new BuildException("Publish Service communication error.");
+		}
 
 		if(ticket == null){
 			log("Could not send request to PublishingEngine");
@@ -258,7 +263,11 @@ public class PublishJobsTask extends Task {
 			for (PublishJob publishJob : this.publishedJobs) {
 				boolean isComplete = false;
 				if(!publishJob.isCompleted()) {
-					isComplete = publishService.isCompleted(publishJob.getTicket(), publishJob.getPublishRequest());
+					try {
+						isComplete = publishService.isCompleted(publishJob.getTicket(), publishJob.getPublishRequest());
+					} catch (PublishException e) {
+						throw new BuildException("Publish Service communication error.");
+					}
 					//log("Ticket id " + publishJob.getTicket().toString() + " check. Total checks: #" + checks++);
 					if(isComplete) {
 						publishJob.setCompleted(isComplete);
