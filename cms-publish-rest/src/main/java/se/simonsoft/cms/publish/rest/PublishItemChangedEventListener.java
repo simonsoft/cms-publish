@@ -32,6 +32,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
@@ -104,7 +106,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		PublishJobStorage storage = pj.getOptions().getStorage();
 		storage.setPathdir(item.getId().getRelPath().getPath());
-		storage.setPathnamebase(item.getId().getRelPath().getNameBase());
+		storage.setPathnamebase(getNameBase(item.getId()));
 		storage.setPathprefix(this.pathPrefix);
 		storage.setPathconfigname("/".concat(configName));
 		if (!storage.getParams().containsKey("s3bucket")) {
@@ -117,6 +119,16 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
 	}
+	
+	public String getNameBase(CmsItemId itemId) {
+		String nameBase = itemId.getRelPath().getNameBase();
+		String idRevision;
+		if (itemId.getPegRev() != null) {
+			idRevision = String.format("_r%010d", itemId.getPegRev());
+			nameBase = nameBase.concat(idRevision);
+		}
+        return nameBase;
+}
 	
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
 		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);

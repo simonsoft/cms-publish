@@ -29,6 +29,7 @@ public class PublishConfigOptions {
 	private PublishConfigStorage storage;
 	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;
+	private PublishConfigManifest manifest;
 	
 	public String getType() {
 		return type;
@@ -65,5 +66,11 @@ public class PublishConfigOptions {
 	}
 	public void setDelivery(PublishConfigDelivery delivery) {
 		this.delivery = delivery;
+	}
+	public PublishConfigManifest getManifest() {
+		return manifest;
+	}
+	public void setManifest(PublishConfigManifest manifest) {
+		this.manifest = manifest;
 	}
 }
