@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -33,12 +34,12 @@ public class PublishJobServiceTest {
 	PublishServicePe pe;
 	
 	@Test
-	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException {
+	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
 		PublishFormat format = new PublishFormatPDF();
 		PublishJobService service = new PublishJobService(pe);
 		PublishJob job = reader.readValue(getJsonString());
-		PublishTicket publishTicket = new PublishTicket("2");	
+		PublishTicket publishTicket = new PublishTicket("2");
 		
 		when(pe.isCompleted(Mockito.any(PublishTicket.class), Mockito.any(PublishRequestDefault.class))).thenReturn(true);
 		when(pe.getPublishFormat(Mockito.anyString())).thenReturn(format);
