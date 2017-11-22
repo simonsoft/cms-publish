@@ -35,14 +35,12 @@ public class PublishJobPage {
 	
 	ObjectMapper mapper;
 	ObjectReader reader;
-	private PublishServicePe pe;
 	private String publishHost = "http://localhost:8080";
 	private String publishPath = "/e3/servlet/e3";
 	
 	@Inject
 	public PublishJobPage(ObjectMapper mapper, PublishServicePe pe) {
 		this.mapper = mapper;
-		this.pe = pe;
 	}
 	
 	@GET
@@ -75,7 +73,7 @@ public class PublishJobPage {
 		reader = mapper.reader(PublishJob.class);
 		PublishJob job = reader.readValue(jsonString);
 		
-		PublishJobService service = new PublishJobService(pe);
+		PublishJobService service = new PublishJobService();
 		PublishTicket publishJob = service.PublishJob(job);
 		
 		return null;

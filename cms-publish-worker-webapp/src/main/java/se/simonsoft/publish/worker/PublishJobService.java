@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import se.simonsoft.cms.publish.PublishFormat;
+import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.databinds.publish.job.*;
@@ -17,22 +18,20 @@ import se.simonsoft.cms.publish.PublishSource;
 
 public class PublishJobService {
 
-	private PublishServicePe pe;
+	private final PublishServicePe pe;
 	private String publishHost = "http://localhost:8080";
 	private String publishPath = "/e3/servlet/e3";
 	
 	@Inject
-	public PublishJobService(@Named("PublishServicePe") PublishServicePe pe) {
+	public PublishJobService(PublishServicePe pe) {
 		this.pe = pe;
 	}
 
-	public PublishTicket PublishJob(PublishJob job) throws InterruptedException {
+	public PublishTicket publishJob(PublishJob job) throws InterruptedException {
 		if ( job == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
-		
-		System.out.println(job.getOptions().getFormat());
 
 		PublishFormat format = pe.getPublishFormat(job.getOptions().getFormat());
 
@@ -53,7 +52,7 @@ public class PublishJobService {
 		PublishTicket ticket = pe.requestPublish(request);
 		
 		boolean isComplete = false;
-		while ( !isComplete ) {
+		while (!isComplete ) {
 			Thread.sleep(1000);
 			isComplete = pe.isCompleted(ticket, request);
 		}
@@ -83,7 +82,7 @@ public class PublishJobService {
 		Iterator iterator = options.getParams().entrySet().iterator();
 		while ( iterator.hasNext() ) {
 			Map.Entry pair = (Map.Entry) iterator.next();
-			request.addConfig(pair.getKey().toString(), pair.getValue().toString());
+			request.addParam(pair.getKey().toString(), pair.getValue().toString());
 		}
 		return request;
 	}
