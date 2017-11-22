@@ -148,8 +148,8 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("s3", storage.getType());
 		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
 		assertEquals("900276", storage.getPathnamebase());
-		assertEquals("/cms4", storage.getPathprefix());
-		assertEquals("/status", storage.getPathconfigname());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("status", storage.getPathconfigname());
 	}
 	
 	
@@ -224,7 +224,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getParams().get("pdfconfig"), options.getParams().get("pdfconfig"));
 		
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
-		assertEquals(optionsValidated.getStorage().getPathprefix(), options.getStorage().getPathprefix());
+		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());

@@ -101,8 +101,8 @@ public class TestPublishJob {
 		//Asserts for PublishJobStorage
 		PublishJobStorage storage = jsonPj.getOptions().getStorage();
 		assertEquals("s3 / fs / ...", storage.getType());
-		assertEquals("/cms4", storage.getPathprefix());
-		assertEquals("/name-from-cmsconfig-publish", storage.getPathconfigname());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("name-from-cmsconfig-publish", storage.getPathconfigname());
 		assertEquals("/vvab/xml/documents/900108.xml", storage.getPathdir());
 		
 		//Asserts for PublishJobStorage's params

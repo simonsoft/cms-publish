@@ -54,7 +54,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final List<PublishConfigFilter> filters;
 	private final ObjectReader reader;
 	
-	private final String pathPrefix = "/cms4";
+	private final String pathVersion = "cms4";
 	private final String s3Bucket = "cms-automation";
 	private final String type = "publish-job";
 	
@@ -107,8 +107,8 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJobStorage storage = pj.getOptions().getStorage();
 		storage.setPathdir(item.getId().getRelPath().getPath());
 		storage.setPathnamebase(getNameBase(item.getId()));
-		storage.setPathprefix(this.pathPrefix);
-		storage.setPathconfigname("/".concat(configName));
+		storage.setPathversion(this.pathVersion);
+		storage.setPathconfigname(configName);
 		if (!storage.getParams().containsKey("s3bucket")) {
 			storage.getParams().put("s3bucket", this.s3Bucket);
 		}
