@@ -17,14 +17,21 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigOptions;
 
-public class PublishJobOptions extends PublishConfigOptions{
+public class PublishJobOptions extends PublishConfigOptions {
 	private String pathname;
+	private String source;
 	private PublishJobProfiling profiling;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
 	private PublishJobProgress progress;
 	private PublishJobDelivery delivery;
 
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
+	}
 	public PublishJobProfiling getProfiling() {
 		return profiling;
 	}
