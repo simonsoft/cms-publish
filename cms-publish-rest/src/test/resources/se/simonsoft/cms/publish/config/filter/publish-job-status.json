@@ -21,6 +21,7 @@
         "storage": {
             "type": "s3",
             "pathprefix": "/cms4",
+            "pathcloudid": "demo1",
             "pathconfigname": "/simple-pdf",
             "pathdir": "/vvab/release/B/xml/documents/900108.xml",
             "pathnamebase": "900108",
