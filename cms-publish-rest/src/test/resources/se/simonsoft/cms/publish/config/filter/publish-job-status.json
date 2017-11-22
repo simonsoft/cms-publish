@@ -24,7 +24,7 @@
             "pathcloudid": "demo1",
             "pathconfigname": "/simple-pdf",
             "pathdir": "/vvab/release/B/xml/documents/900108.xml",
-            "pathnamebase": "900108",
+            "pathnamebase": "900108_r0000000145",
             "params": {
                 "s3bucket": "cms-automation"
             }
