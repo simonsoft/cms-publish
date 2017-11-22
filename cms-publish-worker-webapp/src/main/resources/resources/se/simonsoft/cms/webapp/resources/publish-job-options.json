@@ -1,0 +1,34 @@
+{
+	"pathname": "DOC_900108_Released.pdf",
+	"type": "abxpe",
+	"source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
+	"format": "pdf",
+	"params": {
+		"stylesheet": "axdocbook.style",
+		"pdfconfig": "smallfile.pdfcf"
+	},
+	"manifest": {
+		"type": "default",
+		"job": {
+			"id": "can we get Step Function Execution name?",
+			"format": "pdf"
+		},
+		"document": {
+			"docno": "DOC_900108_sv-SE",
+			"status": "Released",
+			"releaselabel": "B",
+			"lang": "sv-SE",
+			"baselinerevision": "145"
+		},
+		"master": {
+			"docno": "DOC_900108",
+			"releaselabel": "B"
+		},
+		"custom": {
+			"type": "OPERATOR"
+		},
+		"meta": {
+			"type": "operator"
+		}
+	}
+}

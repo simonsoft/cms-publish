@@ -1,13 +1,19 @@
 package se.simonsoft.publish.worker;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -27,7 +33,7 @@ public class PublishJobService {
 		this.pe = pe;
 	}
 
-	public PublishTicket publishJob(PublishJob job) throws InterruptedException {
+	public PublishTicket publishJob(PublishJob job) throws InterruptedException, PublishException {
 		if ( job == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
@@ -59,7 +65,7 @@ public class PublishJobService {
 		return ticket;
 	}
 	
-	public String getCompletedJob(PublishTicket ticket) throws IOException {
+	public String getCompletedJob(PublishTicket ticket) throws IOException, PublishException {
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
@@ -68,8 +74,22 @@ public class PublishJobService {
 		request.addConfig("path", this.publishPath);
 		
 		File temp = File.createTempFile("se.simonsoft.publish.worker.file", "");
+		FileOutputStream fopStream = new FileOutputStream(temp);
+		pe.getResultStream(ticket, request, fopStream);
 		
-		return null;
+		InputStream stream = new FileInputStream(temp);
+		StringBuilder sb = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+		String line = reader.readLine();
+
+		while(line !=null) {
+			sb.append(line);
+			sb.append("\n");
+			line = reader.readLine();
+		}
+		reader.close();
+		
+		return sb.toString();
 	}
 
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJob job) {

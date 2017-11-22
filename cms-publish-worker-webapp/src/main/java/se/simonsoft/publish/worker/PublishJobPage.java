@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -33,14 +34,14 @@ import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 @Path("publishjobservice")
 public class PublishJobPage {
 	
-	ObjectMapper mapper;
-	ObjectReader reader;
-	private String publishHost = "http://localhost:8080";
-	private String publishPath = "/e3/servlet/e3";
+	private ObjectMapper mapper;
+	private ObjectReader reader;
+	private PublishJobService service;
 	
 	@Inject
-	public PublishJobPage(ObjectMapper mapper, PublishServicePe pe) {
+	public PublishJobPage(ObjectMapper mapper, PublishJobService service) {
 		this.mapper = mapper;
+		this.service = service;
 	}
 	
 	@GET
@@ -64,8 +65,8 @@ public class PublishJobPage {
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("publishjob")
-	public String PublishJob(@FormParam("jsonString") String jsonString) throws JsonProcessingException, IOException, InterruptedException {
+	@Path("publishjobservice")
+	public String PublishJob(@FormParam("jsonString") String jsonString) throws JsonProcessingException, IOException, InterruptedException, PublishException {
 		if(jsonString == "" || jsonString == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
@@ -73,10 +74,12 @@ public class PublishJobPage {
 		reader = mapper.reader(PublishJob.class);
 		PublishJob job = reader.readValue(jsonString);
 		
-		PublishJobService service = new PublishJobService();
-		PublishTicket publishJob = service.PublishJob(job);
 		
-		return null;
+		PublishTicket ticket = service.publishJob(job);
+		
+		String completedJob = service.getCompletedJob(ticket);
+		
+		return completedJob;
 		
 	}
 }
