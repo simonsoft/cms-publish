@@ -11,11 +11,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
-import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.databinds.publish.job.*;
@@ -33,19 +31,19 @@ public class PublishJobService {
 		this.pe = pe;
 	}
 
-	public PublishTicket publishJob(PublishJob job) throws InterruptedException, PublishException {
+	public PublishTicket publishJob(PublishJobOptions job) throws InterruptedException, PublishException {
 		if ( job == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
 
-		PublishFormat format = pe.getPublishFormat(job.getOptions().getFormat());
+		PublishFormat format = pe.getPublishFormat(job.getFormat());
 
 		request.addConfig("host", publishHost);
 		request.addConfig("path", publishPath);
 		request = this.getConfigParams(request, job);
 		
-		final String itemId = job.getItemid();
+		final String itemId = job.getSource();
 		PublishSource source = new PublishSource() {
 			
 			@Override
@@ -92,8 +90,8 @@ public class PublishJobService {
 		return sb.toString();
 	}
 
-	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJob job) {
-		PublishJobOptions options = job.getOptions();
+	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions job) {
+		PublishJobOptions options = job;
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getType());
