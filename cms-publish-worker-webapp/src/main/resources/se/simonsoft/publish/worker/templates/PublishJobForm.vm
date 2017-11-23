@@ -21,7 +21,7 @@
 		<title>Insert title here</title>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/publishjobservice" method="post">
+		<form action="http://localhost:8080/worker/rest/publishjobservice/publishjob" method="post">
 			<h3>Json String:</h3>
 			<input type="text" name="jsonString">
 			<input type="submit" value="Submit">
