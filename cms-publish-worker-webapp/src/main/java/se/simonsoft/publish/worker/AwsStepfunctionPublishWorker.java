@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {
-	
+
 	private final AWSStepFunctions client;
 	private final String activityArn = " arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe"; //TODO: should be injected.
 	private final ExecutorService awsClientExecutor;
@@ -68,14 +67,14 @@ public class AwsStepfunctionPublishWorker {
 					} catch (AbortedException e) {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
-					
+
 					if (taskResult != null && taskResult.getTaskToken() != null) {
 						logger.debug("Got a task from workflow. {}", taskResult.getTaskToken());
-						
+
 						String input = taskResult.getInput();
 						JsonNode jsonOptions = Jackson.jsonNodeOf(input).get("options");
 						PublishJobOptions options = deserializeToOptions(jsonOptions);
-						
+
 						try {
 							service.publishJob(options);
 						} catch (InterruptedException | PublishException e) {
@@ -93,12 +92,10 @@ public class AwsStepfunctionPublishWorker {
 				}
 			}
 		});
-
 	}
-	
-	
+
 	private PublishJobOptions deserializeToOptions(JsonNode jsonOptions) {
-		
+
 		PublishJobOptions options = null;
 		try {
 			options = reader.readValue(jsonOptions);
@@ -106,14 +103,7 @@ public class AwsStepfunctionPublishWorker {
 			logger.error("Could not deserialize options recivied.", e);
 			throw new IllegalArgumentException(e.getMessage());
 		}
-		
+
 		return options;
 	}
-	
-	
-
-
-
-
-
 }
