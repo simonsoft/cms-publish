@@ -10,16 +10,16 @@ public class PublishExportJob extends CmsExportJob {
 		super(createJobPrefix(storage), createJobName(storage), jobExtension);
 	}
 	
-	private static String createJobName(PublishJobStorage storage) {
-		StringBuilder sb = new StringBuilder(storage.getPathnamebase());
-		sb.append(storage.getPathconfigname());
-		sb.append(storage.getPathdir());
-		sb.append("/");
-		return sb.toString();
-	}
 
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathcloudid());
 	}
 
+	private static String createJobName(PublishJobStorage storage) {
+		StringBuilder sb = new StringBuilder(storage.getPathconfigname());
+		sb.append(storage.getPathdir());
+		sb.append("/");
+		sb.append(storage.getPathnamebase());
+		return sb.toString();
+	}
 }
