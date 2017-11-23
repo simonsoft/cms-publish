@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.publish.PublishException;
+import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 @Singleton
@@ -76,7 +77,9 @@ public class AwsStepfunctionPublishWorker {
 						PublishJobOptions options = deserializeToOptions(jsonOptions);
 
 						try {
-							service.publishJob(options);
+							PublishTicket ticket = service.publishJob(options);
+							logger.debug("Publish job started with ticket: {}", ticket.toString());
+							//TODO: should probably send ticket to aws.
 						} catch (InterruptedException | PublishException e) {
 							logger.error("Could not start publication with PublishOptions {}", jsonOptions.textValue());
 							throw new IllegalArgumentException(e);
