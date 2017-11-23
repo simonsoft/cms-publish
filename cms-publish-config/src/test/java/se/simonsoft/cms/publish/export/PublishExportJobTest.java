@@ -1,11 +1,9 @@
 package se.simonsoft.cms.publish.export;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
-import se.simonsoft.cms.publish.export.PublishExportJob;
 
 public class PublishExportJobTest {
 	
@@ -23,5 +21,4 @@ public class PublishExportJobTest {
 		
 		assertEquals("demo1/simple-pdf/vvab/release/B/xml/documents/900108.xml/900108_r0000000145.zip" ,job.getJobPath());
 	}
-
 }
