@@ -15,10 +15,22 @@
  */
 package se.simonsoft.publish.worker;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Singleton;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.stepfunctions.AWSStepFunctions;
+import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
@@ -36,6 +48,24 @@ public class WorkerApplication extends ResourceConfig {
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	bind(new ObjectMapper()).to(ObjectMapper.class);
             	bind(new PublishRequestDefault()).to(PublishRequestDefault.class);
+            	bind(PublishJobService.class); //TODO: This will probably not work.
+            	
+            	ClientConfiguration clientConfiguration = new ClientConfiguration();
+        		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
+            	AWSStepFunctions client = AWSStepFunctionsClientBuilder.standard()
+        				.withRegion(Regions.EU_WEST_1)
+        				.withCredentials(getCredentials("AKIAIGW4IM6AQNOBQ2IA", "Nv2h5OVbfvMue5FQbfMoW+0JhftuNRp3OMXstGkC"))
+        				.withClientConfiguration(clientConfiguration)
+        				.build();
+            	
+            	bind(client).to(AWSStepFunctions.class);
+            	
+            	
+            	//Jackson
+        		ObjectMapper mapper = new ObjectMapper();
+        		bind(mapper.reader()).to(ObjectReader.class);
+            	
+            	bind(AwsStepfunctionPublishWorker.class).to(Singleton.class); // this will probably not work.
             }
         });
 		
@@ -45,6 +75,20 @@ public class WorkerApplication extends ResourceConfig {
 	    //register(new MyProvider());
 	    //packages("se.simonsoft.publish.worker");
 	}
+	
+	private AWSCredentialsProvider getCredentials(final String id, final String secret) {
+        return new AWSCredentialsProvider() {
+            @Override
+            public AWSCredentials getCredentials() {
+                return new BasicAWSCredentials(id, secret);
+            }
+
+            @Override
+            public void refresh() {
+
+            }
+        };
+    }
 	
 
 }
