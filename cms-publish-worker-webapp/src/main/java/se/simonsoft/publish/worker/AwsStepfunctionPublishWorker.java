@@ -82,6 +82,13 @@ public class AwsStepfunctionPublishWorker {
 							logger.error("Could not start publication with PublishOptions {}", jsonOptions.textValue());
 							throw new IllegalArgumentException(e);
 						}
+					} else {
+						try {
+							logger.debug("Did not get a response. Will continue to listen...");
+							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
+						} catch (InterruptedException e) {
+							logger.error("Could not sleep thread", e.getMessage());
+						}
 					}
 				}
 			}
