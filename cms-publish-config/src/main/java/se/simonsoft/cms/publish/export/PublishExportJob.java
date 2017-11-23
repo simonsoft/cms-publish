@@ -10,7 +10,6 @@ public class PublishExportJob extends CmsExportJob {
 		super(createJobPrefix(storage), createJobName(storage), jobExtension);
 	}
 	
-
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathcloudid());
 	}
