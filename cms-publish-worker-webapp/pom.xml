@@ -92,7 +92,7 @@
 		</dependency>
 		<dependency>
 			<groupId>se.simonsoft</groupId>
-			<artifactId>cms-publish-config</artifactId>
+			<artifactId>cms-publish-rest</artifactId>
 			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
