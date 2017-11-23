@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2009-2017 Simonsoft Nordic AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package se.simonsoft.publish.worker;
 
 import java.io.IOException;
@@ -23,29 +38,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.publish.PublishException;
-import se.simonsoft.cms.publish.PublishFormat;
-import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
-import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
-@Path("publishjobservice")
+@Path("/publishjobservice")
 public class PublishJobPage {
 	
 	private ObjectMapper mapper;
 	private ObjectReader reader;
-	private PublishJobService service;
+	private PublishServicePe pe;
 	
 	@Inject
-	public PublishJobPage(ObjectMapper mapper, PublishJobService service) {
+	public PublishJobPage(ObjectMapper mapper, PublishServicePe pe) {
 		this.mapper = mapper;
-		this.service = service;
+		this.pe = pe;
 	}
 	
 	@GET
-	@Path("publishjobform")
 	@Produces(MediaType.TEXT_HTML)
 	public String getPublishJobForm() {
 		VelocityEngine engine = new VelocityEngine();
@@ -64,22 +74,25 @@ public class PublishJobPage {
 	}
 	@POST
 	@Produces(MediaType.TEXT_HTML)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("publishjobservice")
-	public String PublishJob(@FormParam("jsonString") String jsonString) throws JsonProcessingException, IOException, InterruptedException, PublishException {
-		if(jsonString == "" || jsonString == null) {
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("publishjob")
+	public String PublishJob(@FormParam("jsonString") String jsonstring) throws JsonProcessingException, IOException, InterruptedException, PublishException {
+		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
+		ObjectMapper mapper = new ObjectMapper();
+		PublishServicePe pe = new PublishServicePe();
 		
-		reader = mapper.reader(PublishJob.class);
-		PublishJob job = reader.readValue(jsonString);
-		
+		ObjectReader reader = mapper.reader(PublishJobOptions.class);
+		PublishJobOptions job = reader.readValue(jsonstring);
+
+		PublishJobService service = new PublishJobService(pe);
 		
 		PublishTicket ticket = service.publishJob(job);
 		
 		String completedJob = service.getCompletedJob(ticket);
 		
-		return completedJob;
+		return "PE is done!" + ticket.toString() +"";
 		
 	}
 }
