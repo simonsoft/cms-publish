@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2009-2017 Simonsoft Nordic AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package se.simonsoft.publish.worker;
 
 import java.io.IOException;
@@ -17,6 +32,7 @@ import com.amazonaws.AbortedException;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
+import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
 import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -29,7 +45,7 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 public class AwsStepfunctionPublishWorker {
 
 	private final AWSStepFunctions client;
-	private final String activityArn = " arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe"; //TODO: should be injected.
+	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService service;
 
@@ -42,13 +58,13 @@ public class AwsStepfunctionPublishWorker {
 	public AwsStepfunctionPublishWorker(ObjectReader reader,
 			AWSStepFunctions client,
 			String activityArn,
-			PublishJobService service) {
+			PublishJobService publishJobService) {
 
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.client = client;
-		//		this.activityArn = activityArn; 
+		this.activityArn = activityArn; 
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
-		this.service = service;
+		this.service = publishJobService;
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 		this.startUpTime = df.format(new Date());
@@ -70,20 +86,25 @@ public class AwsStepfunctionPublishWorker {
 					}
 
 					if (taskResult != null && taskResult.getTaskToken() != null) {
-						logger.debug("Got a task from workflow. {}", taskResult.getTaskToken());
+						logger.debug("Got a task from workflow. {}", taskResult.getInput());
 
 						String input = taskResult.getInput();
-						JsonNode jsonOptions = Jackson.jsonNodeOf(input).get("options");
+						JsonNode jsonOptions = Jackson.jsonNodeOf(input);
 						PublishJobOptions options = deserializeToOptions(jsonOptions);
-
-						try {
-							PublishTicket ticket = service.publishJob(options);
-							logger.debug("Publish job started with ticket: {}", ticket.toString());
-							//TODO: should probably send ticket to aws.
-						} catch (InterruptedException | PublishException e) {
-							logger.error("Could not start publication with PublishOptions {}", jsonOptions.textValue());
-							throw new IllegalArgumentException(e);
-						}
+						String output = "{\"ticket\": \"1234\"}";
+						SendTaskSuccessRequest sendTaskSuccessRequest = new SendTaskSuccessRequest().withTaskToken(taskResult.getTaskToken()).withOutput(output);
+						client.sendTaskSuccess(sendTaskSuccessRequest);
+//						try {
+////							PublishTicket ticket = service.publishJob(options);
+////							logger.debug("Publish job started with ticket: {}", ticket.toString());
+//							//TODO: should probably send ticket to aws.
+//							String output = "{\"ticket\": \"1234\"}";
+//							SendTaskSuccessRequest sendTaskSuccessRequest = new SendTaskSuccessRequest().withTaskToken(taskResult.getTaskToken()).withOutput(output);
+//							client.sendTaskSuccess(sendTaskSuccessRequest);
+//						} catch (InterruptedException | PublishException e) {
+//							logger.error("Could not start publication with PublishOptions {}", jsonOptions.textValue());
+//							throw new IllegalArgumentException(e);
+//						}
 					} else {
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
