@@ -82,10 +82,8 @@ public class TestPublishJob {
 		
 		//Asserts for PublishJobProgress
 		PublishJobOptions options = jsonPj.getOptions();
-		assertEquals("whatever engine needs to store",options.getProgress().get("engine").get("map"));
-		assertEquals("value", options.getProgress().get("engine").get("key"));
-		assertEquals("whatever they need to store", options.getProgress().get("webapp").get("map"));
-		assertEquals("value", options.getProgress().get("webapp").get("key"));
+		assertEquals("1234", options.getProgress().getParams().get("ticket"));
+		assertEquals("false", options.getProgress().getParams().get("isComplete"));
 		
 		//Asserts for PublishJobParams
 		Map<String, String> params = jsonPj.getOptions().getParams();
