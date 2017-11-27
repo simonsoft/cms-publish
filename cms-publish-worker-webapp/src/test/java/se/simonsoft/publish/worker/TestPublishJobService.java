@@ -78,6 +78,11 @@ public class TestPublishJobService {
         assertEquals(job.getSource(), pr.getFile().getURI());
         assertEquals(format, pr.getFormat());
         
+        ArgumentCaptor<PublishTicket> ticketCaptor = ArgumentCaptor.forClass(PublishTicket.class);
+        verify(pe, times(1)).isCompleted(ticketCaptor.capture(), requestCaptor.capture());
+        PublishTicket pt = ticketCaptor.getValue();
+        
+        assertEquals(publishTicket.toString(), pt.toString());
         assertEquals(publishTicket.toString(), ticket.toString());
 	}
 	
