@@ -91,7 +91,18 @@ public class AwsStepfunctionPublishWorker {
 						String input = taskResult.getInput();
 						JsonNode jsonOptions = Jackson.jsonNodeOf(input);
 						PublishJobOptions options = deserializeToOptions(jsonOptions);
-						String output = "{\"ticket\": \"1234\"}";
+						
+						String output = "";
+						if(options.getProgress().get("status").containsKey("ticket")) {
+							logger.debug("Options contained a ticket, checking isCompleted: {}");
+							try {
+								boolean hasTicket = isCompleted(options.getProgress().get("status").get("ticket"));
+								output = "{\"ticket\": \"" + String.valueOf(hasTicket) + "\"}";
+							} catch (PublishException e) {
+								e.printStackTrace();
+							}
+						}
+						
 						SendTaskSuccessRequest sendTaskSuccessRequest = new SendTaskSuccessRequest().withTaskToken(taskResult.getTaskToken()).withOutput(output);
 						client.sendTaskSuccess(sendTaskSuccessRequest);
 //						try {
@@ -129,5 +140,10 @@ public class AwsStepfunctionPublishWorker {
 		}
 
 		return options;
+	}
+	private boolean isCompleted(String ticket) throws PublishException {
+		PublishTicket pTicket = new PublishTicket(ticket);
+		
+		return service.isCompleted(pTicket);
 	}
 }
