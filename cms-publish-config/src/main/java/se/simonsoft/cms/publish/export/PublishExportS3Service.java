@@ -14,16 +14,16 @@ import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
-public class PublishStorageExportS3 implements PublishStorageExport {
+public class PublishExportS3Service implements PublishJobExportService {
 	
 	private final CmsExportWriter writer;
 	private final String jobExtension = "zip";
 	
 	
-	private static final Logger logger = LoggerFactory.getLogger(PublishStorageExportS3.class);
+	private static final Logger logger = LoggerFactory.getLogger(PublishExportS3Service.class);
 	
 	@Inject //TODO: Inject or instantiate writer. Can not remember what we agreed upon.
-	public PublishStorageExportS3(CmsExportAwsWriterSingle writer) { 
+	public PublishExportS3Service(CmsExportAwsWriterSingle writer) { 
 		this.writer = writer;
 	}
 
