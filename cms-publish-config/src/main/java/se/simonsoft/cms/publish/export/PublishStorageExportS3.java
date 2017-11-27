@@ -29,18 +29,21 @@ public class PublishStorageExportS3 implements PublishStorageExport {
 
 	@Override
 	public String exportJob(OutputStream os, PublishJobOptions jobOptions) {
-		logger.debug("Preparing {} for export to s3", jobOptions.getPathname());
+		logger.debug("Preparing publishJob {} for export to s3", jobOptions.getPathname());
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		
 		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(os.toString().getBytes()), new CmsExportPath(jobOptions.getPathname())); //TODO Is the item path correct this way?
 		job.addExportItem(exportItem);
 		
+		logger.debug("Prepareing writer for export...");
 		writer.prepare(job);
 		if (writer.isReady()) {
+			logger.debug("Writer is prepared. Wrting job to S3.");
 			writer.write();
 		}
 		
+		logger.debug("Job has been exported to S3.");
 		return job.getJobPath();
 	}
 
