@@ -27,14 +27,10 @@
 			"logicalexpr": "logical.expr"
 		},
 		"progress": {
-			"engine": {
-				"map": "whatever engine needs to store",
-				"key": "value"
-			},
-			"webapp": {
-				"map": "whatever they need to store",
-				"key": "value"
-			}
+			"params": {
+            	"ticket": "1234",
+            	"isComplete": "false"
+          		}
 		},
 		"storage": {
 			"type": "s3 / fs / ...",
