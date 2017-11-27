@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -43,8 +45,8 @@ public class PublishJobService {
 
 	private final PublishServicePe pe;
 	//TODO: Change depending on PEURL
-	private String publishHost = "http://localhost:8080";
-	private String publishPath = "/e3/servlet/e3";
+	private final String publishHost = "http://localhost:8080";
+	private final String publishPath = "/e3/servlet/e3";
 	
 	@Inject
 	public PublishJobService(PublishServicePe pe) {
@@ -94,11 +96,11 @@ public class PublishJobService {
 		request.addParam("type", options.getType());
 		request.addParam("format", options.getFormat());
 
-		Iterator iterator = options.getParams().entrySet().iterator();
-		while ( iterator.hasNext() ) {
-			Map.Entry pair = (Map.Entry) iterator.next();
-			request.addParam(pair.getKey().toString(), pair.getValue().toString());
+		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
+		for(Map.Entry<String, String> entry : entrySet) {
+			request.addParam(entry.getKey(), entry.getValue());
 		}
+		
 		return request;
 	}
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
