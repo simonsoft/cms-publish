@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 public class PublishJobService {
 
 	private final PublishServicePe pe;
+	//TODO: Change depending on PEURL
 	private String publishHost = "http://localhost:8080";
 	private String publishPath = "/e3/servlet/e3";
 	
@@ -49,20 +51,19 @@ public class PublishJobService {
 		this.pe = pe;
 	}
 
-	public PublishTicket publishJob(PublishJobOptions job) throws InterruptedException, PublishException {
-		if ( job == null ) {
+	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
+		if ( jobOptions == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
 
-		PublishFormat format = pe.getPublishFormat(job.getFormat());
+		PublishFormat format = pe.getPublishFormat(jobOptions.getFormat());
 
 		request.addConfig("host", publishHost);
 		request.addConfig("path", publishPath);
-		request = this.getConfigParams(request, job);
+		request = this.getConfigParams(request, jobOptions);
 		
-		System.out.println(job.getSource());
-		final String itemId = job.getSource();
+		final String itemId = jobOptions.getSource();
 		PublishSource source = new PublishSource() {
 			
 			@Override
@@ -74,15 +75,10 @@ public class PublishJobService {
 		request.setFormat(format);
 		PublishTicket ticket = pe.requestPublish(request);
 		
-		boolean isComplete = false;
-		while (!isComplete ) {
-			Thread.sleep(1000);
-			isComplete = pe.isCompleted(ticket, request);
-		}
 		return ticket;
 	}
 	
-	public String getCompletedJob(PublishTicket ticket) throws IOException, PublishException {
+	public void getCompletedJob(PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
@@ -90,27 +86,9 @@ public class PublishJobService {
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
 		
-		File temp = File.createTempFile("se.simonsoft.publish.worker.file", "");
-		FileOutputStream fopStream = new FileOutputStream(temp);
-		pe.getResultStream(ticket, request, fopStream);
-		
-		InputStream stream = new FileInputStream(temp);
-		StringBuilder sb = new StringBuilder();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-		String line = reader.readLine();
-
-		while(line !=null) {
-			sb.append(line);
-			sb.append("\n");
-			line = reader.readLine();
-		}
-		reader.close();
-		
-		return sb.toString();
+		pe.getResultStream(ticket, request, outputStream);
 	}
-
-	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions job) {
-		PublishJobOptions options = job;
+	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getType());
@@ -122,5 +100,11 @@ public class PublishJobService {
 			request.addParam(pair.getKey().toString(), pair.getValue().toString());
 		}
 		return request;
+	}
+	public boolean isCompleted(PublishTicket ticket) throws PublishException {
+		PublishRequestDefault request = new PublishRequestDefault();
+		request.addConfig("host", this.publishHost);
+		request.addConfig("path", this.publishPath);
+		return pe.isCompleted(ticket, request);
 	}
 }

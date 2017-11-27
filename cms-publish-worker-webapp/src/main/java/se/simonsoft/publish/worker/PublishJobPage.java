@@ -90,8 +90,6 @@ public class PublishJobPage {
 		
 		PublishTicket ticket = service.publishJob(job);
 		
-		String completedJob = service.getCompletedJob(ticket);
-		
 		return "PE is done!" + ticket.toString() +"";
 		
 	}
