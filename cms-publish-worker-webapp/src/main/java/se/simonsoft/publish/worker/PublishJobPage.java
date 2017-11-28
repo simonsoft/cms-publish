@@ -44,13 +44,14 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 @Path("/publishjobservice")
 public class PublishJobPage {
-
+	
+	private ObjectMapper mapper;
 	private ObjectReader reader;
 	private PublishServicePe pe;
 	
 	@Inject
-	public PublishJobPage(ObjectReader reader, PublishServicePe pe) {
-		this.reader = reader;
+	public PublishJobPage(ObjectMapper mapper, PublishServicePe pe) {
+		this.mapper = mapper;
 		this.pe = pe;
 	}
 	
@@ -79,8 +80,10 @@ public class PublishJobPage {
 		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
+		ObjectMapper mapper = new ObjectMapper();
+		PublishServicePe pe = new PublishServicePe();
 		
-		ObjectReader reader = this.reader.forType(PublishJobOptions.class);
+		ObjectReader reader = mapper.reader(PublishJobOptions.class);
 		PublishJobOptions job = reader.readValue(jsonstring);
 
 		PublishJobService service = new PublishJobService(pe);
@@ -88,5 +91,6 @@ public class PublishJobPage {
 		PublishTicket ticket = service.publishJob(job);
 		
 		return "PE is done!" + ticket.toString() +"";
+		
 	}
 }
