@@ -22,7 +22,7 @@ public class PublishExportS3Service implements PublishJobExportService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishExportS3Service.class);
 	
-	@Inject //TODO: Inject or instantiate writer. Can not remember what we agreed upon.
+	@Inject
 	public PublishExportS3Service(CmsExportAwsWriterSingle writer) { 
 		this.writer = writer;
 	}
@@ -33,13 +33,13 @@ public class PublishExportS3Service implements PublishJobExportService {
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		
-		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(os.toString().getBytes()), new CmsExportPath(jobOptions.getPathname())); //TODO Is the item path correct this way?
+		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(os.toString().getBytes()), new CmsExportPath(jobOptions.getStorage().getPathnamebase())); //TODO Is the item path correct this way?
 		job.addExportItem(exportItem);
 		
 		logger.debug("Prepareing writer for export...");
 		writer.prepare(job);
 		if (writer.isReady()) {
-			logger.debug("Writer is prepared. Wrting job to S3.");
+			logger.debug("Writer is prepared. Writing job to S3.");
 			writer.write();
 		}
 		
