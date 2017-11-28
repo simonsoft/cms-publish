@@ -88,7 +88,6 @@ public class WorkerApplication extends ResourceConfig {
 
             @Override
             public void refresh() {
-
             }
         };
     }
