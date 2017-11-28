@@ -15,21 +15,14 @@
  */
 package se.simonsoft.publish.worker;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 
-import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -37,7 +30,6 @@ import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.databinds.publish.job.*;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.PublishSource;
-import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 
 public class PublishJobService {
 
@@ -94,10 +86,9 @@ public class PublishJobService {
 		request.addParam("type", options.getType());
 		request.addParam("format", options.getFormat());
 
-		Iterator iterator = options.getParams().entrySet().iterator();
-		while ( iterator.hasNext() ) {
-			Map.Entry pair = (Map.Entry) iterator.next();
-			request.addParam(pair.getKey().toString(), pair.getValue().toString());
+		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
+		for (Map.Entry<String, String> entry : entrySet) {
+			request.addParam(entry.getKey(), entry.getKey());
 		}
 		return request;
 	}
