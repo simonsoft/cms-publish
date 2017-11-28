@@ -40,7 +40,6 @@ public class PublishJobService {
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
 	
-	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 	
 	@Inject
