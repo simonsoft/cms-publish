@@ -32,6 +32,7 @@ import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
@@ -84,7 +85,9 @@ public class WorkerApplication extends ResourceConfig {
             	//Jackson binding reader for future useage.
         		ObjectMapper mapper = new ObjectMapper();
         		ObjectReader reader = mapper.reader();
+        		ObjectWriter writer = mapper.writer();
         		bind(reader).to(ObjectReader.class);
+        		bind(writer).to(ObjectWriter.class);
         		
         		//TODO: Bucket should be injected.
         		CmsExportAwsWriterSingle cmsExportAwsWriterSingle = new CmsExportAwsWriterSingle(awsCloudId, "cms-review-jandersson", credentials);
@@ -92,7 +95,7 @@ public class WorkerApplication extends ResourceConfig {
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(reader, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, exportService);
+        		new AwsStepfunctionPublishWorker(reader, writer, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, exportService);
         		logger.debug("publish worker started.");
             }
         });
