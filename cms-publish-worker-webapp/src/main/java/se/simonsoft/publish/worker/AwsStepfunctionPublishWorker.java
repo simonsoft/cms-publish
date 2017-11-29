@@ -106,13 +106,14 @@ public class AwsStepfunctionPublishWorker {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
 
-					if (taskResult != null && taskResult.getTaskToken() != null) {
+					if (taskResult != null && !taskResult.getTaskToken().isEmpty()) {
 						logger.debug("Got a task from workflow. {}", taskResult.getInput());
 						PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
 						if (hasTicket(options)) {
 							logger.debug("Job has a ticket, checking if it is ready for export.");
 							publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
+							
 							boolean jobCompleted = isJobCompleted(publishTicket);
 							if (jobCompleted) {
 								logger.debug("Job is completed, starting export...");
@@ -170,11 +171,14 @@ public class AwsStepfunctionPublishWorker {
 	
 	private boolean hasTicket(PublishJobOptions options) {
 		logger.debug("Checking if options has a ticket");
-		return options.getProgress().getParams().containsKey("ticket");
+		boolean hasTicket = false;
+		if (options.getProgress() != null) {
+			hasTicket = options.getProgress().getParams().containsKey("ticket");
+		}
+		return hasTicket;
 	}
 	
 	private PublishJobOptions deserializeInputToOptions(String input) {
-//		JsonNode jsonOptions = Jackson.jsonNodeOf(input).get("options"); //TODO: do we get more then options?
 		PublishJobOptions options = null;
 		try {
 			options = reader.readValue(input);
