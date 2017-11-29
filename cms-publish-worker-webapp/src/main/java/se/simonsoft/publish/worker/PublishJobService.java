@@ -97,8 +97,7 @@ public class PublishJobService {
 		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
-		request.addParam("type", options.getType());
-		request.addParam("format", options.getFormat());
+		request.addParam("type", options.getFormat());
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
@@ -107,7 +106,7 @@ public class PublishJobService {
 		return request;
 	}
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
-		logger.debug("Checking if job with ticket: {}" + ticket.toString() + "is done");
+		logger.debug("Checking if job with ticket: {} is done", ticket.toString());
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
