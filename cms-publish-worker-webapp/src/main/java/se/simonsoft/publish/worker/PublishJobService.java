@@ -26,7 +26,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.saxon.expr.sort.Sortable;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -84,6 +83,7 @@ public class PublishJobService {
 	}
 	
 	public void getCompletedJob(PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
+		logger.debug("Getting OutputStream from job with ticket: {}", ticket.toString());
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
@@ -94,6 +94,7 @@ public class PublishJobService {
 		pe.getResultStream(ticket, request, outputStream);
 	}
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
+		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getType());
@@ -106,6 +107,7 @@ public class PublishJobService {
 		return request;
 	}
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
+		logger.debug("Checking if job with ticket: {}" + ticket.toString() + "is done");
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
