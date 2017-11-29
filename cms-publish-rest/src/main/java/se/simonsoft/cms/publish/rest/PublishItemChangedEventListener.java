@@ -43,6 +43,7 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
+import se.simonsoft.cms.reporting.rest.itemlist.ItemIdListForPresentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -79,6 +80,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	@Override
 	public void onItemChange(CmsItem item) {
 		logger.debug("Got an item change event with id: {}", item.getId());
+		if (item.getId().getPegRev() == null) {
+			logger.error("Given item is missing a revision: {}", item.getId().getLogicalId());
+			throw new IllegalArgumentException("Item requires a revision to be published.");
+		}
 		CmsResourceContext context = this.lookup.getConfig(item.getId(), item.getKind());
 		
 		Map<String, PublishConfig> publishConfigs = deserializeConfig(context);
@@ -112,6 +117,8 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
+		pj.getOptions().setSource(item.getId().getLogicalId());;
+		
 		PublishJobStorage storage = pj.getOptions().getStorage();
 		storage.setPathdir(item.getId().getRelPath().getPath());
 		storage.setPathnamebase(getNameBase(item.getId()));
@@ -132,14 +139,9 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	}
 	
 	public String getNameBase(CmsItemId itemId) {
-		String nameBase = itemId.getRelPath().getNameBase();
-		String idRevision;
-		if (itemId.getPegRev() != null) {
-			idRevision = String.format("_r%010d", itemId.getPegRev());
-			nameBase = nameBase.concat(idRevision);
-		}
-        return nameBase;
-}
+		String idRevision = String.format("_r%010d", itemId.getPegRev());
+		return itemId.getRelPath().getNameBase().concat(idRevision);
+	}
 	
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
 		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
