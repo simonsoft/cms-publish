@@ -175,10 +175,17 @@ public class AwsStepfunctionPublishWorker {
 	private boolean hasTicket(PublishJobOptions options) {
 		logger.debug("Checking if options has a ticket");
 		boolean hasTicket = false;
+<<<<<<< HEAD
         if (options.getParams() != null) {
             hasTicket = options.getProgress().getParams().containsKey("ticket");
         }
         return hasTicket;
+=======
+		if (options.getProgress() != null) {
+			hasTicket = options.getProgress().getParams().containsKey("ticket");
+		}
+		return hasTicket;
+>>>>>>> 137ff77cba43281eff324ebe2bc22fff670fcb27
 	}
 	
 	private PublishJobOptions deserializeInputToOptions(String input) {
