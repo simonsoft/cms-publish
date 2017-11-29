@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -106,20 +107,23 @@ public class AwsStepfunctionPublishWorker {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
 
-					if (taskResult != null && taskResult.getTaskToken() != null) {
+					if (taskResult != null && !taskResult.getTaskToken().isEmpty()) {
 						logger.debug("Got a task from workflow. {}", taskResult.getInput());
 						PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
 						if (hasTicket(options)) {
 							logger.debug("Job has a ticket, checking if it is ready for export.");
 							publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
+							
 							boolean jobCompleted = isJobCompleted(publishTicket);
 							if (jobCompleted) {
 								logger.debug("Job is completed, starting export...");
 								exportPath = exportCompletedJob(publishTicket, options);
-								progress = getJobProgress(publishTicket, jobCompleted);								
+								progress = getJobProgress(publishTicket, jobCompleted);
+								progressAsJson = getProgressAsJson(progress);
 								sendTaskSuccessRequest(taskResult.getTaskToken(), progressAsJson);
 								logger.debug("Job is exported to: {}", exportPath);
+								
 							} else {
 								progress = getJobProgress(publishTicket, jobCompleted);
 								progressAsJson = getProgressAsJson(progress);
@@ -170,11 +174,14 @@ public class AwsStepfunctionPublishWorker {
 	
 	private boolean hasTicket(PublishJobOptions options) {
 		logger.debug("Checking if options has a ticket");
-		return options.getProgress().getParams().containsKey("ticket");
+		boolean hasTicket = false;
+        if (options.getParams() != null) {
+            hasTicket = options.getProgress().getParams().containsKey("ticket");
+        }
+        return hasTicket;
 	}
 	
 	private PublishJobOptions deserializeInputToOptions(String input) {
-//		JsonNode jsonOptions = Jackson.jsonNodeOf(input).get("options"); //TODO: do we get more then options?
 		PublishJobOptions options = null;
 		try {
 			options = reader.readValue(input);
@@ -203,6 +210,7 @@ public class AwsStepfunctionPublishWorker {
 	
 	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted) {
 		PublishJobProgress progress = new PublishJobProgress();
+		progress.setParams(new HashMap<String, String>());
 		progress.getParams().put("ticket", ticket.toString());
 		progress.getParams().put("completed", String.valueOf(isCompleted));
 		return progress;
