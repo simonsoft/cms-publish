@@ -1,0 +1,40 @@
+{
+	"pathname": "evaluated from pathname-template",
+	"type": "abxpe",
+	"format": "pdf/html/web/rtf/...",
+	"params": {
+		"stylesheet": "stylesheet.css",
+		"pdfconfig": "config.pdf",
+		"whatever": "great"
+	},
+	"profiling": {
+		"name": "profilingName",
+		"logicalexpr": "logical.expr"
+	},
+	"progress": {
+		"params": {
+			"ticket": "1234",
+			"completed": "true"
+		}
+	},
+	"storage": {
+		"type": "s3 / fs / ...",
+		"pathversion": "cms4",
+		"pathcloudid": "demo1",
+		"pathconfigname": "name-from-cmsconfig-publish",
+		"pathdir": "/vvab/xml/documents/900108.xml",
+		"pathnamebase": "900108 or profiling.name, ",
+		"params": {
+			"specific": "parameter for future destination types",
+			"s3bucket": "cms-automation",
+			"fspath": "\\\\?\\C:\\my_dir"
+		}
+	},
+	"postprocess": {
+		"type": "future stuff",
+		"params": {
+			"specific": "parameter for future postprocess stuff",
+			"key": "value"
+		}
+	}
+}
