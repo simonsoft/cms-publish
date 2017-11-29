@@ -39,7 +39,7 @@
     </init-param>
     <init-param>
       <param-name>javax.ws.rs.Application</param-name>
-      <param-value>se.simonsoft.publish.worker.WorkerApplication</param-value>
+      <param-value>se.simonsoft.publish.worker.startup.WorkerApplication</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
