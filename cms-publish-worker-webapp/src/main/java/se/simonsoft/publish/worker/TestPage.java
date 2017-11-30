@@ -89,11 +89,7 @@ public class TestPage {
 		request.setFile(source);
 		request.setFormat(publishFormat);
 		PublishTicket ticket = peService.requestPublish(request);
-		boolean isComplete = false;
-		while(!isComplete) {
-			Thread.sleep(1000);
-			isComplete = peService.isCompleted(ticket, request);
-		}
+		//TODO: Return link to get job page with included ticket number.
 		return "PE is done! Your ticket number is: " + ticket.toString();
 	}
 
@@ -108,7 +104,7 @@ public class TestPage {
 		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
-
+		//TODO: refactor naming of forms.
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/formTemplate.vm");
 
 		StringWriter wr = new StringWriter();
@@ -117,7 +113,7 @@ public class TestPage {
 		return wr.toString();
 	}
 	
-	@Path("ticketform")
+	@Path("ticket")
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public String getTicketForm() {
@@ -134,37 +130,5 @@ public class TestPage {
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
 		return wr.toString();
-	}
-	
-	@GET
-	@Path("ticket")
-	@Produces(MediaType.TEXT_HTML)
-	public String getResult(@QueryParam("ticketnumber") String ticketNumber) throws InterruptedException, IOException, PublishException {
-		if ( ticketNumber == "" || ticketNumber == null ) {
-			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
-		}
-		PublishRequestDefault request = new PublishRequestDefault();
-		PublishTicket ticket = new PublishTicket(ticketNumber);
-		
-		request.addConfig("host", this.publishHost);
-		request.addConfig("path", this.publishPath);
-		
-		File temp = File.createTempFile("se.simonsoft.publish.worker.test", "");
-		FileOutputStream fopStream = new FileOutputStream(temp);
-		peService.getResultStream(ticket, request, fopStream);
-
-		InputStream stream = new FileInputStream(temp);
-		StringBuilder sb = new StringBuilder();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-		String line = reader.readLine();
-
-		while(line !=null) {
-			sb.append(line);
-			sb.append("\n");
-			line = reader.readLine();
-		}
-		reader.close();
-		
-		return sb.toString();
 	}
 }
