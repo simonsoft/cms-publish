@@ -98,6 +98,7 @@ public class PublishJobService {
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getFormat());
+		request.addParam("file-type", "xml");
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
