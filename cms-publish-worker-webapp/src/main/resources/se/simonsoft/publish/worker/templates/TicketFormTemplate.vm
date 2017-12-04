@@ -20,7 +20,7 @@
 		<title>Insert title here</title>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/test/ticket" method="get">
+		<form action="http://localhost:8080/worker/rest/test/ticket/result" method="get">
 			<h3>Ticket Number:</h3>
 			<input type="text" name="ticketnumber">
 			<input type="submit" value="Submit">
