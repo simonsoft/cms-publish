@@ -155,6 +155,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("900276_r0000000443", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("status", storage.getPathconfigname());
+		assertEquals("demo1", storage.getPathcloudid());
 	}
 	
 	
@@ -232,6 +233,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
 		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
+		assertEquals(optionsValidated.getStorage().getPathcloudid(), options.getStorage().getPathcloudid());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
 		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));
