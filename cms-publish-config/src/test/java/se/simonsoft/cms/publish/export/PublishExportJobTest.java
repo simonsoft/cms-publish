@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 
 public class PublishExportJobTest {
@@ -26,7 +27,7 @@ public class PublishExportJobTest {
 	public void testJobPath() throws Exception {
 		
 		PublishJobStorage storage = new PublishJobStorage();
-		storage.setPathversion("/cms4");
+		storage.setPathversion("cms4");
 		storage.setPathcloudid("demo1");
 		storage.setPathconfigname("simple-pdf");
 		storage.setPathdir("/vvab/release/B/xml/documents/900108.xml");
