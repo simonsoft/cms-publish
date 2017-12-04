@@ -20,10 +20,94 @@
 		<title>Insert title here</title>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/publishjobservice/publishjob" method="post">
-			<h3>Json String:</h3>
-			<input type="text" name="jsonString">
+		<form action="http://localhost:8080/worker/rest/test/publishjob" id="jobForm" method="post">
+			<h3>PublishJob Options data in Json format:</h3>
+			<textarea name="jsonString" form="jobForm" style="margin: 0px; width: 500px; height: 600px;"></textarea><br>
 			<input type="submit" value="Submit">
 		</form>
+		<div style="display:flex; flex-direction: row; overflow: auto; margin-top: 10px;">
+			<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+				<h3>Example PublishJob Option Json:</h3>
+				<pre>
+					<code>
+{
+	"pathname": "DOC_900108_Released.pdf",
+	"type": "abxpe",
+	"source": "C:\\Program Files\\PTC\\Arbortext PE\\e3\\e3\\e3demo.xml",
+	"format": "pdf",
+	"params": {
+		"stylesheet": "$aptpath\\samples\\isoview\axdocbook.style",
+		"pdfconfig": "smallfile.pdfcf"
+	},
+	"manifest": {
+		"type": "default",
+		"job": {
+			"id": "can we get Step Function Execution name?",
+			"format": "pdf"
+		},
+		"document": {
+			"docno": "DOC_900108_sv-SE",
+			"status": "Released",
+			"releaselabel": "B",
+			"lang": "sv-SE",
+			"baselinerevision": "145"
+		},
+		"master": {
+			"docno": "DOC_900108",
+			"releaselabel": "B"
+		},
+		"custom": {
+			"type": "OPERATOR"
+		},
+		"meta": {
+			"type": "operator"
+		}
+	}
+}
+				</code>
+			</pre>
+		</div>
+		<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+			<h3>Example PublishJob Option Json, gets item from svn instead</h3>
+			<pre>
+				<code>
+{
+	"pathname": "DOC_900108_Released.pdf",
+	"type": "abxpe",
+	"source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
+	"format": "pdf",
+	"params": {
+		"stylesheet": "$aptpath\\samples\\isoview\axdocbook.style",
+		"pdfconfig": "smallfile.pdfcf"
+	},
+	"manifest": {
+		"type": "default",
+		"job": {
+			"id": "can we get Step Function Execution name?",
+			"format": "pdf"
+		},
+		"document": {
+			"docno": "DOC_900108_sv-SE",
+			"status": "Released",
+			"releaselabel": "B",
+			"lang": "sv-SE",
+			"baselinerevision": "145"
+		},
+		"master": {
+			"docno": "DOC_900108",
+			"releaselabel": "B"
+		},
+		"custom": {
+			"type": "OPERATOR"
+		},
+		"meta": {
+			"type": "operator"
+		}
+	}
+}
+					</code>
+				</pre>
+			</div>
+		</div>
 	</body>
 </html>
