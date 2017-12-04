@@ -34,17 +34,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 @Path("/test")
@@ -53,16 +59,18 @@ public class TestPage {
 	private String publishHost = "http://localhost:8080";
 	private String publishPath = "/e3/servlet/e3";
 	private PublishServicePe peService;
+	private ObjectReader reader;
 	
 	@Inject
-	public TestPage(PublishServicePe pe) {
+	public TestPage(PublishServicePe pe, ObjectReader reader) {
 		this.peService = pe;
+		this.reader = reader;
 	}
 	
 
 	@POST
-	@Produces(MediaType.TEXT_PLAIN)
-	@Path("publish")
+	@Produces(MediaType.TEXT_HTML)
+	@Path("publish/document")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String urlCall(@FormParam("itemId") final String itemId, @FormParam("format") String format) throws InterruptedException, IOException, PublishException {
 		if(itemId == "" || itemId == null) {
@@ -72,29 +80,30 @@ public class TestPage {
 			throw new IllegalArgumentException("The given format was either empty or null");
 		}
 		
-		PublishFormat publishFormat = peService.getPublishFormat(format);
-		PublishRequestDefault request = new PublishRequestDefault();
+		//TODO: Fix pathname (take name from itemId string). Use PE directly?
+		PublishJobOptions options = new PublishJobOptions();
+		options.setSource(itemId);
+		options.setFormat(format);
+		options.setPathname(itemId);
+		options.setType("abxpe");
+		PublishJobService service = new PublishJobService(peService);
+		PublishTicket ticket= service.publishJob(options);
+		
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
 
-		// Add config
-		request.addConfig("host", this.publishHost);
-		request.addConfig("path", this.publishPath);
-
-		PublishSource source = new PublishSource() {
-
-			@Override
-			public String getURI() {
-				return itemId;
-			}
-		};
-		request.setFile(source);
-		request.setFormat(publishFormat);
-		PublishTicket ticket = peService.requestPublish(request);
-		boolean isComplete = false;
-		while(!isComplete) {
-			Thread.sleep(1000);
-			isComplete = peService.isCompleted(ticket, request);
-		}
-		return "PE is done! Your ticket number is: " + ticket.toString();
+		VelocityContext context = new VelocityContext();
+		context.put("ticketNumber", ticket.toString());
+		
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/GetTicketTemplate.vm");
+		
+		StringWriter wr = new StringWriter();
+		template.merge(context, wr);
+		
+		return wr.toString();
 	}
 
 	@GET
@@ -109,7 +118,7 @@ public class TestPage {
 
 		VelocityContext context = new VelocityContext();
 
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/formTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/DocumentFormTemplate.vm");
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -137,34 +146,84 @@ public class TestPage {
 	}
 	
 	@GET
-	@Path("ticket")
-	@Produces(MediaType.TEXT_HTML)
-	public String getResult(@QueryParam("ticketnumber") String ticketNumber) throws InterruptedException, IOException, PublishException {
+	@Path("ticket/result")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public Response getResult(@QueryParam("ticketnumber") String ticketNumber) throws IOException, PublishException {
 		if ( ticketNumber == "" || ticketNumber == null ) {
 			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
 		PublishTicket ticket = new PublishTicket(ticketNumber);
+		//TODO: check if ticket is completed. Return  message otherwise
+		
 		
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
+		
+		Boolean completed = peService.isCompleted(ticket, request);
+		if ( !completed ) {
+			throw new IllegalStateException("Job is not completed.");
+		}
 		
 		File temp = File.createTempFile("se.simonsoft.publish.worker.test", "");
 		FileOutputStream fopStream = new FileOutputStream(temp);
 		peService.getResultStream(ticket, request, fopStream);
 
-		InputStream stream = new FileInputStream(temp);
-		StringBuilder sb = new StringBuilder();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-		String line = reader.readLine();
+		ResponseBuilder response = Response.ok(temp, MediaType.APPLICATION_OCTET_STREAM);
+	    response.header("Content-Disposition", "attachment; filename=document"+ ticket.toString() +".zip");
+	    return response.build();
+	}
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("publish/job")
+	public String getPublishJobForm() {
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
 
-		while(line !=null) {
-			sb.append(line);
-			sb.append("\n");
-			line = reader.readLine();
-		}
-		reader.close();
+		VelocityContext context = new VelocityContext();
 		
-		return sb.toString();
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/PublishJobForm.vm");
+		
+		StringWriter wr = new StringWriter();
+		template.merge(context, wr);
+		return wr.toString();
+	}
+	//TODO: Check if one post and one get can coexist on same path
+	@POST
+	@Produces(MediaType.TEXT_HTML)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("publishjob")
+	public String PublishJob(@FormParam("jsonString") String jsonstring) throws JsonProcessingException, IOException, InterruptedException, PublishException {
+		if(jsonstring == "" || jsonstring == null) {
+			throw new IllegalArgumentException("The given json String was either empty or null");
+		}
+		//TODO: catch jsonexception
+		ObjectReader reader = this.reader.forType(PublishJobOptions.class);
+		PublishJobOptions job = reader.readValue(jsonstring);
+
+		PublishJobService service = new PublishJobService(peService);
+		
+		PublishTicket ticket = service.publishJob(job);
+		
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
+
+		VelocityContext context = new VelocityContext();
+		context.put("ticketNumber", ticket.toString());
+		
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/GetTicketTemplate.vm");
+		
+		StringWriter wr = new StringWriter();
+		template.merge(context, wr);
+		
+		return wr.toString();
 	}
 }
