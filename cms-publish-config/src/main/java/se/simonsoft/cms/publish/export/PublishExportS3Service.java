@@ -49,7 +49,7 @@ public class PublishExportS3Service implements PublishJobExportService {
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		ByteArrayOutputStream baos = (ByteArrayOutputStream) os;
-		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(baos.toByteArray()), new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase()))); //TODO Is the item path correct this way?
+		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(baos.toByteArray()), new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase().concat(".zip")))); 
 		job.addExportItem(exportItem);
 		job.prepare();
 		
