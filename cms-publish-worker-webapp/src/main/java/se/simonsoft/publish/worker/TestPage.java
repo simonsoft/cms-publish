@@ -95,6 +95,7 @@ public class TestPage {
 		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		engine.init(p);
 
+<<<<<<< HEAD
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
 		
@@ -104,6 +105,20 @@ public class TestPage {
 		template.merge(context, wr);
 		
 		return wr.toString();
+=======
+		PublishSource source = new PublishSource() {
+
+			@Override
+			public String getURI() {
+				return itemId;
+			}
+		};
+		request.setFile(source);
+		request.setFormat(publishFormat);
+		PublishTicket ticket = peService.requestPublish(request);
+		//TODO: Return link to get job page with included ticket number.
+		return "PE is done! Your ticket number is: " + ticket.toString();
+>>>>>>> 1b1ae6afd669f00ad74ec4db971d048ca7170780
 	}
 
 	@GET
@@ -117,8 +132,13 @@ public class TestPage {
 		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
+<<<<<<< HEAD
 
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/DocumentFormTemplate.vm");
+=======
+		//TODO: refactor naming of forms.
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/formTemplate.vm");
+>>>>>>> 1b1ae6afd669f00ad74ec4db971d048ca7170780
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -126,7 +146,7 @@ public class TestPage {
 		return wr.toString();
 	}
 	
-	@Path("ticketform")
+	@Path("ticket")
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public String getTicketForm() {
@@ -144,6 +164,7 @@ public class TestPage {
 		template.merge(context, wr);
 		return wr.toString();
 	}
+<<<<<<< HEAD
 	
 	@GET
 	@Path("ticket/result")
@@ -226,4 +247,6 @@ public class TestPage {
 		
 		return wr.toString();
 	}
+=======
+>>>>>>> 1b1ae6afd669f00ad74ec4db971d048ca7170780
 }
