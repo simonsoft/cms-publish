@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import static org.mockito.Matchers.any;
 
@@ -37,6 +38,7 @@ import org.mockito.Mockito;
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClient;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
+import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
 import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -100,7 +102,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
 		PublishJobService mockJobService = mock(PublishJobService.class);
 		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
-		ArgumentCaptor<SendTaskSuccessRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
+		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
 		
 		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringNotCompletedTicket));
@@ -113,11 +115,9 @@ public class AwsStepfunctionPublishWorkerTest {
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
-		verify(mockClient, times(1)).sendTaskSuccess(requestCaptor.capture());
+		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 		
-		SendTaskSuccessRequest request = requestCaptor.getValue();
-		assertEquals("{\"params\":{\"ticket\":\"1234\",\"completed\":\"false\"}}", request.getOutput());
-		
+		assertEquals("JobPending", requestCaptor.getValue().getError());
 	}
 
 	@Test
@@ -144,6 +144,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
 		verify(mockClient, times(1)).sendTaskSuccess(requestCaptor.capture());
+		verify(mockExportService, times(1)).exportJob(any(OutputStream.class), any(PublishJobOptions.class));
 		
 		SendTaskSuccessRequest value = requestCaptor.getValue();
 		assertEquals("{\"params\":{\"ticket\":\"1234\",\"completed\":\"true\"}}", value.getOutput());
