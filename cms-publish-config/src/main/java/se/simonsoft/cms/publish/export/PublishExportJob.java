@@ -18,10 +18,11 @@ package se.simonsoft.cms.publish.export;
 import java.io.OutputStream;
 
 import se.simonsoft.cms.item.export.CmsExportJob;
+import se.simonsoft.cms.item.export.CmsExportJobZip;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 
-public class PublishExportJob extends CmsExportJob implements CmsExportJob.SingleItem {
+public class PublishExportJob extends CmsExportJobZip implements CmsExportJob.SingleItem {
 
 	public PublishExportJob(PublishJobStorage storage, String jobExtension) {
 		super(createJobPrefix(storage), createJobName(storage), jobExtension);
@@ -41,6 +42,6 @@ public class PublishExportJob extends CmsExportJob implements CmsExportJob.Singl
 
 	@Override
 	public void getResultStream(OutputStream out) {
-		getExportItems().get(0).getResultStream(out);
+		super.getResultStream(out);
 	}
 }
