@@ -102,7 +102,7 @@ public class PublishJobService {
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
-			request.addParam(entry.getKey(), entry.getKey());
+			request.addParam(entry.getKey(), entry.getValue());
 		}
 		return request;
 	}
