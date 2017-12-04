@@ -20,6 +20,7 @@ import java.io.OutputStream;
 
 import javax.inject.Inject;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,15 +48,20 @@ public class PublishExportS3Service implements PublishJobExportService {
 		logger.debug("Preparing publishJob {} for export to s3", jobOptions.getPathname());
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
-		
-		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(os.toString().getBytes()), new CmsExportPath(jobOptions.getStorage().getPathnamebase())); //TODO Is the item path correct this way?
+		ByteArrayOutputStream baos = (ByteArrayOutputStream) os;
+		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(baos.toByteArray()), new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase()))); //TODO Is the item path correct this way?
 		job.addExportItem(exportItem);
+		job.prepare();
+		
 		
 		logger.debug("Prepareing writer for export...");
-		writer.prepare(job);
-		if (writer.isReady()) {
-			logger.debug("Writer is prepared. Writing job to S3.");
-			writer.write();
+		
+		if (job.isReady()) {
+			writer.prepare(job);
+			if (writer.isReady()) {
+				logger.debug("Writer is prepared. Writing job to S3.");
+				writer.write();
+			}
 		}
 		
 		logger.debug("Job has been exported to S3.");
