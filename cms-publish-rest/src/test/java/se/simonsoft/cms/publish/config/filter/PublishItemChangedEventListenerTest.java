@@ -163,6 +163,7 @@ public class PublishItemChangedEventListenerTest {
 		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
 		assertEquals("default", manifest.getType());
 		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
+		assertEquals("demo1", storage.getPathcloudid());
 	}
 	
 	
@@ -244,6 +245,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
 		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
+		assertEquals(optionsValidated.getStorage().getPathcloudid(), options.getStorage().getPathcloudid());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
 		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));
