@@ -25,7 +25,6 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.management.RuntimeErrorException;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
@@ -39,18 +38,14 @@ import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
 import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import net.sf.saxon.value.StringValue;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobProgress;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
-import se.simonsoft.cms.publish.export.PublishExportS3Service;
 import se.simonsoft.cms.publish.export.PublishJobExportService;
 
 @Singleton
@@ -104,12 +99,13 @@ public class AwsStepfunctionPublishWorker {
 
 					GetActivityTaskResult taskResult = null;
 					try {
+						logger.debug("Client getting activity task");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startUpTime));
 					} catch (AbortedException e) {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
 
-					if (taskResult != null && !taskResult.getTaskToken().isEmpty()) {
+					if (hasTaskToken(taskResult)) {
 						logger.debug("Got a task from workflow. {}", taskResult.getInput());
 						PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
@@ -117,27 +113,26 @@ public class AwsStepfunctionPublishWorker {
 							logger.debug("Job has a ticket, checking if it is ready for export.");
 							publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
 							
-							boolean jobCompleted = isJobCompleted(publishTicket);
-							if (jobCompleted) {
+							boolean jobCompleted = isJobCompleted(taskResult.getTaskToken() ,publishTicket);
+							progress = getJobProgress(publishTicket, jobCompleted);
+							progressAsJson = getProgressAsJson(progress);
+							
+							if (jobCompleted) { 
 								logger.debug("Job is completed, starting export...");
-								
-								exportPath = exportCompletedJob(publishTicket, options);
-								progress = getJobProgress(publishTicket, jobCompleted);
-								progressAsJson = getProgressAsJson(progress);
-								
+								exportPath = exportCompletedJob(taskResult.getTaskToken() ,publishTicket, options);
 								sendTaskResult(taskResult.getTaskToken(), progressAsJson);
 								logger.debug("Job is exported to: {}", exportPath);
 								
 							} else {
-								progress = getJobProgress(publishTicket, jobCompleted);
-								progressAsJson = getProgressAsJson(progress);
-								sendTaskResult(taskResult.getTaskToken(), progressAsJson); //Should this be a named exception.
+								logger.debug("Job is not completed send result JobPending");
+								sendTaskResult(taskResult.getTaskToken(), new CommandRuntimeException("JobPending")); //Should this be a named exception.
 							}
+							
 						} else {
 							logger.debug("Job has no ticket, requesting publish.");
 							publishTicket = requestPublish(options);
 							progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
-							sendTaskResult(taskResult.getTaskToken(), progressAsJson, new CommandRuntimeException("JobPending"));
+							sendTaskResult(taskResult.getTaskToken(), progressAsJson);
 						}
 					} else {
 						try {
@@ -152,6 +147,10 @@ public class AwsStepfunctionPublishWorker {
 		});
 	}
 	
+	private boolean hasTaskToken(GetActivityTaskResult taskResult) {
+		return taskResult != null && taskResult.getTaskToken() != null && !taskResult.getTaskToken().isEmpty();
+	}
+	
 	private PublishTicket requestPublish(PublishJobOptions options) {
 		PublishTicket ticket = null;
 		try {
@@ -160,17 +159,29 @@ public class AwsStepfunctionPublishWorker {
 			logger.debug("Failed when requested job with PublishJobOptions: {}", Jackson.toJsonPrettyString(options));
 			throw new RuntimeException(e);
 		}
+		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
 	
-	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) {
+	private String exportCompletedJob(String taskToken, PublishTicket ticket, PublishJobOptions options) {
 		String jobPath = null;
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			publishJobService.getCompletedJob(ticket, baos);
 			jobPath = exportService.exportJob(baos, options);
 		} catch (PublishException | IOException e) {
-			throw new RuntimeException(e); //TODO: better messages.
+			logger.debug("Job is marked as completed at the PE, but we could not get the result: {}", e.getMessage(), e);
+			
+			RuntimeException runtimeException = new RuntimeException("Publication failed", e);
+			
+			SendTaskFailureRequest failReq = new SendTaskFailureRequest();
+			failReq.setTaskToken(taskToken);
+			failReq.setError(runtimeException.getMessage());
+			failReq.setCause("Publication Failed");
+			
+			client.sendTaskFailure(failReq);
+			
+			throw runtimeException;
 		}
 		
 		return jobPath;
@@ -180,7 +191,7 @@ public class AwsStepfunctionPublishWorker {
 		logger.debug("Checking if options has a ticket");
 		boolean hasTicket = false;
 
-        if (options.getParams() != null) {
+        if (options.getProgress() != null) {
             hasTicket = options.getProgress().getParams().containsKey("ticket");
         }
         return hasTicket;
@@ -199,11 +210,12 @@ public class AwsStepfunctionPublishWorker {
 		return options;
 	}
 	
-	private boolean isJobCompleted(PublishTicket ticket) {
+	private boolean isJobCompleted(String taskToken, PublishTicket ticket) {
 		boolean completed;
 		try {
 			completed = publishJobService.isCompleted(ticket);
 		} catch (PublishException e) {
+			sendTaskResult(taskToken, new CommandRuntimeException("JobMissing"));
 			throw new RuntimeException(e);
 		}
 		return completed;
@@ -214,7 +226,7 @@ public class AwsStepfunctionPublishWorker {
 		client.sendTaskSuccess(sendTaskSuccessRequest);
 	}
 	
-	private void sendTaskResult(String taskToken, String progressResultJson, CommandRuntimeException e) {
+	private void sendTaskResult(String taskToken, CommandRuntimeException e) {
 		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
 		failReq.setTaskToken(taskToken);
 		failReq.setError(e.getErrorName());
@@ -230,14 +242,16 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	private String getProgressAsJson(PublishJobProgress progress) {
+		logger.debug("Serializing progress");
 		ObjectWriter progressWriter = writer.forType(PublishJobProgress.class);
 		String progressJson = null;
 		try {
 			progressJson = progressWriter.writeValueAsString(progress);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			logger.error("Could not serialize PublishJobProgess");
+			throw new RuntimeException(e); 
 		}
-		
+		logger.debug("Progress is serialized {}", progressJson);
 		return progressJson;
 	}
 }
