@@ -115,6 +115,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		storage.setPathnamebase(getNameBase(item.getId()));
 		storage.setPathversion(this.pathVersion);
 		storage.setPathconfigname(configName);
+		storage.setPathcloudid(item.getId().getRepository().getName());
 		if (!storage.getParams().containsKey("s3bucket")) {
 			storage.getParams().put("s3bucket", this.s3Bucket);
 		}
