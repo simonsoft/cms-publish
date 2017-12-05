@@ -54,12 +54,10 @@ public class WorkerApplication extends ResourceConfig {
             @Override
             protected void configure() {
             	
-            	bind("injected").to(String.class).named("TEST");
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	PublishServicePe publishServicePe = new PublishServicePe();
             	PublishJobService publishJobService = new PublishJobService(publishServicePe);
             	bind(publishJobService).to(PublishJobService.class);
-            	
             	
             	final String awsId = environment.getVariable("cms.aws.key.id");
             	final String awsSecret = environment.getVariable("cms.aws.key.secret");
