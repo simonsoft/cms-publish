@@ -15,21 +15,17 @@
  */
 package se.simonsoft.publish.worker;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 
-import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishTicket;
@@ -37,14 +33,15 @@ import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.databinds.publish.job.*;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.PublishSource;
-import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 
 public class PublishJobService {
 
 	private final PublishServicePe pe;
-	//TODO: Change depending on PEURL
-	private String publishHost = "http://localhost:8080";
-	private String publishPath = "/e3/servlet/e3";
+	private final String publishHost = "http://localhost:8080";
+	private final String publishPath = "/e3/servlet/e3";
+	
+	
+	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 	
 	@Inject
 	public PublishJobService(PublishServicePe pe) {
@@ -55,15 +52,20 @@ public class PublishJobService {
 		if ( jobOptions == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
+		
+		logger.debug("Request to publish with job: {}", jobOptions);
+		
 		PublishRequestDefault request = new PublishRequestDefault();
 
 		PublishFormat format = pe.getPublishFormat(jobOptions.getFormat());
+		logger.debug("Will be published with format: {}", format.getFormat());
 
 		request.addConfig("host", publishHost);
 		request.addConfig("path", publishPath);
 		request = this.getConfigParams(request, jobOptions);
 		
 		final String itemId = jobOptions.getSource();
+		logger.debug("Item to publish {}", itemId);
 		PublishSource source = new PublishSource() {
 			
 			@Override
@@ -73,12 +75,15 @@ public class PublishJobService {
 		};
 		request.setFile(source);
 		request.setFormat(format);
+		logger.debug("Request is created with file: {} and format {}, sending to PE", source, format);
 		PublishTicket ticket = pe.requestPublish(request);
+		logger.debug("PE returned a ticket: {}", ticket.toString());
 		
 		return ticket;
 	}
 	
 	public void getCompletedJob(PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
+		logger.debug("Getting OutputStream from job with ticket: {}", ticket.toString());
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
@@ -89,19 +94,20 @@ public class PublishJobService {
 		pe.getResultStream(ticket, request, outputStream);
 	}
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
+		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getType());
 		request.addParam("format", options.getFormat());
 
-		Iterator iterator = options.getParams().entrySet().iterator();
-		while ( iterator.hasNext() ) {
-			Map.Entry pair = (Map.Entry) iterator.next();
-			request.addParam(pair.getKey().toString(), pair.getValue().toString());
+		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
+		for (Map.Entry<String, String> entry : entrySet) {
+			request.addParam(entry.getKey(), entry.getValue());
 		}
 		return request;
 	}
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
+		logger.debug("Checking if job with ticket: {}" + ticket.toString() + "is done");
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);

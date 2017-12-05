@@ -1,4 +1,4 @@
-#*
+/**
  * Copyright (C) 2009-2017 Simonsoft Nordic AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *#
-<!DOCTYPE html>
-	<html>
-		<head>
-		<meta charset="UTF-8">
-		<title>Insert title here</title>
-		</head>
-	<body>
-		<form action="http://localhost:8080/worker/rest/test/ticket/result" method="get">
-			<h3>Ticket Number:</h3>
-			<input type="text" name="ticketnumber">
-			<input type="submit" value="Submit">
-		</form>
-	</body>
-</html>
+ */
+package se.simonsoft.cms.publish.export;
+
+
+import java.io.OutputStream;
+
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
+
+public interface PublishJobExportService {
+	
+	String exportJob(OutputStream os, PublishJobOptions jobOptions);
+	
+}

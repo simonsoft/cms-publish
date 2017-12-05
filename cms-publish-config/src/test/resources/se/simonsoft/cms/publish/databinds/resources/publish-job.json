@@ -27,19 +27,16 @@
 			"logicalexpr": "logical.expr"
 		},
 		"progress": {
-			"engine": {
-				"map": "whatever engine needs to store",
-				"key": "value"
-			},
-			"webapp": {
-				"map": "whatever they need to store",
-				"key": "value"
-			}
+			"params": {
+            	"ticket": "1234",
+            	"isComplete": "false"
+          		}
 		},
 		"storage": {
 			"type": "s3 / fs / ...",
-			"pathprefix": "/cms4",
-			"pathconfigname": "/name-from-cmsconfig-publish",
+			"pathversion": "cms4",
+			"pathcloudid": "demo1",
+			"pathconfigname": "name-from-cmsconfig-publish",
 			"pathdir": "/vvab/xml/documents/900108.xml",
 			"pathnamebase": "900108 or profiling.name, ",
 			"params": {

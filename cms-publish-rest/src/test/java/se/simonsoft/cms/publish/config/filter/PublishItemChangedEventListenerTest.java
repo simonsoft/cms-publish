@@ -43,6 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
@@ -82,8 +83,9 @@ public class PublishItemChangedEventListenerTest {
 	public void testDefaultItemEvent() throws Exception {
 		
 		//CmsItem mock. Not possible to get a real CmsItem in this context.
-		CmsItemIdArg itemId = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
-		itemId.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(443L);
 		when(mockItem.getId()).thenReturn(itemId);
 		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
 		when(mockItem.getStatus()).thenReturn("Released");
@@ -142,14 +144,17 @@ public class PublishItemChangedEventListenerTest {
 		assertTrue(publishJob.getStatusInclude().contains("Released"));
 		
 		assertEquals("DOC_900276_Released.pdf", publishJob.getOptions().getPathname());
+		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getItemid());
+		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getOptions().getSource());
+		
 		
 		//Storage
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
 		assertEquals("s3", storage.getType());
 		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
-		assertEquals("900276", storage.getPathnamebase());
-		assertEquals("/cms4", storage.getPathprefix());
-		assertEquals("/status", storage.getPathconfigname());
+		assertEquals("900276_r0000000443", storage.getPathnamebase());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("status", storage.getPathconfigname());
 	}
 	
 	
@@ -219,12 +224,13 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getPathname(), options.getPathname());
 		assertEquals(optionsValidated.getType(), options.getType());
 		assertEquals(optionsValidated.getFormat(), options.getFormat());
+		assertEquals(optionsValidated.getSource(), options.getSource());
 		
 		assertEquals(optionsValidated.getParams().get("stylesheet"), options.getParams().get("stylesheet"));
 		assertEquals(optionsValidated.getParams().get("pdfconfig"), options.getParams().get("pdfconfig"));
 		
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
-		assertEquals(optionsValidated.getStorage().getPathprefix(), options.getStorage().getPathprefix());
+		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());

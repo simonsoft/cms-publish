@@ -30,17 +30,16 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
+
 
 public class TestPublishJob {
 	private static ObjectReader reader;
-	private static ObjectWriter writer;
+	private static ObjectMapper mapper = new ObjectMapper();
+
 
 	@BeforeClass
 	public static void setUp() {
-		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader(PublishJob.class);
-		writer = mapper.writer();
 	}
 
 	@Test
@@ -59,21 +58,19 @@ public class TestPublishJob {
 		assertEquals("*", jsonPj.getProfilingInclude().get(0));
 		assertEquals("DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf", jsonPj.getPathnameTemplate());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123", jsonPj.getItemid());
-		
+
 
 		//Asserts for PublishJobOptions
 		PublishJobOptions publish = jsonPj.getOptions();
 		assertEquals("abxpe",publish.getType());
 		assertEquals("pdf/html/web/rtf/...", publish.getFormat());
 		assertEquals("evaluated from pathname-template", publish.getPathname());
-		
+
 		//Asserts for PublishJobProgress
 		PublishJobOptions options = jsonPj.getOptions();
-		assertEquals("whatever engine needs to store",options.getProgress().get("engine").get("map"));
-		assertEquals("value", options.getProgress().get("engine").get("key"));
-		assertEquals("whatever they need to store", options.getProgress().get("webapp").get("map"));
-		assertEquals("value", options.getProgress().get("webapp").get("key"));
-		
+		assertEquals("1234", options.getProgress().getParams().get("ticket"));
+		assertEquals("false", options.getProgress().getParams().get("isComplete"));
+
 		//Asserts for PublishJobParams
 		Map<String, String> params = jsonPj.getOptions().getParams();
 		assertEquals("stylesheet.css", params.get("stylesheet"));
@@ -88,10 +85,10 @@ public class TestPublishJob {
 		//Asserts for PublishJobStorage
 		PublishJobStorage storage = jsonPj.getOptions().getStorage();
 		assertEquals("s3 / fs / ...", storage.getType());
-		assertEquals("/cms4", storage.getPathprefix());
-		assertEquals("/name-from-cmsconfig-publish", storage.getPathconfigname());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("name-from-cmsconfig-publish", storage.getPathconfigname());
 		assertEquals("/vvab/xml/documents/900108.xml", storage.getPathdir());
-		
+
 		//Asserts for PublishJobStorage's params
 		Map<String, String> pJSParams = jsonPj.getOptions().getStorage().getParams();
 		assertEquals("parameter for future destination types", pJSParams.get("specific"));
@@ -106,6 +103,7 @@ public class TestPublishJob {
 		//Testing PublishJobDelivery
 		assertEquals("webhook / s3copy", jsonPj.getOptions().getDelivery().getType());
 	}
+
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);

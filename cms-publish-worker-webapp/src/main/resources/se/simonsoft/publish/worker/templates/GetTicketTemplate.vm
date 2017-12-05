@@ -20,10 +20,6 @@
 		<title>Insert title here</title>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/publishjobservice/publishjob" method="post">
-			<h3>Ticket Number:</h3>
-			<input type="text" name="ticketnumber" maxlength="99999">
-			<input type="submit" value="Submit">
-		</form>
+		<p>Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber">job</a></p>
 	</body>
 </html>
