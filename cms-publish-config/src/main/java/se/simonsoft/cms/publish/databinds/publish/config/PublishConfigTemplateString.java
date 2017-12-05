@@ -46,7 +46,10 @@ public class PublishConfigTemplateString {
 		if(this.ve != null) {
 			return this.ve;
 		}
-		this.ve = new VelocityEngine();
+		VelocityEngine ve = new VelocityEngine();
+		ve.init();
+		
+		this.ve = ve;
 		return this.ve;
 	}
 }
