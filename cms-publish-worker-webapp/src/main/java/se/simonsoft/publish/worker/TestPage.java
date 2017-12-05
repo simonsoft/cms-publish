@@ -75,10 +75,14 @@ public class TestPage {
 		}
 		
 		//TODO: Fix pathname (take name from itemId string). Use PE directly?
+		int indexOf = itemId.lastIndexOf("\\");
+		CharSequence subSequence = itemId.subSequence(indexOf, itemId.length());
+		String pathName = subSequence.toString();
+		
 		PublishJobOptions options = new PublishJobOptions();
 		options.setSource(itemId);
 		options.setFormat(format);
-		options.setPathname(itemId);
+		options.setPathname(pathName);
 		options.setType("abxpe");
 		PublishJobService service = new PublishJobService(peService);
 		PublishTicket ticket= service.publishJob(options);
@@ -88,7 +92,6 @@ public class TestPage {
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
 		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		engine.init(p);
-
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
 		
@@ -148,7 +151,6 @@ public class TestPage {
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
 		PublishTicket ticket = new PublishTicket(ticketNumber);
-		//TODO: check if ticket is completed. Return  message otherwise
 		
 		
 		request.addConfig("host", this.publishHost);
@@ -190,7 +192,7 @@ public class TestPage {
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Path("publishjob")
+	@Path("publish/job")
 	public String PublishJob(@FormParam("jsonString") String jsonstring) throws JsonProcessingException, IOException, InterruptedException, PublishException {
 		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
