@@ -56,7 +56,7 @@ public class PublishManifestTest {
 		String result = pcts.evaluate(vtl);
 		System.out.println(result);
 		
-		assertEquals("{  \"job\": {    \"id\": \"uuid\",    \"format\": \"pdf\"  },  \"custom\": {            \"apa\": \"banan\"    ,        \"bil\": \"bmw/audi\"  }}", result);
+		assertEquals("{  \"job\": {    \"id\": \"uuid\",    \"format\": \"pdf\"  },  \"custom\": {    \"apa\": \"banan\",    \"bil\": \"bmw/audi\"  }}", result);
 		
 		PublishConfigManifest manifestReparsed = readerManifest.readValue(result);
 		assertNotNull(manifestReparsed);

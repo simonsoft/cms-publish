@@ -4,11 +4,8 @@
     "format": "$options.getFormat()"
   },
   "custom": {
-#set($sep="")
 #foreach( $entry in $manifest.getCustomTemplates().entrySet() )
-    $sep
-    #set($sep=",")
-    "$entry.getKey()": "$entry.getValue()"
+    "$entry.getKey()": "$entry.getValue()"#if( $foreach.hasNext ),#end
 #end
   }
 
