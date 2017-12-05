@@ -15,8 +15,6 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -33,7 +31,6 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	private String action;
 	private String itemid;
 	private PublishJobOptions options;
-	private String pathnameTemplate;
 
 	public PublishJob(PublishJob pj) {
 		this.configname = pj.getConfigname();
@@ -49,6 +46,8 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	}
 	
 	public PublishJob(PublishConfig publishConfig) {
+		
+		
 		
 		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
 		if (publishConfig.getOptions().getDelivery() != null) {
@@ -115,36 +114,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	public void setOptions(PublishJobOptions publish) {
 		this.options = publish;
 	}
-	public boolean isActive() {
-		return active;
-	}
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-	public boolean isVisible() {
-		return visible;
-	}
-	public void setVisible(boolean visible) {
-		this.visible = visible;
-	}
-	public List<String> getStatusInclude() {
-		return statusInclude;
-	}
-	public void setStatusInclude(List<String> statucInclude) {
-		this.statusInclude = statucInclude;
-	}
-	public List<String> getProfilingInclude() {
-		return profilingInclude;
-	}
-	public void setProfilingInclude(List<String> profilingInclude) {
-		this.profilingInclude = profilingInclude;
-	}
-	public String getPathnameTemplate() {
-		return pathnameTemplate;
-	}
-	public void setPathnameTemplate(String pathnameTemplate) {
-		this.pathnameTemplate = pathnameTemplate;
-	}
+
 
 	@Override
 	@JsonIgnore
