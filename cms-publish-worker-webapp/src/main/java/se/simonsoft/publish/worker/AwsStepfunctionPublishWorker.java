@@ -172,16 +172,16 @@ public class AwsStepfunctionPublishWorker {
 		} catch (PublishException | IOException e) {
 			logger.debug("Job is marked as completed at the PE, but we could not get the result: {}", e.getMessage(), e);
 			
-			RuntimeException runtimeException = new RuntimeException("Publication failed", e);
+//			RuntimeException runtimeException = new RuntimeException("Publication failed", e);
+//			SendTaskFailureRequest failReq = new SendTaskFailureRequest();
+//			failReq.setTaskToken(taskToken);
+//			failReq.setError(runtimeException.getMessage());
+//			failReq.setCause("Publication Failed");
+//			
+//			client.sendTaskFailure(failReq);
+			sendTaskResult(taskToken, new CommandRuntimeException("Publication Error"));
 			
-			SendTaskFailureRequest failReq = new SendTaskFailureRequest();
-			failReq.setTaskToken(taskToken);
-			failReq.setError(runtimeException.getMessage());
-			failReq.setCause("Publication Failed");
-			
-			client.sendTaskFailure(failReq);
-			
-			throw runtimeException;
+			throw new RuntimeException(e); //TODO: Really wont this kill the thread?
 		}
 		
 		return jobPath;
