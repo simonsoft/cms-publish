@@ -1,0 +1,15 @@
+{
+  "job": {
+    "id": "$jobid",
+    "format": "$options.getFormat()"
+  },
+  "custom": {
+#set($sep="")
+#foreach( $entry in $manifest.getCustomTemplates().entrySet() )
+    $sep
+    #set($sep=",")
+    "$entry.getKey()": "$entry.getValue()"
+#end
+  }
+
+}
