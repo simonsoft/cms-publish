@@ -22,16 +22,9 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 public class PublishConfigTemplateString {
-	private String templateString;
 	private static VelocityEngine ve;
 	private VelocityContext context = new VelocityContext();
 	
-	/**
-	 * @param templateString Velocity String
-	 */
-	public PublishConfigTemplateString(String templateString) {
-		this.templateString = templateString;
-	}
 	/**
 	 * Sets up a VelocityContext for later use in withEntry()
 	 * @param str Key used in Velocity string
@@ -44,7 +37,7 @@ public class PublishConfigTemplateString {
 	 * 
 	 * @return String evaluated from VelocityContext and String provided in constructor
 	 */
-	public String evaluate() {
+	public String evaluate(String templateString) {
 		Writer writer = new StringWriter();
 		getVelocityEngine().evaluate(context, writer, "PublishConfigTemplateString", templateString);
 		return writer.toString();
