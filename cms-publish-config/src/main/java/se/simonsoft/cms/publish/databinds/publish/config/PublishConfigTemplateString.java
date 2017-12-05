@@ -33,7 +33,7 @@ public class PublishConfigTemplateString {
 		this.templateString = templateString;
 	}
 	/**
-	 * Sets up a VelocityContext for later use in withEntry()
+	 * Sets up a VelocityContext for later use in evaluate()
 	 * @param str Key used in Velocity string
 	 * @param obj Object mapped by the key value
 	 */
