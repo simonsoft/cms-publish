@@ -48,12 +48,12 @@ public class PublishManifestTest {
 		assertEquals(2, m.getCustomTemplates().keySet().size());
 		
 		String vtl = getTestData(pathManifestJson);
-		PublishConfigTemplateString pcts = new PublishConfigTemplateString(vtl);
+		PublishConfigTemplateString pcts = new PublishConfigTemplateString();
 		pcts.withEntry("options", o);
 		pcts.withEntry("manifest", m);
 		pcts.withEntry("jobid", "uuid");
 		
-		String result = pcts.evaluate();
+		String result = pcts.evaluate(vtl);
 		System.out.println(result);
 		
 		assertEquals("{  \"job\": {    \"id\": \"uuid\",    \"format\": \"pdf\"  },  \"custom\": {            \"apa\": \"banan\"    ,        \"bil\": \"bmw/audi\"  }}", result);
