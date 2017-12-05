@@ -25,6 +25,19 @@ public class PublishJobStorage extends PublishConfigStorage {
 	private String pathdir;
 	private String pathnamebase;
 	
+	
+	public PublishJobStorage() {
+		super();
+	}
+	
+	public PublishJobStorage(PublishConfigStorage config) {
+		
+		if (config != null) {
+			setParams(config.getParams());
+			setType(config.getType());
+		}
+	}
+	
 	public String getPathversion() {
 		return pathversion;
 	}

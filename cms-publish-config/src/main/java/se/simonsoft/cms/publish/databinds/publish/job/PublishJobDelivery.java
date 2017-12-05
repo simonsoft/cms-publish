@@ -18,5 +18,17 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigDelivery;
 
 public class PublishJobDelivery extends PublishConfigDelivery {
+	
+	public PublishJobDelivery() {
+		super();
+	}
+	
+	public PublishJobDelivery(PublishConfigDelivery config) {
+		
+		if (config != null) {
+			setParams(config.getParams());
+			setType(config.getType());
+		}
+	}
 
 }

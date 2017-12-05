@@ -23,9 +23,27 @@ public class PublishJobOptions extends PublishConfigOptions {
 	private PublishJobProfiling profiling;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
-	private PublishJobProgress progress;
+	private PublishJobProgress progress = null;
 	private PublishJobDelivery delivery;
 
+	
+	public PublishJobOptions() {
+		super();
+	}
+	
+	public PublishJobOptions(PublishConfigOptions config) {
+		
+		setType(config.getType());
+		setFormat(config.getFormat());
+		setParams(config.getParams());
+		
+		// TODO: Profiling
+		this.storage = new PublishJobStorage(config.getStorage());
+		this.postprocess = new PublishJobPostProcess(config.getPostprocess());
+		// progress is allowed to be null.
+		this.delivery = new PublishJobDelivery(config.getDelivery());
+	}
+	
 	public String getSource() {
 		return source;
 	}

@@ -47,33 +47,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	
 	public PublishJob(PublishConfig publishConfig) {
 		
-		
-		
-		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
-		if (publishConfig.getOptions().getDelivery() != null) {
-			publishJobDelivery.setParams(publishConfig.getOptions().getDelivery().getParams());
-			publishJobDelivery.setType(publishConfig.getOptions().getDelivery().getType());
-		}
-		
-		PublishJobOptions publishJobOptions = new PublishJobOptions();
-		publishJobOptions.setDelivery(publishJobDelivery);
-		publishJobOptions.setFormat(publishConfig.getOptions().getFormat());
-		publishJobOptions.setParams(publishConfig.getOptions().getParams());
-		
-		PublishJobPostProcess publishJobPostProcess = new PublishJobPostProcess();
-		if (publishConfig.getOptions().getPostprocess() != null) {
-			publishJobPostProcess.setParams(publishConfig.getOptions().getPostprocess().getParams());
-			publishJobPostProcess.setType(publishConfig.getOptions().getPostprocess().getType());
-			publishJobOptions.setPostprocess(publishJobPostProcess);
-		}
-		
-		PublishJobStorage storage = new PublishJobStorage();
-		storage.setParams(publishConfig.getOptions().getStorage().getParams());
-		storage.setType(publishConfig.getOptions().getStorage().getType());
-		publishJobOptions.setStorage(storage);
-		publishJobOptions.setType(publishConfig.getOptions().getType());
-		
-		this.options = publishJobOptions;
+		this.options = new PublishJobOptions(publishConfig.getOptions());
 		this.active = publishConfig.isActive();
 		this.visible = publishConfig.isVisible();
 		this.statusInclude = publishConfig.getStatusInclude();

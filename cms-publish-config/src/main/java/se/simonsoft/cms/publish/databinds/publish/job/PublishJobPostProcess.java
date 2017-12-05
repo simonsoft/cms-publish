@@ -18,4 +18,18 @@ package se.simonsoft.cms.publish.databinds.publish.job;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigPostProcess;
 
 public class PublishJobPostProcess extends PublishConfigPostProcess {
+	
+	public PublishJobPostProcess() {
+		super();
+	}
+	
+	public PublishJobPostProcess(PublishConfigPostProcess config) {
+		
+		if (config != null) {
+			setParams(config.getParams());
+			setType(config.getType());
+		}
+	}
+	
+	
 }
