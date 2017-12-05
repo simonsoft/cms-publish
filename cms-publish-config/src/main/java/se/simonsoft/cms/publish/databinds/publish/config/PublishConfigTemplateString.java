@@ -20,10 +20,18 @@ import java.io.Writer;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.tools.generic.EscapeTool;
 
 public class PublishConfigTemplateString {
 	private static VelocityEngine ve;
-	private VelocityContext context = new VelocityContext();
+	private VelocityContext context;
+	
+	
+	public PublishConfigTemplateString() {
+		
+		this.context = new VelocityContext();
+		this.context.put("esc", new EscapeTool());
+	}
 	
 	/**
 	 * Sets up a VelocityContext for later use in withEntry()
@@ -43,13 +51,13 @@ public class PublishConfigTemplateString {
 		return writer.toString();
 	}
 	private VelocityEngine getVelocityEngine() {
-		if(this.ve != null) {
-			return this.ve;
+		if(PublishConfigTemplateString.ve != null) {
+			return PublishConfigTemplateString.ve;
 		}
 		VelocityEngine ve = new VelocityEngine();
 		ve.init();
 		
-		this.ve = ve;
-		return this.ve;
+		PublishConfigTemplateString.ve = ve;
+		return PublishConfigTemplateString.ve;
 	}
 }
