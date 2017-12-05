@@ -33,10 +33,11 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 public class TestPublishJob {
 	private static ObjectReader reader;
+	private static ObjectMapper mapper = new ObjectMapper();
+
 
 	@BeforeClass
 	public static void setUp() {
-		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader(PublishJob.class);
 	}
 
@@ -102,6 +103,7 @@ public class TestPublishJob {
 		assertEquals("webhook / s3copy", jsonPj.getOptions().getDelivery().getType());
 
 	}
+
 	private String getJsonString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
