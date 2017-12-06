@@ -86,6 +86,9 @@ public class PublishJobService {
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
+		if(!isCompleted(ticket)) {
+			throw new PublishException("The specified job ticket is not ready yet");
+		}
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
