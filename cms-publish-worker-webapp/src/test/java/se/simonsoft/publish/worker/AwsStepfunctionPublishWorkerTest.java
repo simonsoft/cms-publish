@@ -150,7 +150,7 @@ public class AwsStepfunctionPublishWorkerTest {
 	}
 	
 	@Test
-	public void testHasTicketButPEHasLostIt() throws Exception {
+	public void testHasTicketButPEHasLostTheJob() throws Exception {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectReader reader = mapper.reader();
@@ -175,9 +175,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		verify(mockTaskResult, times(2)).getInput();
 		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 		
-		assertEquals("JobPending", requestCaptor.getValue().getError());
-		
-		
+		assertEquals("JobFailed", requestCaptor.getValue().getError());
 	}
 
 	public String getJsonString(String path) throws IOException {
