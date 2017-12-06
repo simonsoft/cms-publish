@@ -91,11 +91,6 @@ public class AwsStepfunctionPublishWorker {
 			public void run() {
 
 				while(true) {
-					String exportPath = null;
-					PublishTicket publishTicket = null;
-					PublishJobProgress progress = null;
-					String progressAsJson = null;
-					String taskToken = null;
 
 					GetActivityTaskResult taskResult = null;
 					try {
@@ -106,30 +101,18 @@ public class AwsStepfunctionPublishWorker {
 					}
 
 					if (hasTaskToken(taskResult)) {
-						taskToken = taskResult.getTaskToken();
+						PublishTicket publishTicket = null;
+						String progressAsJson = null;
+						final String taskToken = taskResult.getTaskToken();
+						logger.debug("tasktoken: {}", taskToken);
+						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
 							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
-								logger.debug("Job has a ticket, checking if it is ready for export.");
-								publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
-
-								boolean jobCompleted = false;
-								jobCompleted = isJobCompleted(publishTicket);
-								progress = getJobProgress(publishTicket, jobCompleted);
-								progressAsJson = getProgressAsJson(progress);
-
-								if (jobCompleted) { 
-									logger.debug("Job is completed, starting export...");
-									exportPath = exportCompletedJob(publishTicket, options);
-									sendTaskResult(taskToken, progressAsJson);
-									logger.debug("Job is exported to: {}", exportPath);
-								} else {
-									logger.debug("Job is not completed send result JobPending");
-									sendTaskResult(taskToken, "", new CommandRuntimeException("JobPending"));
-								}
-
+								progressAsJson = exportJob(options, taskToken);
+								sendTaskResult(taskToken, progressAsJson);
 							} else {
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
@@ -137,6 +120,10 @@ public class AwsStepfunctionPublishWorker {
 								sendTaskResult(taskToken, progressAsJson);
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
+							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
+						} catch (CommandRuntimeException e) {
+							sendTaskResult(taskToken, e.getMessage(), e);
+						} catch (Exception e) {
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
@@ -150,6 +137,27 @@ public class AwsStepfunctionPublishWorker {
 				}
 			}
 		});
+	}
+	
+	private String exportJob(PublishJobOptions options, String taskToken) throws PublishException, IOException, CommandRuntimeException {
+		logger.debug("Job has a ticket, checking if it is ready for export.");
+		
+		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
+		final boolean jobCompleted = isJobCompleted(publishTicket);
+		final PublishJobProgress progress = getJobProgress(publishTicket, jobCompleted);
+		final String progressAsJson = getProgressAsJson(progress);
+		
+		String exportPath = null;
+
+		if (jobCompleted) { 
+			logger.debug("Job is completed, starting export...");
+			exportPath = exportCompletedJob(publishTicket, options);
+			logger.debug("Job is exported to: {}", exportPath);
+		} else {
+			logger.debug("Job is not completed send fail result JobPending");
+			throw new CommandRuntimeException("JobPending");
+		}
+		return progressAsJson;
 	}
 	
 	private boolean hasTaskToken(GetActivityTaskResult taskResult) {
