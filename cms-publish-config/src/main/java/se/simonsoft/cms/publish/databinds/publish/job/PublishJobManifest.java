@@ -41,8 +41,11 @@ public class PublishJobManifest extends PublishConfigManifest {
 	}
 	
 	public PublishJobManifest(PublishConfigManifest config) {
-		setCustomTemplates(config.getCustomTemplates());
-		setMetaTemplates(config.getMetaTemplates());
+		
+		if (config != null) {
+			setCustomTemplates(config.getCustomTemplates());
+			setMetaTemplates(config.getMetaTemplates());
+		}
 	}
 	
 	
