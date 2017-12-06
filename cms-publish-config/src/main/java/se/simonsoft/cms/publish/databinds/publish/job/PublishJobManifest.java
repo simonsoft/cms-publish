@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
@@ -29,11 +30,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class PublishJobManifest extends PublishConfigManifest {
 	
 	private String type = null;
-	private Map<String, String> job;
-	private Map<String, String> document;
-	private Map<String, String> master;
-	private Map<String, String> custom;
-	private Map<String, String> meta;
+	private Map<String, String> job = new HashMap<String, String>();
+	private Map<String, String> document = new HashMap<String, String>();;
+	private Map<String, String> master = null;
+	private Map<String, String> custom = null;
+	private Map<String, String> meta = null;
 	
 	public PublishJobManifest() {
 		super();
@@ -49,11 +50,19 @@ public class PublishJobManifest extends PublishConfigManifest {
 		
 		PublishJobManifest r = new PublishJobManifest();
 		// Explicitly not setting type.
-		r.setJob(job);
-		r.setDocument(document);
-		r.setMaster(master);
-		r.setCustom(custom);
-		r.setMeta(meta);
+		r.setJob(new HashMap<String, String>(job));
+		r.setDocument(new HashMap<String, String>(document));
+		
+
+		if (master != null) {
+			r.setMaster(new HashMap<String, String>(master));
+		}
+		if (custom != null) {
+			r.setCustom(new HashMap<String, String>(custom));
+		}
+		if (meta != null) {
+			r.setMeta(new HashMap<String, String>(meta));
+		}
 		
 		return r;
 	}

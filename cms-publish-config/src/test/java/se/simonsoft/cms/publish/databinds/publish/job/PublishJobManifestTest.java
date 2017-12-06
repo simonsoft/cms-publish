@@ -32,23 +32,32 @@ public class PublishJobManifestTest {
 		
 		PublishConfigManifest config = new PublishConfigManifest();
 		
-		Map<String, String> meta = new HashMap<String, String>();
-		meta.put("static", "value");
-		config.setMetaTemplates(meta);
+		Map<String, String> metaTemplates = new HashMap<String, String>();
+		metaTemplates.put("static", "template");
+		config.setMetaTemplates(metaTemplates);
 		
-		
+
 		PublishJobManifest job = new PublishJobManifest(config);
 		job.setType("test");
+		
+		Map<String, String> meta = new HashMap<String, String>();
+		meta.put("static", "value");
 		job.setMeta(meta);
 		
 		assertNotNull(job.getMetaTemplates());
 		assertEquals(1, job.getMetaTemplates().size());
 		
 		String jobS = writer.writeValueAsString(job);
-		assertEquals("{\"type\":\"test\",\"meta\":{\"static\":\"value\"}}", jobS);
+		assertEquals("{\"type\":\"test\",\"job\":{},\"document\":{},\"meta\":{\"static\":\"value\"}}", jobS);
 		
 		PublishJobManifest jobP = job.forPublish();
-		assertEquals("{\"meta\":{\"static\":\"value\"}}", writer.writeValueAsString(jobP));
+		assertEquals("{\"job\":{},\"document\":{},\"meta\":{\"static\":\"value\"}}", writer.writeValueAsString(jobP));
+		
+		assertEquals(1, jobP.getMeta().size());
+		jobP.getMeta().put("one", "more");
+		assertEquals(2, jobP.getMeta().size());
+		assertEquals(1, job.getMeta().size());
+		
 	}
 
 }
