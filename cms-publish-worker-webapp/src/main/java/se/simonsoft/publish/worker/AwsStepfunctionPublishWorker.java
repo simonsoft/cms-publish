@@ -108,51 +108,37 @@ public class AwsStepfunctionPublishWorker {
 
 					if (hasTaskToken(taskResult)) {
 						taskToken = taskResult.getTaskToken();
-						
-						logger.debug("Got a task from workflow. {}", taskResult.getInput());
-						PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
+						try {
+							logger.debug("Got a task from workflow. {}", taskResult.getInput());
+							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
-						if (hasTicket(options)) {
-							logger.debug("Job has a ticket, checking if it is ready for export.");
-							publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
-							
-							boolean jobCompleted = false;
-							try {
-								jobCompleted = isJobCompleted(taskToken ,publishTicket);
-							} catch (PublishException e1) {
-								// TODO Job has failed with PublishException, send TaskFailure.
-							}
-							progress = getJobProgress(publishTicket, jobCompleted);
-							progressAsJson = getProgressAsJson(progress);
-							
-							if (jobCompleted) { 
-								logger.debug("Job is completed, starting export...");
-								try {
-									exportPath = exportCompletedJob(taskToken ,publishTicket, options);
-								} catch (IOException e) {
-									// TODO Job is completed but we could not export it. Send task Failure.
-								} catch (PublishException e) {
-									// TODO Job is completed but we could not export it. Send task Failure.
+							if (hasTicket(options)) {
+								logger.debug("Job has a ticket, checking if it is ready for export.");
+								publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
+
+								boolean jobCompleted = false;
+								jobCompleted = isJobCompleted(publishTicket);
+								progress = getJobProgress(publishTicket, jobCompleted);
+								progressAsJson = getProgressAsJson(progress);
+
+								if (jobCompleted) { 
+									logger.debug("Job is completed, starting export...");
+									exportPath = exportCompletedJob(publishTicket, options);
+									sendTaskResult(taskToken, progressAsJson);
+									logger.debug("Job is exported to: {}", exportPath);
+								} else {
+									logger.debug("Job is not completed send result JobPending");
+									sendTaskResult(taskToken, "", new CommandRuntimeException("JobPending"));
 								}
-								sendTaskResult(taskToken, progressAsJson);
-								logger.debug("Job is exported to: {}", exportPath);
-								
+
 							} else {
-								logger.debug("Job is not completed send result JobPending");
-								sendTaskResult(taskToken, "", new CommandRuntimeException("JobPending")); //Should this be a named exception.
-							}
-							
-						} else {
-							logger.debug("Job has no ticket, requesting publish.");
-							try {
+								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
-							} catch (InterruptedException e) {
-								//TODO The PE could not start the job. Send task failure
-							} catch (PublishException e) {
-								//TODO The PE could not start the job. Send task failure
+								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
+								sendTaskResult(taskToken, progressAsJson);
 							}
-							progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
-							sendTaskResult(taskToken, progressAsJson);
+						} catch (IOException | InterruptedException | PublishException e) {
+							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
 						try {
@@ -172,38 +158,26 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	private PublishTicket requestPublish(String taskToken, PublishJobOptions options) throws InterruptedException, PublishException {
-		//		try {
 		PublishTicket ticket = publishJobService.publishJob(options);
-		//		} catch (InterruptedException e) {
-//		logger.debug("Failed when requested to start job with PublishJobOptions: {}", e.getMessage());
-		//			sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
-		//		}
 		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
 	
-	private String exportCompletedJob(String taskToken, PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
-//		String jobPath = null;
-//		try {
+	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			publishJobService.getCompletedJob(ticket, baos);
 			String jobPath = exportService.exportJob(baos, options);
-//		} catch (PublishException | IOException e) {
-//			logger.debug("Job is marked as completed at the PE, but we could not get the result: {}", e.getMessage(), e);
-//			sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
-//		}
-		
 		return jobPath;
 	}
 	
 	private boolean hasTicket(PublishJobOptions options) {
 		logger.debug("Checking if options has a ticket");
+		
 		boolean hasTicket = false;
         if (options.getProgress() != null) {
             hasTicket = options.getProgress().getParams().containsKey("ticket");
         }
         return hasTicket;
-
 	}
 	
 	private PublishJobOptions deserializeInputToOptions(String input) {
@@ -218,13 +192,7 @@ public class AwsStepfunctionPublishWorker {
 		return options;
 	}
 	
-	private boolean isJobCompleted(String taskToken, PublishTicket ticket) throws PublishException {
-//		boolean completed = false;
-//		try {
-//			completed = 
-//		} catch (PublishException e) {
-//			sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
-//		}
+	private boolean isJobCompleted(PublishTicket ticket) throws PublishException {
 		return publishJobService.isCompleted(ticket);
 	}
 	
