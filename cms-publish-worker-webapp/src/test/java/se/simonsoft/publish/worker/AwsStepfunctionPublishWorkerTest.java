@@ -55,15 +55,14 @@ public class AwsStepfunctionPublishWorkerTest {
 	private ObjectReader reader = mapper.reader();
 	private ObjectWriter writer = mapper.writer();
 	
+	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
+	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
+	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
+	
 	@Mock AWSStepFunctionsClient mockClient;
 	@Mock GetActivityTaskResult mockTaskResult;
 	@Mock PublishJobService mockJobService;
 	@Mock PublishJobExportService mockExportService;
-	
-	
-	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
-	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
-	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
 	
 	@Before
 	public void initMocks() {
@@ -88,11 +87,11 @@ public class AwsStepfunctionPublishWorkerTest {
 		new AwsStepfunctionPublishWorker(spyReader, writer, mockClient, "any_acitivtyArn", mockJobService, mockExportService);
 		Thread.sleep(300);
 
-		verify(mockClient, times(1)).sendTaskSuccess(argument.capture());
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
 		verify(spyReader, times(1)).forType(PublishJobOptions.class);
 		verify(mockJobService, times(1)).publishJob(any(PublishJobOptions.class));
+		verify(mockClient, times(1)).sendTaskSuccess(argument.capture());
 		
 		SendTaskSuccessRequest value = argument.getValue();
 		assertEquals("{\"params\":{\"ticket\":\"44\",\"completed\":\"false\"}}", value.getOutput());
@@ -154,6 +153,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		verify(mockTaskResult, times(2)).getInput();
 		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 		
+		//TODO: Not implemented "JobMissing", consider risk of infinite loop.
 		assertEquals("JobFailed", requestCaptor.getValue().getError());
 	}
 
