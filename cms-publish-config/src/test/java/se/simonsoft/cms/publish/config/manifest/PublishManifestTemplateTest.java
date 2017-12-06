@@ -24,7 +24,7 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
-public class PublishManifestTest {
+public class PublishManifestTemplateTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
 	
@@ -35,6 +35,7 @@ public class PublishManifestTest {
 	
 	@Test
 	public void testManifestJson() throws Exception {
+		// TODO: Refactor into demonstration of alternative manifest formats, e.g. XML. 
 		
 		PublishJob job = getPublishJob1();
 		PublishJobOptions o = job.getOptions();
