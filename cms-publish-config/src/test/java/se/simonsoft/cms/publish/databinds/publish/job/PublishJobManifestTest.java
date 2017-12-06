@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class PublishJobManifestTest {
 
+	@SuppressWarnings("unused")
 	private static ObjectReader reader;
 	private static ObjectWriter writer;
 
@@ -49,7 +50,7 @@ public class PublishJobManifestTest {
 		
 	}
 
-	public PublishConfigManifest getTestManifestConfig1() {
+	public static PublishConfigManifest getTestManifestConfig1() {
 		
 		PublishConfigManifest config = new PublishConfigManifest();
 		
@@ -60,7 +61,7 @@ public class PublishJobManifestTest {
 		return config;
 	}
 	
-	public PublishJobManifest getTestManifestJob1(PublishConfigManifest config) {
+	public static PublishJobManifest getTestManifestJob1(PublishConfigManifest config) {
 		
 		PublishJobManifest job = new PublishJobManifest(config);
 		job.setType("test");
