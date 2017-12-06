@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import se.repos.restclient.HttpStatusError;
@@ -212,16 +213,20 @@ public class PublishServicePe implements PublishService {
 		}
 		return result;
 	}
-
+	
+	/**
+	 * It is recommended to run a isComplete before trying request the job. If something is wrong e.g
+	 * job is missing it will only return 500 response without any human readable message
+	 */
 	@Override
 	public void getResultStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) throws PublishException {
 		
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
 			// Create the uri
-			StringBuffer uri = new StringBuffer();
-			uri.append(this.peUri);
-		
+		StringBuffer uri = new StringBuffer();
+		uri.append(this.peUri);
+
 		// General always mandatory params
 		uri.append("?&f=qt-retrieve");// The retrieve req
 		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
@@ -229,6 +234,7 @@ public class PublishServicePe implements PublishService {
 		final OutputStream outputStream = outStream;
 		
 		try {
+			//What if the job do no exist. This code will probably not handle that. Does it get a response body or does it throw a exception?
 			this.httpClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
@@ -238,9 +244,9 @@ public class PublishServicePe implements PublishService {
 					return outputStream; // The httpclient will stream the content to tempfile
 				}
 			});
-		
+			
 		} catch (HttpStatusError e) {
-			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
+			throw new PublishException("Failed to get job with ticket: " + ticket + " run completeness check before requesting job.", e);
 		} catch (IOException e) {
 			throw new RuntimeException("Publishing Engine communication failed", e);
 		}
@@ -286,22 +292,37 @@ public class PublishServicePe implements PublishService {
 	 * @param attribute
 	 * @param content
 	 * @return
+	 * @throws PublishException 
 	 */
-	private String parseResponse(String element, String attribute, InputStream content){
+	private String parseResponse(String element, String attribute, InputStream content) throws PublishException{
 		logger.debug("Start");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		
 		try {
 			
 			DocumentBuilder db = dbf.newDocumentBuilder();
-			
 			// Start to parse the response
 	    	Document doc = db.parse(content);
 	    	
+	    	String message;
+	    	NodeList messageNode = doc.getElementsByTagName("Message");
+	    	if (messageNode.getLength() <= 0) {
+	    		message = "Failed with unknown reason";
+	    	} else {
+	    		message = messageNode.item(0).getTextContent();
+	    	}
+	    	
 	    	Node node = doc.getElementsByTagName(element).item(0);
-			Element foundElement = (Element)node;
-			String attributeValue = foundElement.getAttribute(attribute);
+			Element foundElement = (Element) node;
+
+			String attributeValue = null;
+			if (foundElement != null) { // Not shure if the null check should be here.
+				attributeValue = foundElement.getAttribute(attribute);
+			} else {
+				throw new PublishException(message);
+			}
+			
 			logger.debug("{}:{} ",attribute, attributeValue);
+			
 			return attributeValue;
 						
 			// TODO handle the exceptions in some better way?
@@ -324,7 +345,7 @@ public class PublishServicePe implements PublishService {
 	 * @param response
 	 * @return
 	 */
-	private PublishTicket getQueueTicket(InputStream response){
+	private PublishTicket getQueueTicket(InputStream response) throws PublishException {
 		logger.debug("Start");
 		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id", response));
 		logger.debug("End");
