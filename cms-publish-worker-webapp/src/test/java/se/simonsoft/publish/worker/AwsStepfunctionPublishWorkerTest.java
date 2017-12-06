@@ -81,7 +81,6 @@ public class AwsStepfunctionPublishWorkerTest {
 		new AwsStepfunctionPublishWorker(spyReader, writer, mockClient, "any_acitivtyArn", mockJobService, mockExportService);
 		Thread.sleep(1000L);
 
-		//No ticket
 		verify(mockClient, times(1)).sendTaskSuccess(argument.capture());
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
@@ -148,6 +147,37 @@ public class AwsStepfunctionPublishWorkerTest {
 		
 		SendTaskSuccessRequest value = requestCaptor.getValue();
 		assertEquals("{\"params\":{\"ticket\":\"1234\",\"completed\":\"true\"}}", value.getOutput());
+	}
+	
+	@Test
+	public void testHasTicketButPEHasLostIt() throws Exception {
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectReader reader = mapper.reader();
+		ObjectWriter writer = mapper.writer();
+
+		AWSStepFunctionsClient mockClient = mock(AWSStepFunctionsClient.class);
+		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
+		PublishJobService mockJobService = mock(PublishJobService.class);
+		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
+		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
+		
+		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
+		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringNotCompletedTicket));
+		when(mockTaskResult.getTaskToken()).thenReturn("32819301");
+		//PeService should throw a PublishException if it has lost the job.
+		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
+		
+		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
+		Thread.sleep(1000);
+		
+		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
+		verify(mockTaskResult, times(2)).getInput();
+		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
+		
+		assertEquals("JobPending", requestCaptor.getValue().getError());
+		
+		
 	}
 
 	public String getJsonString(String path) throws IOException {
