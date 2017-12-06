@@ -30,19 +30,8 @@ public class PublishJobManifestTest {
 	@Test
 	public void testManifestNoTemplates() throws JsonProcessingException {
 		
-		PublishConfigManifest config = new PublishConfigManifest();
-		
-		Map<String, String> metaTemplates = new HashMap<String, String>();
-		metaTemplates.put("static", "template");
-		config.setMetaTemplates(metaTemplates);
-		
-
-		PublishJobManifest job = new PublishJobManifest(config);
-		job.setType("test");
-		
-		Map<String, String> meta = new HashMap<String, String>();
-		meta.put("static", "value");
-		job.setMeta(meta);
+		PublishConfigManifest config = getTestManifestConfig1();
+		PublishJobManifest job = getTestManifestJob1(config);
 		
 		assertNotNull(job.getMetaTemplates());
 		assertEquals(1, job.getMetaTemplates().size());
@@ -60,4 +49,27 @@ public class PublishJobManifestTest {
 		
 	}
 
+	public PublishConfigManifest getTestManifestConfig1() {
+		
+		PublishConfigManifest config = new PublishConfigManifest();
+		
+		Map<String, String> metaTemplates = new HashMap<String, String>();
+		metaTemplates.put("static", "template");
+		config.setMetaTemplates(metaTemplates);
+		
+		return config;
+	}
+	
+	public PublishJobManifest getTestManifestJob1(PublishConfigManifest config) {
+		
+		PublishJobManifest job = new PublishJobManifest(config);
+		job.setType("test");
+		
+		Map<String, String> meta = new HashMap<String, String>();
+		meta.put("static", "value");
+		job.setMeta(meta);
+		
+		return job;
+	}
+	
 }
