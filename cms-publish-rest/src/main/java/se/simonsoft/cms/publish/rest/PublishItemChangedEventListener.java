@@ -98,6 +98,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	}
 	
 	private PublishJob getPublishJob(CmsItem item, PublishConfig c, String configName) {
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item);
 		PublishJob pj = new PublishJob(c);
 		pj.setItemid(item.getId().getLogicalId());
 		pj.setAction("publish-noop");
@@ -113,8 +114,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			storage.getParams().put("s3bucket", this.s3Bucket);
 		}
 		
-		String pathname = evaluatePathNameTmpl(item, c.getPathnameTemplate());
+		String pathname = templateEvaluator.evaluate(c.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
+		
+		// TODO: Build the Manifest
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
@@ -172,10 +175,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		return configs;
 	}
 	
-	private String evaluatePathNameTmpl(CmsItem item, String template) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		tmplStr.withEntry("item", item);
-		return tmplStr.evaluate(template);
+		// TODO: Add profiling object.
+		return tmplStr;
 	}
 }
 
