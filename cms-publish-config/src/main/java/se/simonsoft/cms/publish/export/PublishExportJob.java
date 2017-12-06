@@ -25,14 +25,14 @@ import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 public class PublishExportJob extends CmsExportJob implements CmsExportJob.SingleItem {
 
 	public PublishExportJob(PublishJobStorage storage, String jobExtension) {
-		super(createJobPrefix(storage), createJobName(storage), jobExtension);
+		super(createJobPrefix(storage), getJobName(storage), jobExtension);
 	}
 	
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathcloudid());
 	}
 
-	private static String createJobName(PublishJobStorage storage) {
+	private static String getJobName(PublishJobStorage storage) {
 		StringBuilder sb = new StringBuilder(storage.getPathconfigname());
 		sb.append(storage.getPathdir());
 		sb.append("/");
