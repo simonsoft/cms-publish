@@ -15,8 +15,8 @@
  */
 package se.simonsoft.publish.worker;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,19 +29,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
-import static org.mockito.Matchers.any;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClient;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
 import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
-import com.amazonaws.util.json.Jackson;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -53,33 +51,42 @@ import se.simonsoft.cms.publish.export.PublishJobExportService;
 
 public class AwsStepfunctionPublishWorkerTest {
 
-	private String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
-	private String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
-	private String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
+	private ObjectMapper mapper = new ObjectMapper();
+	private ObjectReader reader = mapper.reader();
+	private ObjectWriter writer = mapper.writer();
+	
+	@Mock AWSStepFunctionsClient mockClient;
+	@Mock GetActivityTaskResult mockTaskResult;
+	@Mock PublishJobService mockJobService;
+	@Mock PublishJobExportService mockExportService;
+	
+	
+	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
+	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
+	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
+	
+	@Before
+	public void initMocks() {
+		MockitoAnnotations.initMocks(this);
+		
+		when(mockTaskResult.getTaskToken()).thenReturn("1923904724");
+		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
+	}
 
 	@Test
 	public void testNoTicket() throws Exception {
 
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectReader reader = mapper.reader();
 		ObjectReader spyReader = spy(reader);
-		ObjectWriter writer = mapper.writer();
-
-		AWSStepFunctionsClient mockClient = mock(AWSStepFunctionsClient.class);
-		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
-		PublishJobService mockJobService = mock(PublishJobService.class);
-		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
+		
 		PublishTicket ticket = new PublishTicket("44");
 
-		when(mockTaskResult.getTaskToken()).thenReturn("1923904724");
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithoutTicket));
-		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
 		when(mockJobService.publishJob(any(PublishJobOptions.class))).thenReturn(ticket);
 
 		ArgumentCaptor<SendTaskSuccessRequest> argument = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 
 		new AwsStepfunctionPublishWorker(spyReader, writer, mockClient, "any_acitivtyArn", mockJobService, mockExportService);
-		Thread.sleep(1000L);
+		Thread.sleep(300);
 
 		verify(mockClient, times(1)).sendTaskSuccess(argument.capture());
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -93,24 +100,15 @@ public class AwsStepfunctionPublishWorkerTest {
 
 	@Test
 	public void testHasTicketNotCompleted() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectReader reader = mapper.reader();
-		ObjectWriter writer = mapper.writer();
 
-		AWSStepFunctionsClient mockClient = mock(AWSStepFunctionsClient.class);
-		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
-		PublishJobService mockJobService = mock(PublishJobService.class);
-		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
 		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
 		
-		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringNotCompletedTicket));
-		when(mockTaskResult.getTaskToken()).thenReturn("32819301");
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false);
 		
 		
 		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
-		Thread.sleep(1000);
+		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
@@ -121,24 +119,15 @@ public class AwsStepfunctionPublishWorkerTest {
 
 	@Test
 	public void testHasTicketCompleted() throws InterruptedException, IOException, PublishException {
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectReader reader = mapper.reader();
-		ObjectWriter writer = mapper.writer();
 
-		AWSStepFunctionsClient mockClient = mock(AWSStepFunctionsClient.class);
-		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
-		PublishJobService mockJobService = mock(PublishJobService.class);
-		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
 		ArgumentCaptor<SendTaskSuccessRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 		
-		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithTicketCompleted));
-		when(mockTaskResult.getTaskToken()).thenReturn("3216241");
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
 		when(mockExportService.exportJob(any(ByteArrayOutputStream.class), any(PublishJobOptions.class))).thenReturn("Filepath on system");
 		
 		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
-		Thread.sleep(1000);
+		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
@@ -152,24 +141,14 @@ public class AwsStepfunctionPublishWorkerTest {
 	@Test
 	public void testHasTicketButPEHasLostTheJob() throws Exception {
 		
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectReader reader = mapper.reader();
-		ObjectWriter writer = mapper.writer();
-
-		AWSStepFunctionsClient mockClient = mock(AWSStepFunctionsClient.class);
-		GetActivityTaskResult mockTaskResult = mock(GetActivityTaskResult.class);
-		PublishJobService mockJobService = mock(PublishJobService.class);
-		PublishJobExportService mockExportService = mock(PublishJobExportService.class);
 		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
 		
-		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringNotCompletedTicket));
-		when(mockTaskResult.getTaskToken()).thenReturn("32819301");
 		//PeService should throw a PublishException if it has lost the job.
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
 		
 		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
-		Thread.sleep(1000);
+		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
