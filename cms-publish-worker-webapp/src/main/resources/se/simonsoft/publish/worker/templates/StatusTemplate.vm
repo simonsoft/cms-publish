@@ -13,3 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *#
+<!DOCTYPE html>
+	<html>
+		<head>
+		<meta charset="UTF-8">
+		<title>Insert title here</title>
+		</head>
+	<body>
+		<table>
+		<th>Ticket</th>
+		<th>Itemid</th>
+		<th>Status</th>
+		<th>Started</th>
+		</table>
+	</body>
+</html>
