@@ -18,7 +18,6 @@ package se.simonsoft.cms.publish.export;
 import java.io.OutputStream;
 
 import se.simonsoft.cms.item.export.CmsExportJob;
-import se.simonsoft.cms.item.export.CmsExportJobZip;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 
@@ -29,12 +28,11 @@ public class PublishExportJob extends CmsExportJob implements CmsExportJob.Singl
 	}
 	
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
-		return new CmsExportPrefix(storage.getPathcloudid());
+		return new CmsExportPrefix(storage.getPathconfigname());
 	}
 
 	private static String getJobName(PublishJobStorage storage) {
-		StringBuilder sb = new StringBuilder(storage.getPathconfigname());
-		sb.append(storage.getPathdir());
+		StringBuilder sb = new StringBuilder(storage.getPathdir());
 		sb.append("/");
 		sb.append(storage.getPathnamebase());
 		return sb.toString();
