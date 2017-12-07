@@ -19,15 +19,19 @@ import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.util.json.Jackson;
+
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.export.CmsExportItemInputStream;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 public class PublishExportS3Service implements PublishJobExportService {
@@ -39,7 +43,7 @@ public class PublishExportS3Service implements PublishJobExportService {
 	private static final Logger logger = LoggerFactory.getLogger(PublishExportS3Service.class);
 	
 	@Inject
-	public PublishExportS3Service(CmsExportAwsWriterSingle writer) { 
+	public PublishExportS3Service(@Named("config:se.simonsoft.cms.aws.publish.export.writer") CmsExportAwsWriterSingle writer) { 
 		this.writer = writer;
 	}
 
@@ -53,7 +57,6 @@ public class PublishExportS3Service implements PublishJobExportService {
 		job.addExportItem(exportItem);
 		job.prepare();
 		
-		
 		logger.debug("Prepareing writer for export...");
 		
 		if (job.isReady()) {
@@ -65,6 +68,43 @@ public class PublishExportS3Service implements PublishJobExportService {
 		}
 		
 		logger.debug("Job has been exported to S3.");
+		return job.getJobPath();
+	}
+
+	@Override
+	public String exportJobManifest(PublishJobOptions jobOptions) {
+		
+		if (jobOptions == null) {
+			throw new IllegalArgumentException("Requires a valid PublishJobOptions object.");
+		}
+		
+		PublishConfigManifest manifest = jobOptions.getManifest();
+		if (manifest == null) {
+			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
+		}
+		
+		logger.debug("Preparing publishJob manifest{} for export to s3", jobOptions.getManifest());
+		
+		
+		String jsonManifest = Jackson.toJsonPrettyString(manifest);
+		
+		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
+		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(jsonManifest.getBytes()), new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase().concat(".json"))));
+		
+		job.addExportItem(exportItem);
+		job.prepare();
+		
+		logger.debug("Prepareing writer for export...");
+		
+		if (job.isReady()) {
+			writer.prepare(job);
+			if (writer.isReady()) {
+				logger.debug("Writer is prepared. Writing job to S3.");
+				writer.write();
+			}
+		}
+		
+		logger.debug("Jobs manifest has been exported to S3.");
 		return job.getJobPath();
 	}
 
