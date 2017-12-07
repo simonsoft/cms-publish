@@ -104,7 +104,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
-		PublishConfigArea area = c.getAreas().get(0); // TODO: Select the correct area.
+		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalId());

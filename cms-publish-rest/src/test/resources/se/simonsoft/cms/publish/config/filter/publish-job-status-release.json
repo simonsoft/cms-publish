@@ -26,19 +26,15 @@
         "manifest": {
             "type": "default",
             "job": {
-                "id": "can we get Step Function Execution name?",
+                "itemid": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
                 "format": "pdf"
             },
             "document": {
-                "docno": "DOC_900108_sv-SE",
+                "docno": "DOC_900108",
                 "status": "Released",
                 "releaselabel": "B",
                 "lang": "sv-SE",
                 "baselinerevision": "0000000145"
-            },
-            "master": {
-                "docno": "DOC_900108",
-                "releaselabel": "B"
             },
             "custom": {
                 "type": "OPERATOR",

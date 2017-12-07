@@ -55,6 +55,7 @@ import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
@@ -72,7 +73,8 @@ public class PublishItemChangedEventListenerTest {
 	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
 	
 	private final String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-	private final String publishJobStatus = "se/simonsoft/cms/publish/config/filter/publish-job-status.json";
+	private final String publishJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
+	private final String publishJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
 	
 	@Before
 	public void setUp() {
@@ -161,7 +163,7 @@ public class PublishItemChangedEventListenerTest {
 	
 	
 	@Test
-	public void testValidateItemChangedWithValidated() throws Exception {
+	public void testReleaseItemChangedWithValidated() throws Exception {
 		
 		//CmsItem mock. Not possible to get a real CmsItem in this context.
 		CmsItemIdArg itemId = (CmsItemIdArg) new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/release/B/xml/documents/900108.xml")).withPegRev(145L);
@@ -169,10 +171,14 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getId()).thenReturn(itemId);
 		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
 		when(mockItem.getStatus()).thenReturn("Released");
-		when(mockItem.getProperties()).thenReturn(new CmsItemPropertiesMap("cms:status", "Released"));
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		props.and("abx:ReleaseMaster", "bogus");
+		props.and("abx:ReleaseLabel", "B");
+		props.and("abx:ReleaseLocale", "sv-SE"); // Added to Release Area in CMS 4.3. 
+		when(mockItem.getProperties()).thenReturn(props);
 		
 		HashMap<String, Object> metaMap = new HashMap<String, Object>();
-		metaMap.put("embd_xml_a_type", "abxpe");
+		metaMap.put("embd_xml_a_type", "operator");
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
@@ -205,7 +211,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String statusJobFromFile = getPublishConfigFromPath(publishJobStatus);
+		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusRelease);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
 		
@@ -244,8 +250,104 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(manifestValidated.getJob(), manifest.getJob());
 		assertEquals(manifestValidated.getDocument(), manifest.getDocument());
 		assertEquals(manifestValidated.getMeta(), manifest.getMeta());
-		assertEquals(manifestValidated.getCustom(), manifest.getCustom());
+		assertEquals(manifestValidated.getCustom(), manifest.getCustom());	
+	}
+	
+	@Test
+	public void testTranslationItemChangedWithValidated() throws Exception {
 		
+		//CmsItem mock. Not possible to get a real CmsItem in this context.
+		CmsItemIdArg itemId = (CmsItemIdArg) new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/lang/en-GB/release/B/xml/documents/900108.xml")).withPegRev(145L);
+		itemId.setHostname("ubuntu-cheftest1.pdsvision.net");
+		when(mockItem.getId()).thenReturn(itemId);
+		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
+		when(mockItem.getStatus()).thenReturn("Released");
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		props.and("abx:TranslationMaster", "bogus");
+		props.and("abx:ReleaseLabel", "B");
+		props.and("abx:ReleaseLocale", "sv-SE");
+		props.and("abx:TranslationLocale", "en-GB");
+		when(mockItem.getProperties()).thenReturn(props);
+		
+		HashMap<String, Object> metaMap = new HashMap<String, Object>();
+		metaMap.put("embd_xml_a_type", "operator");
+		when(mockItem.getMeta()).thenReturn(metaMap);
+		
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
+		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		
+		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
+		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
+		
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
+		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
+		
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		filters.add(new PublishConfigFilterActive());
+		filters.add(new PublishConfigFilterType());
+		filters.add(new PublishConfigFilterStatus());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+																mockWorkflowExec,
+																filters,
+																mapper.reader());
+		eventListener.onItemChange(mockItem);
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class);
+		
+		//Verifies that our mocked workflowExecutor has been called a certain amount of times.
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+		
+		PublishJob publishJob = argCaptor.getValue();
+		
+		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusTranslation);
+		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
+		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
+		
+		//Assert against validated and deserialized publish-job-status.json file.
+		assertEquals(pjValidated.getConfigname(), publishJob.getConfigname());
+		assertEquals(pjValidated.getType(), publishJob.getType());
+		assertEquals(pjValidated.getAction(), publishJob.getAction());
+		assertEquals(pjValidated.isActive(), publishJob.isActive());
+		assertEquals(pjValidated.isVisible(), publishJob.isVisible());
+		assertTrue(pjValidated.getStatusInclude().contains(publishJob.getStatusInclude().get(0)));
+		assertTrue(pjValidated.getStatusInclude().contains(publishJob.getStatusInclude().get(1)));
+		assertEquals(pjValidated.getArea().getPathnameTemplate(), publishJob.getArea().getPathnameTemplate());
+		assertEquals(pjValidated.getItemid(), publishJob.getItemid());
+		
+		PublishJobOptions optionsValidated = pjValidated.getOptions();
+		PublishJobOptions options = publishJob.getOptions();
+		
+		assertEquals(optionsValidated.getPathname(), options.getPathname());
+		assertEquals(optionsValidated.getType(), options.getType());
+		assertEquals(optionsValidated.getFormat(), options.getFormat());
+		
+		assertEquals(optionsValidated.getParams().get("stylesheet"), options.getParams().get("stylesheet"));
+		assertEquals(optionsValidated.getParams().get("pdfconfig"), options.getParams().get("pdfconfig"));
+		
+		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
+		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
+		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
+		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
+		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
+		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));
+		
+		PublishConfigArea areaValidated = pjValidated.getArea();
+		PublishConfigArea area = publishJob.getArea();
+		assertEquals(areaValidated.getType(), area.getType());
+		
+		PublishJobManifest manifestValidated = optionsValidated.getManifest();
+		PublishJobManifest manifest = options.getManifest();
+				
+		assertEquals(manifestValidated.getType(), manifest.getType());
+		assertEquals(manifestValidated.getJob(), manifest.getJob());
+		assertEquals(manifestValidated.getDocument(), manifest.getDocument());
+		assertEquals(manifestValidated.getMaster(), manifest.getMaster());
+		assertEquals(manifestValidated.getMeta(), manifest.getMeta());
+		assertEquals(manifestValidated.getCustom(), manifest.getCustom());	
 	}
 	
 	

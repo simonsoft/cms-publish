@@ -1,10 +1,13 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
@@ -29,15 +32,17 @@ public class PublishJobManifestBuilder {
 			manifest.setType(DEFAULT_TYPE);
 		}
 		
+		manifest.setJob(buildJob(item, job));
+		
 		if (hasDocnoTemplate(job)) {
 			manifest.setDocument(buildDocument(item, job));
 			if (hasDocnoMasterTemplate(job) && isTranslation(item)) {
-				manifest.setMaster(null);
+				manifest.setMaster(buildMaster(item, job));
 			} else {
 				manifest.setMaster(null);
 			}
-			manifest.setCustom(null);
-			manifest.setMeta(null);
+			manifest.setCustom(buildMap(item, manifest.getCustomTemplates()));
+			manifest.setMeta(buildMap(item, manifest.getMetaTemplates()));
 		} else {
 			// Prevent incomplete manifest when docno has not been configured.
 			manifest.setDocument(null);
@@ -45,10 +50,19 @@ public class PublishJobManifestBuilder {
 			manifest.setCustom(null);
 			manifest.setMeta(null);
 		}
-		
-		
-		
 	}
+	
+	
+	private Map<String, String> buildJob(CmsItemPublish item, PublishJob job) {
+		
+		Map<String, String> result = new HashMap<String, String>();
+		
+		result.put("itemid", job.getItemId().getLogicalId());
+		result.put("format", job.getOptions().getFormat());
+		
+		return result;
+	}
+	
 	
 	private Map<String, String> buildDocument(CmsItemPublish item, PublishJob job) {
 	
@@ -58,7 +72,47 @@ public class PublishJobManifestBuilder {
 		
 		String docno = templateEvaluator.evaluate(docnoTemplate);
 		result.put("docno", docno);
+		result.put("status", item.getStatus());
+		if (item.isRelease() || item.isTranslation()) {
+			result.put("releaselabel", item.getReleaseLabel());
+		}
+		if (item.isRelease()) {
+			result.put("lang", item.getReleaseLocale());
+		} else if (item.isTranslation()) {
+			result.put("lang", item.getTranslationLocale());
+		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
+		result.put("baselinerevision", String.format("%010d", job.getItemId().getPegRev()));
 		
+		return result;
+	}
+	
+	
+	private Map<String, String> buildMaster(CmsItemPublish item, PublishJob job) {
+		
+		Map<String, String> result = new HashMap<String, String>();
+		
+		String docnoTemplate = job.getArea().getDocnoMasterTemplate();
+		
+		String docno = templateEvaluator.evaluate(docnoTemplate);
+		result.put("docno", docno);
+		result.put("releaselabel", item.getReleaseLabel());
+		result.put("lang", item.getReleaseLocale());
+		
+		return result;
+	}
+	
+	
+	private Map<String, String> buildMap(CmsItemPublish item, Map<String, String> map) {
+		
+		Map<String, String> result = new HashMap<String, String>();
+		
+		if (map == null || map.isEmpty()) {
+			return null;
+		}
+		
+		for (Entry<String, String> entry: map.entrySet()) {
+			result.put(entry.getKey(), templateEvaluator.evaluate(entry.getValue()));
+		}
 		
 		return result;
 	}
@@ -88,4 +142,37 @@ public class PublishJobManifestBuilder {
 		return (locale != null && !locale.isEmpty());
 	}
 	
+	
+	public static PublishConfigArea getArea(CmsItemPublish item, List<PublishConfigArea> areas) {
+		
+		HashMap<String, PublishConfigArea> areaMap = getAreaMap(areas);
+		
+		PublishConfigArea fallback = areaMap.get(null);
+		
+		if (item.isTranslation() && areaMap.containsKey("translation")) {
+			return areaMap.get("translation");
+		} else if (item.isRelease() && areaMap.containsKey("release")) {
+			return areaMap.get("release");
+		} else if (fallback != null) {
+			return fallback;
+		} else {
+			throw new IllegalArgumentException("No fallback area configured.");
+		}
+	}
+	
+	
+	private static HashMap<String, PublishConfigArea> getAreaMap(List<PublishConfigArea> areas) {
+		
+		HashMap<String, PublishConfigArea> result = new HashMap<String, PublishConfigArea>(areas.size());
+		
+		for (PublishConfigArea area: areas) {
+			String type = area.getType();
+			
+			PublishConfigArea prev = result.put(type, area);
+			if (prev != null) {
+				throw new IllegalArgumentException("Duplicate area objects with type: " + type);
+			}
+		}
+		return result;
+	}
 }

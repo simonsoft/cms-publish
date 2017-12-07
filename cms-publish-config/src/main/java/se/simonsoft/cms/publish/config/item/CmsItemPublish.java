@@ -30,6 +30,10 @@ public class CmsItemPublish implements CmsItem {
 		return item.getProperties().getString("abx:ReleaseLabel");
 	}
 	
+	public String getReleaseLocale() {
+		return item.getProperties().getString("abx:ReleaseLocale");
+	}
+	
 	public String getTranslationLocale() {
 		return item.getProperties().getString("abx:TranslationLocale");
 	}
