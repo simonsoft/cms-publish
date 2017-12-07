@@ -11,7 +11,9 @@
 	"profilingInclude": [
 		"*"
 	],
-	"pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
+	"area": {
+		"pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf"
+	},
 	"itemid": "x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123",
 	"options": {
 		"pathname": "evaluated from pathname-template",

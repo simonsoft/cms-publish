@@ -3,8 +3,11 @@
   "visible": true,
   "statusInclude": ["Review", "Released"],
   "profilingInclude": ["*"],
-  "pathnameTemplate": "velocity-stuff.pdf",
-
+  "areas": [
+    {
+        "pathnameTemplate": "velocity-stuff.pdf"
+    }
+  ],
   "options" : {
       "type": "abxpe",
       "format": "pdf",

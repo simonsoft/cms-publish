@@ -28,12 +28,8 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
-
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
@@ -41,10 +37,15 @@ import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -83,11 +84,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		Map<String, PublishConfig> publishConfigs = deserializeConfig(context);
 		publishConfigs = filterConfigs(item, publishConfigs);
 		
+		CmsItemPublish itemPublish = new CmsItemPublish(item);
+		
 		List<PublishJob> jobs = new ArrayList<PublishJob>();
 		Iterator<String> iterator = publishConfigs.keySet().iterator();
 		while (iterator.hasNext()) {
 			String configName = iterator.next();
-			PublishJob pj = getPublishJob(item, publishConfigs.get(configName), configName);
+			PublishJob pj = getPublishJob(itemPublish, publishConfigs.get(configName), configName);
 			jobs.add(pj);
 		}
 		
@@ -97,9 +100,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		}
 	}
 	
-	private PublishJob getPublishJob(CmsItem item, PublishConfig c, String configName) {
+	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item);
+		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
+		
+		PublishConfigArea area = c.getAreas().get(0); // TODO: Select the correct area.
 		PublishJob pj = new PublishJob(c);
+		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalId());
 		pj.setAction("publish-noop");
 		pj.setType(this.type);
@@ -114,10 +121,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			storage.getParams().put("s3bucket", this.s3Bucket);
 		}
 		
-		String pathname = templateEvaluator.evaluate(c.getPathnameTemplate());
+		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		
-		// TODO: Build the Manifest
+		// Build the Manifest, modifies the existing manifest object.
+		manifestBuilder.build(item, pj);
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;

@@ -22,6 +22,7 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJob extends PublishConfig implements WorkflowItemInput{
@@ -29,6 +30,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	private String configname;
 	private String type;
 	private String action;
+	private PublishConfigArea area;
 	private String itemid;
 	private PublishJobOptions options;
 
@@ -36,23 +38,25 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 		this.configname = pj.getConfigname();
 		this.type = pj.getType();
 		this.action = pj.getAction();
+		this.area = pj.getArea();
 		this.itemid = pj.getItemid();
+		
 		this.options = pj.getOptions();
+		
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
 		this.statusInclude = pj.getStatusInclude();
 		this.profilingInclude = pj.getProfilingInclude();
-		this.pathnameTemplate = pj.getPathnameTemplate();
 	}
 	
-	public PublishJob(PublishConfig publishConfig) {
+	public PublishJob(PublishConfig pc) {
 		
-		this.options = new PublishJobOptions(publishConfig.getOptions());
-		this.active = publishConfig.isActive();
-		this.visible = publishConfig.isVisible();
-		this.statusInclude = publishConfig.getStatusInclude();
-		this.profilingInclude = publishConfig.getProfilingInclude();
-		this.pathnameTemplate = publishConfig.getPathnameTemplate();
+		this.options = new PublishJobOptions(pc.getOptions());
+		
+		this.active = pc.isActive();
+		this.visible = pc.isVisible();
+		this.statusInclude = pc.getStatusInclude();
+		this.profilingInclude = pc.getProfilingInclude();
 	}
 	
 	public PublishJob() {
@@ -76,6 +80,14 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	public void setAction(String action) {
 		this.action = action;
 	}
+	public PublishConfigArea getArea() {
+		return area;
+	}
+
+	public void setArea(PublishConfigArea area) {
+		this.area = area;
+	}
+
 	public String getItemid() {
 		return itemid;
 	}

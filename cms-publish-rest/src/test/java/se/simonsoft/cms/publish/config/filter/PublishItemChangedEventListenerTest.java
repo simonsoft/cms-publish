@@ -56,6 +56,7 @@ import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
 import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
@@ -141,7 +142,7 @@ public class PublishItemChangedEventListenerTest {
 		assertTrue(publishJob.getStatusInclude().contains("Review"));
 		assertTrue(publishJob.getStatusInclude().contains("Released"));
 		
-		assertEquals("DOC_900276_Released.pdf", publishJob.getOptions().getPathname());
+		assertEquals("DOC_900276_Released", publishJob.getOptions().getPathname());
 		
 		//Storage
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
@@ -150,6 +151,12 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("900276", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("status", storage.getPathconfigname());
+		
+		// Manifest
+		assertEquals("DOC_$", publishJob.getArea().getDocnoDocumentTemplate().substring(0, 5));
+		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
+		assertEquals("default", manifest.getType());
+		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
 	}
 	
 	
@@ -210,7 +217,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(pjValidated.isVisible(), publishJob.isVisible());
 		assertTrue(pjValidated.getStatusInclude().contains(publishJob.getStatusInclude().get(0)));
 		assertTrue(pjValidated.getStatusInclude().contains(publishJob.getStatusInclude().get(1)));
-		assertEquals(pjValidated.getPathnameTemplate(), publishJob.getPathnameTemplate());
+		assertEquals(pjValidated.getArea().getPathnameTemplate(), publishJob.getArea().getPathnameTemplate());
 		assertEquals(pjValidated.getItemid(), publishJob.getItemid());
 		
 		PublishJobOptions optionsValidated = pjValidated.getOptions();
@@ -229,6 +236,16 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
 		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));
+		
+		PublishJobManifest manifestValidated = optionsValidated.getManifest();
+		PublishJobManifest manifest = options.getManifest();
+		
+		assertEquals(manifestValidated.getType(), manifest.getType());
+		assertEquals(manifestValidated.getJob(), manifest.getJob());
+		assertEquals(manifestValidated.getDocument(), manifest.getDocument());
+		assertEquals(manifestValidated.getMeta(), manifest.getMeta());
+		assertEquals(manifestValidated.getCustom(), manifest.getCustom());
+		
 	}
 	
 	
