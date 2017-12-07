@@ -24,4 +24,6 @@ public interface PublishJobExportService {
 	
 	String exportJob(OutputStream os, PublishJobOptions jobOptions);
 	
+	String exportJobManifest(PublishJobOptions jobOptions);
+	
 }
