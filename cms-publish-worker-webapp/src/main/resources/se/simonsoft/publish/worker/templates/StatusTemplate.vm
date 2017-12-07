@@ -21,10 +21,18 @@
 		</head>
 	<body>
 		<table>
-		<th>Ticket</th>
-		<th>Itemid</th>
-		<th>Status</th>
-		<th>Started</th>
+			<tr>
+				<th style="border-color: black; border-width: 1px;">TimeStamp</th>
+				<th style="border-color: black; border-width: 1px;">Action</th>
+				<th style="border-color: black; border-width: 1px;">Description</th>
+			</tr>
+				#foreach($workerEvent in $workerEvents)
+					<tr>
+						<td>$workerEvent.getTimeStamp()</td>
+						<td>$workerEvent.getAction()</td>
+						<td>$workerEvent.getDescription()</td>
+					</tr>
+				#end
 		</table>
 	</body>
 </html>

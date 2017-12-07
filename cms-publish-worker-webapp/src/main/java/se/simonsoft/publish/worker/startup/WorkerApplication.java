@@ -39,6 +39,7 @@ import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.export.PublishJobExportS3Service;
 import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.publish.worker.PublishJobService;
+import se.simonsoft.publish.worker.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
 	
@@ -58,6 +59,9 @@ public class WorkerApplication extends ResourceConfig {
             	PublishServicePe publishServicePe = new PublishServicePe();
             	PublishJobService publishJobService = new PublishJobService(publishServicePe);
             	bind(publishJobService).to(PublishJobService.class);
+            	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
+            	bind(workerStatusReport).to(WorkerStatusReport.class);
+            	
             	
             	final String awsId = environment.getVariable("cms.aws.key.id");
             	final String awsSecret = environment.getVariable("cms.aws.key.secret");

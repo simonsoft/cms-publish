@@ -16,8 +16,12 @@
 package se.simonsoft.publish.worker;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -27,9 +31,21 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import se.simonsoft.publish.worker.WorkerStatusReport.WorkerEvent;
 
 @Path("status")
 public class StatusView {
+	
+	private WorkerStatusReport statusReport;
+	private static final Logger logger = LoggerFactory.getLogger(StatusView.class);
+	
+	@Inject
+	public void getWorkerStatusReport(WorkerStatusReport statusReport) {
+		this.statusReport = statusReport;
+	}
 	
 	@GET
 	@Produces(MediaType.TEXT_HTML)
@@ -37,16 +53,20 @@ public class StatusView {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("runtime.references.strict", "true");
 		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		engine.init(p);
-
+		
+		List<WorkerEvent> workerEvents = statusReport.getWorkerEvents();
+		
 		VelocityContext context = new VelocityContext();
+		context.put("workerEvents", workerEvents);
 		
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/StatusTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
-		
+
 		return wr.toString();
 	}
 }
