@@ -17,7 +17,7 @@
         },
         {
             "type": "translation",
-            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getTranslationLocale()}_${item.getStatus()}",
             "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
             "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
         }
