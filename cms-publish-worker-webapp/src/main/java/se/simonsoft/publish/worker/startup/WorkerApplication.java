@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.export.PublishExportS3Service;
+import se.simonsoft.cms.publish.export.PublishJobExportS3Service;
 import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.publish.worker.PublishJobService;
 
@@ -89,7 +89,7 @@ public class WorkerApplication extends ResourceConfig {
         		
         		//TODO: Bucket should be injected.
         		CmsExportAwsWriterSingle cmsExportAwsWriterSingle = new CmsExportAwsWriterSingle(awsCloudId, "cms-review-jandersson", credentials);
-        		PublishExportS3Service exportService = new PublishExportS3Service(cmsExportAwsWriterSingle);
+        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(cmsExportAwsWriterSingle);
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");

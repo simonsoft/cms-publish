@@ -34,16 +34,16 @@ import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
-public class PublishExportS3Service implements PublishJobExportService {
+public class PublishJobExportS3Service implements PublishJobExportService {
 	
 	private final CmsExportWriter writer;
 	private final String jobExtension = "zip";
 	
 	
-	private static final Logger logger = LoggerFactory.getLogger(PublishExportS3Service.class);
+	private static final Logger logger = LoggerFactory.getLogger(PublishJobExportS3Service.class);
 	
 	@Inject
-	public PublishExportS3Service(@Named("config:se.simonsoft.cms.aws.publish.export.writer") CmsExportAwsWriterSingle writer) { 
+	public PublishJobExportS3Service(@Named("config:se.simonsoft.cms.aws.publish.export.writer") CmsExportAwsWriterSingle writer) { 
 		this.writer = writer;
 	}
 
