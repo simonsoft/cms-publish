@@ -61,6 +61,7 @@ public class TestPublishJobService {
 		when(pe.requestPublish(Mockito.any(PublishRequest.class))).thenReturn(publishTicket);
 		
 		PublishTicket ticket = service.publishJob(job);
+		boolean completed = service.isCompleted(ticket);
 		
 		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class); 
         verify(pe, times(1)).requestPublish(requestCaptor.capture());
@@ -69,14 +70,12 @@ public class TestPublishJobService {
         assertEquals("http://localhost:8080", pr.getConfig().get("host"));
         assertEquals("/e3/servlet/e3", pr.getConfig().get("path"));
         assertEquals("yes", pr.getParams().get("zip-output"));
-        assertEquals(job.getPathname(), pr.getParams().get("zip-root"));
-        assertEquals(job.getType(), pr.getParams().get("type"));
-        assertEquals(job.getFormat(), pr.getParams().get("format"));
-        assertEquals(job.getParams().get("stylesheet"), pr.getParams().get("stylesheet"));
-        assertEquals(job.getParams().get("pdfconfig"), pr.getParams().get("pdfconfig"));
-        assertEquals(job.getParams().get("whatever"), pr.getParams().get("whatever"));
-        assertEquals(job.getSource(), pr.getFile().getURI());
-        assertEquals(format, pr.getFormat());
+        assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
+        assertEquals("pdf", pr.getParams().get("type"));
+        assertEquals("axdocbook.style", pr.getParams().get("stylesheet"));
+        assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
+        assertEquals("x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
+        assertEquals("pdf", pr.getFormat().getFormat());
         
         ArgumentCaptor<PublishTicket> ticketCaptor = ArgumentCaptor.forClass(PublishTicket.class);
         verify(pe, times(1)).isCompleted(ticketCaptor.capture(), requestCaptor.capture());

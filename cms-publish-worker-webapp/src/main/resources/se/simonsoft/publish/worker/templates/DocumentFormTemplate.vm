@@ -21,7 +21,7 @@
 		</head>
 	<body>
 		<form action="http://localhost:8080/worker/rest/test/publish/document" method="post" id="documentForm">
-			<h3>Item id or PE test document:</h3>
+			<h3>Itemid or PE test document:</h3>
 			<input type="text" name="itemId">
 			<h3>Format</h3>
 			<input type="text" name="format">

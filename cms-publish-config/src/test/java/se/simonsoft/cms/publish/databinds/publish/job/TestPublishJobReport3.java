@@ -127,7 +127,6 @@ public class TestPublishJobReport3 {
 	}
 	
 	//Tests if the implemented methods from CmsItem runs correctly
-	@Test //TODO: Really strange name of a test method. Test implemented methods do we ever test anything else?
 	public void testItemdIdMethods() throws JsonProcessingException, FileNotFoundException, IOException {
 		PublishJobReport3 report3 = reportReader.readValue(getReport3JsonString());
 
