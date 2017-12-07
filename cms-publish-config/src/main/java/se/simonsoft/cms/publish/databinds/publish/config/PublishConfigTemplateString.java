@@ -55,6 +55,7 @@ public class PublishConfigTemplateString {
 			return PublishConfigTemplateString.ve;
 		}
 		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty("runtime.references.strict", true);
 		ve.init();
 		
 		PublishConfigTemplateString.ve = ve;
