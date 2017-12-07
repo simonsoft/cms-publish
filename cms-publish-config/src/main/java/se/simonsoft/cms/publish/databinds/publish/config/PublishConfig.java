@@ -25,8 +25,8 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
-	protected List<String> profilingInclude = new ArrayList<>();
-	protected String pathnameTemplate;
+	protected List<String> profilingInclude = new ArrayList<String>();
+	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	
 	public PublishConfig(PublishConfig pc) {
@@ -34,7 +34,7 @@ public class PublishConfig {
 		this.visible = pc.isVisible();
 		this.statusInclude = pc.getStatusInclude();
 		this.profilingInclude = pc.getProfilingInclude();
-		this.pathnameTemplate = pc.getPathnameTemplate();
+		this.areas = pc.getAreas();
 		this.options = pc.getOptions();
 	}
 	public PublishConfig() {
@@ -64,11 +64,11 @@ public class PublishConfig {
 	public void setProfilingInclude(List<String> profilingInclude) {
 		this.profilingInclude = profilingInclude;
 	}
-	public String getPathnameTemplate() {
-		return pathnameTemplate;
+	public List<PublishConfigArea> getAreas() {
+		return areas;
 	}
-	public void setPathnameTemplate(String pathNameTemplate) {
-		this.pathnameTemplate = pathNameTemplate;
+	public void setAreas(List<PublishConfigArea> areas) {
+		this.areas = areas;
 	}
 	public PublishConfigOptions getOptions() {
 		return options;

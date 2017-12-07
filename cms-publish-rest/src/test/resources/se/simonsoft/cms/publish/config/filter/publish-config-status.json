@@ -1,28 +1,41 @@
 {
-  "active": true,
-  "visible": true,
-  "statusInclude": ["Review", "Released"],
-  "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
-
-  "options" : {
-      "type": "abxpe",
-      "format": "pdf",
-      "params": {
-          "stylesheet": "axdocbook.style",
-          "pdfconfig": "smallfile.pdfcf"
-      },
-      "manifest": {
-            "customTemplates": {
-                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}"
-            },
-            "metaTemplates": {
-                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString()}"
-            }
+    "active": true,
+    "visible": true,
+    "statusInclude": [
+        "Review",
+        "Released"
+    ],
+    "areas": [
+        {
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
         },
-      "storage": {
-        "type": "s3"
-        
-      }
-      
-  }
+        {
+            "type": "release",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        },
+        {
+            "type": "translation",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getTranslationLocale()}_${item.getStatus()}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
+            "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        }
+    ],
+    "options": {
+        "type": "abxpe",
+        "format": "pdf",
+        "params": {
+            "stylesheet": "axdocbook.style",
+            "pdfconfig": "smallfile.pdfcf"
+        },
+        "manifest": {
+            "customTemplates": {
+                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}",
+                "static": "value"
+            },
+            "metaTemplates": {"type": "${item.getMeta().get(\"embd_xml_a_type\").toString()}"}
+        },
+        "storage": {"type": "s3"}
+    }
 }

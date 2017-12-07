@@ -1,0 +1,46 @@
+{"items": [
+    {
+        "logicalhead": "x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/release/B/xml/documents/900108.xml",
+        "date": "2012-09-27T05:17:16.384Z",
+        "repourl": "http://demo-dev.simonsoftcms.se/svn/demo1",
+        "kind": "file",
+        "namebase": "900108",
+        "commit": {
+            "date": "2012-09-27T05:17:16.384Z",
+            "revision": 145
+        },
+        "uri": "/svn/demo1/vvab/release/B/xml/documents/900108.xml",
+        "url": "http://demo-dev.simonsoftcms.se/svn/demo1/vvab/release/B/xml/documents/900108.xml",
+        "logical": "x-svn://demo-dev.simonsoftcms.se/svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
+        "revision": 145,
+        "head": true,
+        "path": "/vvab/release/B/xml/documents/900108.xml",
+        "file": {"size": 23876},
+        "meta": {"title": "SEED HAWK"},
+        "name": "900108.xml",
+        "checksum": {
+            "SHA256": "feb3c6e8a2b1b6c9f6324e980faaf50e0c7b19eff439c129993c6aac93381d48",
+            "SHA1": "f1f8af7ccbc2e2a164a650f4c78b8022176ad25f",
+            "MD5": "004777061b6fe7550f7cc14dbfea8cc4"
+        },
+        "properties": {
+            "abx:SystemId": "vvab.dtd",
+            "abx:TranslationProject": "1004",
+            "abx:AuthorMaster": "x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=136",
+            "abx:DoctypeName": "document",
+            "cms:status": "Released",
+            "abx:ReleaseMaster": "x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=136",
+            "abx:ReleaseLabel": "B",
+            "abx:BaseLogicalId": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=144",
+            "abx:lang": "en-GB",
+            "abx:Dependencies": "x-svn:///svn/demo1^/vvab/graphics/0001.tif\nx-svn:///svn/demo1^/vvab/graphics/0002.tif\nx-svn:///svn/demo1^/vvab/graphics/0003.tif\nx-svn:///svn/demo1^/vvab/graphics/0016.tif\nx-svn:///svn/demo1^/vvab/graphics/0017.tif\nx-svn:///svn/demo1^/vvab/graphics/0019.tif\nx-svn:///svn/demo1^/vvab/graphics/0020.tif\nx-svn:///svn/demo1^/vvab/graphics/0021.tif\nx-svn:///svn/demo1^/vvab/graphics/0022.tif\nx-svn:///svn/demo1^/vvab/graphics/hydraul.iso",
+            "abx:TagType": "operator",
+            "abx:Encoding": "UTF-8",
+            "cms:createdby": "",
+            "xml:title": "SEED HAWK",
+            "abx:PublicId": "-//Simonsoft//DTD TechDoc Base V1.1 VVAB//EN",
+            "abx:ReleaseId": "2gffjvemcj60000",
+            "abx:ContentType": "xml"
+        }
+    }
+]}

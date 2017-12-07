@@ -21,11 +21,31 @@ public class PublishJobOptions extends PublishConfigOptions {
 	private String pathname;
 	private String source;
 	private PublishJobProfiling profiling;
+	private PublishJobManifest manifest;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
-	private PublishJobProgress progress;
+	private PublishJobProgress progress = null;
 	private PublishJobDelivery delivery;
 
+	
+	public PublishJobOptions() {
+		super();
+	}
+	
+	public PublishJobOptions(PublishConfigOptions config) {
+		
+		setType(config.getType());
+		setFormat(config.getFormat());
+		setParams(config.getParams());
+		
+		// TODO: Profiling
+		this.setManifest(new PublishJobManifest(config.getManifest()));
+		this.storage = new PublishJobStorage(config.getStorage());
+		this.postprocess = new PublishJobPostProcess(config.getPostprocess());
+		// progress is allowed to be null.
+		this.delivery = new PublishJobDelivery(config.getDelivery());
+	}
+	
 	public String getSource() {
 		return source;
 	}
@@ -38,6 +58,14 @@ public class PublishJobOptions extends PublishConfigOptions {
 	public void setProfiling(PublishJobProfiling profiling) {
 		this.profiling = profiling;
 	}
+	public PublishJobManifest getManifest() {
+		return manifest;
+	}
+
+	public void setManifest(PublishJobManifest manifest) {
+		this.manifest = manifest;
+	}
+
 	public PublishJobStorage getStorage() {
 		return storage;
 	}

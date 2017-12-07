@@ -8,12 +8,14 @@
         "Review",
         "Released"
     ],
-    "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
-    "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
-    "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}",
+    "area": {
+        "type": "release",
+        "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+        "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+    },
     "itemid": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
     "options": {
-        "pathname": "DOC_900108_Released.pdf",
+        "pathname": "DOC_900108_Released",
         "type": "abxpe",
         "source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
         "format": "pdf",
@@ -24,22 +26,19 @@
         "manifest": {
             "type": "default",
             "job": {
-                "id": "can we get Step Function Execution name?",
+                "itemid": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
                 "format": "pdf"
             },
             "document": {
-                "docno": "DOC_900108_sv-SE",
+                "docno": "DOC_900108",
                 "status": "Released",
                 "releaselabel": "B",
                 "lang": "sv-SE",
                 "baselinerevision": "0000000145"
             },
-            "master": {
-                "docno": "DOC_900108",
-                "releaselabel": "B"
-            },
             "custom": {
-                "type": "OPERATOR"
+                "type": "OPERATOR",
+                "static": "value"
             },
             "meta": {
                 "type": "operator"

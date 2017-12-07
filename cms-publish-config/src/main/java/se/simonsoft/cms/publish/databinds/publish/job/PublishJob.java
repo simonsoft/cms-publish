@@ -15,8 +15,6 @@
  */
 package se.simonsoft.cms.publish.databinds.publish.job;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -24,6 +22,7 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJob extends PublishConfig implements WorkflowItemInput{
@@ -31,55 +30,33 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	private String configname;
 	private String type;
 	private String action;
+	private PublishConfigArea area;
 	private String itemid;
 	private PublishJobOptions options;
-	private String pathnameTemplate;
 
 	public PublishJob(PublishJob pj) {
 		this.configname = pj.getConfigname();
 		this.type = pj.getType();
 		this.action = pj.getAction();
+		this.area = pj.getArea();
 		this.itemid = pj.getItemid();
+		
 		this.options = pj.getOptions();
+		
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
 		this.statusInclude = pj.getStatusInclude();
 		this.profilingInclude = pj.getProfilingInclude();
-		this.pathnameTemplate = pj.getPathnameTemplate();
 	}
 	
-	public PublishJob(PublishConfig publishConfig) {
+	public PublishJob(PublishConfig pc) {
 		
-		PublishJobDelivery publishJobDelivery = new PublishJobDelivery();
-		if (publishConfig.getOptions().getDelivery() != null) {
-			publishJobDelivery.setParams(publishConfig.getOptions().getDelivery().getParams());
-			publishJobDelivery.setType(publishConfig.getOptions().getDelivery().getType());
-		}
+		this.options = new PublishJobOptions(pc.getOptions());
 		
-		PublishJobOptions publishJobOptions = new PublishJobOptions();
-		publishJobOptions.setDelivery(publishJobDelivery);
-		publishJobOptions.setFormat(publishConfig.getOptions().getFormat());
-		publishJobOptions.setParams(publishConfig.getOptions().getParams());
-		
-		PublishJobPostProcess publishJobPostProcess = new PublishJobPostProcess();
-		if (publishConfig.getOptions().getPostprocess() != null) {
-			publishJobPostProcess.setParams(publishConfig.getOptions().getPostprocess().getParams());
-			publishJobPostProcess.setType(publishConfig.getOptions().getPostprocess().getType());
-			publishJobOptions.setPostprocess(publishJobPostProcess);
-		}
-		
-		PublishJobStorage storage = new PublishJobStorage();
-		storage.setParams(publishConfig.getOptions().getStorage().getParams());
-		storage.setType(publishConfig.getOptions().getStorage().getType());
-		publishJobOptions.setStorage(storage);
-		publishJobOptions.setType(publishConfig.getOptions().getType());
-		
-		this.options = publishJobOptions;
-		this.active = publishConfig.isActive();
-		this.visible = publishConfig.isVisible();
-		this.statusInclude = publishConfig.getStatusInclude();
-		this.profilingInclude = publishConfig.getProfilingInclude();
-		this.pathnameTemplate = publishConfig.getPathnameTemplate();
+		this.active = pc.isActive();
+		this.visible = pc.isVisible();
+		this.statusInclude = pc.getStatusInclude();
+		this.profilingInclude = pc.getProfilingInclude();
 	}
 	
 	public PublishJob() {
@@ -103,6 +80,14 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	public void setAction(String action) {
 		this.action = action;
 	}
+	public PublishConfigArea getArea() {
+		return area;
+	}
+
+	public void setArea(PublishConfigArea area) {
+		this.area = area;
+	}
+
 	public String getItemid() {
 		return itemid;
 	}
@@ -115,36 +100,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	public void setOptions(PublishJobOptions publish) {
 		this.options = publish;
 	}
-	public boolean isActive() {
-		return active;
-	}
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-	public boolean isVisible() {
-		return visible;
-	}
-	public void setVisible(boolean visible) {
-		this.visible = visible;
-	}
-	public List<String> getStatusInclude() {
-		return statusInclude;
-	}
-	public void setStatusInclude(List<String> statucInclude) {
-		this.statusInclude = statucInclude;
-	}
-	public List<String> getProfilingInclude() {
-		return profilingInclude;
-	}
-	public void setProfilingInclude(List<String> profilingInclude) {
-		this.profilingInclude = profilingInclude;
-	}
-	public String getPathnameTemplate() {
-		return pathnameTemplate;
-	}
-	public void setPathnameTemplate(String pathnameTemplate) {
-		this.pathnameTemplate = pathnameTemplate;
-	}
+
 
 	@Override
 	@JsonIgnore

@@ -26,10 +26,11 @@ public class PublishConfigOptions {
 	private String type;
 	private String format;
 	private Map <String, String> params = new HashMap<>();
+	private PublishConfigManifest manifest;
 	private PublishConfigStorage storage;
 	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;
-	private PublishConfigManifest manifest;
+
 	
 	public String getType() {
 		return type;
@@ -49,6 +50,12 @@ public class PublishConfigOptions {
 	public void setParams(Map<String, String> params) {
 		this.params = params;
 	}
+	public PublishConfigManifest getManifest() {
+		return manifest;
+	}
+	public void setManifest(PublishConfigManifest manifest) {
+		this.manifest = manifest;
+	}
 	public PublishConfigStorage getStorage() {
 		return storage;
 	}
@@ -67,10 +74,5 @@ public class PublishConfigOptions {
 	public void setDelivery(PublishConfigDelivery delivery) {
 		this.delivery = delivery;
 	}
-	public PublishConfigManifest getManifest() {
-		return manifest;
-	}
-	public void setManifest(PublishConfigManifest manifest) {
-		this.manifest = manifest;
-	}
+
 }

@@ -1,4 +1,4 @@
-/**
+#*
  * Copyright (C) 2009-2017 Simonsoft Nordic AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,24 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-package se.simonsoft.cms.publish.databinds.publish.job;
+ *#
+{
+  "job": {
+    "id": "$jobid",
+    "format": "$options.getFormat()"
+  },
+  "custom": {
+#foreach( $entry in $manifest.getCustomTemplates().entrySet() )
+    "$entry.getKey()": "$entry.getValue()"#if( $foreach.hasNext ),#end
+#end
+  }
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigPostProcess;
-
-public class PublishJobPostProcess extends PublishConfigPostProcess {
-	
-	public PublishJobPostProcess() {
-		super();
-	}
-	
-	public PublishJobPostProcess(PublishConfigPostProcess config) {
-		
-		if (config != null) {
-			setParams(config.getParams());
-			setType(config.getType());
-		}
-	}
-	
-	
 }
