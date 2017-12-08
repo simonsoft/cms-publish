@@ -88,8 +88,7 @@ public class WorkerApplication extends ResourceConfig {
         		bind(writer).to(ObjectWriter.class);
         		
         		//TODO: Bucket should be injected.
-        		CmsExportAwsWriterSingle cmsExportAwsWriterSingle = new CmsExportAwsWriterSingle(awsCloudId, "cms-review-jandersson", credentials);
-        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(cmsExportAwsWriterSingle);
+        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(awsCloudId, "cms-review-jandersson", credentials);
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");

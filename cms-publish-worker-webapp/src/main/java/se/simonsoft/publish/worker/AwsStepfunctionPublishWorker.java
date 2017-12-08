@@ -172,8 +172,9 @@ public class AwsStepfunctionPublishWorker {
 	
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			//TODO: Must not store in memory.
 			publishJobService.getCompletedJob(ticket, baos);
-			String jobPath = exportService.exportJob(baos, options);
+			String jobPath = exportService.exportJob(baos.toInputStream(), options);
 		return jobPath;
 	}
 	
