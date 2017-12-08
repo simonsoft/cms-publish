@@ -123,7 +123,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithTicketCompleted));
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
-		when(mockExportService.exportJob(any(ByteArrayOutputStream.class), any(PublishJobOptions.class))).thenReturn("Filepath on system");
+		when(mockExportService.exportJob(any(InputStream.class), any(PublishJobOptions.class))).thenReturn("Filepath on system");
 		
 		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
 		Thread.sleep(300);
@@ -131,7 +131,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
 		verify(mockTaskResult, times(2)).getInput();
 		verify(mockClient, times(1)).sendTaskSuccess(requestCaptor.capture());
-		verify(mockExportService, times(1)).exportJob(any(OutputStream.class), any(PublishJobOptions.class));
+		verify(mockExportService, times(1)).exportJob(any(InputStream.class), any(PublishJobOptions.class));
 		
 		SendTaskSuccessRequest value = requestCaptor.getValue();
 		assertEquals("{\"params\":{\"ticket\":\"1234\",\"completed\":\"true\"}}", value.getOutput());
