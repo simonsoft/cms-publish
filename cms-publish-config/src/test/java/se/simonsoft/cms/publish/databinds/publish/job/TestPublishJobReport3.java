@@ -87,10 +87,11 @@ public class TestPublishJobReport3 {
 	public void testPublishConfigTemplateString() throws JsonProcessingException, FileNotFoundException, IOException {
 		PublishJobReport3 jsonPjReport = reportReader.readValue(getReport3JsonString());
 		PublishJob pj = jobReader.readValue(getJsonString());
-
-		PublishConfigTemplateString templateString = new PublishConfigTemplateString(pj.getPathnameTemplate());
+		PublishConfigTemplateString templateString = new PublishConfigTemplateString();
 		templateString.withEntry("item", jsonPjReport.getItems().get(0));
-		String evaluate = templateString.evaluate();
+		
+		String pathnameTemplate = pj.getArea().getPathnameTemplate();
+		String evaluate = templateString.evaluate(pathnameTemplate);
 		
 		assertEquals("DOC_VV10084_25193_In_Work.pdf" , evaluate);
 	}
