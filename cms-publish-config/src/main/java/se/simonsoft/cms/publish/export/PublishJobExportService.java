@@ -16,13 +16,13 @@
 package se.simonsoft.cms.publish.export;
 
 
-import java.io.OutputStream;
+import java.io.InputStream;
 
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 public interface PublishJobExportService {
-	
-	String exportJob(OutputStream os, PublishJobOptions jobOptions);
+	//TODO: consider sending a CmsExportItem
+	String exportJob(InputStream os, PublishJobOptions jobOptions);
 	
 	String exportJobManifest(PublishJobOptions jobOptions);
 	
