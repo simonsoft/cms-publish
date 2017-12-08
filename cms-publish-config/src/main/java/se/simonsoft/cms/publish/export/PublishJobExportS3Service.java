@@ -15,31 +15,31 @@
  */
 package se.simonsoft.cms.publish.export;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.util.json.Jackson;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.export.CmsExportItemInputStream;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.item.export.CmsExportWriter;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
+import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
 public class PublishJobExportS3Service implements PublishJobExportService {
 	
 	private final CmsExportWriter writer;
 	private final String jobExtension = "zip";
+	private final String manifestExtension = "json";
+	private ObjectWriter writerPublishManifest;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobExportS3Service.class);
@@ -47,14 +47,17 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 	@Inject
 	public PublishJobExportS3Service(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
-			AWSCredentialsProvider credentials) {
-		
+			AWSCredentialsProvider credentials,
+			ObjectWriter writerPublishManifest) {
 		this.writer = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
+		this.writerPublishManifest = writerPublishManifest.forType(PublishJobManifest.class);
 	}
 
 	@Override
 	public String exportJob(InputStream is, PublishJobOptions jobOptions) {
 		logger.debug("Preparing publishJob {} for export to s3", jobOptions.getPathname());
+		
+		
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(
@@ -64,7 +67,6 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 		job.prepare();
 		
 		logger.debug("Preparing writer for export...");
-
 		writer.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
 		writer.write();
@@ -80,24 +82,20 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 			throw new IllegalArgumentException("Requires a valid PublishJobOptions object.");
 		}
 		
-		PublishConfigManifest manifest = jobOptions.getManifest();
+		PublishJobManifest manifest = jobOptions.getManifest();
 		if (manifest == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
 		}
 		
-		logger.debug("Preparing publishJob manifest{} for export to s3", jobOptions.getManifest());
+		logger.debug("Preparing publishJob manifest{} for export to s3", manifest);
 		
-		
-		String jsonManifest = Jackson.toJsonPrettyString(manifest);
-		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
-		//TODO: Change to CmsExportItemPublishManifest
-		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(new ByteArrayInputStream(jsonManifest.getBytes()), new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase().concat(".json"))));
+		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.manifestExtension);
+		CmsExportItemPublishManifest exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 		
 		job.addExportItem(exportItem);
 		job.prepare();
 		
 		logger.debug("Preparing writer for export...");
-
 		writer.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
 		writer.write();
