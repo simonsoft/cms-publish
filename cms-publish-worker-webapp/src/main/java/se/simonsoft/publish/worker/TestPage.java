@@ -66,7 +66,7 @@ public class TestPage {
 	@Produces(MediaType.TEXT_HTML)
 	@Path("publish/document")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String urlCall(@FormParam("itemId") final String itemId, @FormParam("format") String format) throws Exception {
+	public String urlCall(@FormParam("itemId") final String itemId, @FormParam("format") String format) throws InterruptedException, IOException, PublishException {
 		if(itemId == "" || itemId == null) {
 			throw new IllegalArgumentException("The given itemID was either empty or null");
 		}
@@ -106,7 +106,7 @@ public class TestPage {
 	@GET
 	@Path("form")
 	@Produces(MediaType.TEXT_HTML)
-	public String getForm() throws Exception {
+	public String getForm() throws IOException {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
@@ -125,7 +125,7 @@ public class TestPage {
 	@Path("ticket")
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public String getTicketForm() throws Exception {
+	public String getTicketForm() {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
@@ -173,7 +173,7 @@ public class TestPage {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("publish/job")
-	public String getPublishJobForm() throws Exception {
+	public String getPublishJobForm() {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
@@ -193,7 +193,7 @@ public class TestPage {
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Path("publish/job")
-	public String PublishJob(@FormParam("jsonString") String jsonstring) throws Exception {
+	public String PublishJob(@FormParam("jsonString") String jsonstring) throws JsonProcessingException, IOException, InterruptedException, PublishException {
 		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}

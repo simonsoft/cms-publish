@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.export.PublishJobExportS3Service;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
 import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.publish.worker.PublishJobService;
 
@@ -58,6 +59,9 @@ public class WorkerApplication extends ResourceConfig {
             	PublishServicePe publishServicePe = new PublishServicePe();
             	PublishJobService publishJobService = new PublishJobService(publishServicePe);
             	bind(publishJobService).to(PublishJobService.class);
+            	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
+            	bind(workerStatusReport).to(WorkerStatusReport.class);
+            	
             	
             	final String awsId = environment.getVariable("cms.aws.key.id");
             	final String awsSecret = environment.getVariable("cms.aws.key.secret");
@@ -88,11 +92,11 @@ public class WorkerApplication extends ResourceConfig {
         		bind(writer).to(ObjectWriter.class);
         		
         		//TODO: Bucket should be injected.
-        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(awsCloudId, "cms-review-jandersson", credentials, writer);
+        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(awsCloudId, "cms-review-jandersson", credentials, writer, workerStatusReport);
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(reader, writer, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, exportService);
+        		new AwsStepfunctionPublishWorker(reader, writer, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, exportService, workerStatusReport);
         		logger.debug("publish worker started.");
             }
         });

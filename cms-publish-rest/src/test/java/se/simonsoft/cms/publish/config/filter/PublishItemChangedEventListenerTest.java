@@ -331,6 +331,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getPathname(), options.getPathname());
 		assertEquals(optionsValidated.getType(), options.getType());
 		assertEquals(optionsValidated.getFormat(), options.getFormat());
+		assertEquals(optionsValidated.getSource(), options.getSource());
 		
 		assertEquals(optionsValidated.getParams().get("stylesheet"), options.getParams().get("stylesheet"));
 		assertEquals(optionsValidated.getParams().get("pdfconfig"), options.getParams().get("pdfconfig"));
@@ -338,6 +339,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(optionsValidated.getStorage().getType(), options.getStorage().getType());
 		assertEquals(optionsValidated.getStorage().getPathversion(), options.getStorage().getPathversion());
 		assertEquals(optionsValidated.getStorage().getPathconfigname(), options.getStorage().getPathconfigname());
+		assertEquals(optionsValidated.getStorage().getPathcloudid(), options.getStorage().getPathcloudid());
 		assertEquals(optionsValidated.getStorage().getPathdir(), options.getStorage().getPathdir());
 		assertEquals(optionsValidated.getStorage().getPathnamebase(), options.getStorage().getPathnamebase());
 		assertEquals(optionsValidated.getStorage().getParams().get("s3bucket"), options.getStorage().getParams().get("s3bucket"));

@@ -15,7 +15,9 @@
  */
 package se.simonsoft.cms.publish.export;
 
+
 import java.io.InputStream;
+import java.util.Date;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,6 +33,8 @@ import se.simonsoft.cms.item.export.CmsExportItemInputStream;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport.WorkerEvent;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 
@@ -40,6 +44,7 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 	private final String jobExtension = "zip";
 	private final String manifestExtension = "json";
 	private ObjectWriter writerPublishManifest;
+	private WorkerStatusReport statusReport;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobExportS3Service.class);
@@ -48,16 +53,16 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 	public PublishJobExportS3Service(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 			AWSCredentialsProvider credentials,
-			ObjectWriter writerPublishManifest) {
+			ObjectWriter writerPublishManifest,
+			WorkerStatusReport statusReport) {
 		this.writer = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
 		this.writerPublishManifest = writerPublishManifest.forType(PublishJobManifest.class);
+		this.statusReport = statusReport;
 	}
 
 	@Override
 	public String exportJob(InputStream is, PublishJobOptions jobOptions) {
 		logger.debug("Preparing publishJob {} for export to s3", jobOptions.getPathname());
-		
-		
 		
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(
@@ -72,6 +77,7 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 		writer.write();
 
 		logger.debug("Job has been exported to S3.");
+		updateStatusReport(new Date(), "Job exported to S3", jobOptions.getProgress().getParams().get("ticket"));
 		return job.getJobPath();
 	}
 
@@ -99,9 +105,12 @@ public class PublishJobExportS3Service implements PublishJobExportService {
 		writer.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
 		writer.write();
-
 		logger.debug("Jobs manifest has been exported to S3.");
 		return job.getJobPath();
 	}
-
+	
+	private void updateStatusReport(Date timeStamp, String action, String description) {
+		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
+		statusReport.addWorkerEvent(event);
+	}
 }

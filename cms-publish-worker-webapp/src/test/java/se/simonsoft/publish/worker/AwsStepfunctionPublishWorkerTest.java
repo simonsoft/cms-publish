@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.export.PublishJobExportService;
 
@@ -63,6 +64,7 @@ public class AwsStepfunctionPublishWorkerTest {
 	@Mock GetActivityTaskResult mockTaskResult;
 	@Mock PublishJobService mockJobService;
 	@Mock PublishJobExportService mockExportService;
+	@Mock WorkerStatusReport mockWorkerStatusReport;
 	
 	@Before
 	public void initMocks() {
@@ -84,7 +86,7 @@ public class AwsStepfunctionPublishWorkerTest {
 
 		ArgumentCaptor<SendTaskSuccessRequest> argument = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 
-		new AwsStepfunctionPublishWorker(spyReader, writer, mockClient, "any_acitivtyArn", mockJobService, mockExportService);
+		new AwsStepfunctionPublishWorker(spyReader, writer, mockClient, "any_acitivtyArn", mockJobService, mockExportService, mockWorkerStatusReport);
 		Thread.sleep(300);
 
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -106,7 +108,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false);
 		
 		
-		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
+		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -125,7 +127,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
 		when(mockExportService.exportJob(any(InputStream.class), any(PublishJobOptions.class))).thenReturn("Filepath on system");
 		
-		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
+		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -146,7 +148,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		//PeService should throw a PublishException if it has lost the job.
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
 		
-		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService);
+		new AwsStepfunctionPublishWorker(reader, writer, mockClient, "any_activityArn", mockJobService, mockExportService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -168,6 +170,5 @@ public class AwsStepfunctionPublishWorkerTest {
 		}
 		reader.close();
 		return out.toString();
-
 	}
 }
