@@ -28,6 +28,9 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.config.CmsConfigOption;
@@ -43,10 +46,6 @@ import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
 import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
-import se.simonsoft.cms.reporting.rest.itemlist.ItemIdListForPresentation;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
