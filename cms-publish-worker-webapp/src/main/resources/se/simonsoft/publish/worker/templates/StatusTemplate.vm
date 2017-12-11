@@ -20,17 +20,17 @@
 		<title>Insert title here</title>
 		</head>
 	<body>
-		<table>
+		<table style="border: 1px solid black; width: 50%;">
 			<tr>
-				<th style="border-color: black; border-width: 1px;">TimeStamp</th>
-				<th style="border-color: black; border-width: 1px;">Action</th>
-				<th style="border-color: black; border-width: 1px;">Description</th>
+				<th style="border: 1px solid black; width: 30%;">TimeStamp</th>
+				<th style="border: 1px solid black; width: 30%;">Action</th>
+				<th style="border: 1px solid black; width: 40%">Description</th>
 			</tr>
 				#foreach($workerEvent in $workerEvents)
-					<tr>
-						<td>$workerEvent.getTimeStamp()</td>
-						<td>$workerEvent.getAction()</td>
-						<td>$workerEvent.getDescription()</td>
+					<tr style="border: 1px solid black;">
+						<td style="border: 1px solid black;">$workerEvent.getTimeStamp()</td>
+						<td style="border: 1px solid black;">$workerEvent.getAction()</td>
+						<td style="border: 1px solid black;">$workerEvent.getDescription()</td>
 					</tr>
 				#end
 		</table>

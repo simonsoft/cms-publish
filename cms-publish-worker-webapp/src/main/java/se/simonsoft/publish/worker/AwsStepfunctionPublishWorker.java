@@ -43,6 +43,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport.WorkerEvent;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
 import se.simonsoft.cms.publish.databinds.publish.job.PublishJobProgress;
 import se.simonsoft.cms.publish.export.PublishJobExportService;
@@ -55,7 +57,9 @@ public class AwsStepfunctionPublishWorker {
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService publishJobService;
 	private final PublishJobExportService exportService;
-
+	private final WorkerStatusReport workerStatusReport;
+	
+	private DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 	private String startUpTime;
 	private ObjectReader reader;
 	private ObjectWriter writer;
@@ -68,7 +72,8 @@ public class AwsStepfunctionPublishWorker {
 			AWSStepFunctions client,
 			String activityArn,
 			PublishJobService publishJobService,
-			PublishJobExportService exportService) {
+			PublishJobExportService exportService,
+			WorkerStatusReport workerStatusReport) {
 
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
@@ -77,8 +82,9 @@ public class AwsStepfunctionPublishWorker {
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
 		this.exportService = exportService;
+		this.workerStatusReport = workerStatusReport;
 
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+		
 		this.startUpTime = df.format(new Date());
 
 		startListen();
@@ -86,12 +92,12 @@ public class AwsStepfunctionPublishWorker {
 
 	private void startListen() {
 		awsClientExecutor.execute(new Runnable() {
-
+			
 			@Override
 			public void run() {
-
+				updateStatusReport(new Date(), "Worker Startup", "AwsStepFunctionPublishWorker is running");
+				
 				while(true) {
-
 					GetActivityTaskResult taskResult = null;
 					try {
 						logger.debug("Client getting activity task");
@@ -105,6 +111,7 @@ public class AwsStepfunctionPublishWorker {
 						String progressAsJson = null;
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
+						updateStatusReport(new Date(), "publish-noop", activityArn);
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
@@ -166,6 +173,11 @@ public class AwsStepfunctionPublishWorker {
 	
 	private PublishTicket requestPublish(String taskToken, PublishJobOptions options) throws InterruptedException, PublishException {
 		PublishTicket ticket = publishJobService.publishJob(options);
+		
+		updateStatusReport(new Date(),
+				"Publish job from AWS Step Functions", 
+				"Ticket: " + ticket.toString() +"<br>Tasktoken: " + activityArn);
+		
 		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
@@ -175,6 +187,7 @@ public class AwsStepfunctionPublishWorker {
 			//TODO: Must not store in memory.
 			publishJobService.getCompletedJob(ticket, baos);
 			String jobPath = exportService.exportJob(baos.toInputStream(), options);
+			updateStatusReport(new Date(), "Exporting PublishJob to s3", activityArn);
 		return jobPath;
 	}
 	
@@ -193,7 +206,7 @@ public class AwsStepfunctionPublishWorker {
 		try {
 			options = reader.readValue(input);
 		} catch (IOException e) {
-			logger.error("Could not deserialize options recivied.", e);
+			logger.error("Could not deserialize options recieved.", e);
 			throw new IllegalArgumentException(e.getMessage());
 		}
 
@@ -237,5 +250,10 @@ public class AwsStepfunctionPublishWorker {
 		}
 		logger.debug("Progress is serialized {}", progressJson);
 		return progressJson;
+	}
+	
+	private void updateStatusReport(Date timeStamp, String action, String description) {
+		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
+		workerStatusReport.addWorkerEvent(event);
 	}
 }

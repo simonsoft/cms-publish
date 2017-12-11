@@ -1,10 +1,13 @@
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.config.status.report;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class WorkerStatusReport {
+	
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
 
 	public List<WorkerEvent> getWorkerEvents(){
@@ -13,28 +16,30 @@ public class WorkerStatusReport {
 
 	public void addWorkerEvent(WorkerEvent event) {
 		events.add(event);
-		//		if(events.size() > 100) {
-		//			events.remove(0);
-		//		}
+				if(events.size() > 100) {
+					events.remove(1);
+				}
 	}
 
 
 	public static class WorkerEvent {
-		private String timeStamp;
+		private Date timeStamp;
 		private String action;
 		private String description;
+		
 
-		public WorkerEvent(String action, String timeStamp, String description) {
+		public WorkerEvent(String action, Date timeStamp, String description) {
 			this.action = action;
 			this.timeStamp = timeStamp;
 			this.description = description;
 		}
 
 		public String getTimeStamp() {
-			return timeStamp;
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+			return df.format(timeStamp);
 		}
 
-		public void setTimeStamp(String timeStamp) {
+		public void setTimeStamp(Date timeStamp) {
 			this.timeStamp = timeStamp;
 		}
 
