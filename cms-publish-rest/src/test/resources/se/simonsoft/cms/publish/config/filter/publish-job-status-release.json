@@ -20,7 +20,7 @@
         "source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
         "format": "pdf",
         "params": {
-            "stylesheet": "axdocbook.style",
+            "stylesheet": "$aptpath/application/se.simonsoft.vvab/doctypes/VVAB/vvab.style",
             "pdfconfig": "smallfile.pdfcf"
         },
         "manifest": {

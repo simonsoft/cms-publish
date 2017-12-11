@@ -56,7 +56,7 @@ public class PublishConfigFilterTest {
 		assertEquals("pdf", publishConfig.getOptions().getFormat());
 		
 		assertNotNull(publishConfig.getOptions().getParams());
-		assertEquals("axdocbook.style", publishConfig.getOptions().getParams().get("stylesheet"));
+		assertEquals("$aptpath/application/se.simonsoft.vvab/doctypes/VVAB/vvab.style", publishConfig.getOptions().getParams().get("stylesheet"));
 		assertEquals("smallfile.pdfcf", publishConfig.getOptions().getParams().get("pdfconfig"));
 		
 		assertNotNull(publishConfig.getOptions().getStorage());

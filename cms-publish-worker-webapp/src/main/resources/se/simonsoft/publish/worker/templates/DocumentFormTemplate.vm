@@ -1,0 +1,49 @@
+#*
+ * Copyright (C) 2009-2017 Simonsoft Nordic AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+<!DOCTYPE html>
+	<html>
+		<head>
+		<meta charset="UTF-8">
+		<title>Insert title here</title>
+		</head>
+	<body>
+		<form action="http://localhost:8080/worker/rest/test/publish/document" method="post" id="documentForm">
+			<h3>Itemid or PE test document:</h3>
+			<input type="text" name="itemId">
+			<h3>Format</h3>
+			<input type="text" name="format">
+			<input type="submit" value="Submit">
+		</form>
+		<div style="display:flex; flex-direction: row; overflow: auto; margin-top: 10px;">
+			<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+				<h3>Example test data with path:</h3>
+				<p>C:\\Program Files\\PTC\\Arbortext PE\\e3\\e3\\e3demo.xml</p>
+				<h3>Example SVN itemid</h3>
+				<p>x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145</p>
+			</div>
+			<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+				<h3>Accepted formats:</h3>
+				<ul>
+					<li>html</li>
+					<li>pdf</li>
+					<li>rtf</li>
+					<li>web</li>
+					<li>xml</li>
+				</ul>
+			</div>
+		</div>
+	</body>
+</html>

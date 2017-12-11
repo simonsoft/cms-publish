@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.databinds.publish.config;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Properties;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -34,7 +35,7 @@ public class PublishConfigTemplateString {
 	}
 	
 	/**
-	 * Sets up a VelocityContext for later use in withEntry()
+	 * Sets up a VelocityContext for later use in evaluate()
 	 * @param str Key used in Velocity string
 	 * @param obj Object mapped by the key value
 	 */
@@ -56,7 +57,11 @@ public class PublishConfigTemplateString {
 		}
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty("runtime.references.strict", true);
-		ve.init();
+		Properties props = new Properties();
+		props.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.SimpleLog4JLogSystem");
+		props.put("runtime.log.logsystem.log4j.category", "velocity");
+		props.put("runtime.log.logsystem.log4j.logger", "velocity");
+		ve.init(props);
 		
 		PublishConfigTemplateString.ve = ve;
 		return PublishConfigTemplateString.ve;

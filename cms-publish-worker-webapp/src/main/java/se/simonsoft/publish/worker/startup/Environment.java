@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.databinds.publish.job;
+package se.simonsoft.publish.worker.startup;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class PublishJobProgress {
-	
-	private Map <String, String> params = new HashMap<>();
-
-	public Map <String, String> getParams() {
-		return params;
-	}
-
-	public void setParams(Map <String, String> params) {
-		this.params = params;
-	}
-	
+public class Environment {
+    public String getVariable(String key) {
+        return System.getenv(key);
+    }
 }

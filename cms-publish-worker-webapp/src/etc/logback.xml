@@ -1,4 +1,4 @@
-<%--
+<!--
 
     Copyright (C) 2009-2017 Simonsoft Nordic AB
 
@@ -14,16 +14,15 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
---%>
-<html>
-<body>
-    <h2>Jersey RESTful Web Application!</h2>
-    <p><a href="rest/myresource">Jersey resource</a>
-    <p><a href="rest/test/form">Start job</a></p>
-    <p><a href="rest/test/ticketform">Get job</a></p>
-    <p><a href="rest/test/publish/job">Create Job</a></p>
-    <p><a href="rest/status">Status</a></p>
-    <p>Visit <a href="http://jersey.java.net">Project Jersey website</a>
-    for more information on Jersey!
-</body>
-</html>
+-->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.export;
 
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
-import org.glassfish.jersey.server.ResourceConfig;
 
-public class WorkerApplication extends ResourceConfig {
+import java.io.InputStream;
 
-	public WorkerApplication()  {
-		
-		System.out.println("WORKER CONFIG");
-		
-		register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-            	bind("injected").to(String.class).named("TEST");
-            }
-        });
-		
-		
-		
-		//register(MyResource.class);
-	    //register(new MyProvider());
-	    //packages("se.simonsoft.publish.worker");
-	}
+import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
+
+public interface PublishJobExportService {
+	//TODO: consider sending a CmsExportItem
+	String exportJob(InputStream os, PublishJobOptions jobOptions);
 	
-
+	String exportJobManifest(PublishJobOptions jobOptions);
+	
 }
