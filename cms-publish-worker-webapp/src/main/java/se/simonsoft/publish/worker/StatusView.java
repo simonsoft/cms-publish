@@ -53,7 +53,7 @@ public class StatusView {
 	
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public String getStatus() {
+	public String getStatus() throws Exception {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
