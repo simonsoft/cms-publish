@@ -35,82 +35,71 @@ import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
-import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
-import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport.WorkerEvent;
 
 public class PublishJobExportS3Service implements PublishJobExportService {
-	
+
 	private final CmsExportWriter writer;
 	private final String jobExtension = "zip";
 	private final String manifestExtension = "json";
 	private ObjectWriter writerPublishManifest;
-	private WorkerStatusReport statusReport;
-	
-	
+
+
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobExportS3Service.class);
-	
+
 	@Inject
 	public PublishJobExportS3Service(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 			AWSCredentialsProvider credentials,
-			ObjectWriter writerPublishManifest,
-			WorkerStatusReport statusReport) {
+			ObjectWriter writerPublishManifest) {
 		this.writer = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
 		this.writerPublishManifest = writerPublishManifest.forType(PublishJobManifest.class);
-		this.statusReport = statusReport;
 	}
 
 	@Override
 	public String exportJob(InputStream is, PublishJobOptions jobOptions) {
 		logger.debug("Preparing publishJob {} for export to s3", jobOptions.getPathname());
-		
+
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.jobExtension);
 		CmsExportItemInputStream exportItem = new CmsExportItemInputStream(
 				is,
 				new CmsExportPath("/".concat(jobOptions.getStorage().getPathnamebase().concat(".zip")))); 
 		job.addExportItem(exportItem);
 		job.prepare();
-		
+
 		logger.debug("Preparing writer for export...");
 		writer.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
 		writer.write();
 
 		logger.debug("Job has been exported to S3.");
-		updateStatusReport(new Date(), "Job exported to S3", jobOptions.getProgress().getParams().get("ticket"));
 		return job.getJobPath();
 	}
 
 	@Override
 	public String exportJobManifest(PublishJobOptions jobOptions) {
-		
+
 		if (jobOptions == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobOptions object.");
 		}
-		
+
 		PublishJobManifest manifest = jobOptions.getManifest();
 		if (manifest == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
 		}
-		
+
 		logger.debug("Preparing publishJob manifest{} for export to s3", manifest);
-		
+
 		PublishExportJob job = new PublishExportJob(jobOptions.getStorage(), this.manifestExtension);
 		CmsExportItemPublishManifest exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
-		
+
 		job.addExportItem(exportItem);
 		job.prepare();
-		
+
 		logger.debug("Preparing writer for export...");
 		writer.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
 		writer.write();
 		logger.debug("Jobs manifest has been exported to S3.");
 		return job.getJobPath();
-	}
-	
-	private void updateStatusReport(Date timeStamp, String action, String description) {
-		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
-		statusReport.addWorkerEvent(event);
 	}
 }

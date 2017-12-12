@@ -75,7 +75,7 @@ public class TestPage {
 		}
 		
 		//TODO: Fix pathname (take name from itemId string). Use PE directly?
-		int indexOf = itemId.lastIndexOf("\\");
+		int indexOf = itemId.lastIndexOf("/");
 		CharSequence subSequence = itemId.subSequence(indexOf, itemId.length());
 		String pathName = subSequence.toString();
 		
@@ -188,7 +188,7 @@ public class TestPage {
 		template.merge(context, wr);
 		return wr.toString();
 	}
-	//TODO: Check if one post and one get can coexist on same path
+	
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -197,7 +197,6 @@ public class TestPage {
 		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
-		//TODO: catch jsonexception
 		ObjectReader reader = this.reader.forType(PublishJobOptions.class);
 		PublishJobOptions job = reader.readValue(jsonstring);
 

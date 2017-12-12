@@ -104,13 +104,13 @@ public class AwsStepfunctionPublishWorker {
 					} catch (AbortedException e) {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
-
+					updateStatusReport(new Date(), "AWS activity", "Did not recieve a job from AWS Step functions.");
 					if (hasTaskToken(taskResult)) {
 						PublishTicket publishTicket = null;
 						String progressAsJson = null;
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
-						updateStatusReport(new Date(), "publish-noop", activityArn);
+						updateStatusReport(new Date(), "Enqueue", "ActivityArn: " + activityArn);
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
@@ -119,11 +119,13 @@ public class AwsStepfunctionPublishWorker {
 							if (hasTicket(options)) {
 								progressAsJson = exportJob(options, taskToken);
 								sendTaskResult(taskToken, progressAsJson);
+								updateStatusReport(new Date(), "Retrieve", "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
 							} else {
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
 								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
 								sendTaskResult(taskToken, progressAsJson);
+								updateStatusReport(new Date(), "Enqueued", "ActivityArn: "+ activityArn + " Ticket: " + publishTicket.toString());
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
@@ -161,6 +163,7 @@ public class AwsStepfunctionPublishWorker {
 			logger.debug("Job is exported to: {}", exportPath);
 		} else {
 			logger.debug("Job is not completed send fail result JobPending");
+			updateStatusReport(new Date(), "Job Pending", "ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString());
 			throw new CommandRuntimeException("JobPending");
 		}
 		return progressAsJson;
@@ -173,10 +176,6 @@ public class AwsStepfunctionPublishWorker {
 	private PublishTicket requestPublish(String taskToken, PublishJobOptions options) throws InterruptedException, PublishException {
 		PublishTicket ticket = publishJobService.publishJob(options);
 		
-		updateStatusReport(new Date(),
-				"Publish job from AWS Step Functions", 
-				"Ticket: " + ticket.toString() +"<br>Tasktoken: " + activityArn);
-		
 		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
@@ -186,7 +185,6 @@ public class AwsStepfunctionPublishWorker {
 			//TODO: Must not store in memory.
 			publishJobService.getCompletedJob(ticket, baos);
 			String jobPath = exportService.exportJob(baos.toInputStream(), options);
-			updateStatusReport(new Date(), "Exporting PublishJob to s3", activityArn);
 		return jobPath;
 	}
 	
