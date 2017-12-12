@@ -26,7 +26,6 @@ import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +44,9 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
-import se.simonsoft.cms.publish.config.export.PublishJobExportService;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport.WorkerEvent;
+import se.simonsoft.cms.publish.worker.export.PublishJobExporter;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {
@@ -56,7 +55,7 @@ public class AwsStepfunctionPublishWorker {
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService publishJobService;
-	private final PublishJobExportService exportService;
+	private final PublishJobExporter jobExporter;
 	private final WorkerStatusReport workerStatusReport;
 	
 	private String startUpTime;
@@ -71,7 +70,7 @@ public class AwsStepfunctionPublishWorker {
 			AWSStepFunctions client,
 			String activityArn,
 			PublishJobService publishJobService,
-			PublishJobExportService exportService,
+			PublishJobExporter jobExporter,
 			WorkerStatusReport workerStatusReport) {
 
 		this.reader = reader.forType(PublishJobOptions.class);
@@ -80,7 +79,7 @@ public class AwsStepfunctionPublishWorker {
 		this.activityArn = activityArn; 
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
-		this.exportService = exportService;
+		this.jobExporter = jobExporter;
 		this.workerStatusReport = workerStatusReport;
 		
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
@@ -182,10 +181,7 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			//TODO: Must not store in memory.
-			publishJobService.getCompletedJob(ticket, baos);
-			String jobPath = exportService.exportJob(baos.toInputStream(), options);
+			String jobPath = jobExporter.exportJob(options);
 			updateStatusReport(new Date(), "Exporting PublishJob to s3", activityArn);
 		return jobPath;
 	}
