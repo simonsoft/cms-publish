@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportPath;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 
 public class CmsExportItemPublishManifest implements CmsExportItem {
 

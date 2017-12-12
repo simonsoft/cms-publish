@@ -23,9 +23,9 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifestTest;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifestTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;

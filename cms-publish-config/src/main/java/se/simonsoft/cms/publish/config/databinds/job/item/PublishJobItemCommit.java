@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.config.databinds.job.item;
 
-import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-
-public class PublishConfigFilterType implements PublishConfigFilter {
+public class PublishJobItemCommit {
+	private String date;
+	private int revision;
 	
-	private final String typeInclude = "embd_xml_a_type"; //TODO: Unsure if this is the correct name: type-include embd_xml_a_type
-	
-	@Override
-	public boolean accept(PublishConfig config, CmsItem item) {
-		String type = (String) item.getMeta().get(typeInclude);
-		return config.getOptions().getType().equals(type);
+	public String getDate() {
+		return date;
 	}
-
+	public void setDate(String date) {
+		this.date = date;
+	}
+	public int getRevision() {
+		return revision;
+	}
+	public void setRevision(int revision) {
+		this.revision = revision;
+	}
 }

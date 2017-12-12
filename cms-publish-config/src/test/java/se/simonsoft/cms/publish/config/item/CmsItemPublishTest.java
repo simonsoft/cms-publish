@@ -27,8 +27,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobReport3;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobReport3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;

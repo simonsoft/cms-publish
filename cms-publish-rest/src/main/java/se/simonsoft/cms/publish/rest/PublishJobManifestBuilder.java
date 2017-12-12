@@ -21,11 +21,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
 
 public class PublishJobManifestBuilder {
 
