@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
 public class PublishConfigFilterTest {
 	

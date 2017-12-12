@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.config.databinds.config;
 
-import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import java.util.HashMap;
+import java.util.Map;
 
-public class PublishConfigFilterType implements PublishConfigFilter {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties (ignoreUnknown=false)
+public class PublishConfigStorage {
+	private String type;
+	private Map <String, String> params = new HashMap<String, String>();
 	
-	private final String typeInclude = "embd_xml_a_type"; //TODO: Unsure if this is the correct name: type-include embd_xml_a_type
-	
-	@Override
-	public boolean accept(PublishConfig config, CmsItem item) {
-		String type = (String) item.getMeta().get(typeInclude);
-		return config.getOptions().getType().equals(type);
+	public String getType() {
+		return type;
 	}
-
+	public void setType(String type) {
+		this.type = type;
+	}
+	public Map <String, String> getParams() {
+		return params;
+	}
+	public void setParams(Map <String, String> params) {
+		this.params = params;
+	}
 }

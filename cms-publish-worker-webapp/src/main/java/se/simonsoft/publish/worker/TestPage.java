@@ -44,7 +44,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 @Path("/test")

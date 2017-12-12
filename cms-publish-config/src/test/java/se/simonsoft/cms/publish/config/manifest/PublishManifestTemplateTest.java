@@ -27,14 +27,14 @@ import java.io.InputStreamReader;
 
 import org.junit.Test;
 
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigDelivery;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigManifest;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigOptions;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigStorage;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigTemplateString;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigDelivery;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
