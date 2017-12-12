@@ -30,7 +30,7 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.databinds.publish.job.*;
+import se.simonsoft.cms.publish.config.databinds.job.*;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.PublishSource;
 

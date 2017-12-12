@@ -55,12 +55,12 @@ import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfigArea;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJob;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobManifest;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
 
 public class PublishItemChangedEventListenerTest {

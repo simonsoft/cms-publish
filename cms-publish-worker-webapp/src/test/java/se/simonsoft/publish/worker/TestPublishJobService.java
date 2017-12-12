@@ -39,7 +39,7 @@ import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishFormatPDF;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.databinds.publish.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 public class TestPublishJobService {

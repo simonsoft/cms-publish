@@ -18,7 +18,7 @@ package se.simonsoft.cms.publish.config.filter;
 import java.util.List;
 
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.databinds.publish.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
 public class PublishConfigFilterStatus implements PublishConfigFilter {
 
