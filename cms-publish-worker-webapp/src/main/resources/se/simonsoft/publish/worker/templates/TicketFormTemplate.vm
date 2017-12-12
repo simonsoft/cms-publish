@@ -17,7 +17,7 @@
 	<html>
 		<head>
 		<meta charset="UTF-8">
-		<title>Insert title here</title>
+		<title>Get ticket</title>
 		</head>
 	<body>
 		<form action="http://localhost:8080/worker/rest/test/ticket/result" method="get">

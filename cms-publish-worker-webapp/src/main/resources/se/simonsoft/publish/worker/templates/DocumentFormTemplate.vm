@@ -17,20 +17,20 @@
 	<html>
 		<head>
 		<meta charset="UTF-8">
-		<title>Insert title here</title>
+		<title>Publish Document</title>
 		</head>
 	<body>
 		<form action="http://localhost:8080/worker/rest/test/publish/document" method="post" id="documentForm">
 			<h3>Itemid or PE test document:</h3>
-			<input type="text" name="itemId">
+			<input style="width: 500px" type="text" name="itemId">
 			<h3>Format</h3>
-			<input type="text" name="format">
-			<input type="submit" value="Submit">
+			<input type="text" name="format"><br>
+			<input style="margin-top:1%;" type="submit" value="Submit">
 		</form>
 		<div style="display:flex; flex-direction: row; overflow: auto; margin-top: 10px;">
 			<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
-				<h3>Example test data with path:</h3>
-				<p>C:\\Program Files\\PTC\\Arbortext PE\\e3\\e3\\e3demo.xml</p>
+				<h3>Example test data with aptpath:</h3>
+				<p>$aptpath/e3/e3/e3demo.xml</p>
 				<h3>Example SVN itemid</h3>
 				<p>x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145</p>
 			</div>
