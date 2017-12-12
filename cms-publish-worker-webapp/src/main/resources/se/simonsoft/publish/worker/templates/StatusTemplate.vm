@@ -28,9 +28,9 @@
 			</tr>
 				#foreach($workerEvent in $workerEvents)
 					<tr style="border: 1px solid black;">
-						<td style="border: 1px solid black; padding-left: 10px;">$workerEvent.getTimeStamp()</td>
-						<td style="border: 1px solid black; padding-left: 10px;">$workerEvent.getAction()</td>
-						<td style="border: 1px solid black; padding-left: 10px;">$workerEvent.getDescription()</td>
+						<td style="border: 1px solid black; padding: 5px;">$workerEvent.getTimeStamp()</td>
+						<td style="border: 1px solid black; padding: 5px;">$workerEvent.getAction()</td>
+						<td style="border: 1px solid black; padding: 5px;">$workerEvent.getDescription()</td>
 					</tr>
 				#end
 		</table>
