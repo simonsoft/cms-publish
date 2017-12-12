@@ -21,8 +21,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
 	private Map<String, PublishProfilingRecipe> map = new HashMap<String, PublishProfilingRecipe>();
