@@ -64,7 +64,7 @@ public class AwsStepfunctionPublishWorker {
 	private final String jobExtension = "zip";
 	
 	private CmsExportAwsWriterSingle exportWriter; // Can not be final, protected setMethod to be able to mock it.
-	private String startUpTime;
+	private Date startUpTime;
 	private ObjectReader reader;
 	private ObjectWriter writer;
 
@@ -90,9 +90,7 @@ public class AwsStepfunctionPublishWorker {
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
 		this.workerStatusReport = workerStatusReport;
-		
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-		this.startUpTime = df.format(new Date());
+		this.startUpTime = new Date();
 
 		startListen();
 	}
@@ -103,14 +101,17 @@ public class AwsStepfunctionPublishWorker {
 			@Override
 			public void run() {
 				updateStatusReport(new Date(), "Worker Startup", "AwsStepFunctionPublishWorker is running");
+				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+				final String startupTimeFormatted = df.format(startUpTime);
 				
 				while(true) {
 					GetActivityTaskResult taskResult = null;
+					
 					try {
 						logger.debug("Client getting activity task");
-						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startUpTime));
+						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
-						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
+						logger.error("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted);
 					}
 
 					if (hasTaskToken(taskResult)) {
