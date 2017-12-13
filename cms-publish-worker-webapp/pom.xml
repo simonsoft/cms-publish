@@ -106,11 +106,19 @@
 			<artifactId>cms-publish-rest</artifactId>
 			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
+		
+		<dependency>
+    		<groupId>com.amazonaws</groupId>
+    		<artifactId>aws-java-sdk-stepfunctions</artifactId>
+    		<version>1.11.218</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-publish-abxpe</artifactId>
 			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
 			<artifactId>velocity-engine-core</artifactId>

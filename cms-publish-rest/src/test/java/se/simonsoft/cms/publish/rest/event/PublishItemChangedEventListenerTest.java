@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.rest.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -65,7 +65,6 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
-import se.simonsoft.cms.publish.rest.event.PublishItemChangedEventListener;
 
 public class PublishItemChangedEventListenerTest {
 

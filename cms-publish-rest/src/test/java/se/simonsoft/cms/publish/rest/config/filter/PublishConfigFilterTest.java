@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.rest.config.filter;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -35,10 +35,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
 
 public class PublishConfigFilterTest {
 	
