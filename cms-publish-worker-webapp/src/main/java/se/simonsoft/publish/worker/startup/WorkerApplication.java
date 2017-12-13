@@ -43,6 +43,7 @@ import se.simonsoft.publish.worker.PublishJobService;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
+	private final String bucketName = "cms-review-jandersson";
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -92,7 +93,16 @@ public class WorkerApplication extends ResourceConfig {
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(reader, writer, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, new PublishJobExporter(awsCloudId, "cms-review-jandersson", credentials, publishJobService), workerStatusReport);
+        		new AwsStepfunctionPublishWorker(awsCloudId,
+        				bucketName,
+        				credentials,
+        				reader,
+        				writer,
+        				client,
+        				"arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe",
+        				publishJobService,	
+        				workerStatusReport);
+        		
         		logger.debug("publish worker started.");
             }
         });
