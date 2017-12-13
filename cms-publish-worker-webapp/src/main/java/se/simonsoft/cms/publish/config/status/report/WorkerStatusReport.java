@@ -22,26 +22,26 @@ import java.util.Date;
 import java.util.List;
 
 public class WorkerStatusReport {
-	
+
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
 	public static final int MAX_LENGTH = 100;
 
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;
 	}
-	
+
 	public void addWorkerEvent(WorkerEvent event) {
 		events.add(event);
-				if(events.size() > MAX_LENGTH) {
-					events.remove(1);
-				}
+		if(events.size() > MAX_LENGTH) {
+			events.remove(1);
+		}
 	}
-	
+
 	public static class WorkerEvent {
 		private Date timeStamp;
 		private String action;
 		private String description;
-		
+
 
 		public WorkerEvent(String action, Date timeStamp, String description) {
 			this.action = action;
