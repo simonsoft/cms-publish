@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.worker;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -49,6 +49,8 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
+import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class AwsStepfunctionPublishWorkerTest {
 

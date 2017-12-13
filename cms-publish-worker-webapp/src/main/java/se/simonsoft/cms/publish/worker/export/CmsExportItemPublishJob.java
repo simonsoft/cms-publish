@@ -25,7 +25,7 @@ import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
-import se.simonsoft.publish.worker.PublishJobService;
+import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class CmsExportItemPublishJob implements CmsExportItem {
 	

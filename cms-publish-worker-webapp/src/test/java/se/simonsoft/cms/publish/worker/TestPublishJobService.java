@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.worker;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
@@ -41,6 +41,7 @@ import se.simonsoft.cms.publish.abxpe.PublishFormatPDF;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class TestPublishJobService {
 	

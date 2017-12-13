@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker.startup;
+package se.simonsoft.cms.publish.worker.startup;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,8 +36,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
-import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
-import se.simonsoft.publish.worker.PublishJobService;
+import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
+import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class WorkerApplication extends ResourceConfig {
 	

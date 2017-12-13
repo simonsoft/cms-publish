@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.worker;
 
 import java.io.StringWriter;
 import java.text.DateFormat;
