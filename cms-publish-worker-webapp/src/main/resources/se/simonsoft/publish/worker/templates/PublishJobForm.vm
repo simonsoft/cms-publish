@@ -19,14 +19,39 @@
 		<meta charset="UTF-8">
 		<title>Publish Job</title>
 		</head>
+		<style>
+			textarea {
+				margin: 0px;
+				width: 700px;
+				height: 400px;
+			}
+			
+			#exampleData {
+				display: flex;
+				flex-direction: row;
+				overflow: auto;
+				margin: 10px;
+			}
+			
+			.exampleDataBox {
+				margin: 10px;
+				background-color: #e6e6e6;
+				padding: 1%;
+			}
+			
+			#submitButton {
+				margin: 1%;
+			}
+			
+		</style>
 	<body>
 		<form action="http://localhost:8080/worker/rest/test/publish/job" id="jobForm" method="post">
 			<h3>PublishJob Options data in Json format:</h3>
-			<textarea name="jsonString" form="jobForm" style="margin: 0px; width: 700px; height: 400px;"></textarea><br>
-			<input type="submit" value="Submit">
+			<textarea name="jsonString" form="jobForm"></textarea><br>
+			<input id="submitButton" type="submit" value="Submit">
 		</form>
-		<div style="display:flex; flex-direction: row; overflow: auto; margin-top: 10px;">
-			<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+		<div id="exampleData">
+			<div class="exampleDataBox">
 				<h3>Example PublishJob Option Json:</h3>
 				<pre>
 					<code>
@@ -43,7 +68,7 @@
 				</code>
 			</pre>
 		</div>
-		<div style="margin: 10px; background-color: #e6e6e6; padding:1%;">
+		<div class="exampleDataBox">
 			<h3>Example PublishJob Option Json, gets item from svn instead</h3>
 			<pre>
 				<code>

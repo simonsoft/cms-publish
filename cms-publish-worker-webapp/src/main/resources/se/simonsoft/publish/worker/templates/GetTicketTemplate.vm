@@ -18,8 +18,13 @@
 		<head>
 		<meta charset="UTF-8">
 		<title>Get ticket</title>
+		<style>
+			#getJob {
+				margin: 1%;
+			}
+		</style>
 		</head>
 	<body>
-		<p>Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber">job</a></p>
+		<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber">job</a></p>
 	</body>
 </html>

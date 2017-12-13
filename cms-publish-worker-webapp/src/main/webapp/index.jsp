@@ -21,7 +21,7 @@
 		<title>Simonsoft Worker Webapp</title>
 	</head>
 	<body>
-    	<h2>Simonsoft Worker Webapp!</h2>
+    	<h2>Simonsoft Worker Webapp</h2>
     	<p><a href="rest/status">Status</a></p>
     	<p><a href="rest/test/form">Publish Document</a></p>
     	<p><a href="rest/test/publish/job">Publish Job</a></p>
