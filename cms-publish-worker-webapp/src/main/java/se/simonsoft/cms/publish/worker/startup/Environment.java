@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.export;
+package se.simonsoft.cms.publish.worker.startup;
 
-
-import java.io.InputStream;
-
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-
-public interface PublishJobExportService {
-	//TODO: consider sending a CmsExportItem
-	String exportJob(InputStream os, PublishJobOptions jobOptions);
-	
-	String exportJobManifest(PublishJobOptions jobOptions);
-	
+public class Environment {
+    public String getVariable(String key) {
+        return System.getenv(key);
+    }
 }

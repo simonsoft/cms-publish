@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker;
+package se.simonsoft.cms.publish.worker;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -24,13 +24,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AbortedException;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
@@ -40,7 +41,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
+import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
@@ -56,35 +59,37 @@ public class AwsStepfunctionPublishWorker {
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService publishJobService;
-	private final PublishJobExportService exportService;
 	private final WorkerStatusReport workerStatusReport;
+	private final String jobExtension = "zip";
 	
-	private String startUpTime;
+	private CmsExportAwsWriterSingle exportWriter; // Can not be final, protected setMethod to be able to mock it.
+	private Date startUpTime;
 	private ObjectReader reader;
 	private ObjectWriter writer;
 
 	private static final Logger logger = LoggerFactory.getLogger(AwsStepfunctionPublishWorker.class);
 
 	@Inject
-	public AwsStepfunctionPublishWorker(ObjectReader reader,
+	public AwsStepfunctionPublishWorker(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
+			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
+			AWSCredentialsProvider credentials,
+			ObjectReader reader,
 			ObjectWriter writer,
 			AWSStepFunctions client,
 			String activityArn,
 			PublishJobService publishJobService,
-			PublishJobExportService exportService,
-			WorkerStatusReport workerStatusReport) {
+			WorkerStatusReport workerStatusReport
+			) {
 
+		this.exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
 		this.activityArn = activityArn; 
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
-		this.exportService = exportService;
 		this.workerStatusReport = workerStatusReport;
-		
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-		this.startUpTime = df.format(new Date());
+		this.startUpTime = new Date();
 
 		startListen();
 	}
@@ -94,15 +99,18 @@ public class AwsStepfunctionPublishWorker {
 			
 			@Override
 			public void run() {
-				updateStatusReport(new Date(), "Worker Startup", "Stepfunction Worker is starting");
+				updateStatusReport(new Date(), "Worker Startup", "AwsStepFunctionPublishWorker is running");
+				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+				final String startupTimeFormatted = df.format(startUpTime);
 				
 				while(true) {
 					GetActivityTaskResult taskResult = null;
+					
 					try {
 						logger.debug("Client getting activity task");
-						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startUpTime));
+						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
-						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
+						logger.error("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted);
 					}
 					updateStatusReport(new Date(), "AWS worker is running", "AWS worker checking for activity");
 					if (hasTaskToken(taskResult)) {
@@ -183,11 +191,26 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			//TODO: Must not store in memory.
-			publishJobService.getCompletedJob(ticket, baos);
-			String jobPath = exportService.exportJob(baos.toInputStream(), options);
-		return jobPath;
+		logger.debug("Preparing publishJob {} for export to s3", options.getPathname());
+		
+		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
+		
+		PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
+		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(publishTicket,
+				publishJobService,
+				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
+		job.addExportItem(exportItem);
+		job.prepare();
+		
+		logger.debug("Preparing writer for export...");
+		exportWriter.prepare(job);
+		logger.debug("Writer is prepared. Writing job to S3.");
+		exportWriter.write();
+
+		logger.debug("Job has been exported to S3.");
+		updateStatusReport(new Date(), "Exporting PublishJob to s3", activityArn);
+		
+		return job.getJobPath();
 	}
 	
 	private boolean hasTicket(PublishJobOptions options) {
@@ -255,5 +278,9 @@ public class AwsStepfunctionPublishWorker {
 	private void updateStatusReport(Date timeStamp, String action, String description) {
 		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
 		workerStatusReport.addWorkerEvent(event);
+	}
+	//Necessary for tests. Tests has to be able to set the writer to a mock instance.
+	protected void setExportWriter(CmsExportAwsWriterSingle writer) {
+		this.exportWriter = writer;
 	}
 }
