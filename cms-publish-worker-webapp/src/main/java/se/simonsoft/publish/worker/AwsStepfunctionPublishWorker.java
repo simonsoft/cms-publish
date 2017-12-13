@@ -281,6 +281,6 @@ public class AwsStepfunctionPublishWorker {
 	}
 	//Necessary for tests. Tests has to be able to set the writer to a mock instance.
 	protected void setExportWriter(CmsExportAwsWriterSingle writer) {
-		exportWriter = writer;
+		this.exportWriter = writer;
 	}
 }
