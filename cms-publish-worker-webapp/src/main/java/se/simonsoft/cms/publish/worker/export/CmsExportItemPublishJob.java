@@ -57,6 +57,7 @@ public class CmsExportItemPublishJob implements CmsExportItem {
 			throw new IllegalStateException("Export item:" + "PublishExportItem" + " is already prepared");
 		}
 		logger.debug("PublishExport item with ticket: {} is prepared for export", ticket);
+		this.ready = true;
 	}
 
 	@Override
