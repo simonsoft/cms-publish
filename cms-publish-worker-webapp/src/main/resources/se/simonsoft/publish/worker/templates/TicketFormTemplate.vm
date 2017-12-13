@@ -17,13 +17,18 @@
 	<html>
 		<head>
 		<meta charset="UTF-8">
-		<title>Insert title here</title>
+		<title>Get ticket</title>
+		<style>
+			#submitButton {
+				margin: 1%;
+			}
+		</style>
 		</head>
 	<body>
 		<form action="http://localhost:8080/worker/rest/test/ticket/result" method="get">
 			<h3>Ticket Number:</h3>
 			<input type="text" name="ticketnumber">
-			<input type="submit" value="Submit">
+			<input id="submitButton" type="submit" value="Submit">
 		</form>
 	</body>
 </html>

@@ -22,8 +22,9 @@ import java.util.Date;
 import java.util.List;
 
 public class WorkerStatusReport {
-	
+
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
+	public static final int MAX_LENGTH = 100;
 
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;
@@ -31,17 +32,16 @@ public class WorkerStatusReport {
 
 	public void addWorkerEvent(WorkerEvent event) {
 		events.add(event);
-				if(events.size() > 100) {
-					events.remove(1);
-				}
+		if(events.size() > MAX_LENGTH) {
+			events.remove(1);
+		}
 	}
-
 
 	public static class WorkerEvent {
 		private Date timeStamp;
 		private String action;
 		private String description;
-		
+
 
 		public WorkerEvent(String action, Date timeStamp, String description) {
 			this.action = action;
@@ -50,7 +50,7 @@ public class WorkerStatusReport {
 		}
 
 		public String getTimeStamp() {
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 			return df.format(timeStamp);
 		}
 
