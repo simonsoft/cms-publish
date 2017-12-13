@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
-import se.simonsoft.cms.publish.worker.export.PublishJobExporter;
 import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.publish.worker.PublishJobService;
 
