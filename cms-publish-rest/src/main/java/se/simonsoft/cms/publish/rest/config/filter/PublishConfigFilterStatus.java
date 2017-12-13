@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.rest.config.filter;
+
+import java.util.List;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
-public class PublishConfigFilterActive implements PublishConfigFilter {
+public class PublishConfigFilterStatus implements PublishConfigFilter {
 
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
-		return config.isActive();
+		
+		boolean accept = false;
+		List<String> statusInclude = config.getStatusInclude();
+		if (statusInclude == null || config.getStatusInclude().contains(item.getStatus())) { 
+			accept = true;
+		}
+		
+		return accept;
 	}
 
 }

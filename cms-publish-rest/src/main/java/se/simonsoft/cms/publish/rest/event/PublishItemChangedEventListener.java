@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.rest;
+package se.simonsoft.cms.publish.rest.event;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,8 +44,9 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 

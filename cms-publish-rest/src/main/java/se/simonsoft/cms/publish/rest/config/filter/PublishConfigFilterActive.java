@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.export;
+package se.simonsoft.cms.publish.rest.config.filter;
 
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
-import java.io.InputStream;
+public class PublishConfigFilterActive implements PublishConfigFilter {
 
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+	@Override
+	public boolean accept(PublishConfig config, CmsItem item) {
+		return config.isActive();
+	}
 
-public interface PublishJobExportService {
-	//TODO: consider sending a CmsExportItem
-	String exportJob(InputStream os, PublishJobOptions jobOptions);
-	
-	String exportJobManifest(PublishJobOptions jobOptions);
-	
 }

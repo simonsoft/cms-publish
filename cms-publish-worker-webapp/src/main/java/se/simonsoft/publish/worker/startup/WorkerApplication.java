@@ -34,9 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.config.export.PublishJobExportS3Service;
 import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
 import se.simonsoft.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.publish.worker.PublishJobService;
@@ -44,6 +42,7 @@ import se.simonsoft.publish.worker.PublishJobService;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
+	private final String bucketName = "cms-review-jandersson";
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -91,12 +90,18 @@ public class WorkerApplication extends ResourceConfig {
         		bind(reader).to(ObjectReader.class);
         		bind(writer).to(ObjectWriter.class);
         		
-        		//TODO: Bucket should be injected.
-        		PublishJobExportS3Service exportService = new PublishJobExportS3Service(awsCloudId, "cms-review-jandersson", credentials, writer);
-        		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(reader, writer, client, "arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe", publishJobService, exportService, workerStatusReport);
+        		new AwsStepfunctionPublishWorker(awsCloudId,
+        				bucketName,
+        				credentials,
+        				reader,
+        				writer,
+        				client,
+        				"arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe",
+        				publishJobService,	
+        				workerStatusReport);
+        		
         		logger.debug("publish worker started.");
             }
         });
