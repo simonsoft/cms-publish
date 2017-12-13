@@ -35,6 +35,10 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
 
 public class PublishConfigFilterTest {
 	

@@ -61,7 +61,11 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.rest.PublishItemChangedEventListener;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
+import se.simonsoft.cms.publish.rest.event.PublishItemChangedEventListener;
 
 public class PublishItemChangedEventListenerTest {
 

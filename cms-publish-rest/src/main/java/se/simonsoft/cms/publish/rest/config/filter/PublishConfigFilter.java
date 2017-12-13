@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.filter;
+package se.simonsoft.cms.publish.rest.config.filter;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
-public class PublishConfigFilterActive implements PublishConfigFilter {
-
-	@Override
-	public boolean accept(PublishConfig config, CmsItem item) {
-		return config.isActive();
-	}
+public interface PublishConfigFilter {
+	
+	boolean accept(PublishConfig config, CmsItem item);
 
 }
