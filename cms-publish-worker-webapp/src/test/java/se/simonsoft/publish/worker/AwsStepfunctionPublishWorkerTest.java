@@ -54,7 +54,7 @@ public class AwsStepfunctionPublishWorkerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
 	private ObjectReader reader = mapper.reader();
-	private ObjectWriter objectWriter = mapper.writer();
+	private ObjectWriter writer = mapper.writer();
 	
 	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
 	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
@@ -91,7 +91,7 @@ public class AwsStepfunctionPublishWorkerTest {
 
 		ArgumentCaptor<SendTaskSuccessRequest> argument = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, spyReader, objectWriter, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, spyReader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -113,7 +113,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false);
 		
 		
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, objectWriter, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -131,7 +131,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithTicketCompleted));
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
 		
-		AwsStepfunctionPublishWorker awsStepfunctionPublishWorker = new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, objectWriter, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		AwsStepfunctionPublishWorker awsStepfunctionPublishWorker = new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		CmsExportAwsWriterSingle mockExportWriter = mock(CmsExportAwsWriterSingle.class);
 		awsStepfunctionPublishWorker.setExportWriter(mockExportWriter);
 		Thread.sleep(300);
@@ -153,7 +153,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		//PeService should throw a PublishException if it has lost the job.
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
 		
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, objectWriter, mockClient, "any_acitivtyArn", mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, "any_acitivtyArn", mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
