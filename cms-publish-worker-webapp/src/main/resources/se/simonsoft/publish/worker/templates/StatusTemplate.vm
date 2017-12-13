@@ -22,6 +22,7 @@
 			table {
 				width: fit-content;
 				border-collapse: collapse;
+				max-width: 60%;
 			}
 			
 			table, th, td {
@@ -44,22 +45,46 @@
 				width: 40%;
 			}
 			
+			#dividerDiv {
+				display: flex;
+				flex-direction: row;
+				overflow: auto;
+				margin: 10px;
+				margin-right: 20px;
+			}
+			
+			#workerLoop {
+				background-color: #e6e6e6;
+				margin: 10px;
+				padding: 1%;
+			}
 		</style>
 		</head>
 	<body>
-		<table>
-			<tr>
-				<th>TimeStamp</th>
-				<th>Action</th>
-				<th id="tableHeadDescription">Description</th>
-			</tr>
-				#foreach($workerEvent in $workerEvents)
-					<tr>
-						<td>$workerEvent.getTimeStamp()</td>
-						<td>$workerEvent.getAction()</td>
-						<td>$workerEvent.getDescription()</td>
-					</tr>
+		<div id="dividerDiv">
+			<table>
+				<tr>
+					<th>TimeStamp</th>
+					<th>Action</th>
+					<th id="tableHeadDescription">Description</th>
+				</tr>
+					#foreach($workerEvent in $workerEvents)
+						<tr>
+							<td>$workerEvent.getTimeStamp()</td>
+							<td>$workerEvent.getAction()</td>
+							<td>$workerEvent.getDescription()</td>
+						</tr>
+					#end
+			</table>
+				#if ($workerLoop)
+				<div id="workerLoop">
+					<h3>Worker Loop</h3>
+					<ul>
+						<li>Timestamp: $workerLoop.getTimeStamp()</li>
+						<li>Description: $workerLoop.getDescription()</li>
+					</ul>
+				</div>
 				#end
-		</table>
+		</div>
 	</body>
 </html>

@@ -16,9 +16,6 @@
 package se.simonsoft.publish.worker;
 
 import java.io.StringWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -33,18 +30,14 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport;
-import se.simonsoft.cms.publish.config.status.report.WorkerStatusReport.WorkerEvent;
+import se.simonsoft.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
 
 @Path("status")
 public class StatusView {
 	
 	private WorkerStatusReport statusReport;
-	private static final Logger logger = LoggerFactory.getLogger(StatusView.class);
-	private DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 	
 	@Inject
 	public void getWorkerStatusReport(WorkerStatusReport statusReport) {
@@ -62,9 +55,11 @@ public class StatusView {
 		engine.init(p);
 		
 		List<WorkerEvent> workerEvents = statusReport.getWorkerEvents();
+		WorkerEvent workerLoop = statusReport.getLastWorkerLoop();
 		
 		VelocityContext context = new VelocityContext();
 		context.put("workerEvents", workerEvents);
+		context.put("workerLoop", workerLoop);
 		
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/StatusTemplate.vm");
 		
