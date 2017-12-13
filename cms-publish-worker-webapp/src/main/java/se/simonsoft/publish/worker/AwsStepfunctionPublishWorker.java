@@ -94,7 +94,7 @@ public class AwsStepfunctionPublishWorker {
 			
 			@Override
 			public void run() {
-				updateStatusReport(new Date(), "Worker Startup", "AwsStepFunctionPublishWorker is running");
+				updateStatusReport(new Date(), "Worker Startup", "Stepfunction Worker is starting");
 				
 				while(true) {
 					GetActivityTaskResult taskResult = null;
@@ -104,7 +104,7 @@ public class AwsStepfunctionPublishWorker {
 					} catch (AbortedException e) {
 						logger.error("Client aborted getActivtyTask, start up time: {}", startUpTime);
 					}
-					updateStatusReport(new Date(), "AWS activity", "Did not recieve a job from AWS Step functions.");
+					updateStatusReport(new Date(), "AWS worker is running", "AWS worker checking for activity");
 					if (hasTaskToken(taskResult)) {
 						PublishTicket publishTicket = null;
 						String progressAsJson = null;
@@ -117,10 +117,11 @@ public class AwsStepfunctionPublishWorker {
 							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
+								updateStatusReport(new Date(), "Retrieving", "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
 								progressAsJson = exportJob(options, taskToken);
 								sendTaskResult(taskToken, progressAsJson);
-								updateStatusReport(new Date(), "Retrieve", "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
 							} else {
+								updateStatusReport(new Date(), "Enqueue", "ActivityArn: " + activityArn);
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
 								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
@@ -135,6 +136,7 @@ public class AwsStepfunctionPublishWorker {
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
+						updateStatusReport(new Date(), "AWS activity", "Did not recieve a job from AWS Step functions.");
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
