@@ -36,15 +36,11 @@
 				background-color: #e6e6e6;
 			}
 			
-			#timestamp {
+			th {
 				width: 30%;
 			}
 			
-			#action {
-				width: 30%;
-			}
-			
-			#description {
+			#tableHeadDescription {
 				width: 40%;
 			}
 			
@@ -53,9 +49,9 @@
 	<body>
 		<table>
 			<tr>
-				<th id="timestamp">TimeStamp</th>
-				<th id="action">Action</th>
-				<th id="description">Description</th>
+				<th>TimeStamp</th>
+				<th>Action</th>
+				<th id="tableHeadDescription">Description</th>
 			</tr>
 				#foreach($workerEvent in $workerEvents)
 					<tr>

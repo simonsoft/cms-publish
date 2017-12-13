@@ -26,14 +26,14 @@
 				height: 400px;
 			}
 			
-			#exampleData {
+			#exampleDataHolder {
 				display: flex;
 				flex-direction: row;
 				overflow: auto;
 				margin: 10px;
 			}
 			
-			.exampleDataBox {
+			.exampleDataHolder {
 				margin: 10px;
 				background-color: #e6e6e6;
 				padding: 1%;
@@ -51,7 +51,7 @@
 			<input id="submitButton" type="submit" value="Submit">
 		</form>
 		<div id="exampleData">
-			<div class="exampleDataBox">
+			<div class="exampleDataHolder">
 				<h3>Example PublishJob Option Json:</h3>
 				<pre>
 					<code>
@@ -68,7 +68,7 @@
 				</code>
 			</pre>
 		</div>
-		<div class="exampleDataBox">
+		<div class="exampleDataHolder">
 			<h3>Example PublishJob Option Json, gets item from svn instead</h3>
 			<pre>
 				<code>

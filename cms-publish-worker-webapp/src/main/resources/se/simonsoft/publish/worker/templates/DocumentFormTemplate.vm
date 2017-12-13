@@ -26,7 +26,7 @@
 				margin-top: 10px;
 			}
 			
-			.exampleDataBox {
+			.exampleDataHolder {
 				margin: 10px;
 				background-color: #e6e6e6;
 				padding: 1%;
@@ -51,13 +51,13 @@
 			<input id="submitButton" type="submit" value="Submit">
 		</form>
 		<div id="exampleData">
-			<div class="exampleDataBox">
+			<div class="exampleDataHolder">
 				<h3>Example test data with aptpath:</h3>
 				<p>$aptpath/e3/e3/e3demo.xml</p>
 				<h3>Example SVN itemid</h3>
 				<p>x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145</p>
 			</div>
-			<div class="exampleDataBox">
+			<div class="exampleDataHolder">
 				<h3>Accepted formats:</h3>
 				<ul>
 					<li>html</li>
