@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.rest.command;
+package se.simonsoft.cms.publish.rest.event;
 
 import java.io.IOException;
 import java.util.ArrayList;
