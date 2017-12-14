@@ -25,7 +25,7 @@ public class WorkerStatusReport {
 
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
 	public static final int MAX_LENGTH = 100;
-	private WorkerEvent workerLoop = new WorkerEvent();
+	private WorkerEvent workerLoop = new WorkerEvent("action", new Date(0), "Has not occured yet");
 
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;
@@ -56,10 +56,6 @@ public class WorkerStatusReport {
 			this.action = action;
 			this.timeStamp = timeStamp;
 			this.description = description;
-		}
-		
-		public WorkerEvent() {
-			
 		}
 
 		public String getTimeStamp() {
