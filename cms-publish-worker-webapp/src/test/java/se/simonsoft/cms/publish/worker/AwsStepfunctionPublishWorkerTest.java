@@ -48,7 +48,7 @@ import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class AwsStepfunctionPublishWorkerTest {
 

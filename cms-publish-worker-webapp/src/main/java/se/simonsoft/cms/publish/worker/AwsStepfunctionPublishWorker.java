@@ -50,8 +50,8 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublishJob;
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport;
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {

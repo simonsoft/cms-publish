@@ -31,8 +31,8 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport;
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
 
 @Path("status")
 public class StatusView {

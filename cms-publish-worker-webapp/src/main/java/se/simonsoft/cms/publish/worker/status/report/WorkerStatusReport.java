@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.publish.worker.status.report;
+package se.simonsoft.cms.publish.worker.status.report;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -25,7 +25,7 @@ public class WorkerStatusReport {
 
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
 	public static final int MAX_LENGTH = 100;
-	private WorkerEvent workerLoop = new WorkerEvent("action", new Date(0), "Has not occured yet");
+	private WorkerEvent workerLoop;
 
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;

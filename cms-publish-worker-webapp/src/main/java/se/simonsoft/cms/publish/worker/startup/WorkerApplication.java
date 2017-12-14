@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
-import se.simonsoft.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
 	
