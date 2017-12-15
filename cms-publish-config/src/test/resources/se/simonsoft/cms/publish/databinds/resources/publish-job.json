@@ -8,7 +8,7 @@
 		"Review",
 		"Released"
 	],
-	"profilingInclude": [
+	"profilingNameInclude": [
 		"*"
 	],
 	"area": {

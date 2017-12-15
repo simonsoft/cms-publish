@@ -25,7 +25,7 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
-	protected List<String> profilingInclude = new ArrayList<String>();
+	protected List<String> profilingNameInclude = new ArrayList<String>();
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	
@@ -33,7 +33,7 @@ public class PublishConfig {
 		this.active = pc.isActive();
 		this.visible = pc.isVisible();
 		this.statusInclude = pc.getStatusInclude();
-		this.profilingInclude = pc.getProfilingInclude();
+		this.profilingNameInclude = pc.getProfilingNameInclude();
 		this.areas = pc.getAreas();
 		this.options = pc.getOptions();
 	}
@@ -58,11 +58,11 @@ public class PublishConfig {
 	public void setStatusInclude(List<String> statusInclude) {
 		this.statusInclude = statusInclude;
 	}
-	public List<String> getProfilingInclude() {
-		return profilingInclude;
+	public List<String> getProfilingNameInclude() {
+		return profilingNameInclude;
 	}
-	public void setProfilingInclude(List<String> profilingInclude) {
-		this.profilingInclude = profilingInclude;
+	public void setProfilingNameInclude(List<String> profilingInclude) {
+		this.profilingNameInclude = profilingInclude;
 	}
 	public List<PublishConfigArea> getAreas() {
 		return areas;
