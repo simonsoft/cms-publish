@@ -3,9 +3,13 @@
   "visible": true,
   "statusInclude": ["Review", "Released"],
   "profilingInclude": ["osx"],
-  "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf",
+  "areas": [
+    {
+        "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${profiling.getName()}.pdf"
+    }
+  ],
 
-  "publish" : {
+  "options" : {
       "type": "abxpe",
       "format": "pdf",
       "params": {
