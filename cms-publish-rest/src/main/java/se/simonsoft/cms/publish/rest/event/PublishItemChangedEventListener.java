@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -172,18 +174,22 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 	private Map<String, PublishConfig> filterConfigs(CmsItem item, Map<String, PublishConfig> configs) {
 		
-		Iterator<String> iterator = configs.keySet().iterator();
 		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
-		while (iterator.hasNext()) {
-			String next = iterator.next();
+		for (Entry<String, PublishConfig> config: configs.entrySet()) {
+			List<String> filtered = new ArrayList<String>(filters.size());
 			for (PublishConfigFilter f: filters) {
-				if (f.accept(configs.get(next), item)) {
-					logger.debug("Config {} where accepted.", next);
-					filteredConfigs.put(next, configs.get(next));
+				if (!f.accept(config.getValue(), item)) {
+					filtered.add(f.getClass().getName());
 				}
 			}
+			if (filtered.isEmpty()) {
+				logger.debug("Config '{}' was accepted.", config.getKey());
+				filteredConfigs.put(config.getKey(), config.getValue());
+			} else {
+				logger.debug("Config '{}' was filtered: {}", config.getKey(), filtered);
+			}
 		}
-		return configs;
+		return filteredConfigs;
 	}
 	
 	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item) {
