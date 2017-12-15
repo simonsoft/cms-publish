@@ -25,6 +25,7 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
+	protected List<String> typeInclude;
 	protected List<String> profilingNameInclude = new ArrayList<String>();
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
@@ -57,6 +58,12 @@ public class PublishConfig {
 	}
 	public void setStatusInclude(List<String> statusInclude) {
 		this.statusInclude = statusInclude;
+	}
+	public List<String> getTypeInclude() {
+		return this.typeInclude;
+	}
+	public void setTypeInclude(List<String> typeInclude) {
+		this.typeInclude = typeInclude;
 	}
 	public List<String> getProfilingNameInclude() {
 		return profilingNameInclude;

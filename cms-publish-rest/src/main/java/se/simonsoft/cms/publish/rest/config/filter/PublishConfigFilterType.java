@@ -15,6 +15,8 @@
  */
 package se.simonsoft.cms.publish.rest.config.filter;
 
+import java.util.List;
+
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
@@ -25,7 +27,14 @@ public class PublishConfigFilterType implements PublishConfigFilter {
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
 		String type = (String) item.getMeta().get(typeInclude);
-		return config.getOptions().getType().equals(type);
+		
+		boolean accept = false;
+		List<String> typeInclude = config.getTypeInclude();
+		if (typeInclude == null || typeInclude.contains(type)) { 
+			accept = true;
+		}
+		
+		return accept;
 	}
 
 }

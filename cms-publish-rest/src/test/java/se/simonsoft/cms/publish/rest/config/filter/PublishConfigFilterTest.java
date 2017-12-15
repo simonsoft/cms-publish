@@ -40,6 +40,7 @@ public class PublishConfigFilterTest {
 	
 	private ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
 	private String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	private String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
 	
 	@Test
 	public void testStatusJacksonParse() throws Exception {
@@ -78,7 +79,7 @@ public class PublishConfigFilterTest {
 		assertTrue(filter.accept(publishConfigStatus, itemMockReview));
 		
 		CmsItem itemMockInWork = mock(CmsItem.class);
-		when(itemMockInWork.getStatus()).thenReturn("In_work");
+		when(itemMockInWork.getStatus()).thenReturn("In_Work");
 		assertFalse(filter.accept(publishConfigStatus, itemMockInWork));
 		
 		publishConfigStatus.setStatusInclude(new ArrayList<String>());
@@ -99,12 +100,12 @@ public class PublishConfigFilterTest {
 	
 	@Test
 	public void testTypeFilter() throws Exception {
-		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus);
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);
 		PublishConfigFilter filter = new PublishConfigFilterType();
 		
 		CmsItem itemMockTypeAbxpe = mock(CmsItem.class);
 		Map<String, Object> meta = new HashMap<String, Object>();
-		meta.put("embd_xml_a_type", "abxpe");
+		meta.put("embd_xml_a_type", "operator");
 		when(itemMockTypeAbxpe.getMeta()).thenReturn(meta);
 		assertTrue(filter.accept(publishConfig, itemMockTypeAbxpe));
 		
