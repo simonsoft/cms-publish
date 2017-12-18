@@ -100,7 +100,7 @@ public class AwsStepfunctionPublishWorker {
 			
 			@Override
 			public void run() {
-				updateStatusReport(new Date(), "Worker Startup", "AwsStepFunctionPublishWorker is running");
+				updateStatusReport("Worker Startup" ,new Date(), "AwsStepFunctionPublishWorker is running");
 				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				final String startupTimeFormatted = df.format(startUpTime);
 				
@@ -109,7 +109,7 @@ public class AwsStepfunctionPublishWorker {
 					
 					try {
 						logger.debug("Client getting activity task");
-						setWorkerLoop(new Date(), "", "AWS worker checking for activity");
+						updateWorkerLoop("", new Date(),  "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
 						updateWorkerError(new Date(), e);
@@ -120,23 +120,23 @@ public class AwsStepfunctionPublishWorker {
 						String progressAsJson = null;
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
-						updateStatusReport(new Date(), "Enqueue", "ActivityArn: " + activityArn);
+						updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
 							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
-								updateStatusReport(new Date(), "Retrieving", "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
+								updateStatusReport("Retrieving", new Date(), "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
 								progressAsJson = exportJob(options, taskToken);
 								sendTaskResult(taskToken, progressAsJson);
 							} else {
-								updateStatusReport(new Date(), "Enqueue", "ActivityArn: " + activityArn);
+								updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
 								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
 								sendTaskResult(taskToken, progressAsJson);
-								updateStatusReport(new Date(), "Enqueued", "ActivityArn: "+ activityArn + " Ticket: " + publishTicket.toString());
+								updateStatusReport("Enqueued", new Date(), "ActivityArn: "+ activityArn + " Ticket: " + publishTicket.toString());
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
@@ -149,7 +149,7 @@ public class AwsStepfunctionPublishWorker {
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
-						updateStatusReport(new Date(), "AWS activity", "Did not recieve a job from AWS Step functions.");
+						updateStatusReport("AWS activity", new Date(), "Did not recieve a job from AWS Step functions.");
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
@@ -179,7 +179,7 @@ public class AwsStepfunctionPublishWorker {
 			logger.debug("Job is exported to: {}", exportPath);
 		} else {
 			logger.debug("Job is not completed send fail result JobPending");
-			updateStatusReport(new Date(), "Job Pending", "ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString());
+			updateStatusReport("Job Pending", new Date(), "ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString());
 			throw new CommandRuntimeException("JobPending");
 		}
 		return progressAsJson;
@@ -214,7 +214,7 @@ public class AwsStepfunctionPublishWorker {
 		exportWriter.write();
 
 		logger.debug("Job has been exported to S3.");
-		updateStatusReport(new Date(), "Exporting PublishJob to s3", activityArn);
+		updateStatusReport("Exporting PublishJob to s3", new Date(), activityArn);
 		
 		return job.getJobPath();
 	}
@@ -281,7 +281,7 @@ public class AwsStepfunctionPublishWorker {
 		return progressJson;
 	}
 	
-	private void updateStatusReport(Date timeStamp, String action, String description) {
+	private void updateStatusReport(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
 		workerStatusReport.addWorkerEvent(event);
 	}
@@ -295,7 +295,7 @@ public class AwsStepfunctionPublishWorker {
 		workerStatusReport.addWorkerEvent(event);
 	}
 	
-	private void setWorkerLoop(Date timeStamp, String action, String description) {
+	private void updateWorkerLoop(String action, Date timeStamp,  String description) {
 		WorkerEvent event = new WorkerEvent("", timeStamp, description);
 		workerStatusReport.setLastWorkerLoop(event);
 	}
