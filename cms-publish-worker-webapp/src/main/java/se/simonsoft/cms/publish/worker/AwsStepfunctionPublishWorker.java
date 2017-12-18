@@ -150,6 +150,7 @@ public class AwsStepfunctionPublishWorker {
 						}
 					} else {
 						
+					}
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
@@ -159,9 +160,9 @@ public class AwsStepfunctionPublishWorker {
 						}
 					}
 				}
-			}
-		});
-	}
+			});
+		}
+	
 	
 	private String exportJob(PublishJobOptions options, String taskToken) throws PublishException, IOException, CommandRuntimeException {
 		logger.debug("Job has a ticket, checking if it is ready for export.");
