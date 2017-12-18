@@ -57,6 +57,12 @@ public class WorkerStatusReport {
 			this.timeStamp = timeStamp;
 			this.description = description;
 		}
+		
+		public WorkerEvent(String action, Date timeStamp, Exception e) {
+			this.action = action;
+			this.timeStamp = timeStamp;
+			this.description = e.getMessage();
+		}
 
 		public String getTimeStamp() {
 			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");

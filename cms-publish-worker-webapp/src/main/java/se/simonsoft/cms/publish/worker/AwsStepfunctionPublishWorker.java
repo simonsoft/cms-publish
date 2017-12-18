@@ -109,11 +109,12 @@ public class AwsStepfunctionPublishWorker {
 					
 					try {
 						logger.debug("Client getting activity task");
+						setWorkerLoop(new Date(), "", "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
+						updateWorkerError(new Date(), e);
 						logger.error("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted);
 					}
-					updateStatusReport(new Date(), "AWS worker is running", "AWS worker checking for activity");
 					if (hasTaskToken(taskResult)) {
 						PublishTicket publishTicket = null;
 						String progressAsJson = null;
@@ -138,10 +139,13 @@ public class AwsStepfunctionPublishWorker {
 								updateStatusReport(new Date(), "Enqueued", "ActivityArn: "+ activityArn + " Ticket: " + publishTicket.toString());
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
+							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
+							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
+							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
@@ -150,6 +154,7 @@ public class AwsStepfunctionPublishWorker {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
 						} catch (InterruptedException e) {
+							updateWorkerError(new Date(), e);
 							logger.error("Could not sleep thread", e.getMessage());
 						}
 					}
@@ -283,5 +288,15 @@ public class AwsStepfunctionPublishWorker {
 	//Necessary for tests. Tests has to be able to set the writer to a mock instance.
 	protected void setExportWriter(CmsExportAwsWriterSingle writer) {
 		this.exportWriter = writer;
+	}
+	
+	private void updateWorkerError(Date timeStamp, Exception e) {
+		WorkerEvent event = new WorkerEvent("Error", timeStamp, e);
+		workerStatusReport.addWorkerEvent(event);
+	}
+	
+	private void setWorkerLoop(Date timeStamp, String action, String description) {
+		WorkerEvent event = new WorkerEvent("", timeStamp, description);
+		workerStatusReport.setLastWorkerLoop(event);
 	}
 }
