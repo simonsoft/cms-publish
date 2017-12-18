@@ -54,7 +54,6 @@ public class WorkerApplication extends ResourceConfig {
 	
 	private String awsId;
 	private String awsSecret;
-	
 	private String cloudId; 
 	private AWSCredentialsProvider credentials;
 	
