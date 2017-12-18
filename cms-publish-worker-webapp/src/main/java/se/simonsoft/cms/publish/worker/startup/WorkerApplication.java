@@ -77,8 +77,8 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
             	
-            	awsId = environment.getParam("cms.aws.key.id");
-            	awsSecret = environment.getParam("cms.aws.key.secret");
+            	awsId = environment.getParamOptional("cms.aws.key.id");
+            	awsSecret = environment.getParamOptional("cms.aws.key.secret");
             	cloudId = environment.getParam("cms.cloudid");
             	
             	if (isAwsSecretAndId(awsId, awsSecret)) {
