@@ -55,6 +55,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String awsId;
 	private String awsSecret;
 	private String cloudId; 
+	private String awsAccountId;
 	private AWSCredentialsProvider credentials;
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
@@ -64,6 +65,7 @@ public class WorkerApplication extends ResourceConfig {
 		System.out.println("WORKER CONFIG");
 		
 		register(new AbstractBinder() {
+
 
 
 			@Override
@@ -80,6 +82,7 @@ public class WorkerApplication extends ResourceConfig {
             	awsId = environment.getParamOptional("cms.aws.key.id");
             	awsSecret = environment.getParamOptional("cms.aws.key.secret");
             	cloudId = environment.getParam("cms.cloudid");
+            	awsAccountId = getAwsAccountId(credentials);
             	
             	if (isAwsSecretAndId(awsId, awsSecret)) {
             		credentials = getCredentials(awsId, awsSecret);
@@ -97,7 +100,7 @@ public class WorkerApplication extends ResourceConfig {
             	
             	bind(client).to(AWSStepFunctions.class);
             	
-            	//Jackson binding reader for future useage.
+            	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
         		ObjectReader reader = mapper.reader();
         		ObjectWriter writer = mapper.writer();
@@ -123,33 +126,51 @@ public class WorkerApplication extends ResourceConfig {
 	}
 	
 	private String getAwsArn(String type, String name) {
-
-		final String arnDelimiter = ":";
-		final String nameDelimiter = "-";
-		final String namePrefix = "cms";
-
-		final StringBuilder sb = new StringBuilder(AWS_ARN_STATE_START);
-		sb.append(arnDelimiter);
-		sb.append(AWS_REGION);
-		sb.append(arnDelimiter);
-		sb.append(getAwsAccountId(credentials));
-		sb.append(arnDelimiter);
-		sb.append(type);
-		sb.append(arnDelimiter);
-		sb.append(namePrefix);
-		sb.append(nameDelimiter);
-		sb.append(cloudId);
-		sb.append(nameDelimiter);
-		sb.append(name);
 		
-		return sb.toString();
+		String awsArn = null;
+		
+		if (awsAccountId != null) {
+
+			final String arnDelimiter = ":";
+			final String nameDelimiter = "-";
+			final String namePrefix = "cms";
+
+			final StringBuilder sb = new StringBuilder(AWS_ARN_STATE_START);
+			sb.append(arnDelimiter);
+			sb.append(AWS_REGION);
+			sb.append(arnDelimiter);
+			sb.append(awsAccountId); 
+			sb.append(arnDelimiter);
+			sb.append(type);
+			sb.append(arnDelimiter);
+			sb.append(namePrefix);
+			sb.append(nameDelimiter);
+			sb.append(cloudId);
+			sb.append(nameDelimiter);
+			sb.append(name);
+			awsArn = sb.toString();
+		}
+		
+		return awsArn;
 	}
 
 	private String getAwsAccountId(AWSCredentialsProvider credentials) {
-		AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
-		GetCallerIdentityRequest request = new GetCallerIdentityRequest();
-		GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
-		return response.getAccount();
+		
+		logger.debug("Requesting aws to get a account Id");
+		
+		String accountId = null;
+		try {
+			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
+			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
+			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
+			 accountId = response.getAccount();
+		} catch (Exception e) {
+			logger.error("Could not get a AWS account id: {}", e.getMessage());
+		}
+		
+		logger.debug("Requested aws account id: {}", accountId);
+		
+		return accountId;
 
 	}
 	
