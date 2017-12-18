@@ -82,13 +82,13 @@ public class WorkerApplication extends ResourceConfig {
             	awsId = environment.getParamOptional("cms.aws.key.id");
             	awsSecret = environment.getParamOptional("cms.aws.key.secret");
             	cloudId = environment.getParam("cms.cloudid");
-            	awsAccountId = getAwsAccountId(credentials);
             	
             	if (isAwsSecretAndId(awsId, awsSecret)) {
             		credentials = getCredentials(awsId, awsSecret);
             	} else {
             		credentials = new DefaultAWSCredentialsProviderChain();
             	}
+            	awsAccountId = getAwsAccountId(credentials);
             	
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
@@ -163,7 +163,7 @@ public class WorkerApplication extends ResourceConfig {
 			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
 			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
 			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
-			 accountId = response.getAccount();
+			accountId = response.getAccount();
 		} catch (Exception e) {
 			logger.error("Could not get a AWS account id: {}", e.getMessage());
 		}
