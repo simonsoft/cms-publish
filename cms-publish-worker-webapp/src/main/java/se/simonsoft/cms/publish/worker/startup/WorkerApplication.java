@@ -28,6 +28,10 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +48,16 @@ public class WorkerApplication extends ResourceConfig {
 	private final Environment environment = new Environment();
 	private final String bucketName = "cms-review-jandersson";
 	
+	private static String AWS_REGION = Regions.EU_WEST_1.getName();
+	private static String AWS_ARN_STATE_START = "arn:aws:states";
+	private static String AWS_ACTIVITY_NAME = "abxpe";
+	
+	private String awsId;
+	private String awsSecret;
+	private String cloudId; 
+	private String awsAccountId;
+	private AWSCredentialsProvider credentials;
+	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
 	public WorkerApplication()  {
@@ -51,7 +65,10 @@ public class WorkerApplication extends ResourceConfig {
 		System.out.println("WORKER CONFIG");
 		
 		register(new AbstractBinder() {
-            @Override
+
+
+
+			@Override
             protected void configure() {
             	
             	bind(new PublishServicePe()).to(PublishServicePe.class);
@@ -62,16 +79,16 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
             	
-            	final String awsId = environment.getVariable("cms.aws.key.id");
-            	final String awsSecret = environment.getVariable("cms.aws.key.secret");
-            	final String awsCloudId = environment.getVariable("cms.aws.cloud.id");
+            	awsId = environment.getParamOptional("cms.aws.key.id");
+            	awsSecret = environment.getParamOptional("cms.aws.key.secret");
+            	cloudId = environment.getParam("cms.cloudid");
             	
-            	AWSCredentialsProvider credentials;
             	if (isAwsSecretAndId(awsId, awsSecret)) {
             		credentials = getCredentials(awsId, awsSecret);
             	} else {
             		credentials = new DefaultAWSCredentialsProviderChain();
             	}
+            	awsAccountId = getAwsAccountId(credentials);
             	
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
@@ -83,7 +100,7 @@ public class WorkerApplication extends ResourceConfig {
             	
             	bind(client).to(AWSStepFunctions.class);
             	
-            	//Jackson binding reader for future useage.
+            	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
         		ObjectReader reader = mapper.reader();
         		ObjectWriter writer = mapper.writer();
@@ -92,13 +109,13 @@ public class WorkerApplication extends ResourceConfig {
         		
         		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
         		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(awsCloudId,
+        		new AwsStepfunctionPublishWorker(cloudId,
         				bucketName,
         				credentials,
         				reader,
         				writer,
         				client,
-        				"arn:aws:states:eu-west-1:148829428743:activity:cms-jandersson-abxpe",
+        				getAwsArn("activity", AWS_ACTIVITY_NAME),
         				publishJobService,	
         				workerStatusReport);
         		
@@ -106,6 +123,55 @@ public class WorkerApplication extends ResourceConfig {
             }
         });
 		
+	}
+	
+	private String getAwsArn(String type, String name) {
+		
+		String awsArn = null;
+		
+		if (awsAccountId != null) {
+
+			final String arnDelimiter = ":";
+			final String nameDelimiter = "-";
+			final String namePrefix = "cms";
+
+			final StringBuilder sb = new StringBuilder(AWS_ARN_STATE_START);
+			sb.append(arnDelimiter);
+			sb.append(AWS_REGION);
+			sb.append(arnDelimiter);
+			sb.append(awsAccountId); 
+			sb.append(arnDelimiter);
+			sb.append(type);
+			sb.append(arnDelimiter);
+			sb.append(namePrefix);
+			sb.append(nameDelimiter);
+			sb.append(cloudId);
+			sb.append(nameDelimiter);
+			sb.append(name);
+			awsArn = sb.toString();
+		}
+		
+		return awsArn;
+	}
+
+	private String getAwsAccountId(AWSCredentialsProvider credentials) {
+		
+		logger.debug("Requesting aws to get a account Id");
+		
+		String accountId = null;
+		try {
+			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
+			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
+			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
+			accountId = response.getAccount();
+		} catch (Exception e) {
+			logger.error("Could not get a AWS account id: {}", e.getMessage());
+		}
+		
+		logger.debug("Requested aws account id: {}", accountId);
+		
+		return accountId;
+
 	}
 	
 	private AWSCredentialsProvider getCredentials(final String id, final String secret) {

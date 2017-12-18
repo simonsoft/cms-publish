@@ -47,7 +47,7 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 			AWSCredentialsProvider credentials,
 			ObjectWriter objectWriter) {
 		
-		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class);
+		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
 		this.awsWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
 	}
 
