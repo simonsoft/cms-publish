@@ -21,7 +21,7 @@ public class Environment {
     	String env = System.getenv(key);
     	
     	if (env == null || env.isEmpty()) {
-    		throw new IllegalStateException("The requested environment variable: " + key + " is missing or empty.");
+    		throw new IllegalStateException("The required environment variable: " + key + " is missing or empty.");
     	}
     	
     	return env;
