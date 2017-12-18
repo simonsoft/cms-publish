@@ -33,16 +33,16 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
 
-public class ManifestEventHandler implements ExternalCommandHandler<PublishJobOptions>{
+public class ManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
-	private static final Logger logger = LoggerFactory.getLogger(ManifestEventHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(ManifestExportCommandHandler.class);
 	private final CmsExportAwsWriterSingle awsWriter;
 	private final ObjectWriter writerPublishManifest;
 	private final String manifestExtension = "json";
 
 	@Inject
-	public ManifestEventHandler(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
+	public ManifestExportCommandHandler(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 			AWSCredentialsProvider credentials,
 			ObjectWriter objectWriter) {
