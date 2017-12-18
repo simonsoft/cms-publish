@@ -16,7 +16,19 @@
 package se.simonsoft.cms.publish.worker.startup;
 
 public class Environment {
-    public String getVariable(String key) {
-        return System.getenv(key);
+    
+    public String getParam(String key) {
+    	String env = System.getenv(key);
+    	
+    	if (env == null || env.isEmpty()) {
+    		throw new IllegalStateException("The required environment variable: " + key + " is missing or empty.");
+    	}
+    	
+    	return env;
+    }
+    
+    
+    public String getParamOptional(String key) {
+    	return System.getenv(key);
     }
 }
