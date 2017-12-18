@@ -142,14 +142,14 @@ public class AwsStepfunctionPublishWorker {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateWorkerError(new Date(), e);
+							updateWorkerError(new Date(), new CommandRuntimeException("ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString()));
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
-						updateStatusReport(new Date(), "AWS activity", "Did not recieve a job from AWS Step functions.");
+						
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
@@ -179,7 +179,6 @@ public class AwsStepfunctionPublishWorker {
 			logger.debug("Job is exported to: {}", exportPath);
 		} else {
 			logger.debug("Job is not completed send fail result JobPending");
-			updateStatusReport(new Date(), "Job Pending", "ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString());
 			throw new CommandRuntimeException("JobPending");
 		}
 		return progressAsJson;
