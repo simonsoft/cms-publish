@@ -142,7 +142,7 @@ public class AwsStepfunctionPublishWorker {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateWorkerError(new Date(), new CommandRuntimeException("ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString()));
+							updateWorkerError(new Date(), new CommandRuntimeException(e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString()));
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
