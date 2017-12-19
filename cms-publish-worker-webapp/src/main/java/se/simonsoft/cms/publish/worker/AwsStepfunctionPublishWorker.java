@@ -121,10 +121,11 @@ public class AwsStepfunctionPublishWorker {
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
 						updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
+						PublishJobOptions options = null;
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
-							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
+							options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
 								updateStatusReport("Retrieving", new Date(), "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
@@ -142,7 +143,10 @@ public class AwsStepfunctionPublishWorker {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateWorkerError(new Date(), new CommandRuntimeException(e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString()));
+							updateStatusReport("Retrieving" ,
+									new Date(), 
+									e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
+							
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
