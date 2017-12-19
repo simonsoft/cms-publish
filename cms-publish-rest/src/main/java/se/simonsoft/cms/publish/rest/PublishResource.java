@@ -1,5 +1,7 @@
 package se.simonsoft.cms.publish.rest;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -14,6 +16,13 @@ import se.simonsoft.cms.item.CmsItemId;
 
 @Path("/publish4")
 public class PublishResource {
+	
+	private final String hostname;
+
+	@Inject
+	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname) {
+		this.hostname = hostname;
+	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
 	
