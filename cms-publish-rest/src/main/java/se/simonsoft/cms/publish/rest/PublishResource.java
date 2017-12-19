@@ -3,7 +3,9 @@ package se.simonsoft.cms.publish.rest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ public class PublishResource {
 	@GET
 	@Path("release")
 	@Produces(MediaType.TEXT_HTML)
-	public String getReleaseForm() throws Exception {
+	public String getReleaseForm(@QueryParam("item") CmsItemId itemId) throws Exception {
 		//TODO: implement.
 		return "Not implemented";
 	}
@@ -26,9 +28,15 @@ public class PublishResource {
 	@GET
 	@Path("release/download")
 	@Produces(MediaType.TEXT_HTML)
-	public String download(CmsItemId itemId, boolean incRelease, boolean incTranslation, String[] profiling, String publication) throws Exception {
+	public Response getDownload(@QueryParam("item") CmsItemId itemId,
+						@QueryParam("incRelease") boolean incRelease,
+						@QueryParam("incTranslation") boolean incTranslation,
+						@QueryParam("profiling") String[] profiling,
+						@QueryParam("publication") String publication) throws Exception {
+		
 		logger.debug("Not yet implemented");
-		return "Succesfully called get release/download";
+		
+		return Response.ok("Succesfully called get release/download").build();
 	}
 	
 	
