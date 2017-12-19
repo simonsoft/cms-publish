@@ -26,7 +26,7 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 public class PublishJobStorageFactory {
 	
 	private final String pathVersion = "cms4";
-	private final String s3Bucket = "cms-automation"; //TODO: Bucket may be injected.
+	private final String s3bucket = "cms-automation"; //TODO: Bucket may be injected.
 	
 	private final String cloudId;
 
@@ -46,10 +46,10 @@ public class PublishJobStorageFactory {
 		s.setPathconfigname(configName);
 		s.setPathcloudid(cloudId);
 		
-		if (c.getType() != null && c.getType().equals("s3")) {
-			s.getParams().put("s3bucket", s3Bucket);
-			s.setType(c.getType());
+		if (c.getType().equals("s3")) {
+			s.getParams().put("s3bucket", s3bucket);
 		}
+		s.setType(c.getType());
 		
 		return s;
 	}
