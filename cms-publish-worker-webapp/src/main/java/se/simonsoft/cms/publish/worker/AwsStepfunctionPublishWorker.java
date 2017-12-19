@@ -62,7 +62,7 @@ public class AwsStepfunctionPublishWorker {
 	private final PublishJobService publishJobService;
 	private final WorkerStatusReport workerStatusReport;
 	private final String jobExtension = "zip";
-	
+
 	private CmsExportAwsWriterSingle exportWriter; // Can not be final, protected setMethod to be able to mock it.
 	private Date startUpTime;
 	private ObjectReader reader;
@@ -97,16 +97,16 @@ public class AwsStepfunctionPublishWorker {
 
 	private void startListen() {
 		awsClientExecutor.execute(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				updateStatusReport("Worker Startup", new Date(), "AwsStepFunctionPublishWorker is running");
 				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				final String startupTimeFormatted = df.format(startUpTime);
-				
+
 				while(true) {
 					GetActivityTaskResult taskResult = null;
-					
+
 					try {
 						logger.debug("Client getting activity task");
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
@@ -121,10 +121,11 @@ public class AwsStepfunctionPublishWorker {
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
 						updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
+						PublishJobOptions options = null;
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
-							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
+							options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
 								updateStatusReport("Retrieving", new Date(), "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
@@ -142,7 +143,7 @@ public class AwsStepfunctionPublishWorker {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateWorkerError(new Date(), new CommandRuntimeException(e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString()));
+							updateWorkerError(new Date(), new CommandRuntimeException(e.getErrorName() + ", ActivityArn: "+ activityArn + " Ticket: " + options.getProgress().getParams().get("ticket")));
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
@@ -150,7 +151,6 @@ public class AwsStepfunctionPublishWorker {
 						}
 					} else {
 						
-					}
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
@@ -160,18 +160,20 @@ public class AwsStepfunctionPublishWorker {
 						}
 					}
 				}
-			});
-		}
-	
-	
+			}
+		});
+	}
+
+
+
 	private String exportJob(PublishJobOptions options, String taskToken) throws PublishException, IOException, CommandRuntimeException {
 		logger.debug("Job has a ticket, checking if it is ready for export.");
-		
+
 		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
 		final boolean jobCompleted = isJobCompleted(publishTicket);
 		final PublishJobProgress progress = getJobProgress(publishTicket, jobCompleted);
 		final String progressAsJson = getProgressAsJson(progress);
-		
+
 		String exportPath = null;
 
 		if (jobCompleted) { 
@@ -184,30 +186,30 @@ public class AwsStepfunctionPublishWorker {
 		}
 		return progressAsJson;
 	}
-	
+
 	private boolean hasTaskToken(GetActivityTaskResult taskResult) {
 		return taskResult != null && taskResult.getTaskToken() != null && !taskResult.getTaskToken().isEmpty();
 	}
-	
+
 	private PublishTicket requestPublish(String taskToken, PublishJobOptions options) throws InterruptedException, PublishException {
 		PublishTicket ticket = publishJobService.publishJob(options);
-		
+
 		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
-	
+
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
 		logger.debug("Preparing publishJob {} for export to s3", options.getPathname());
-		
+
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
-		
+
 		PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
 		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(publishTicket,
 				publishJobService,
 				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
 		job.addExportItem(exportItem);
 		job.prepare();
-		
+
 		logger.debug("Preparing writer for export...");
 		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
@@ -215,20 +217,20 @@ public class AwsStepfunctionPublishWorker {
 
 		logger.debug("Job has been exported to S3.");
 		updateStatusReport("Exporting PublishJob to s3", new Date(), activityArn);
-		
+
 		return job.getJobPath();
 	}
-	
+
 	private boolean hasTicket(PublishJobOptions options) {
 		logger.debug("Checking if options has a ticket");
-		
+
 		boolean hasTicket = false;
-        if (options.getProgress() != null) {
-            hasTicket = options.getProgress().getParams().containsKey("ticket");
-        }
-        return hasTicket;
+		if (options.getProgress() != null) {
+			hasTicket = options.getProgress().getParams().containsKey("ticket");
+		}
+		return hasTicket;
 	}
-	
+
 	private PublishJobOptions deserializeInputToOptions(String input) {
 		PublishJobOptions options = null;
 		try {
@@ -241,16 +243,16 @@ public class AwsStepfunctionPublishWorker {
 
 		return options;
 	}
-	
+
 	private boolean isJobCompleted(PublishTicket ticket) throws PublishException {
 		return publishJobService.isCompleted(ticket);
 	}
-	
+
 	private void sendTaskResult(String taskToken, String progressResultJson) {
 		SendTaskSuccessRequest sendTaskSuccessRequest = new SendTaskSuccessRequest().withTaskToken(taskToken).withOutput(progressResultJson);
 		client.sendTaskSuccess(sendTaskSuccessRequest);
 	}
-	
+
 	private void sendTaskResult(String taskToken, String readableCause, CommandRuntimeException e) {
 		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
 		failReq.setTaskToken(taskToken);
@@ -258,7 +260,7 @@ public class AwsStepfunctionPublishWorker {
 		failReq.setError(e.getErrorName());
 		client.sendTaskFailure(failReq);
 	}
-	
+
 	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted) {
 		PublishJobProgress progress = new PublishJobProgress();
 		progress.setParams(new HashMap<String, String>());
@@ -266,7 +268,7 @@ public class AwsStepfunctionPublishWorker {
 		progress.getParams().put("completed", String.valueOf(isCompleted));
 		return progress;
 	}
-	
+
 	private String getProgressAsJson(PublishJobProgress progress) {
 		logger.debug("Serializing progress");
 		ObjectWriter progressWriter = writer.forType(PublishJobProgress.class);
@@ -280,7 +282,7 @@ public class AwsStepfunctionPublishWorker {
 		logger.debug("Progress is serialized {}", progressJson);
 		return progressJson;
 	}
-	
+
 	private void updateStatusReport(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
 		workerStatusReport.addWorkerEvent(event);
@@ -289,12 +291,12 @@ public class AwsStepfunctionPublishWorker {
 	protected void setExportWriter(CmsExportAwsWriterSingle writer) {
 		this.exportWriter = writer;
 	}
-	
+
 	private void updateWorkerError(Date timeStamp, Exception e) {
 		WorkerEvent event = new WorkerEvent("Error", timeStamp, e);
 		workerStatusReport.addWorkerEvent(event);
 	}
-	
+
 	private void updateWorkerLoop(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent("", timeStamp, description);
 		workerStatusReport.setLastWorkerLoop(event);
