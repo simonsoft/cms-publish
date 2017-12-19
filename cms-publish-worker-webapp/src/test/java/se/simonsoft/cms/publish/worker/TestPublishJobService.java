@@ -73,8 +73,8 @@ public class TestPublishJobService {
         assertEquals("yes", pr.getParams().get("zip-output"));
         assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
         assertEquals("pdf", pr.getParams().get("type"));
-        assertEquals("axdocbook.style", pr.getParams().get("stylesheet"));
-        assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
+        assertEquals("$aptpath/application/axdocbook.style", pr.getParams().get("stylesheet"));
+        assertEquals("$aptpath/application/smallfile.pdfcf", pr.getParams().get("pdfconfig"));
         assertEquals("x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
         assertEquals("pdf", pr.getFormat().getFormat());
         

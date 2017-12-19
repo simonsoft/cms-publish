@@ -32,6 +32,7 @@ import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.*;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import se.simonsoft.cms.publish.worker.startup.Environment;
 import se.simonsoft.cms.publish.PublishSource;
 
 public class PublishJobService {
@@ -104,7 +105,7 @@ public class PublishJobService {
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
-			request.addParam(entry.getKey(), entry.getValue());
+			request.addParam(entry.getKey(), formatParam(entry.getValue()));
 		}
 		return request;
 	}
@@ -114,5 +115,23 @@ public class PublishJobService {
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
 		return pe.isCompleted(ticket, request);
+	}
+	
+	private String formatParam(String param) {
+		Environment env = new Environment();
+		String envVariable = env.getParamOptional("APTAPPLICATION");
+		if(param.startsWith("$aptapplication")) {
+			envVariable = "$aptpath/application/";
+			
+		} else if (!(envVariable == null)) {
+			String[] split = envVariable.split(";");
+			envVariable = split[0];
+			envVariable = envVariable.replaceAll("\\", "/");
+		} else {
+			envVariable = "$aptpath/application/";
+		}
+		StringBuilder sb = new StringBuilder(envVariable);
+		sb.append(param);
+		return sb.toString();
 	}
 }
