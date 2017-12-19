@@ -21,7 +21,11 @@ public class PublishResource {
 	@Path("release")
 	@Produces(MediaType.TEXT_HTML)
 	public String getReleaseForm(@QueryParam("item") CmsItemId itemId) throws Exception {
-		//TODO: implement.
+		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+		
 		return "Not implemented";
 	}
 	
