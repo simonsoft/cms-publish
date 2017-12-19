@@ -43,11 +43,15 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishConfigFilterTest {
 	
-	private ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
-	private String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
-	private String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-	private String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
-	private String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
+	private final ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
+	
+	private final String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
+	private final String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
+	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
+	@SuppressWarnings("unused")
+	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
+	
 	
 	@Test
 	public void testStatusJacksonParse() throws Exception {

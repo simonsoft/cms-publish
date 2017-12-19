@@ -77,12 +77,16 @@ public class PublishItemChangedEventListenerTest {
 	@Mock Iterator<CmsConfigOption> mockOptionIterator;
 	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
 	
-	private final String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-	private final String configProfilingAllPath = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
-	private final String configProfilingOSXPath = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
+	@SuppressWarnings("unused")
+	private final String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
+	private final String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	@SuppressWarnings("unused")
+	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
+	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
+	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
 	
-	private final String publishJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
-	private final String publishJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
+	private final String pathJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
+	private final String pathJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
 	
 	
 	
@@ -115,8 +119,8 @@ public class PublishItemChangedEventListenerTest {
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath ));
-		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 		
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -200,8 +204,8 @@ public class PublishItemChangedEventListenerTest {
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath ));
-		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 		
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -241,8 +245,8 @@ public class PublishItemChangedEventListenerTest {
 		initProfilingMock();
 
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath));
-		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -304,7 +308,7 @@ public class PublishItemChangedEventListenerTest {
 		initProfilingMock();
 
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configProfilingAllPath));
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigProfilingAll));
 		when(mockOptionIterator.next()).thenReturn(configOption);
 
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -391,7 +395,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
 		
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
@@ -413,7 +417,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusRelease);
+		String statusJobFromFile = getPublishConfigFromPath(pathJobStatusRelease);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
 		
@@ -485,7 +489,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
 		
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
@@ -507,7 +511,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusTranslation);
+		String statusJobFromFile = getPublishConfigFromPath(pathJobStatusTranslation);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
 		
