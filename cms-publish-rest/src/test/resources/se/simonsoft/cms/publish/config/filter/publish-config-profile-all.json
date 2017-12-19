@@ -2,7 +2,7 @@
   "active": true,
   "visible": true,
   "statusInclude": ["Review", "Released"],
-  "profilingNameInclude": ["*"],
+  "profilingInclude": true,
   "areas": [
     {
         "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${profiling.getName()}.pdf"

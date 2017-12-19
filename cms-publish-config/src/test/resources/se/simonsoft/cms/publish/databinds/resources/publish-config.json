@@ -2,6 +2,7 @@
   "active": true,
   "visible": true,
   "statusInclude": ["Review", "Released"],
+  "profilingInclude": true,
   "profilingNameInclude": ["*"],
   "areas": [
     {

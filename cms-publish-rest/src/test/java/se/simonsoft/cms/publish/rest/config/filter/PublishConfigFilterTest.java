@@ -15,7 +15,10 @@
  */
 package se.simonsoft.cms.publish.rest.config.filter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,17 +33,21 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-
-import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
 public class PublishConfigFilterTest {
 	
 	private ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
+	private String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
 	private String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
 	private String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
+	private String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
 	
 	@Test
 	public void testStatusJacksonParse() throws Exception {
@@ -103,17 +110,68 @@ public class PublishConfigFilterTest {
 		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);
 		PublishConfigFilter filter = new PublishConfigFilterType();
 		
-		CmsItem itemMockTypeAbxpe = mock(CmsItem.class);
+		CmsItem itemMockTypeOperator = mock(CmsItem.class);
 		Map<String, Object> meta = new HashMap<String, Object>();
 		meta.put("embd_xml_a_type", "operator");
-		when(itemMockTypeAbxpe.getMeta()).thenReturn(meta);
-		assertTrue(filter.accept(publishConfig, itemMockTypeAbxpe));
+		when(itemMockTypeOperator.getMeta()).thenReturn(meta);
+		assertTrue(filter.accept(publishConfig, itemMockTypeOperator));
 		
 		CmsItem itemMockNoType = mock(CmsItem.class);
 		Map<String, Object> emptyMeta = new HashMap<String, Object>();
 		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);
 		assertFalse(filter.accept(publishConfig, itemMockNoType));
+	}
+	
+	
+	@Test
+	public void testProfilingFilterNone() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigSimple);
+		PublishConfigFilter filter = new PublishConfigFilterProfiling();
 		
+		CmsItem itemMock = mock(CmsItem.class);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMock.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
+		
+		CmsItem itemMockProfiling = mock(CmsItem.class);
+		CmsItemPropertiesMap propsProfiling = new CmsItemPropertiesMap("cms:status", "Released");
+		propsProfiling.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+		when(itemMockProfiling.getProperties()).thenReturn(propsProfiling);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockProfiling)));
+	}
+	
+	@Test
+	public void testProfilingFilterFalse() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus); // status sample config has "profilingInclude": false
+		PublishConfigFilter filter = new PublishConfigFilterProfiling();
+		
+		CmsItem itemMock = mock(CmsItem.class);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMock.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
+		
+		CmsItem itemMockProfiling = mock(CmsItem.class);
+		CmsItemPropertiesMap propsProfiling = new CmsItemPropertiesMap("cms:status", "Released");
+		propsProfiling.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+		when(itemMockProfiling.getProperties()).thenReturn(propsProfiling);
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemMockProfiling)));
+	}
+	
+	@Test
+	public void testProfilingFilterTrue() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigProfilingAll);
+		PublishConfigFilter filter = new PublishConfigFilterProfiling();
+		
+		CmsItem itemMock = mock(CmsItem.class);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMock.getProperties()).thenReturn(props);
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
+		
+		CmsItem itemMockProfiling = mock(CmsItem.class);
+		CmsItemPropertiesMap propsProfiling = new CmsItemPropertiesMap("cms:status", "Released");
+		propsProfiling.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+		when(itemMockProfiling.getProperties()).thenReturn(propsProfiling);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockProfiling)));
 	}
 	
 	
