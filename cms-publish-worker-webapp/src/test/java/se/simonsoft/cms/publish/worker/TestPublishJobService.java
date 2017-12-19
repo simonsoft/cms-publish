@@ -15,7 +15,7 @@
  */
 package se.simonsoft.cms.publish.worker;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,6 +45,8 @@ import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class TestPublishJobService {
 	
+	private static final String aptapplicationPrefix = "bogus";
+	
 	ObjectMapper mapper = new ObjectMapper();
 	ObjectReader reader = mapper.reader(PublishJobOptions.class);
 	PublishServicePe pe;
@@ -53,7 +55,7 @@ public class TestPublishJobService {
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
 		PublishFormat format = new PublishFormatPDF();
-		PublishJobService service = new PublishJobService(pe);
+		PublishJobService service = new PublishJobService(pe, aptapplicationPrefix);
 		PublishJobOptions job = reader.readValue(getJsonString());
 		PublishTicket publishTicket = new PublishTicket("2");
 		
@@ -63,6 +65,7 @@ public class TestPublishJobService {
 		
 		PublishTicket ticket = service.publishJob(job);
 		boolean completed = service.isCompleted(ticket);
+		assertTrue(completed);
 		
 		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class); 
         verify(pe, times(1)).requestPublish(requestCaptor.capture());
@@ -73,7 +76,7 @@ public class TestPublishJobService {
         assertEquals("yes", pr.getParams().get("zip-output"));
         assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
         assertEquals("pdf", pr.getParams().get("type"));
-        assertEquals("axdocbook.style", pr.getParams().get("stylesheet"));
+        assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
         assertEquals("x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
         assertEquals("pdf", pr.getFormat().getFormat());

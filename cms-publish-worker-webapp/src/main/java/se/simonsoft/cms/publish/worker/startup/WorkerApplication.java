@@ -71,9 +71,11 @@ public class WorkerApplication extends ResourceConfig {
 			@Override
             protected void configure() {
             	
+				String aptapplicationPrefix = getAptapplicationPrefix();
+				
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	PublishServicePe publishServicePe = new PublishServicePe();
-            	PublishJobService publishJobService = new PublishJobService(publishServicePe);
+            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix);
             	bind(publishJobService).to(PublishJobService.class);
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
@@ -192,5 +194,16 @@ public class WorkerApplication extends ResourceConfig {
         return (awsId != null && !awsId.isEmpty() && awsSecret != null && !awsSecret.isEmpty());
     }
 	
+	private String getAptapplicationPrefix() {
+		String result = "$aptpath/application";
+		
+		String envVariable = this.environment.getParamOptional("APTAPPLICATION");
+		
+		if (envVariable != null) {
+			String[] split = envVariable.split(";");
+			result = split[0].replaceAll("\\", "/");
+		}
+		return result;
+	}
 
 }
