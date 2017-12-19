@@ -50,14 +50,12 @@ import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 @Path("/test")
 public class TestPage {
 
-	private String publishHost = "http://localhost:8080";
-	private String publishPath = "/e3/servlet/e3";
-	private PublishServicePe peService;
+	private final PublishJobService publishJobService;
 	private ObjectReader reader;
 	
 	@Inject
-	public TestPage(PublishServicePe pe, ObjectReader reader) {
-		this.peService = pe;
+	public TestPage(PublishJobService publishJobService, ObjectReader reader) {
+		this.publishJobService = publishJobService;
 		this.reader = reader;
 	}
 	
@@ -84,8 +82,8 @@ public class TestPage {
 		options.setFormat(format);
 		options.setPathname(pathName);
 		options.setType("abxpe");
-		PublishJobService service = new PublishJobService(peService);
-		PublishTicket ticket= service.publishJob(options);
+
+		PublishTicket ticket= publishJobService.publishJob(options);
 		
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
@@ -146,24 +144,21 @@ public class TestPage {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response getResult(@QueryParam("ticketnumber") String ticketNumber) throws IOException, PublishException {
-		if ( ticketNumber == "" || ticketNumber == null ) {
+		
+		if ( ticketNumber == null || ticketNumber.trim().isEmpty()) {
 			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
 		}
-		PublishRequestDefault request = new PublishRequestDefault();
+		
 		PublishTicket ticket = new PublishTicket(ticketNumber);
 		
-		
-		request.addConfig("host", this.publishHost);
-		request.addConfig("path", this.publishPath);
-		
-		Boolean completed = peService.isCompleted(ticket, request);
+		Boolean completed = publishJobService.isCompleted(ticket);
 		if ( !completed ) {
 			throw new IllegalStateException("Job is not completed.");
 		}
 		
 		File temp = File.createTempFile("se.simonsoft.publish.worker.test", "");
 		FileOutputStream fopStream = new FileOutputStream(temp);
-		peService.getResultStream(ticket, request, fopStream);
+		publishJobService.getCompletedJob(ticket, fopStream);
 
 		ResponseBuilder response = Response.ok(temp, MediaType.APPLICATION_OCTET_STREAM);
 	    response.header("Content-Disposition", "attachment; filename=document"+ ticket.toString() +".zip");
@@ -199,10 +194,8 @@ public class TestPage {
 		}
 		ObjectReader reader = this.reader.forType(PublishJobOptions.class);
 		PublishJobOptions job = reader.readValue(jsonstring);
-
-		PublishJobService service = new PublishJobService(peService);
 		
-		PublishTicket ticket = service.publishJob(job);
+		PublishTicket ticket = publishJobService.publishJob(job);
 		
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
