@@ -127,15 +127,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName);
 		pj.getOptions().setStorage(storage);
 		
-//		storage.setPathdir(item.getId().getRelPath().getPath());
-//		storage.setPathnamebase(getNameBase(item.getId()));
-//		storage.setPathversion(this.pathVersion);
-//		storage.setPathconfigname(configName);
-//		storage.setPathcloudid(item.getId().getRepository().getName());
-//		if (!storage.getParams().containsKey("s3bucket")) {
-//			storage.getParams().put("s3bucket", this.s3Bucket);
-//		}
-		
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		
