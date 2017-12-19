@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
 
 @Path("/publish4")
 public class PublishResource {
@@ -29,7 +29,7 @@ public class PublishResource {
 	@GET
 	@Path("release")
 	@Produces(MediaType.TEXT_HTML)
-	public String getReleaseForm(@QueryParam("item") CmsItemId itemId) throws Exception {
+	public String getReleaseForm(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
 		
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
@@ -41,7 +41,7 @@ public class PublishResource {
 	@GET
 	@Path("release/download")
 	@Produces(MediaType.TEXT_HTML)
-	public Response getDownload(@QueryParam("item") CmsItemId itemId,
+	public Response getDownload(@QueryParam("item") CmsItemIdArg itemId,
 						@QueryParam("includemaster") boolean includeMaster,
 						@QueryParam("includetranslations") boolean includeTranslations,
 						@QueryParam("profiling") String[] profiling,
