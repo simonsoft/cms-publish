@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.awt.event.ItemEvent;
 import java.io.StringWriter;
 import java.util.Properties;
 
@@ -64,7 +65,7 @@ public class PublishResource {
 		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/DocumentFormTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/config/templates/batch-publish-template.vm");
 		
 		context.put("item", itemId);
 
