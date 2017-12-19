@@ -121,10 +121,11 @@ public class AwsStepfunctionPublishWorker {
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
 						updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
+						PublishJobOptions options = null;
 						
 						try {
 							logger.debug("Got a task from workflow. {}", taskResult.getInput());
-							PublishJobOptions options = deserializeInputToOptions(taskResult.getInput());
+							options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
 								updateStatusReport("Retrieving", new Date(), "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
@@ -142,14 +143,17 @@ public class AwsStepfunctionPublishWorker {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateWorkerError(new Date(), e);
+							updateStatusReport("Retrieving" ,
+									new Date(), 
+									e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
+							
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						}
 					} else {
-						updateStatusReport("AWS activity", new Date(), "Did not recieve a job from AWS Step functions.");
+						
 						try {
 							logger.debug("Did not get a response. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
@@ -179,7 +183,6 @@ public class AwsStepfunctionPublishWorker {
 			logger.debug("Job is exported to: {}", exportPath);
 		} else {
 			logger.debug("Job is not completed send fail result JobPending");
-			updateStatusReport("Job Pending", new Date(), "ActivityArn: "+ activityArn + " Ticket: " +publishTicket.toString());
 			throw new CommandRuntimeException("JobPending");
 		}
 		return progressAsJson;
