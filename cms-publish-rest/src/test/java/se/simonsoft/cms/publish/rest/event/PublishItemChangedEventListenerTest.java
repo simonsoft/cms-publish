@@ -344,6 +344,58 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("all", storage.getPathconfigname());
 	}
 	
+	@Test
+	public void testProfiling1Osx() throws Exception {
+
+		initProfilingMock();
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:osxonly", getPublishConfigFromPath(pathConfigProfilingOsx));
+		when(mockOptionIterator.next()).thenReturn(configOption);
+
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+																mockWorkflowExec,
+																filters,
+																mapper.reader());
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+		
+		//Asserts on argument that executor has been called with.
+		List<PublishJob> jobs = argCaptor.getAllValues();
+		PublishJob publishJob = jobs.get(0);
+
+		// Profiling
+		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		assertNotNull(profiling);
+		assertEquals("osx", profiling.getName());
+		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
+		
+		//Storage
+		PublishJobStorage storage = publishJob.getOptions().getStorage();
+		assertEquals("s3", storage.getType());
+		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
+		assertEquals("osx_r0000000443", storage.getPathnamebase());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("osxonly", storage.getPathconfigname());
+	}
+	
 	
 	@Test
 	public void testReleaseItemChangedWithValidated() throws Exception {

@@ -27,7 +27,7 @@ public class PublishConfig {
 	protected List<String> statusInclude;
 	protected List<String> typeInclude;
 	protected Boolean profilingInclude;
-	protected List<String> profilingNameInclude = new ArrayList<String>();
+	protected List<String> profilingNameInclude = null; // No array means include all profiling recipes.
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	

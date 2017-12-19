@@ -126,8 +126,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		for (PublishProfilingRecipe profilesRecipe: profilesSet) {
 			
-			// TODO: Filter on profilesNameInclude
-			profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
+			List<String> profilingNames = config.getProfilingNameInclude();
+			// Filter on profilesNameInclude if set.
+			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
+			}
 		}
 		
 		return profiledJobs;
