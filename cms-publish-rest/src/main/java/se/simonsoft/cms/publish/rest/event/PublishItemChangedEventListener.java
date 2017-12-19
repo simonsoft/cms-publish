@@ -41,11 +41,13 @@ import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
+import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
@@ -59,6 +61,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final String pathVersion = "cms4";
 	private final String s3Bucket = "cms-automation";
 	private final String type = "publish-job";
+	private final PublishJobStorageFactory storageFactory;
 	
 	private static final String PUBLISH_CONFIG_KEY = "cmsconfig-publish";  
 	
@@ -69,12 +72,14 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			CmsRepositoryLookup lookup,
 			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
-			ObjectReader reader) {
+			ObjectReader reader,
+			PublishJobStorageFactory storageFactory) {
 		
 		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
 		this.reader = reader.forType(PublishConfig.class);
+		this.storageFactory = storageFactory;
 	}
 
 	@Override
@@ -117,17 +122,19 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
-		pj.getOptions().setSource(item.getId().getLogicalId());;
+		pj.getOptions().setSource(item.getId().getLogicalId());
+		PublishConfigStorage configStorage = pj.getOptions().getStorage();
+		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName);
+		pj.getOptions().setStorage(storage);
 		
-		PublishJobStorage storage = pj.getOptions().getStorage();
-		storage.setPathdir(item.getId().getRelPath().getPath());
-		storage.setPathnamebase(getNameBase(item.getId()));
-		storage.setPathversion(this.pathVersion);
-		storage.setPathconfigname(configName);
-		storage.setPathcloudid(item.getId().getRepository().getName());
-		if (!storage.getParams().containsKey("s3bucket")) {
-			storage.getParams().put("s3bucket", this.s3Bucket);
-		}
+//		storage.setPathdir(item.getId().getRelPath().getPath());
+//		storage.setPathnamebase(getNameBase(item.getId()));
+//		storage.setPathversion(this.pathVersion);
+//		storage.setPathconfigname(configName);
+//		storage.setPathcloudid(item.getId().getRepository().getName());
+//		if (!storage.getParams().containsKey("s3bucket")) {
+//			storage.getParams().put("s3bucket", this.s3Bucket);
+//		}
 		
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
