@@ -47,6 +47,16 @@ public class PublishResource {
 						@QueryParam("profiling") String[] profiling,
 						@QueryParam("publication") String publication) throws Exception {
 		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+		
+		itemId.setHostnameOrValidate(this.hostname);
+		
+		if (!itemId.isPegged()) {
+			throw new IllegalArgumentException("Field 'item': revision is required");
+		}
+		
 		logger.debug("Not yet implemented");
 		
 		return Response.ok("Succesfully called get release/download").build();
