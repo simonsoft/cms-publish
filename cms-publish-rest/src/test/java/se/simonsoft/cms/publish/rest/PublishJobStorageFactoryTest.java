@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import se.simonsoft.cms.item.CmsItemId;
@@ -32,14 +33,18 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 public class PublishJobStorageFactoryTest {
 	
 	private final String configName = "simple-pdf";
+	private CmsItemPublish mockItem;
+	
+	@Before
+	public void setup() {
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900108.xml"));
+		CmsItemId itemId = itemIdArg.withPegRev(100L);
+		mockItem = mock(CmsItemPublish.class);
+		when(mockItem.getId()).thenReturn(itemId);
+	}
 
 	@Test
 	public void testPublishJobStorageInstance() throws Exception {
-		
-		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900108.xml"));
-		CmsItemId itemId = itemIdArg.withPegRev(100L);
-		CmsItemPublish mockItem = mock(CmsItemPublish.class);
-		when(mockItem.getId()).thenReturn(itemId);
 		
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("s3");
@@ -52,8 +57,26 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
 		assertEquals("900108_r0000000100", s.getPathnamebase());
 		assertEquals("cms4", s.getPathversion());
+		assertEquals("s3", s.getType());
+		assertEquals("cms-automation", s.getParams().get("s3bucket"));
 		
+	}
+	
+	@Test
+	public void testPublishJobStorageTypeFS() {
 		
+		PublishConfigStorage cs = new PublishConfigStorage();
+		cs.setType("fs");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName);
+	
+		assertEquals("cloudId", s.getPathcloudid());
+		assertEquals("simple-pdf", s.getPathconfigname());
+		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
+		assertEquals("900108_r0000000100", s.getPathnamebase());
+		assertEquals("cms4", s.getPathversion());
+		assertEquals("fs", s.getType());
+		assertEquals(null, s.getParams().get("s3bucket"));
 	}
 	
 }
