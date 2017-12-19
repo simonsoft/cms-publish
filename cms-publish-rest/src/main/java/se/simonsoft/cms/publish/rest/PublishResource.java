@@ -33,8 +33,8 @@ public class PublishResource {
 	@Path("release/download")
 	@Produces(MediaType.TEXT_HTML)
 	public Response getDownload(@QueryParam("item") CmsItemId itemId,
-						@QueryParam("incRelease") boolean incRelease,
-						@QueryParam("incTranslation") boolean incTranslation,
+						@QueryParam("includemaster") boolean includeMaster,
+						@QueryParam("includetranslations") boolean includeTranslations,
 						@QueryParam("profiling") String[] profiling,
 						@QueryParam("publication") String publication) throws Exception {
 		
