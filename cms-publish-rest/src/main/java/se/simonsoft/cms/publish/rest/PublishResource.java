@@ -40,7 +40,7 @@ public class PublishResource {
 	
 	@GET
 	@Path("release/download")
-	@Produces(MediaType.TEXT_HTML)
+	@Produces("application/zip")
 	public Response getDownload(@QueryParam("item") CmsItemIdArg itemId,
 						@QueryParam("includemaster") boolean includeMaster,
 						@QueryParam("includetranslations") boolean includeTranslations,
@@ -59,6 +59,7 @@ public class PublishResource {
 		
 		logger.debug("Not yet implemented");
 		
+		//TODO: Should produce zip output. 
 		return Response.ok("Succesfully called get release/download").build();
 	}
 	
