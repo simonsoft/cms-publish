@@ -163,6 +163,9 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getItemid());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getOptions().getSource());
 		
+		// Profiling
+		assertNull(publishJob.getOptions().getProfiling());
+		
 		//Storage
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
 		assertEquals("s3", storage.getType());
@@ -239,7 +242,7 @@ public class PublishItemChangedEventListenerTest {
 	}
 	
 	
-	@Test @Ignore
+	@Test
 	public void testProfiling1NoFilter() throws Exception {
 
 		initProfilingMock();
@@ -286,29 +289,16 @@ public class PublishItemChangedEventListenerTest {
 		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
 		assertNull(profiling); // No profilingInclude on config means publish the full document.
 		
-		//Storage
-		PublishJobStorage storage = publishJob.getOptions().getStorage();
-		assertEquals("s3", storage.getType());
-		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
-		assertEquals("900276_r0000000443", storage.getPathnamebase());
-		assertEquals("cms4", storage.getPathversion());
-		assertEquals("status", storage.getPathconfigname());
 		
-		// Manifest
-		assertEquals("DOC_$", publishJob.getArea().getDocnoDocumentTemplate().substring(0, 5));
-		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
-		assertEquals("default", manifest.getType());
-		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
-		assertEquals("demo1", storage.getPathcloudid());
 	}
 
-	@Test @Ignore
+	@Test
 	public void testProfiling1All() throws Exception {
 
 		initProfilingMock();
 
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigProfilingAll));
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:all", getPublishConfigFromPath(pathConfigProfilingAll));
 		when(mockOptionIterator.next()).thenReturn(configOption);
 
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -330,13 +320,6 @@ public class PublishItemChangedEventListenerTest {
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
-		//Verifies that our mocks and spies has been called a certain amount of times.
-		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
-		verify(mockOptionIterator, times(1)).next();
-		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
-		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
-		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
-		
 		//Captures PublishJob arguments that our mocked workflow been called with.
 		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
 		verify(mockWorkflowExec, times(2)).startExecution(argCaptor.capture());
@@ -350,21 +333,15 @@ public class PublishItemChangedEventListenerTest {
 		assertNotNull(profiling);
 		assertEquals("osx", profiling.getName());
 		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
 		
 		//Storage
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
 		assertEquals("s3", storage.getType());
 		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
-		assertEquals("900276_r0000000443", storage.getPathnamebase());
+		assertEquals("osx_r0000000443", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
-		assertEquals("status", storage.getPathconfigname());
-		
-		// Manifest
-		assertEquals("DOC_$", publishJob.getArea().getDocnoDocumentTemplate().substring(0, 5));
-		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
-		assertEquals("default", manifest.getType());
-		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
-		assertEquals("demo1", storage.getPathcloudid());
+		assertEquals("all", storage.getPathconfigname());
 	}
 	
 	

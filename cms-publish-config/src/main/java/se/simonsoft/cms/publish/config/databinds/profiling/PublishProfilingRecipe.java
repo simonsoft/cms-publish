@@ -18,6 +18,8 @@ package se.simonsoft.cms.publish.config.databinds.profiling;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,18 +31,30 @@ public class PublishProfilingRecipe {
 	public String getName() {
 		return name;
 	}
+	
 	public void setName(String name) {
 		this.name = name;
 	}
+	
 	public String getLogicalexpr() {
 		return logicalexpr;
 	}
+	
 	public void setLogicalexpr(String logicalexpr) {
 		this.logicalexpr = logicalexpr;
 	}
+	
 	public String getLogicalExprDecoded() {
 		return decodeString(logicalexpr);
 	}
+	
+	public PublishJobProfiling getPublishJobProfiling() {
+		PublishJobProfiling result = new PublishJobProfiling();
+		result.setName(getName());
+		result.setLogicalexpr(getLogicalExprDecoded());
+		return result;
+	}
+	
 	private static String decodeString(String encoded) {
 
 		try {
