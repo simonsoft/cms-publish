@@ -15,6 +15,9 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.io.StringWriter;
+import java.util.Properties;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -24,6 +27,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +57,21 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
 		
-		return "Not implemented";
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
+
+		VelocityContext context = new VelocityContext();
+		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/DocumentFormTemplate.vm");
+		
+		context.put("item", itemId);
+
+		StringWriter wr = new StringWriter();
+		template.merge(context, wr);
+
+		return wr.toString();
 	}
 	
 	@GET
