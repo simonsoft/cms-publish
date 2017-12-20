@@ -63,8 +63,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final ObjectReader readerConfig;
 	private final ObjectReader readerProfiling;
 	
-	private final String pathVersion = "cms4";
-	private final String s3Bucket = "cms-automation";
 	private final String type = "publish-job";
 	private final PublishJobStorageFactory storageFactory;
 	
