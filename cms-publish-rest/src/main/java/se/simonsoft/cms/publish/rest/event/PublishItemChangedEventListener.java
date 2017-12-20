@@ -39,6 +39,7 @@ import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
@@ -46,6 +47,7 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecip
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
+import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.release.ReleaseProperties;
 
@@ -64,6 +66,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final String pathVersion = "cms4";
 	private final String s3Bucket = "cms-automation";
 	private final String type = "publish-job";
+	private final PublishJobStorageFactory storageFactory;
 	
 	private static final String PUBLISH_CONFIG_KEY = "cmsconfig-publish";  
 	
@@ -74,13 +77,15 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			CmsRepositoryLookup lookup,
 			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
-			ObjectReader reader) {
+			ObjectReader reader,
+			PublishJobStorageFactory storageFactory) {
 		
 		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
 		this.readerConfig = reader.forType(PublishConfig.class);
 		this.readerProfiling = reader.forType(PublishProfilingSet.class);
+		this.storageFactory = storageFactory;
 	}
 
 	@Override
@@ -168,16 +173,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
 		}
 		
-		PublishJobStorage storage = pj.getOptions().getStorage();
-		storage.setPathdir(item.getId().getRelPath().getPath());
-		storage.setPathnamebase(getNameBase(item.getId(), profiling));
-		storage.setPathversion(this.pathVersion);
-		storage.setPathconfigname(configName);
-		storage.setPathcloudid(item.getId().getRepository().getName());
-		if (!storage.getParams().containsKey("s3bucket")) {
-			storage.getParams().put("s3bucket", this.s3Bucket);
-		}
-		
+		PublishConfigStorage configStorage = pj.getOptions().getStorage();
+		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
+		pj.getOptions().setStorage(storage);
+
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		

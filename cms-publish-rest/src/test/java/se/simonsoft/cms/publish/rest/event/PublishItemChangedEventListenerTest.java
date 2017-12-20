@@ -61,6 +61,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
@@ -136,7 +137,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
@@ -224,7 +226,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader()
+																, new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
@@ -266,7 +269,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
@@ -315,7 +319,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
@@ -367,7 +372,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
@@ -434,7 +440,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		eventListener.onItemChange(mockItem);
 		
 		//Captures PublishJob arguments that our mocked workflow been called with.
@@ -528,7 +535,8 @@ public class PublishItemChangedEventListenerTest {
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		eventListener.onItemChange(mockItem);
 		
 		//Captures PublishJob arguments that our mocked workflow been called with.
