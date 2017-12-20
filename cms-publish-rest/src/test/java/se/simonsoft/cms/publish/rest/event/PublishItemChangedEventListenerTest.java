@@ -114,7 +114,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
@@ -147,7 +147,6 @@ public class PublishItemChangedEventListenerTest {
 		eventListener.onItemChange(mockItem);
 		
 		//Verifies that our mocks and spies has been called a certain amount of times.
-		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
 		verify(mockOptionIterator, times(2)).next();
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
@@ -205,7 +204,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
@@ -238,7 +237,6 @@ public class PublishItemChangedEventListenerTest {
 		eventListener.onItemChange(mockItem);
 		
 		//Verifies that our mocks and spies has been called a certain amount of times.
-		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
 		verify(mockOptionIterator, times(2)).next();
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
@@ -283,7 +281,6 @@ public class PublishItemChangedEventListenerTest {
 		eventListener.onItemChange(mockItem);
 		
 		//Verifies that our mocks and spies has been called a certain amount of times.
-		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
 		verify(mockOptionIterator, times(2)).next();
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
@@ -434,7 +431,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
@@ -531,7 +528,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
@@ -644,7 +641,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);

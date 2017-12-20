@@ -101,7 +101,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	private CmsResourceContext getConfigurationParentFolder(CmsItemId itemId) {
 		
 		// Getting config for the parent, which is always a Folder.
-		CmsItemPath relPath = itemId.getRelPath();
+		CmsItemPath relPath = itemId.getRelPath().getParent();
 		logger.debug("Configuration context: {} - ({})", relPath, itemId);
 		CmsItemId folder = itemId.getRepository().getItemId(relPath, null); //Always getting config from HEAD.
 		CmsResourceContext context = repositoryLookup.getConfig(folder, CmsItemKind.Folder);
