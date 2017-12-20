@@ -17,15 +17,22 @@ package se.simonsoft.cms.publish.config.databinds.config;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.MessageFormat;
 import java.util.Properties;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.VelocityException;
 import org.apache.velocity.tools.generic.EscapeTool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 public class PublishConfigTemplateString {
 	private static VelocityEngine ve;
 	private VelocityContext context;
+	
+	private static final Logger logger = LoggerFactory.getLogger(PublishConfigTemplateString.class);
 	
 	
 	public PublishConfigTemplateString() {
@@ -48,7 +55,13 @@ public class PublishConfigTemplateString {
 	 */
 	public String evaluate(String templateString) {
 		Writer writer = new StringWriter();
-		getVelocityEngine().evaluate(context, writer, "PublishConfigTemplateString", templateString);
+		try {
+			getVelocityEngine().evaluate(context, writer, "PublishConfigTemplateString", templateString);
+		} catch (VelocityException e) {
+			String msg = MessageFormatter.format("Failed to evaluate template string: '{}' - {}", templateString, e.getMessage()).getMessage();
+			logger.error(msg, e);
+			throw new RuntimeException(msg, e);
+		}
 		return writer.toString();
 	}
 	private VelocityEngine getVelocityEngine() {

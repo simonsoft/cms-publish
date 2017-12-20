@@ -2,9 +2,12 @@
   "active": true,
   "visible": true,
   "typeInclude": ["operator", "service"],
-  "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf",
-
-  "publish" : {
+  "areas": [
+    {
+        "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf"
+    }
+  ],
+  "options" : {
       "type": "abxpe",
       "format": "pdf",
       "params": {

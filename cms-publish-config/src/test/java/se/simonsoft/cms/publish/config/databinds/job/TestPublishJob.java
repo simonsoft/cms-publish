@@ -60,7 +60,7 @@ public class TestPublishJob {
 		assertEquals(true, jsonPj.isVisible());
 		assertEquals("Review", jsonPj.getStatusInclude().get(0));
 		assertEquals("Released", jsonPj.getStatusInclude().get(1));
-		assertEquals("*", jsonPj.getProfilingInclude().get(0));
+		assertEquals("*", jsonPj.getProfilingNameInclude().get(0));
 		assertEquals("DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}.pdf", jsonPj.getArea().getPathnameTemplate());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml?p=123", jsonPj.getItemid());
 

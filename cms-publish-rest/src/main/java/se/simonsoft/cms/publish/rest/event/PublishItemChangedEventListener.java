@@ -21,15 +21,13 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
@@ -45,10 +43,16 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.release.ReleaseProperties;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -56,7 +60,8 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 	
 	private final List<PublishConfigFilter> filters;
-	private final ObjectReader reader;
+	private final ObjectReader readerConfig;
+	private final ObjectReader readerProfiling;
 	
 	private final String pathVersion = "cms4";
 	private final String s3Bucket = "cms-automation";
@@ -78,8 +83,9 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		this.lookup = lookup;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
-		this.reader = reader.forType(PublishConfig.class);
-		this.storageFactory = storageFactory;
+		this.readerConfig = reader.forType(PublishConfig.class);
+		this.readerProfiling = reader.forType(PublishProfilingSet.class);
+    this.storageFactory = storageFactory;
 	}
 
 	@Override
@@ -97,12 +103,20 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
 		List<PublishJob> jobs = new ArrayList<PublishJob>();
-		Iterator<String> iterator = publishConfigs.keySet().iterator();
-		while (iterator.hasNext()) {
-			String configName = iterator.next();
-			PublishJob pj = getPublishJob(itemPublish, publishConfigs.get(configName), configName);
-			jobs.add(pj);
+		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {
+			String configName = configEntry.getKey();
+			PublishConfig config = configEntry.getValue();
+			
+			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
+				// One or many jobs with profiling.
+				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName));
+			} else {
+				// Normal, non-profiling job.
+				PublishJob pj = getPublishJob(itemPublish, config, configName, null);
+				jobs.add(pj);
+			}
 		}
+		
 		
 		logger.debug("Starting executions for {} number of PublishJobs", jobs.size());
 		for (PublishJob job: jobs) {
@@ -110,8 +124,40 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		}
 	}
 	
-	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item);
+	private List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName) {
+		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
+		
+		PublishProfilingSet profilesSet = getItemProfiles(itemPublish);
+		
+		for (PublishProfilingRecipe profilesRecipe: profilesSet) {
+			
+			List<String> profilingNames = config.getProfilingNameInclude();
+			// Filter on profilesNameInclude if set.
+			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
+			}
+		}
+		
+		return profiledJobs;
+	}
+	
+	private PublishProfilingSet getItemProfiles(CmsItemPublish itemPublish) {
+		
+		if (!itemPublish.hasProfiles()) {
+			return null;
+		}
+		
+		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
+		try {
+			return this.readerProfiling.readValue(profilesProp);
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
+		}
+	}
+	
+
+	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
@@ -123,9 +169,14 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		pj.setConfigname(configName);
 		
 		pj.getOptions().setSource(item.getId().getLogicalId());
-		PublishConfigStorage configStorage = pj.getOptions().getStorage();
+		if (profiling != null) {
+			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
+		}
+    PublishConfigStorage configStorage = pj.getOptions().getStorage();
 		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName);
 		pj.getOptions().setStorage(storage);
+//		storage.setPathnamebase(getNameBase(item.getId(), profiling));
+
 		
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
@@ -137,9 +188,16 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		return pj;
 	}
 	
-	public String getNameBase(CmsItemId itemId) {
-		String idRevision = String.format("_r%010d", itemId.getPegRev());
-		return itemId.getRelPath().getNameBase().concat(idRevision);
+	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
+		StringBuilder sb = new StringBuilder();
+		
+		if (profiling == null) {
+			sb.append(itemId.getRelPath().getNameBase());
+		} else {
+			sb.append(profiling.getName());
+		}
+		sb.append(String.format("_r%010d", itemId.getPegRev()));
+		return sb.toString();
 	}
 	
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
@@ -151,7 +209,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			String configOptionName = configOption.getNamespace();
 			if (configOptionName.startsWith(PUBLISH_CONFIG_KEY)) {
 				try {
-					PublishConfig publishConfig = reader.readValue(configOption.getValueString());
+					PublishConfig publishConfig = readerConfig.readValue(configOption.getValueString());
 					configs.put(configOption.getKey(), publishConfig);
 				} catch (JsonProcessingException e) {
 					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
@@ -170,24 +228,29 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 	private Map<String, PublishConfig> filterConfigs(CmsItem item, Map<String, PublishConfig> configs) {
 		
-		Iterator<String> iterator = configs.keySet().iterator();
 		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
-		while (iterator.hasNext()) {
-			String next = iterator.next();
+		for (Entry<String, PublishConfig> config: configs.entrySet()) {
+			List<String> filtered = new ArrayList<String>(filters.size());
 			for (PublishConfigFilter f: filters) {
-				if (f.accept(configs.get(next), item)) {
-					logger.debug("Config {} where accepted.", next);
-					filteredConfigs.put(next, configs.get(next));
+				if (!f.accept(config.getValue(), item)) {
+					filtered.add(f.getClass().getName());
 				}
 			}
+			if (filtered.isEmpty()) {
+				logger.debug("Config '{}' was accepted.", config.getKey());
+				filteredConfigs.put(config.getKey(), config.getValue());
+			} else {
+				logger.debug("Config '{}' was filtered: {}", config.getKey(), filtered);
+			}
 		}
-		return configs;
+		return filteredConfigs;
 	}
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		tmplStr.withEntry("item", item);
-		// TODO: Add profiling object.
+		// Add profiling object, can be null;
+		tmplStr.withEntry("profiling", profiling);
 		return tmplStr;
 	}
 }
