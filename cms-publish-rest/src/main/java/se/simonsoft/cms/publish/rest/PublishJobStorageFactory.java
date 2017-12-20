@@ -46,10 +46,13 @@ public class PublishJobStorageFactory {
 		s.setPathconfigname(configName);
 		s.setPathcloudid(cloudId);
 		
-		if (c.getType().equals("s3")) {
-			s.getParams().put("s3bucket", s3bucket);
+		if (c != null && c.getType() != null) {
+			s.setType(c.getType());
+			
+			if (c.getType().equals("s3")) {
+				s.getParams().put("s3bucket", s3bucket);
+			}
 		}
-		s.setType(c.getType());
 		
 		return s;
 	}
