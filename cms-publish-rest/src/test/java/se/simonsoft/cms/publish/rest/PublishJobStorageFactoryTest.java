@@ -102,4 +102,59 @@ public class PublishJobStorageFactoryTest {
 		
 	}
 	
+	@Test
+	public void testPublishJobStorageFactoryTypeNull() throws Exception {
+		
+		PublishConfigStorage cs = new PublishConfigStorage();
+		cs.setType(null);
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
+	
+		assertEquals("cloudId", s.getPathcloudid());
+		assertEquals("simple-pdf", s.getPathconfigname());
+		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
+		assertEquals("900108_r0000000100", s.getPathnamebase());
+		assertEquals("cms4", s.getPathversion());
+		assertEquals("s3", s.getType());
+		assertEquals("cms-automation", s.getParams().get("s3bucket"));
+		
+	}
+	
+	@Test
+	public void testPublishJobStorageFactoryTypeEmptyString() throws Exception {
+		
+		PublishConfigStorage cs = new PublishConfigStorage();
+		cs.setType("");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
+	
+		assertEquals("cloudId", s.getPathcloudid());
+		assertEquals("simple-pdf", s.getPathconfigname());
+		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
+		assertEquals("900108_r0000000100", s.getPathnamebase());
+		assertEquals("cms4", s.getPathversion());
+		assertEquals("s3", s.getType());
+		assertEquals("cms-automation", s.getParams().get("s3bucket"));
+		
+	}
+	
+	@Test
+	public void testPublishJobStorageFactoryNullConfig() throws Exception {
+		
+		//No config will default the storage to S3.
+		PublishConfigStorage cs = null;
+		
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
+	
+		assertEquals("cloudId", s.getPathcloudid());
+		assertEquals("simple-pdf", s.getPathconfigname());
+		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
+		assertEquals("900108_r0000000100", s.getPathnamebase());
+		assertEquals("cms4", s.getPathversion());
+		assertEquals("s3", s.getType());
+		assertEquals("cms-automation", s.getParams().get("s3bucket"));
+		
+	}
+	
 }

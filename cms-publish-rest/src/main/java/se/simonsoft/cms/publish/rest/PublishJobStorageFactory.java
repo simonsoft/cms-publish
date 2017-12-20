@@ -47,7 +47,7 @@ public class PublishJobStorageFactory {
 			throw new IllegalArgumentException("PublishJobStorageFactory needs a valid configName: " + configName);
 		}
 		
-		PublishJobStorage s = new PublishJobStorage();
+		PublishJobStorage s = new PublishJobStorage(c);
 		
 		s.setPathdir(item.getId().getRelPath().getPath());
 		s.setPathnamebase(getNameBase(item.getId(), profiling));
@@ -55,12 +55,13 @@ public class PublishJobStorageFactory {
 		s.setPathconfigname(configName);
 		s.setPathcloudid(cloudId);
 		
-		if (c != null && c.getType() != null) {
-			s.setType(c.getType());
-			
-			if (c.getType().equals("s3")) {
-				s.getParams().put("s3bucket", s3bucket);
-			}
+		//S3 is default, null or empty strings will put the job at s3. 
+		if (s.getType() == null || s.getType().isEmpty()) {
+			s.setType("s3");
+		}
+		
+		if (s.getType().equals("s3")) {
+			s.getParams().put("s3bucket", s3bucket);
 		}
 		
 		return s;
