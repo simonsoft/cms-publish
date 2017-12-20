@@ -66,8 +66,6 @@ public class WorkerApplication extends ResourceConfig {
 		
 		register(new AbstractBinder() {
 
-
-
 			@Override
             protected void configure() {
             	
@@ -78,7 +76,7 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
-            	cloudId = environment.getParam("cms.cloudid");
+            	cloudId = environment.getParamOptional("CLOUDID");
             	
             	awsAccountId = getAwsAccountId(credentials);
             	
@@ -98,20 +96,25 @@ public class WorkerApplication extends ResourceConfig {
         		ObjectWriter writer = mapper.writer();
         		bind(reader).to(ObjectReader.class);
         		bind(writer).to(ObjectWriter.class);
-        		
-        		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
-        		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(cloudId,
-        				bucketName,
-        				credentials,
-        				reader,
-        				writer,
-        				client,
-        				getAwsArn("activity", AWS_ACTIVITY_NAME),
-        				publishJobService,	
-        				workerStatusReport);
-        		
-        		logger.debug("publish worker started.");
+
+				if (cloudId != null) {
+					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
+					logger.debug("Starting publish worker...");
+					new AwsStepfunctionPublishWorker(cloudId,
+							bucketName,
+							credentials,
+							reader,
+							writer,
+							client,
+							getAwsArn("activity", AWS_ACTIVITY_NAME),
+							publishJobService,
+							workerStatusReport);
+
+					logger.debug("publish worker started.");
+
+				} else {
+					logger.warn("Deferring AWS Worker startup, CLOUDID not configured.");
+				}
             }
         });
 		
