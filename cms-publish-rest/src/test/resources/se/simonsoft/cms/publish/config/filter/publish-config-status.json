@@ -1,6 +1,7 @@
 {
     "active": true,
     "visible": true,
+    "profilingInclude": false,
     "statusInclude": [
         "Review",
         "Released"

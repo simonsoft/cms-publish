@@ -25,6 +25,7 @@ import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 
+
 public class CmsItemPublish implements CmsItem {
 
 	private final CmsItem item;
@@ -51,6 +52,18 @@ public class CmsItemPublish implements CmsItem {
 	
 	public String getTranslationLocale() {
 		return item.getProperties().getString("abx:TranslationLocale");
+	}
+	
+	public boolean hasProfiles() {
+		
+		String profilesProp = this.getProperties().getString("abx:Profiling");
+		if (profilesProp == null || profilesProp.trim().isEmpty()) {
+			return false;
+		} else if (profilesProp.equals("[]")) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	

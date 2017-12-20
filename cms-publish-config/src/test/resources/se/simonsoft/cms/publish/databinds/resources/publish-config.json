@@ -2,7 +2,8 @@
   "active": true,
   "visible": true,
   "statusInclude": ["Review", "Released"],
-  "profilingInclude": ["*"],
+  "profilingInclude": true,
+  "profilingNameInclude": ["*"],
   "areas": [
     {
         "pathnameTemplate": "velocity-stuff.pdf"

@@ -48,7 +48,7 @@ public class TestPublishConfig extends TestCase {
 		jsonPc = reader.readValue(getPublishConfigAsString());
 
 		assertEquals("velocity-stuff.pdf", jsonPc.getAreas().get(0).getPathnameTemplate());
-		assertEquals("*", jsonPc.getProfilingInclude().get(0));
+		assertEquals("*", jsonPc.getProfilingNameInclude().get(0));
 		assertEquals("Review", jsonPc.getStatusInclude().get(0));
 		assertEquals("Released", jsonPc.getStatusInclude().get(1));
 		assertEquals(true, jsonPc.isActive());
@@ -97,7 +97,7 @@ public class TestPublishConfig extends TestCase {
 		job.setArea(config.getAreas().get(0));
 		
 		assertEquals("velocity-stuff.pdf", job.getArea().getPathnameTemplate());
-		assertEquals("*", job.getProfilingInclude().get(0));
+		assertEquals("*", job.getProfilingNameInclude().get(0));
 		assertEquals("Review", job.getStatusInclude().get(0));
 		assertEquals("Released", job.getStatusInclude().get(1));
 		assertEquals(true, job.isActive());

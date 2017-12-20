@@ -25,7 +25,9 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
-	protected List<String> profilingInclude = new ArrayList<String>();
+	protected List<String> typeInclude;
+	protected Boolean profilingInclude;
+	protected List<String> profilingNameInclude = null; // No array means include all profiling recipes.
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	
@@ -33,7 +35,7 @@ public class PublishConfig {
 		this.active = pc.isActive();
 		this.visible = pc.isVisible();
 		this.statusInclude = pc.getStatusInclude();
-		this.profilingInclude = pc.getProfilingInclude();
+		this.profilingNameInclude = pc.getProfilingNameInclude();
 		this.areas = pc.getAreas();
 		this.options = pc.getOptions();
 	}
@@ -58,11 +60,23 @@ public class PublishConfig {
 	public void setStatusInclude(List<String> statusInclude) {
 		this.statusInclude = statusInclude;
 	}
-	public List<String> getProfilingInclude() {
-		return profilingInclude;
+	public List<String> getTypeInclude() {
+		return this.typeInclude;
 	}
-	public void setProfilingInclude(List<String> profilingInclude) {
+	public void setTypeInclude(List<String> typeInclude) {
+		this.typeInclude = typeInclude;
+	}
+	public Boolean getProfilingInclude() {
+		return this.profilingInclude;
+	}
+	public void setProfilingInclude(Boolean profilingInclude) {
 		this.profilingInclude = profilingInclude;
+	}
+	public List<String> getProfilingNameInclude() {
+		return profilingNameInclude;
+	}
+	public void setProfilingNameInclude(List<String> profilingInclude) {
+		this.profilingNameInclude = profilingInclude;
 	}
 	public List<PublishConfigArea> getAreas() {
 		return areas;
