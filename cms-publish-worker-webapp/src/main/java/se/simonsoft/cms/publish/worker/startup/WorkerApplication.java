@@ -56,7 +56,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String awsSecret;
 	private String cloudId; 
 	private String awsAccountId;
-	private AWSCredentialsProvider credentials;
+	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -78,16 +78,8 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
-            	
-            	awsId = environment.getParamOptional("cms.aws.key.id");
-            	awsSecret = environment.getParamOptional("cms.aws.key.secret");
             	cloudId = environment.getParam("cms.cloudid");
             	
-            	if (isAwsSecretAndId(awsId, awsSecret)) {
-            		credentials = getCredentials(awsId, awsSecret);
-            	} else {
-            		credentials = new DefaultAWSCredentialsProviderChain();
-            	}
             	awsAccountId = getAwsAccountId(credentials);
             	
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
@@ -173,24 +165,5 @@ public class WorkerApplication extends ResourceConfig {
 		return accountId;
 
 	}
-	
-	private AWSCredentialsProvider getCredentials(final String id, final String secret) {
-        return new AWSCredentialsProvider() {
-            @Override
-            public AWSCredentials getCredentials() {
-                return new BasicAWSCredentials(id, secret);
-            }
-
-            @Override
-            public void refresh() {
-
-            }
-        };
-    }
-	
-	private static boolean isAwsSecretAndId(String awsId, String awsSecret) {
-        return (awsId != null && !awsId.isEmpty() && awsSecret != null && !awsSecret.isEmpty());
-    }
-	
 
 }
