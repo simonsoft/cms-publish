@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +54,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishConfigurationDefault.class);
 
-	
+	@Inject
 	public PublishConfigurationDefault(
 			CmsRepositoryLookup repositoryLookup,
 			List<PublishConfigFilter> filters,
