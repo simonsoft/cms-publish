@@ -172,12 +172,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		if (profiling != null) {
 			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
 		}
-    PublishConfigStorage configStorage = pj.getOptions().getStorage();
-		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName);
-		pj.getOptions().setStorage(storage);
-//		storage.setPathnamebase(getNameBase(item.getId(), profiling));
-
 		
+		PublishConfigStorage configStorage = pj.getOptions().getStorage();
+		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
+		pj.getOptions().setStorage(storage);
+
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		

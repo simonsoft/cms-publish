@@ -21,6 +21,7 @@ import javax.inject.Named;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishJobStorageFactory {
@@ -36,7 +37,7 @@ public class PublishJobStorageFactory {
 		this.cloudId = cloudId;
 	}
 	
-	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName) {
+	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName, PublishProfilingRecipe profiling) {
 		
 		if (item == null) {
 			throw new IllegalArgumentException("PublishJobStorageFactory needs a valid CmsItemPublish: " + item);
@@ -49,7 +50,7 @@ public class PublishJobStorageFactory {
 		PublishJobStorage s = new PublishJobStorage();
 		
 		s.setPathdir(item.getId().getRelPath().getPath());
-		s.setPathnamebase(getNameBase(item.getId()));
+		s.setPathnamebase(getNameBase(item.getId(), profiling));
 		s.setPathversion(pathVersion);
 		s.setPathconfigname(configName);
 		s.setPathcloudid(cloudId);
@@ -65,9 +66,15 @@ public class PublishJobStorageFactory {
 		return s;
 	}
 	
-	private String getNameBase(CmsItemId itemId) {
-		String idRevision = String.format("_r%010d", itemId.getPegRev());
-		return itemId.getRelPath().getNameBase().concat(idRevision);
+	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
+		StringBuilder sb = new StringBuilder();
+		
+		if (profiling == null) {
+			sb.append(itemId.getRelPath().getNameBase());
+		} else {
+			sb.append(profiling.getName());
+		}
+		sb.append(String.format("_r%010d", itemId.getPegRev()));
+		return sb.toString();
 	}
-
 }

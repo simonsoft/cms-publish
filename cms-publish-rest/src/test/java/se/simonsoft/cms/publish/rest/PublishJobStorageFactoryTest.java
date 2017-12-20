@@ -50,7 +50,7 @@ public class PublishJobStorageFactoryTest {
 		cs.setType("s3");
 		
 		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
-		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName);
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
 		assertEquals("simple-pdf", s.getPathconfigname());
@@ -68,7 +68,7 @@ public class PublishJobStorageFactoryTest {
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("fs");
 		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
-		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName);
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
 		assertEquals("simple-pdf", s.getPathconfigname());
