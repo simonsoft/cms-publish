@@ -46,7 +46,7 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
-	private final String bucketName = "cms-review-jandersson";
+	private final String bucketName = "cms-automation";
 	
 	private static String AWS_REGION = Regions.EU_WEST_1.getName();
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
@@ -56,7 +56,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String awsSecret;
 	private String cloudId; 
 	private String awsAccountId;
-	private AWSCredentialsProvider credentials;
+	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -65,8 +65,6 @@ public class WorkerApplication extends ResourceConfig {
 		System.out.println("WORKER CONFIG");
 		
 		register(new AbstractBinder() {
-
-
 
 			@Override
             protected void configure() {
@@ -78,16 +76,8 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
+            	cloudId = environment.getParamOptional("CLOUDID");
             	
-            	awsId = environment.getParamOptional("cms.aws.key.id");
-            	awsSecret = environment.getParamOptional("cms.aws.key.secret");
-            	cloudId = environment.getParam("cms.cloudid");
-            	
-            	if (isAwsSecretAndId(awsId, awsSecret)) {
-            		credentials = getCredentials(awsId, awsSecret);
-            	} else {
-            		credentials = new DefaultAWSCredentialsProviderChain();
-            	}
             	awsAccountId = getAwsAccountId(credentials);
             	
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
@@ -106,20 +96,25 @@ public class WorkerApplication extends ResourceConfig {
         		ObjectWriter writer = mapper.writer();
         		bind(reader).to(ObjectReader.class);
         		bind(writer).to(ObjectWriter.class);
-        		
-        		//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
-        		logger.debug("Starting publish worker...");
-        		new AwsStepfunctionPublishWorker(cloudId,
-        				bucketName,
-        				credentials,
-        				reader,
-        				writer,
-        				client,
-        				getAwsArn("activity", AWS_ACTIVITY_NAME),
-        				publishJobService,	
-        				workerStatusReport);
-        		
-        		logger.debug("publish worker started.");
+
+				if (cloudId != null) {
+					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
+					logger.debug("Starting publish worker...");
+					new AwsStepfunctionPublishWorker(cloudId,
+							bucketName,
+							credentials,
+							reader,
+							writer,
+							client,
+							getAwsArn("activity", AWS_ACTIVITY_NAME),
+							publishJobService,
+							workerStatusReport);
+
+					logger.debug("publish worker started.");
+
+				} else {
+					logger.warn("Deferring AWS Worker startup, CLOUDID not configured.");
+				}
             }
         });
 		
@@ -173,24 +168,5 @@ public class WorkerApplication extends ResourceConfig {
 		return accountId;
 
 	}
-	
-	private AWSCredentialsProvider getCredentials(final String id, final String secret) {
-        return new AWSCredentialsProvider() {
-            @Override
-            public AWSCredentials getCredentials() {
-                return new BasicAWSCredentials(id, secret);
-            }
-
-            @Override
-            public void refresh() {
-
-            }
-        };
-    }
-	
-	private static boolean isAwsSecretAndId(String awsId, String awsSecret) {
-        return (awsId != null && !awsId.isEmpty() && awsSecret != null && !awsSecret.isEmpty());
-    }
-	
 
 }

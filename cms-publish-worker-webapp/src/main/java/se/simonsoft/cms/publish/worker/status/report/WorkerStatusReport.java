@@ -25,7 +25,7 @@ public class WorkerStatusReport {
 
 	private List<WorkerEvent> events = new ArrayList<WorkerEvent>();
 	public static final int MAX_LENGTH = 100;
-	private WorkerEvent workerLoop;
+	private WorkerEvent workerLoop = new WorkerEvent("Pending", new Date(), "Worker connection pending.");
 
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;
