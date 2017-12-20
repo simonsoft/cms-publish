@@ -85,7 +85,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		this.filters = filters;
 		this.readerConfig = reader.forType(PublishConfig.class);
 		this.readerProfiling = reader.forType(PublishProfilingSet.class);
-    this.storageFactory = storageFactory;
+		this.storageFactory = storageFactory;
 	}
 
 	@Override
