@@ -46,7 +46,7 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
-	private final String bucketName = "cms-review-jandersson";
+	private final String bucketName = "cms-automation";
 	
 	private static String AWS_REGION = Regions.EU_WEST_1.getName();
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
