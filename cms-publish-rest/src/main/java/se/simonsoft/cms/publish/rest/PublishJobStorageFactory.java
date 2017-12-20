@@ -38,6 +38,14 @@ public class PublishJobStorageFactory {
 	
 	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName) {
 		
+		if (item == null) {
+			throw new IllegalArgumentException("PublishJobStorageFactory needs a valid CmsItemPublish: " + item);
+		}
+		
+		if (configName == null || configName.isEmpty()) {
+			throw new IllegalArgumentException("PublishJobStorageFactory needs a valid configName: " + configName);
+		}
+		
 		PublishJobStorage s = new PublishJobStorage();
 		
 		s.setPathdir(item.getId().getRelPath().getPath());
