@@ -17,13 +17,16 @@ package se.simonsoft.cms.publish.rest;
 
 import java.util.Map;
 
-import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public interface PublishConfiguration {
 
 	public Map<String, PublishConfig> getConfiguration(CmsItemId itemId);
 	
-	public Map<String, PublishConfig> getConfigurationFiltered(CmsItem item);
+	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item);
+	
+	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish);
 }

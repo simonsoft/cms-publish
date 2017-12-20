@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.CmsItemPath;
@@ -35,7 +34,9 @@ import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.release.ReleaseProperties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -73,11 +74,27 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		return deserializeConfig(context);
 	}
 	
-	public Map<String, PublishConfig> getConfigurationFiltered(CmsItem item) {
+	
+	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item) {
 		
 		CmsResourceContext context = getConfigurationParentFolder(item.getId());
 		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
 		return filterConfigs(item, allConfigs);
+	}
+	
+	
+	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish) {
+		
+		if (!itemPublish.hasProfiles()) {
+			return null;
+		}
+		
+		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
+		try {
+			return this.readerProfiling.readValue(profilesProp);
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
+		}
 	}
 	
 	
@@ -119,7 +136,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		return configs;
 	}
 	
-	private Map<String, PublishConfig> filterConfigs(CmsItem item, Map<String, PublishConfig> configs) {
+	private Map<String, PublishConfig> filterConfigs(CmsItemPublish item, Map<String, PublishConfig> configs) {
 		
 		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
 		for (Entry<String, PublishConfig> config: configs.entrySet()) {

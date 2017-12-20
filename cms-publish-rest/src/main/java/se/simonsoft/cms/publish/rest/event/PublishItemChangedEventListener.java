@@ -130,7 +130,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 		
-		PublishProfilingSet profilesSet = getItemProfiles(itemPublish);
+		PublishProfilingSet profilesSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
 		
 		for (PublishProfilingRecipe profilesRecipe: profilesSet) {
 			
@@ -142,20 +142,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		}
 		
 		return profiledJobs;
-	}
-	
-	private PublishProfilingSet getItemProfiles(CmsItemPublish itemPublish) {
-		
-		if (!itemPublish.hasProfiles()) {
-			return null;
-		}
-		
-		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-		try {
-			return this.readerProfiling.readValue(profilesProp);
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
-		}
 	}
 	
 
