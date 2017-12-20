@@ -15,7 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +28,7 @@ import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishJobStorageFactoryTest {
@@ -77,6 +78,28 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("fs", s.getType());
 		assertEquals(null, s.getParams().get("s3bucket"));
+	}
+	
+	@Test
+	public void testPublishJobStorageFactoryProfiling() throws Exception {
+		
+		PublishConfigStorage cs = new PublishConfigStorage();
+		cs.setType("fs");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishProfilingRecipe profiling = new PublishProfilingRecipe();
+		profiling.setName("test_name");
+		
+		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, profiling);
+	
+		assertEquals("cloudId", s.getPathcloudid());
+		assertEquals("simple-pdf", s.getPathconfigname());
+		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
+		assertEquals("test_name_r0000000100", s.getPathnamebase());
+		assertEquals("cms4", s.getPathversion());
+		assertEquals("fs", s.getType());
+		assertEquals(null, s.getParams().get("s3bucket"));
+		
+		
 	}
 	
 }
