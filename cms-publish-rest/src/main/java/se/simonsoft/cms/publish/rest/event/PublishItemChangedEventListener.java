@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
@@ -46,6 +47,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.rest.PublishConfiguration;
 import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
@@ -56,31 +58,28 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
-	private final CmsRepositoryLookup lookup;
+	private final PublishConfiguration publishConfiguration;
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 	
 	private final List<PublishConfigFilter> filters;
 	private final ObjectReader readerConfig;
 	private final ObjectReader readerProfiling;
 	
-	private final String pathVersion = "cms4";
-	private final String s3Bucket = "cms-automation";
 	private final String type = "publish-job";
 	private final PublishJobStorageFactory storageFactory;
 	
-	private static final String PUBLISH_CONFIG_KEY = "cmsconfig-publish";  
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishItemChangedEventListener.class);
 
 	@Inject
 	public PublishItemChangedEventListener(
-			CmsRepositoryLookup lookup,
+			PublishConfiguration publishConfiguration,
 			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
 			ObjectReader reader,
 			PublishJobStorageFactory storageFactory) {
 		
-		this.lookup = lookup;
+		this.publishConfiguration = publishConfiguration;
 		this.workflowExecutor = workflowExecutor;
 		this.filters = filters;
 		this.readerConfig = reader.forType(PublishConfig.class);
@@ -88,19 +87,23 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		this.storageFactory = storageFactory;
 	}
 
+	
 	@Override
 	public void onItemChange(CmsItem item) {
-		logger.debug("Got an item change event with id: {}", item.getId());
+		logger.debug("Item change event with id: {}", item.getId());
 		if (item.getId().getPegRev() == null) {
-			logger.error("Given item is missing a revision: {}", item.getId().getLogicalId());
+			logger.error("Item requires a revision to be published: {}", item.getId().getLogicalId());
 			throw new IllegalArgumentException("Item requires a revision to be published.");
 		}
-		CmsResourceContext context = this.lookup.getConfig(item.getId(), item.getKind());
 		
-		Map<String, PublishConfig> publishConfigs = deserializeConfig(context);
-		publishConfigs = filterConfigs(item, publishConfigs);
+		if (item.getKind() != CmsItemKind.File) {
+			return;
+		}
 		
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
+		
+		Map<String, PublishConfig> publishConfigs = this.publishConfiguration.getConfigurationFiltered(itemPublish);
+		
 		
 		List<PublishJob> jobs = new ArrayList<PublishJob>();
 		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {
@@ -127,7 +130,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 		
-		PublishProfilingSet profilesSet = getItemProfiles(itemPublish);
+		PublishProfilingSet profilesSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
 		
 		for (PublishProfilingRecipe profilesRecipe: profilesSet) {
 			
@@ -139,20 +142,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		}
 		
 		return profiledJobs;
-	}
-	
-	private PublishProfilingSet getItemProfiles(CmsItemPublish itemPublish) {
-		
-		if (!itemPublish.hasProfiles()) {
-			return null;
-		}
-		
-		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-		try {
-			return this.readerProfiling.readValue(profilesProp);
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
-		}
 	}
 	
 
@@ -198,52 +187,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		sb.append(String.format("_r%010d", itemId.getPegRev()));
 		return sb.toString();
 	}
-	
-	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
-		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
-		Map<String, PublishConfig> configs = new LinkedHashMap<>();
-		Iterator<CmsConfigOption> iterator = context.iterator();
-		while (iterator.hasNext()) {
-			CmsConfigOption configOption = iterator.next();
-			String configOptionName = configOption.getNamespace();
-			if (configOptionName.startsWith(PUBLISH_CONFIG_KEY)) {
-				try {
-					PublishConfig publishConfig = readerConfig.readValue(configOption.getValueString());
-					configs.put(configOption.getKey(), publishConfig);
-				} catch (JsonProcessingException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
-					throw new RuntimeException(e);
-				} catch (IOException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		
-		logger.debug("Context had {} number of valid cmsconfig-publish objects", configs.size());
-		
-		return configs;
-	}
-	
-	private Map<String, PublishConfig> filterConfigs(CmsItem item, Map<String, PublishConfig> configs) {
-		
-		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
-		for (Entry<String, PublishConfig> config: configs.entrySet()) {
-			List<String> filtered = new ArrayList<String>(filters.size());
-			for (PublishConfigFilter f: filters) {
-				if (!f.accept(config.getValue(), item)) {
-					filtered.add(f.getClass().getName());
-				}
-			}
-			if (filtered.isEmpty()) {
-				logger.debug("Config '{}' was accepted.", config.getKey());
-				filteredConfigs.put(config.getKey(), config.getValue());
-			} else {
-				logger.debug("Config '{}' was filtered: {}", config.getKey(), filtered);
-			}
-		}
-		return filteredConfigs;
-	}
+
 	
 	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();

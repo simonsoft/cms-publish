@@ -61,6 +61,8 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.rest.PublishConfiguration;
+import se.simonsoft.cms.publish.rest.PublishConfigurationDefault;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
@@ -134,7 +136,9 @@ public class PublishItemChangedEventListenerTest {
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
@@ -223,7 +227,9 @@ public class PublishItemChangedEventListenerTest {
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader()
@@ -266,7 +272,9 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(statusFilterSpy);
 		
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
@@ -316,7 +324,9 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(statusFilterSpy);
 		
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
@@ -369,7 +379,9 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(statusFilterSpy);
 		
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
@@ -437,7 +449,9 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(new PublishConfigFilterType());
 		filters.add(new PublishConfigFilterStatus());
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
@@ -532,7 +546,9 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(new PublishConfigFilterType());
 		filters.add(new PublishConfigFilterStatus());
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
 																mapper.reader(),
