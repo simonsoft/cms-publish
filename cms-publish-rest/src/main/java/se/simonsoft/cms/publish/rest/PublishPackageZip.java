@@ -90,7 +90,7 @@ public class PublishPackageZip {
 			ZipEntry nextEntry = zis.getNextEntry();
 			while(nextEntry != null) {
 				zos.putNextEntry(nextEntry);
-				logger.debug("");
+				logger.debug("Writing entry: {} to new zip", nextEntry.getName());
 				
 				byte[] buffer = new byte[1024];
 				int length;
@@ -109,7 +109,7 @@ public class PublishPackageZip {
 			try {
 				zis.close();
 			} catch (IOException e) {
-				logger.debug("Could not close zipInputStream: {}", e.getMessage());
+				logger.debug("Could not close ZipInputStream: {}", e.getMessage());
 				throw new RuntimeException(e);
 			}
 		}
