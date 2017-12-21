@@ -1,23 +1,12 @@
-/**
- * Copyright (C) 2009-2017 Simonsoft Nordic AB
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package se.simonsoft.cms.publish.rest;
 
-import java.awt.event.ItemEvent;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,16 +24,36 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectReader;
+
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.info.CmsRepositoryLookup;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 @Path("/publish4")
 public class PublishResource {
 	
 	private final String hostname;
+	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
+	private PublishConfigurationDefault publishConfiguration;
+	private List<PublishConfigFilter> configFilters;
 
 	@Inject
-	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname) {
+	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
+			Map<CmsRepository, CmsItemLookupReporting> lookup,
+			PublishConfigurationDefault publishConfiguration,
+			List<PublishConfigFilter> configFilters) {
 		this.hostname = hostname;
+		this.lookup = lookup;
+		this.publishConfiguration = publishConfiguration;
+		this.configFilters = configFilters;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -57,6 +66,13 @@ public class PublishResource {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
+		CmsItemLookupReporting cmsItemLookupReporting = lookup.get(itemId.getRepository());
+		CmsItem item = cmsItemLookupReporting.getItem(itemId);
+		CmsItemPublish itemPublish = new CmsItemPublish(item);
+		
+		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
+		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+		Map<String, PublishProfilingRecipe> itemProfiling = itemProfilingSet.getMap();
 		
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
@@ -65,9 +81,11 @@ public class PublishResource {
 		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
-		Template template = engine.getTemplate("se/simonsoft/cms/publish/config/templates/batch-publish-template.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
 		
-		context.put("item", itemId);
+		context.put("item", item);
+		context.put("itemProfiling", itemProfiling);
+		context.put("configuration", configuration);
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);

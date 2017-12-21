@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Simonsoft CMS PE integration</title>
+</head>
+<body>
+
+<div id="commandbar">
+<a class="repository" href="$item.getId().getRepositoryUrl()">return to repository</a>
+<a class="details" href="$item.getId().getUrl()?p=$item.getId().getPegRev()&rweb=details">details</a>
+</div>
+
+<div id="intro">
+<h1>Batch Publish</h1>
+<p>NOTE: This service is <b>no longer</b> intended for sending translations to the TSP, see <b>Export Translations</b> on the translation details page.</p>
+</div>
+
+<div class="column" style="width: 70%">
+<form id="arbortextcompose" method="get" action="http://localhost:8080/rest/publish4/release/download">
+	<fieldset>
+		<legend>Batch publish <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
+		
+		<input name="item" type="hidden" value="$item.getId()" />
+		
+		<p>
+			<label for="relPath">document</label>
+			<input id="relPath" name="relPath" type="text" size="80" value="$item.getId().getRelPath()" disabled="disabled" />
+		</p>
+		<p>
+			<label for="rev">revision</label>
+			<input name="rev" type="text" id="rev" value="$item.getId().getPegRev()" class="revision" disabled="disabled"/>
+		</p>
+		<p>
+			<label for="includemaster">include release</label>
+			<input id="includemaster" name="includemaster" type="checkbox" checked="checked" value="true"/>
+		</p>
+		<p>
+			<label for="includetranslations">include translations</label>
+			<input id="includetranslations" name="includetranslations" type="checkbox" checked="checked" value="true"/>
+		</p>
+		<p> 
+			<label for="dosrc">profiles</label>
+			#foreach ($mapEntry in $itemProfiling.entrySet())
+				<input id="dosrc" name="$mapEntry.getValue().getName()" type="checkbox" value="$mapEntry.getValue().getName()">$mapEntry.getValue().getName()</input>
+			#end
+		</p>
+		<p>
+			<label for="dopub">publications</label>
+			#foreach ($mapEntry in $configuration.entrySet())
+				#if( $mapEntry.getValue().isVisible() )
+					<input id="dopub" name="$mapEntry.getValue().getOptions().getFormat()" type="radio" value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()</input>
+				#end
+			#end
+		</p>
+		<p>
+			<label for="submit"></label>
+			<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
+		</p>
+	</fieldset>
+</form>
+</div>
+<div class="column" style="width: 29%">
+<!-- 
+<div class="section">
+<p></p>
+</div>
+-->
+</div>
+<div id="footer">
+</div>
+
+</body>
+</html>
