@@ -103,8 +103,8 @@ public class PublishPackageZip {
 			}
 			
 		} catch (IOException e) {
-			logger.debug("e: {}", e.getMessage());
-			throw new RuntimeException("Could not read zip entry", e);
+			logger.debug("Error when trying to write new zip entries: {}", e.getMessage());
+			throw new RuntimeException(e);
 		} finally {
 			try {
 				zis.close();
