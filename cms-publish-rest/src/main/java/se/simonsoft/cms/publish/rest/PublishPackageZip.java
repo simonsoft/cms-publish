@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.rest;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,8 +27,6 @@ import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
@@ -71,44 +68,52 @@ public class PublishPackageZip {
 		}
 		
 		for (PublishExportJob j: jobs) {
-			logger.debug("Getting job: {}", j.getJobName());
+			logger.debug("Getting exported job: {}", j.getJobName());
 			awsReader.prepare(j);
 			InputStream contents = awsReader.getContents();
-			ZipInputStream zis = new ZipInputStream(contents);
+			writeEntries(new ZipInputStream(contents), zos);
 			
 			try {
-				
-				ZipEntry nextEntry = zis.getNextEntry();
-				while(nextEntry != null) {
-					zos.putNextEntry(nextEntry);
-					
-					byte[] buffer = new byte[1024];
-					int length;
-					while ((length = zis.read(buffer)) != -1) {
-						zos.write(buffer, 0, length);
-					}
-					
-					zos.closeEntry();
-					nextEntry = zis.getNextEntry();
-				}
+				contents.close();
 			} catch (IOException e) {
-				logger.debug("e: {}", e.getMessage());
-				throw new RuntimeException("Could not read zip entry", e);
-			} finally {
-				try {
-					zis.close();
-					contents.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				logger.debug("could not close inputStream from Aws: {}", e.getMessage());
+				throw new RuntimeException(e);
 			}
+			
 		}
-		
 		logger.debug("Getting zip files at S3 and re-package them.");
-		
 	}
 	
+	private void writeEntries(ZipInputStream zis, ZipOutputStream zos) {
+		try {
+			
+			ZipEntry nextEntry = zis.getNextEntry();
+			while(nextEntry != null) {
+				zos.putNextEntry(nextEntry);
+				logger.debug("");
+				
+				byte[] buffer = new byte[1024];
+				int length;
+				while ((length = zis.read(buffer)) != -1) {
+					zos.write(buffer, 0, length);
+				}
+				
+				zos.closeEntry();
+				nextEntry = zis.getNextEntry();
+			}
+			
+		} catch (IOException e) {
+			logger.debug("e: {}", e.getMessage());
+			throw new RuntimeException("Could not read zip entry", e);
+		} finally {
+			try {
+				zis.close();
+			} catch (IOException e) {
+				logger.debug("Could not close zipInputStream: {}", e.getMessage());
+				throw new RuntimeException(e);
+			}
+		}
+	}
 	
 	private PublishExportJob getPublishExportJob(CmsItem item, PublishConfig config, String configName) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
