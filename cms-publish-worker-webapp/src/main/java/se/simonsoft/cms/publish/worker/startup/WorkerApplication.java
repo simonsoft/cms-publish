@@ -89,6 +89,8 @@ public class WorkerApplication extends ResourceConfig {
         				.build();
             	
             	bind(client).to(AWSStepFunctions.class);
+            	String activityArn = getAwsArn("activity", AWS_ACTIVITY_NAME);
+            	logger.info("AWS Activity ARN: {}", activityArn);
             	
             	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
@@ -106,7 +108,7 @@ public class WorkerApplication extends ResourceConfig {
 							reader,
 							writer,
 							client,
-							getAwsArn("activity", AWS_ACTIVITY_NAME),
+							activityArn,
 							publishJobService,
 							workerStatusReport);
 
