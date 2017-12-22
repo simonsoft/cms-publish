@@ -104,11 +104,6 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'item': revision is required");
 		}
 		
-		logger.debug("Not yet implemented");
-		
-		//TODO: Should produce zip output. 
 		return Response.ok("Succesfully called get release/download").build();
 	}
-	
-	
 }
