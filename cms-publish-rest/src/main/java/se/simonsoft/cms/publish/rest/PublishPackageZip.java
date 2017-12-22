@@ -65,7 +65,7 @@ public class PublishPackageZip {
 	
 	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<String> profiles, OutputStream os) {
 		
-		List<PublishExportJob> jobs = new ArrayList<PublishExportJob>();
+		List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
 		List<CmsExportAwsReaderSingle> awsReaders = new ArrayList<>();
 		
 		if (!(os instanceof ZipOutputStream)) {
@@ -77,14 +77,14 @@ public class PublishPackageZip {
 		
 		for (CmsItem item: items) {
 			logger.debug("Creating PublishExportJobs from: {} items", items.size());
-			PublishExportJob job = getPublishExportJob(item, config, configName);
-			jobs.add(job);
+			PublishExportJob downloadJob = getPublishDownloadJob(item, config, configName);
+			downloadJobs.add(downloadJob);
 			logger.debug("PublishExportJobs created.");
 		}
 		
 		
-		logger.debug("Creating readers for: {} import jobs", jobs.size());
-		for (PublishExportJob j: jobs) {
+		logger.debug("Creating readers for: {} import jobs", downloadJobs.size());
+		for (PublishExportJob j: downloadJobs) {
 			CmsExportAwsReaderSingle r = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
 			r.prepare(j);
 			awsReaders.add(r);
@@ -131,7 +131,7 @@ public class PublishPackageZip {
 		}
 	}
 	
-	private PublishExportJob getPublishExportJob(CmsItem item, PublishConfig config, String configName) {
+	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
 		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, null);
 		PublishExportJob job = new PublishExportJob(s, "zip");
