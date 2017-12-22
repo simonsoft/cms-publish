@@ -1,12 +1,8 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,17 +20,13 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectReader;
-
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 @Path("/publish4")
@@ -42,18 +34,18 @@ public class PublishResource {
 	
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
-	private PublishConfigurationDefault publishConfiguration;
-	private List<PublishConfigFilter> configFilters;
+	private final PublishConfigurationDefault publishConfiguration;
+	private final PublishPackageZip repackageService;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
-			List<PublishConfigFilter> configFilters) {
+			PublishPackageZip repackageService) {
 		this.hostname = hostname;
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
-		this.configFilters = configFilters;
+		this.repackageService = repackageService;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
