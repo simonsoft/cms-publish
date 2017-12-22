@@ -25,8 +25,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
@@ -37,20 +42,31 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishPackageZip {
 	
-	private final CmsExportAwsReaderSingle awsReader;
 	private final PublishJobStorageFactory storageFactory;
+
+	private final String cloudId;
+	private final String bucketName;
+	private final AWSCredentialsProvider credentials;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishPackageZip.class);
 	
-	public PublishPackageZip(CmsExportAwsReaderSingle awsReader,
-								PublishJobStorageFactory storageFactory) {
+	@Inject
+	public PublishPackageZip(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
+							@Named("config:se.simonsoft.cms.aws.bucket.name") String bucketName,
+							AWSCredentialsProvider credentials,
+							PublishJobStorageFactory storageFactory) {
 		
-		this.awsReader = awsReader;
+		this.cloudId = cloudId;
+		this.bucketName = bucketName;
+		this.credentials = credentials;
 		this.storageFactory = storageFactory;
 	}
 	
 	
-	public void getZip(Set<CmsItem> items, PublishConfig config, Set<String> profiles, OutputStream os, String configName) {
+	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<String> profiles, OutputStream os) {
+		
+		List<PublishExportJob> jobs = new ArrayList<PublishExportJob>();
+		List<CmsExportAwsReaderSingle> awsReaders = new ArrayList<>();
 		
 		if (!(os instanceof ZipOutputStream)) {
 			throw new IllegalArgumentException("PublishPackageZip handles only zip outputs. Given type of OutputStream: " + os.getClass());
@@ -58,7 +74,6 @@ public class PublishPackageZip {
 		
 		ZipOutputStream zos = (ZipOutputStream) os; 
 		
-		List<PublishExportJob> jobs = new ArrayList<PublishExportJob>();
 		
 		for (CmsItem item: items) {
 			logger.debug("Creating PublishExportJobs from: {} items", items.size());
@@ -67,17 +82,25 @@ public class PublishPackageZip {
 			logger.debug("PublishExportJobs created.");
 		}
 		
+		
+		logger.debug("Creating readers for: {} import jobs", jobs.size());
 		for (PublishExportJob j: jobs) {
-			logger.debug("Getting exported job: {}", j.getJobName());
-			awsReader.prepare(j);
-			InputStream contents = awsReader.getContents();
-			writeEntries(new ZipInputStream(contents), zos);
+			CmsExportAwsReaderSingle r = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
+			r.prepare(j);
+			awsReaders.add(r);
+		}
+		
+		
+		for (CmsExportAwsReaderSingle r: awsReaders) {
+			
+			InputStream contents = r.getContents();
+			ZipInputStream zis = new ZipInputStream(contents);
+			writeEntries(zis, zos);
 			
 			try {
-				contents.close();
+				zis.close();
 			} catch (IOException e) {
-				logger.debug("could not close inputStream from Aws: {}", e.getMessage());
-				throw new RuntimeException(e);
+				logger.warn("Could not close inputStream from Aws: {}", e.getMessage());
 			}
 			
 		}
@@ -105,13 +128,6 @@ public class PublishPackageZip {
 		} catch (IOException e) {
 			logger.debug("Error when trying to write new zip entries: {}", e.getMessage());
 			throw new RuntimeException(e);
-		} finally {
-			try {
-				zis.close();
-			} catch (IOException e) {
-				logger.debug("Could not close ZipInputStream: {}", e.getMessage());
-				throw new RuntimeException(e);
-			}
 		}
 	}
 	
