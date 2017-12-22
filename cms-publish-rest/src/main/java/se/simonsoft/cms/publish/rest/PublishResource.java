@@ -58,6 +58,9 @@ public class PublishResource {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
+		
+		logger.debug("Getting form for item: {}", itemId);
+		
 		CmsItemLookupReporting cmsItemLookupReporting = lookup.get(itemId.getRepository());
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
@@ -103,6 +106,8 @@ public class PublishResource {
 		if (!itemId.isPegged()) {
 			throw new IllegalArgumentException("Field 'item': revision is required");
 		}
+		
+		logger.debug("Download of item: {} requested, with master: {} and transaltions: {}", itemId, includeMaster, includeTranslations);
 		
 		return Response.ok("Succesfully called get release/download").build();
 	}
