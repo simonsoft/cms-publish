@@ -34,7 +34,7 @@ $reposHeadTags
 </div>
 
 <div class="column" style="width: 70%">
-<form id="arbortextcompose" method="get" action="http://localhost:8080/rest/publish4/release/download">
+<form id="arbortextcompose" method="get" action="release/download">
 	<fieldset>
 		<legend>Batch publish <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
 		
