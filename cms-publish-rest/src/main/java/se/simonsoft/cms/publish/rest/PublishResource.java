@@ -20,6 +20,7 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
@@ -36,16 +37,19 @@ public class PublishResource {
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZip repackageService;
+	private final ReposHtmlHelper htmlHelper;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
-			PublishPackageZip repackageService) {
+			PublishPackageZip repackageService,
+			ReposHtmlHelper htmlHelper) {
 		this.hostname = hostname;
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
+		this.htmlHelper = htmlHelper;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -81,6 +85,7 @@ public class PublishResource {
 		context.put("item", item);
 		context.put("itemProfiling", itemProfiling);
 		context.put("configuration", configuration);
+		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
