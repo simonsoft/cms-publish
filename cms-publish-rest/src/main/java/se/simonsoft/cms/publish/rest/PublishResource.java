@@ -136,7 +136,7 @@ public class PublishResource {
 						@QueryParam("includerelease") boolean includeRelease,
 						@QueryParam("includetranslations") boolean includeTranslations,
 						@QueryParam("profiling") String[] profiling,
-						@QueryParam("publication") String publication) throws Exception {
+						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Download of item: {} requested with master: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
 		
@@ -161,7 +161,7 @@ public class PublishResource {
 		items.add(masterItem);
 		
 		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(masterItem));
-		final PublishConfig simplePdfConfig = configurationFiltered.get("simple-pdf"); // trying with one known config to start with.
+		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
 		List<CmsItemTranslation> translations = null;
 		if (includeTranslations) {
@@ -178,7 +178,7 @@ public class PublishResource {
 	    StreamingOutput stream = new StreamingOutput() {
             @Override
             public void write(OutputStream os) throws IOException, WebApplicationException {
-            	repackageService.getZip(items, "simple-pdf", simplePdfConfig, null, os);
+            	repackageService.getZip(items, publication, publishConfig, null, os); // Profiles are null at the moment.
             }
         };
 		
