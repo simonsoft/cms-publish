@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.rest.config.filter;
+package se.simonsoft.cms.publish.rest;
 
-import java.util.List;
+import java.util.Map;
 
-import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
-public class PublishConfigFilterType implements PublishConfigFilter {
-	
-	private final String typeInclude = "embd_xml_a_type";
-	
-	@Override
-	public boolean accept(PublishConfig config, CmsItem item) {
-		String type = (String) item.getMeta().get(typeInclude);
-		
-		boolean accept = false;
-		List<String> typeInclude = config.getTypeInclude();
-		if (typeInclude == null || typeInclude.contains(type)) { 
-			accept = true;
-		}
-		
-		return accept;
-	}
+public interface PublishConfiguration {
 
+	public Map<String, PublishConfig> getConfiguration(CmsItemId itemId);
+	
+	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item);
+	
+	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish);
 }

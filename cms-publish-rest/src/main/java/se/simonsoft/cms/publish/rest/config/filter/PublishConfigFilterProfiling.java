@@ -15,26 +15,27 @@
  */
 package se.simonsoft.cms.publish.rest.config.filter;
 
-import java.util.List;
-
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
-public class PublishConfigFilterType implements PublishConfigFilter {
-	
-	private final String typeInclude = "embd_xml_a_type";
+public class PublishConfigFilterProfiling implements PublishConfigFilter {
+
 	
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
-		String type = (String) item.getMeta().get(typeInclude);
 		
-		boolean accept = false;
-		List<String> typeInclude = config.getTypeInclude();
-		if (typeInclude == null || typeInclude.contains(type)) { 
-			accept = true;
+		if (!(item instanceof CmsItemPublish)) {
+			return false;
 		}
 		
-		return accept;
+		CmsItemPublish itemPublish = (CmsItemPublish) item;
+		
+		if (config.getProfilingInclude() == null) {
+			return true;
+		} else {
+			return config.getProfilingInclude().equals(itemPublish.hasProfiles());
+		}
 	}
 
 }

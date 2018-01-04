@@ -27,7 +27,7 @@ public class PublishConfigFilterStatus implements PublishConfigFilter {
 		
 		boolean accept = false;
 		List<String> statusInclude = config.getStatusInclude();
-		if (statusInclude == null || config.getStatusInclude().contains(item.getStatus())) { 
+		if (statusInclude == null || statusInclude.contains(item.getStatus())) { 
 			accept = true;
 		}
 		

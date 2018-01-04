@@ -15,8 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest.event;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -60,7 +59,11 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.rest.PublishConfiguration;
+import se.simonsoft.cms.publish.rest.PublishConfigurationDefault;
+import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
@@ -76,9 +79,18 @@ public class PublishItemChangedEventListenerTest {
 	@Mock Iterator<CmsConfigOption> mockOptionIterator;
 	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
 	
-	private final String configStatusPath = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-	private final String publishJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
-	private final String publishJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
+	@SuppressWarnings("unused")
+	private final String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
+	private final String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	@SuppressWarnings("unused")
+	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
+	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
+	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
+	
+	private final String pathJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
+	private final String pathJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
+	
+	
 	
 	@Before
 	public void setUp() {
@@ -86,7 +98,7 @@ public class PublishItemChangedEventListenerTest {
 	}
 	
 	@Test
-	public void testDefaultItemEvent() throws Exception {
+	public void testItemReleasedEvent() throws Exception {
 		
 		//CmsItem mock. Not possible to get a real CmsItem in this context.
 		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
@@ -98,19 +110,19 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getProperties()).thenReturn(new CmsItemPropertiesMap("cms:status", "Released"));
 		
 		HashMap<String, Object> metaMap = new HashMap<String, Object>();
-		metaMap.put("embd_xml_a_type", "abxpe");
+		metaMap.put("embd_xml_a_type", "operator");
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(configStatusPath ));
-		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 		
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -124,21 +136,23 @@ public class PublishItemChangedEventListenerTest {
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		//Test starting point. 
 		eventListener.onItemChange(mockItem);
 		
 		//Verifies that our mocks and spies has been called a certain amount of times.
-		verify(mockLookup, times(1)).getConfig(mockItem.getId(), mockItem.getKind());
 		verify(mockOptionIterator, times(2)).next();
 		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
 		
-		//Caputures PublishJob arguments that our mocked workflow been called with.
+		//Captures PublishJob arguments that our mocked workflow been called with.
 		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
 		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
 		
@@ -152,6 +166,9 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("DOC_900276_Released", publishJob.getOptions().getPathname());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getItemid());
 		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getOptions().getSource());
+		
+		// Profiling
+		assertNull(publishJob.getOptions().getProfiling());
 		
 		//Storage
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
@@ -167,6 +184,230 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("default", manifest.getType());
 		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
 		assertEquals("demo1", storage.getPathcloudid());
+	}
+	
+	
+	@Test
+	public void testItemInWorkEvent() throws Exception {
+		
+		//CmsItem mock. Not possible to get a real CmsItem in this context.
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(443L);
+		when(mockItem.getId()).thenReturn(itemId);
+		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
+		when(mockItem.getStatus()).thenReturn("In_Work");
+		when(mockItem.getProperties()).thenReturn(new CmsItemPropertiesMap("cms:status", "In_Work"));
+		
+		HashMap<String, Object> metaMap = new HashMap<String, Object>();
+		metaMap.put("embd_xml_a_type", "operator");
+		when(mockItem.getMeta()).thenReturn(metaMap);
+		
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
+		
+		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
+		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
+		
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
+		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
+		
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+																mockWorkflowExec,
+																filters,
+																mapper.reader()
+																, new PublishJobStorageFactory("demo1"));
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Verifies that our mocks and spies has been called a certain amount of times.
+		verify(mockOptionIterator, times(2)).next();
+		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(0)).startExecution(argCaptor.capture());
+	}
+	
+	
+	@Test
+	public void testProfiling1NoFilter() throws Exception {
+
+		initProfilingMock();
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
+		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
+
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+																mockWorkflowExec,
+																filters,
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Verifies that our mocks and spies has been called a certain amount of times.
+		verify(mockOptionIterator, times(2)).next();
+		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+		
+		//Asserts on argument that executor has been called with.
+		PublishJob publishJob = argCaptor.getValue();
+
+		// Profiling
+		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		assertNull(profiling); // No profilingInclude on config means publish the full document.
+		
+		
+	}
+
+	@Test
+	public void testProfiling1All() throws Exception {
+
+		initProfilingMock();
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:all", getPublishConfigFromPath(pathConfigProfilingAll));
+		when(mockOptionIterator.next()).thenReturn(configOption);
+
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+																mockWorkflowExec,
+																filters,
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(2)).startExecution(argCaptor.capture());
+		
+		//Asserts on argument that executor has been called with.
+		List<PublishJob> jobs = argCaptor.getAllValues();
+		PublishJob publishJob = jobs.get(0);
+
+		// Profiling
+		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		assertNotNull(profiling);
+		assertEquals("osx", profiling.getName());
+		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
+		
+		//Storage
+		PublishJobStorage storage = publishJob.getOptions().getStorage();
+		assertEquals("s3", storage.getType());
+		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
+		assertEquals("osx_r0000000443", storage.getPathnamebase());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("all", storage.getPathconfigname());
+	}
+	
+	@Test
+	public void testProfiling1Osx() throws Exception {
+
+		initProfilingMock();
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:osxonly", getPublishConfigFromPath(pathConfigProfilingOsx));
+		when(mockOptionIterator.next()).thenReturn(configOption);
+
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+																mockWorkflowExec,
+																filters,
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+		
+		//Asserts on argument that executor has been called with.
+		List<PublishJob> jobs = argCaptor.getAllValues();
+		PublishJob publishJob = jobs.get(0);
+
+		// Profiling
+		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		assertNotNull(profiling);
+		assertEquals("osx", profiling.getName());
+		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
+		
+		//Storage
+		PublishJobStorage storage = publishJob.getOptions().getStorage();
+		assertEquals("s3", storage.getType());
+		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
+		assertEquals("osx_r0000000443", storage.getPathnamebase());
+		assertEquals("cms4", storage.getPathversion());
+		assertEquals("osxonly", storage.getPathconfigname());
 	}
 	
 	
@@ -190,14 +431,14 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
 		
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
@@ -205,10 +446,13 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(new PublishConfigFilterType());
 		filters.add(new PublishConfigFilterStatus());
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		eventListener.onItemChange(mockItem);
 		
 		//Captures PublishJob arguments that our mocked workflow been called with.
@@ -219,7 +463,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusRelease);
+		String statusJobFromFile = getPublishConfigFromPath(pathJobStatusRelease);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
 		
@@ -284,14 +528,14 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getMeta()).thenReturn(metaMap);
 		
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
-		when(mockLookup.getConfig(mockItem.getId(), mockItem.getKind())).thenReturn(mockContext);
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(configStatusPath));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple-pdf", getPublishConfigFromPath(pathConfigStatus));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus);
 		
 		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
@@ -299,10 +543,13 @@ public class PublishItemChangedEventListenerTest {
 		filters.add(new PublishConfigFilterType());
 		filters.add(new PublishConfigFilterStatus());
 		
-		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(mockLookup,
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 																mockWorkflowExec,
 																filters,
-																mapper.reader());
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1"));
 		eventListener.onItemChange(mockItem);
 		
 		//Captures PublishJob arguments that our mocked workflow been called with.
@@ -313,7 +560,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishJob publishJob = argCaptor.getValue();
 		
-		String statusJobFromFile = getPublishConfigFromPath(publishJobStatusTranslation);
+		String statusJobFromFile = getPublishConfigFromPath(pathJobStatusTranslation);
 		ObjectReader publishJobWriter = mapper.reader().forType(PublishJob.class);
 		PublishJob pjValidated = publishJobWriter.readValue(statusJobFromFile);
 		
@@ -374,4 +621,32 @@ public class PublishItemChangedEventListenerTest {
 		br.close();
 		return out.toString();
 	}
+	
+	
+	private void initProfilingMock() {
+
+		//CmsItem mock. Not possible to get a real CmsItem in this context.
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(443L);
+		when(mockItem.getId()).thenReturn(itemId);
+		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
+		when(mockItem.getStatus()).thenReturn("Released");
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		props.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+		when(mockItem.getProperties()).thenReturn(props);
+
+		HashMap<String, Object> metaMap = new HashMap<String, Object>();
+		metaMap.put("embd_xml_a_type", "operator");
+		when(mockItem.getMeta()).thenReturn(metaMap);
+
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
+
+		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
+		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
+
+	}
+
 }

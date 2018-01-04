@@ -112,8 +112,17 @@ public class AwsStepfunctionPublishWorker {
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
+						logger.warn("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted, e);
 						updateWorkerError(new Date(), e);
-						logger.error("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted);
+					} catch (Exception e) {
+						final int failureRetrySleep = 30;
+						logger.error("Client failed getActivtyTask: {}", e.getMessage(), e);
+						logger.info("Client retry in {} seconds...", failureRetrySleep);
+						try {
+							Thread.sleep(failureRetrySleep*1000);
+						} catch (InterruptedException e1) {
+							logger.warn("Failed to sleep: {}", e.getMessage(), e);
+						}
 					}
 					if (hasTaskToken(taskResult)) {
 						PublishTicket publishTicket = null;
@@ -155,7 +164,7 @@ public class AwsStepfunctionPublishWorker {
 					} else {
 						
 						try {
-							logger.debug("Did not get a response. Will continue to listen...");
+							logger.debug("No task to process. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
 						} catch (InterruptedException e) {
 							updateWorkerError(new Date(), e);
