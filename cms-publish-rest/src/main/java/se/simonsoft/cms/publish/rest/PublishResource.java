@@ -66,6 +66,8 @@ public class PublishResource {
 	private final PublishPackageZip repackageService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
+	
+	private VelocityEngine templateEngine;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
@@ -73,7 +75,8 @@ public class PublishResource {
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZip repackageService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
-			ReposHtmlHelper htmlHelper) {
+			ReposHtmlHelper htmlHelper,
+			VelocityEngine templateEngine) {
 		
 		this.hostname = hostname;
 		this.lookup = lookup;
@@ -81,6 +84,7 @@ public class PublishResource {
 		this.repackageService = repackageService;
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
+		this.templateEngine = templateEngine;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -111,11 +115,9 @@ public class PublishResource {
 		
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
 		
-		VelocityEngine engine = getVelocityEngine(); //TODO: maybe we should inject velocity engine.
 
 		VelocityContext context = new VelocityContext();
-		Template template = engine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
-		
+		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
 		context.put("item", item);
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
@@ -183,26 +185,5 @@ public class PublishResource {
 		ResponseBuilder responseBuilder = Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM);
 		
 		return responseBuilder.build();
-	}
-	
-	private VelocityEngine getVelocityEngine() {
-		//TODO: Maybe this should be injected. Initializing a Velocity Engine requires configuration properties for logging that should be standard.
-		VelocityEngine engine = new VelocityEngine();
-		engine.setProperty("runtime.references.strict", true);
-		
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		p.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.SimpleLog4JLogSystem");
-		p.put("runtime.log.logsystem.log4j.category", "velocity");
-		p.put("runtime.log.logsystem.log4j.logger", "velocity");
-		
-		try {
-			engine.init(p);
-		} catch (Exception e) {
-			throw new RuntimeException("Could not initilize Velocity engine with given properties.");
-		}
-		
-		return engine;
 	}
 }
