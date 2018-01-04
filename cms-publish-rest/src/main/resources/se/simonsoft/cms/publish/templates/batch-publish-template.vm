@@ -72,7 +72,7 @@ $reposHeadTags
 						<input id="dopub" 
 							name="$mapEntry.getValue().getOptions().getFormat()" 
 							type="radio" 
-							value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()"
+							value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()
 						</input>
 					#end
 				#end
