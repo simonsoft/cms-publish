@@ -77,7 +77,7 @@ $reposHeadTags
 					#end
 				#end
 			#else
-				<div id="dopub" style="padding-top: 1px;">No publications configured</div>
+				<div id="dopub" style="padding-top: 1px; color:red;">No publications configured</div>
 			#end
 		</p>
 		<p>
