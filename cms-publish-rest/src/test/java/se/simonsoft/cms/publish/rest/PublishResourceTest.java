@@ -1,6 +1,22 @@
+/**
+ * Copyright (C) 2009-2017 Simonsoft Nordic AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package se.simonsoft.cms.publish.rest;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +41,6 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 
 public class PublishResourceTest {
 	
@@ -34,7 +49,7 @@ public class PublishResourceTest {
 		Map<CmsRepository, CmsItemLookupReporting> lookupMapMock = Mockito.mock(Map.class);
 		PublishConfigurationDefault publishConfigurationMock = Mockito.mock(PublishConfigurationDefault.class);
 		CmsItemLookupReporting lookupReportingMock = Mockito.mock(CmsItemLookupReporting.class);
-		List<PublishConfigFilter> configFiltersMock = Mockito.mock(List.class);
+		PublishPackageZip packageZipMock = mock(PublishPackageZip.class);
 		CmsItem itemMock = Mockito.mock(CmsItem.class);
 		RepoRevision revision = new RepoRevision(203, new Date());
 		CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
@@ -57,7 +72,7 @@ public class PublishResourceTest {
 		Mockito.when(itemMock.getRevisionChanged()).thenReturn(revision);
 		Mockito.when(publishConfigurationMock.getConfigurationFiltered(Mockito.any(CmsItemPublish.class))).thenReturn(configMap);
 		Mockito.when(publishConfigurationMock.getItemProfilingSet(Mockito.any(CmsItemPublish.class))).thenReturn(ppSet);
-		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, configFiltersMock);
+		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock);
 		
 		String releaseForm = resource.getReleaseForm(itemId);
 		
