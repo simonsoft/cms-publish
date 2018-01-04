@@ -57,9 +57,11 @@ $reposHeadTags
 			<input id="includetranslations" name="includetranslations" type="checkbox" checked="checked" value="true"/>
 		</p>
 		<p> 
-			<label for="dosrc">profiles</label>
-			#foreach ($mapEntry in $itemProfiling.entrySet())
-				<input id="dosrc" name="$mapEntry.getValue().getName()" type="checkbox" value="$mapEntry.getValue().getName()">$mapEntry.getValue().getName()</input>
+			#if (! $itemProfiling.entrySet().isEmpty())
+				<label for="dosrc">profiles</label>
+				#foreach ($mapEntry in $itemProfiling.entrySet())
+					<input id="dosrc" name="$mapEntry.getValue().getName()" type="checkbox" value="$mapEntry.getValue().getName()">$mapEntry.getValue().getName()</input>
+				#end
 			#end
 		</p>
 		<p>
