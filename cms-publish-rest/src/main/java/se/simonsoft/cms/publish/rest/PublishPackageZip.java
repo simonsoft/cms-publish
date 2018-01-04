@@ -65,15 +65,9 @@ public class PublishPackageZip {
 	
 	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<String> profiles, OutputStream os) {
 		
-		List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
-		List<CmsExportAwsReaderSingle> awsReaders = new ArrayList<>();
-		
-		if (!(os instanceof ZipOutputStream)) {
-			throw new IllegalArgumentException("PublishPackageZip handles only zip outputs. Given type of OutputStream: " + os.getClass());
-		}
-		
-		ZipOutputStream zos = (ZipOutputStream) os; 
-		
+		final List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
+		final List<CmsExportAwsReaderSingle> awsReaders = new ArrayList<>();
+		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
 		for (CmsItem item: items) {
 			logger.debug("Creating PublishExportJobs from: {} items", items.size());
