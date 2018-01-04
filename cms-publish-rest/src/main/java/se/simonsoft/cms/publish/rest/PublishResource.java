@@ -103,11 +103,8 @@ public class PublishResource {
 		logger.debug("Requesting profilingSet...");
 		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
 		
-		Map<String, PublishProfilingRecipe> itemProfilings = null;
-		if (itemProfilingSet == null) {
-			itemProfilings = new HashMap<String, PublishProfilingRecipe>(); //Setting it to empty hashMap to make velocity compile. Maybe we should make null check in template?
-			logger.debug("There is no profiles configured for item with id: {}", itemId);
-		} else {
+		Map<String, PublishProfilingRecipe> itemProfilings = new HashMap<>(); //Initialize the map to prevent NPE in Velocity.
+		if (itemProfilingSet != null) {
 			itemProfilings = itemProfilingSet.getMap();
 			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
 		}
