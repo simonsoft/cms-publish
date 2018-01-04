@@ -33,7 +33,15 @@ public class PublishExportJob extends CmsExportJobSingle implements CmsExportJob
 	}
 
 	private static String getJobName(PublishJobStorage storage) {
-		StringBuilder sb = new StringBuilder(storage.getPathdir());
+		//Path dir is preceded by slash, this will cause double slashes in the exportJob. Therefore we will remove it. 
+		String pathdir = storage.getPathdir();
+		
+		if (pathdir != null && pathdir.startsWith("/")) {
+			pathdir = pathdir.replaceFirst("/", "");
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(pathdir);
 		sb.append("/");
 		sb.append(storage.getPathnamebase());
 		return sb.toString();
