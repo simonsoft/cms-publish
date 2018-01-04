@@ -7,3 +7,5 @@
 /.project
 .gitignore
 .DS_Store
+
+cms-publish-rest/velocity.log
