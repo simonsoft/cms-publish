@@ -50,7 +50,7 @@ $reposHeadTags
 		</p>
 		<p>
 			<label for="includemaster">include release</label>
-			<input id="includemaster" name="includemaster" type="checkbox" checked="checked" value="true"/>
+			<input id="includemaster" name="includerelease" type="checkbox" checked="checked" value="true"/>
 		</p>
 		<p>
 			<label for="includetranslations">include translations</label>
