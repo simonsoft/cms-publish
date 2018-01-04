@@ -18,20 +18,14 @@ package se.simonsoft.cms.publish.rest;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
@@ -41,16 +35,23 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.TranslationTracking;
+import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishResourceTest {
 	
 	@Test
 	public void publishResourceTest() throws Exception {
-		Map<CmsRepository, CmsItemLookupReporting> lookupMapMock = Mockito.mock(Map.class);
-		PublishConfigurationDefault publishConfigurationMock = Mockito.mock(PublishConfigurationDefault.class);
-		CmsItemLookupReporting lookupReportingMock = Mockito.mock(CmsItemLookupReporting.class);
+		Map<CmsRepository, CmsItemLookupReporting> lookupMapMock = mock(Map.class);
+		PublishConfigurationDefault publishConfigurationMock = mock(PublishConfigurationDefault.class);
+		CmsItemLookupReporting lookupReportingMock = mock(CmsItemLookupReporting.class);
 		PublishPackageZip packageZipMock = mock(PublishPackageZip.class);
-		CmsItem itemMock = Mockito.mock(CmsItem.class);
+		CmsItem itemMock = mock(CmsItem.class);
+		TranslationTracking translationTrackingMock = mock(TranslationTracking.class);
+		ReposHtmlHelper htmlHelperMock = mock(ReposHtmlHelper.class);
+		
+		Map<CmsRepository, TranslationTracking> ttMap = new HashMap<CmsRepository, TranslationTracking>();
+		
 		RepoRevision revision = new RepoRevision(203, new Date());
 		CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
 		
@@ -72,7 +73,7 @@ public class PublishResourceTest {
 		Mockito.when(itemMock.getRevisionChanged()).thenReturn(revision);
 		Mockito.when(publishConfigurationMock.getConfigurationFiltered(Mockito.any(CmsItemPublish.class))).thenReturn(configMap);
 		Mockito.when(publishConfigurationMock.getItemProfilingSet(Mockito.any(CmsItemPublish.class))).thenReturn(ppSet);
-		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock);
+		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock);
 		
 		String releaseForm = resource.getReleaseForm(itemId);
 		
