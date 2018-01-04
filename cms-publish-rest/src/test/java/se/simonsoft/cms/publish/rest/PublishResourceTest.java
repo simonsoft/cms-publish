@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.velocity.app.VelocityEngine;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -73,7 +74,7 @@ public class PublishResourceTest {
 		Mockito.when(itemMock.getRevisionChanged()).thenReturn(revision);
 		Mockito.when(publishConfigurationMock.getConfigurationFiltered(Mockito.any(CmsItemPublish.class))).thenReturn(configMap);
 		Mockito.when(publishConfigurationMock.getItemProfilingSet(Mockito.any(CmsItemPublish.class))).thenReturn(ppSet);
-		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock);
+		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock, new VelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
 		
