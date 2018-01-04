@@ -66,10 +66,18 @@ $reposHeadTags
 		</p>
 		<p>
 			<label for="dopub">publications</label>
-			#foreach ($mapEntry in $configuration.entrySet())
-				#if( $mapEntry.getValue().isVisible() )
-					<input id="dopub" name="$mapEntry.getValue().getOptions().getFormat()" type="radio" value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()</input>
+			#if (! $configuration.entrySet().isEmpty())
+				#foreach ($mapEntry in $configuration.entrySet())
+					#if( $mapEntry.getValue().isVisible() )
+						<input id="dopub" 
+							name="$mapEntry.getValue().getOptions().getFormat()" 
+							type="radio" 
+							value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()"
+						</input>
+					#end
 				#end
+			#else
+				<div id="dopub" style="padding-top: 1px;">No publications configured</div>
 			#end
 		</p>
 		<p>
