@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +40,14 @@ public class PublishJobService {
 	private final PublishServicePe pe;
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
+	private final String aptapplicationPrefix;
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 	
 	@Inject
-	public PublishJobService(PublishServicePe pe) {
+	public PublishJobService(PublishServicePe pe, @Named("APTAPPLICATION") String aptapplicationPrefix) {
 		this.pe = pe;
+		this.aptapplicationPrefix = aptapplicationPrefix;
 	}
 
 	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
@@ -104,10 +107,24 @@ public class PublishJobService {
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
-			request.addParam(entry.getKey(), entry.getValue());
+			request.addParam(entry.getKey(), formatParam(entry.getValue()));
 		}
 		return request;
 	}
+	
+	private String formatParam(String param) {
+		
+		final String prefix = "$aptapplication";
+		String result;
+		
+		if (param.startsWith(prefix)) {
+			result = this.aptapplicationPrefix.concat(param.substring(prefix.length()));
+		} else {
+			result = param;
+		}
+		return result;
+	}
+	
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
 		logger.debug("Checking if job with ticket: {} is done", ticket.toString());
 		PublishRequestDefault request = new PublishRequestDefault();
