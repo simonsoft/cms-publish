@@ -164,7 +164,7 @@ public class AwsStepfunctionPublishWorker {
 					} else {
 						
 						try {
-							logger.debug("Did not get a response. Will continue to listen...");
+							logger.debug("No task to process. Will continue to listen...");
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
 						} catch (InterruptedException e) {
 							updateWorkerError(new Date(), e);
