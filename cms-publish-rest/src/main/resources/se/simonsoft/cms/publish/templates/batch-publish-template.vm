@@ -49,8 +49,8 @@ $reposHeadTags
 			<input name="rev" type="text" id="rev" value="$item.getId().getPegRev()" class="revision" disabled="disabled"/>
 		</p>
 		<p>
-			<label for="includemaster">include release</label>
-			<input id="includemaster" name="includerelease" type="checkbox" checked="checked" value="true"/>
+			<label for="includerelease">include release</label>
+			<input id="includerelease" name="includerelease" type="checkbox" checked="checked" value="true"/>
 		</p>
 		<p>
 			<label for="includetranslations">include translations</label>
