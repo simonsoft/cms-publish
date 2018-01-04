@@ -151,6 +151,10 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'item': revision is required");
 		}
 		
+		if (publication == null || publication.isEmpty()) {
+			throw new IllegalArgumentException("Field 'publication': publication name is required");
+		}
+		
 		final Set<CmsItem> items = new HashSet<CmsItem>();
 		
 		CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
