@@ -52,7 +52,7 @@ public class PublishPackageZip {
 	
 	@Inject
 	public PublishPackageZip(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-							@Named("config:se.simonsoft.cms.aws.bucket.name") String bucketName,
+							@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 							AWSCredentialsProvider credentials,
 							PublishJobStorageFactory storageFactory) {
 		
