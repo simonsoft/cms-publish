@@ -34,7 +34,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.velocity.Template;
@@ -64,6 +63,7 @@ public class PublishResource {
 	private final PublishPackageZip repackageService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
+	private final PublishJobStorageFactory storageFactory;
 	
 	private VelocityEngine templateEngine;
 
@@ -155,8 +155,10 @@ public class PublishResource {
 		final Set<CmsItem> items = new HashSet<CmsItem>();
 		
 		CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
-		CmsItem masterItem = lookupReporting.getItem(itemId);
-		items.add(masterItem);
+		CmsItem item = lookupReporting.getItem(itemId);
+		if (includeRelease) {
+			items.add(item);
+		}
 		
 		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(masterItem));
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
