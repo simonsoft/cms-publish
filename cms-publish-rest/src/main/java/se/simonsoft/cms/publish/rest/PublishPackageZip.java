@@ -92,6 +92,11 @@ public class PublishPackageZip {
 			writeEntries(zis, zos);
 			
 			try {
+				//AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
+				byte[] buffer = new byte[1024];
+				int trailing = contents.read(buffer);
+				logger.debug("Trailing size: {}", trailing);
+				
 				zis.close();
 			} catch (IOException e) {
 				logger.warn("Could not close inputStream from Aws: {}", e.getMessage());
@@ -116,6 +121,7 @@ public class PublishPackageZip {
 				}
 				
 				zos.closeEntry();
+				zis.closeEntry();
 				nextEntry = zis.getNextEntry();
 			}
 			
