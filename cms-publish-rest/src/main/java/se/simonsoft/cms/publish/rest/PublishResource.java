@@ -74,7 +74,9 @@ public class PublishResource {
 			PublishPackageZip repackageService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
-			VelocityEngine templateEngine) {
+			PublishJobStorageFactory storageFactory,
+			VelocityEngine templateEngine
+			) {
 		
 		this.hostname = hostname;
 		this.lookup = lookup;
@@ -82,6 +84,7 @@ public class PublishResource {
 		this.repackageService = repackageService;
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
+		this.storageFactory = storageFactory;
 		this.templateEngine = templateEngine;
 	}
 	
@@ -160,7 +163,7 @@ public class PublishResource {
 			items.add(item);
 		}
 		
-		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(masterItem));
+		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
 		List<CmsItemTranslation> translations = null;
@@ -182,8 +185,8 @@ public class PublishResource {
             }
         };
 		
-		ResponseBuilder responseBuilder = Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM);
-		
-		return responseBuilder.build();
+		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
+				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
+				.build();
 	}
 }
