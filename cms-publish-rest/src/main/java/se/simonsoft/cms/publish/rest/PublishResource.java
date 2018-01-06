@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +45,9 @@ import org.slf4j.LoggerFactory;
 
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -155,38 +158,52 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'publication': publication name is required");
 		}
 		
-		final Set<CmsItem> items = new HashSet<CmsItem>();
+		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
 		
-		CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
+		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		CmsItem item = lookupReporting.getItem(itemId);
+		
 		if (includeRelease) {
-			items.add(item);
+			publishedItems.add(item);
+		}
+		
+		if (includeTranslations) {
+			publishedItems.addAll(getTranslationItems(itemId));
 		}
 		
 		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
-		List<CmsItemTranslation> translations = null;
-		if (includeTranslations) {
-			TranslationTracking translationTracking = trackingMap.get(itemId.getRepository());
-			translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
-			logger.debug("Found {} translations.", translations.size());
-			
-			for (CmsItemTranslation t: translations) {
-				CmsItem tItem = lookupReporting.getItem(t.getTranslation());
-				items.add(tItem);
-			}
-		}
 		
 	    StreamingOutput stream = new StreamingOutput() {
             @Override
             public void write(OutputStream os) throws IOException, WebApplicationException {
-            	repackageService.getZip(items, publication, publishConfig, null, os); // Profiles are null at the moment.
+            	try {
+            		repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
+            	} catch (CmsExportAccessDeniedException e) {
+            		throw new IllegalStateException("Could not read requested files at S3, the files may not exist or you do not have access.", e);
+            	}
             }
         };
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
+	}
+	
+	private List<CmsItem> getTranslationItems(CmsItemId itemId) {
+		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
+		final TranslationTracking translationTracking = trackingMap.get(itemId.getRepository());
+		final List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
+		
+		logger.debug("Found {} translations.", translations.size());
+		
+		List<CmsItem> items = new ArrayList<CmsItem>();
+		for (CmsItemTranslation t: translations) {
+			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
+			items.add(tItem);
+		}
+		
+		return items;
 	}
 }
