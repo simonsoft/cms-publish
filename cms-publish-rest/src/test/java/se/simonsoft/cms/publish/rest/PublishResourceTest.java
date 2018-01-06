@@ -15,7 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.util.Date;
@@ -50,6 +50,7 @@ public class PublishResourceTest {
 		CmsItem itemMock = mock(CmsItem.class);
 		TranslationTracking translationTrackingMock = mock(TranslationTracking.class);
 		ReposHtmlHelper htmlHelperMock = mock(ReposHtmlHelper.class);
+		PublishJobStorageFactory storageFactoryMock = mock(PublishJobStorageFactory.class);
 		
 		Map<CmsRepository, TranslationTracking> ttMap = new HashMap<CmsRepository, TranslationTracking>();
 		
@@ -74,7 +75,7 @@ public class PublishResourceTest {
 		Mockito.when(itemMock.getRevisionChanged()).thenReturn(revision);
 		Mockito.when(publishConfigurationMock.getConfigurationFiltered(Mockito.any(CmsItemPublish.class))).thenReturn(configMap);
 		Mockito.when(publishConfigurationMock.getItemProfilingSet(Mockito.any(CmsItemPublish.class))).thenReturn(ppSet);
-		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock, new VelocityEngine());
+		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock, storageFactoryMock, new VelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
 		
