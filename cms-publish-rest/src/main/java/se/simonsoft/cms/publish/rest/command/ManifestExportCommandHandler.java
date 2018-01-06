@@ -37,9 +37,12 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 
 
 	private static final Logger logger = LoggerFactory.getLogger(ManifestExportCommandHandler.class);
-	private final CmsExportAwsWriterSingle awsWriter;
+//	private final CmsExportAwsWriterSingle awsWriter;
 	private final ObjectWriter writerPublishManifest;
 	private final String manifestExtension = "json";
+	private final String cloudId;
+	private final String bucketName;
+	private final AWSCredentialsProvider credentials;
 
 	@Inject
 	public ManifestExportCommandHandler(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
@@ -48,7 +51,10 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 			ObjectWriter objectWriter) {
 		
 		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
-		this.awsWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
+		this.cloudId = cloudId;
+		this.bucketName = bucketName;
+		this.credentials = credentials;
+		
 	}
 
 	@Override
@@ -69,9 +75,10 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 		job.prepare();
 
 		logger.debug("Preparing writer for export...");
-		awsWriter.prepare(job);
+		CmsExportAwsWriterSingle exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
+		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
-		awsWriter.write();
+		exportWriter.write();
 		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
 		
 		return null;
