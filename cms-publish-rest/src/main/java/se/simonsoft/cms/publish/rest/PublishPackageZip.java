@@ -88,13 +88,19 @@ public class PublishPackageZip {
 		for (CmsExportAwsReaderSingle r: awsReaders) {
 			
 			InputStream contents = r.getContents();
+			// Assuming that published zip files do not contain non-file data btw file entries such that the zip becomes incompatible with native Java ZIP (which does not read the "central directory").
+			// https://stackoverflow.com/questions/12030703/uncompressing-a-zip-file-in-memory-in-java
 			ZipInputStream zis = new ZipInputStream(contents);
 			writeEntries(zis, zos);
 			
 			try {
-				//AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
+				// AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
 				byte[] buffer = new byte[1024];
-				int trailing = contents.read(buffer);
+				int length;
+				int trailing = 0;
+				while ((length = contents.read(buffer)) != -1) {
+					 trailing = trailing + contents.read(buffer, 0, length);
+				}
 				logger.debug("Trailing size: {}", trailing);
 				
 				zis.close();
