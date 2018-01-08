@@ -159,22 +159,33 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'publication': publication name is required");
 		}
 		
-		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
+		final List<CmsItem> items = new ArrayList<CmsItem>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		CmsItem item = lookupReporting.getItem(itemId);
 		
 		if (includeRelease) {
-			publishedItems.add(item);
+			items.add(item);
 		}
 		
 		if (includeTranslations) {
-			publishedItems.addAll(getTranslationItems(itemId, publication));
+			items.addAll(getTranslationItems(itemId, publication));
 		}
 		
-		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
-		final PublishConfig publishConfig = configurationFiltered.get(publication);
+		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
+		Map<String, PublishConfig> configurationFiltered = null;
+		for (CmsItem i: items) {
+			configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(i));
+			if (isConfigurationValid(configurationFiltered, publication)) {
+				publishedItems.add(i);
+			}
+		}
 		
+		if (configurationFiltered == null) {
+			throw new IllegalStateException("There is no valid publish configuration for item: " + item.getId().getLogicalId());
+		}
+		
+		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
 		StreamingOutput stream = new StreamingOutput() {
 			@Override
@@ -192,6 +203,10 @@ public class PublishResource {
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
 	}
+	
+	private boolean isConfigurationValid(Map<String, PublishConfig> configurationFiltered, String publication) {
+		return (configurationFiltered != null && !configurationFiltered.isEmpty() && configurationFiltered.get(publication) != null);
+	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
@@ -203,13 +218,7 @@ public class PublishResource {
 		List<CmsItem> items = new ArrayList<CmsItem>();
 		for (CmsItemTranslation t: translations) {
 			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
-			
-			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(tItem));
-			for (Entry<String, PublishConfig> configEntry: configurationFiltered.entrySet()) {
-				if (configEntry.getKey().equals(publication)) {
-					items.add(tItem);
-				}
-			}
+			items.add(tItem);
 		}
 		
 		return items;
