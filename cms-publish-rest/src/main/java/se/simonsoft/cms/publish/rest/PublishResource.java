@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -168,7 +169,7 @@ public class PublishResource {
 		}
 		
 		if (includeTranslations) {
-			publishedItems.addAll(getTranslationItems(itemId));
+			publishedItems.addAll(getTranslationItems(itemId, publication));
 		}
 		
 		Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
@@ -191,18 +192,24 @@ public class PublishResource {
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
 	}
-	
-	private List<CmsItem> getTranslationItems(CmsItemId itemId) {
+
+	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		final TranslationTracking translationTracking = trackingMap.get(itemId.getRepository());
 		final List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
-		
+
 		logger.debug("Found {} translations.", translations.size());
-		
+
 		List<CmsItem> items = new ArrayList<CmsItem>();
 		for (CmsItemTranslation t: translations) {
 			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
-			items.add(tItem);
+			
+			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(tItem));
+			for (Entry<String, PublishConfig> configEntry: configurationFiltered.entrySet()) {
+				if (configEntry.getKey().equals(publication)) {
+					items.add(tItem);
+				}
+			}
 		}
 		
 		return items;
