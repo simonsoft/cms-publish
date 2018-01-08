@@ -119,7 +119,6 @@ public class PublishResource {
 		
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
 		
-
 		VelocityContext context = new VelocityContext();
 		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
 		context.put("item", item);
@@ -175,16 +174,12 @@ public class PublishResource {
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
 		
-	    StreamingOutput stream = new StreamingOutput() {
-            @Override
-            public void write(OutputStream os) throws IOException, WebApplicationException {
-            	try {
-            		repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
-            	} catch (CmsExportAccessDeniedException e) {
-            		throw new IllegalStateException("Could not read requested files at S3, the files may not exist or you do not have access.", e);
-            	}
-            }
-        };
+		StreamingOutput stream = new StreamingOutput() {
+			@Override
+			public void write(OutputStream os) throws IOException, WebApplicationException {
+				repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
+			}
+		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
