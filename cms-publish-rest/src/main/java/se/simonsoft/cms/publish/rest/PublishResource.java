@@ -42,11 +42,13 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.export.CmsExportItemNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -176,7 +178,12 @@ public class PublishResource {
 		StreamingOutput stream = new StreamingOutput() {
 			@Override
 			public void write(OutputStream os) throws IOException, WebApplicationException {
-				repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
+				try {
+					repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
+				} catch (CmsExportItemNotFoundException e) {
+					String message = MessageFormatter.format("Published item does not exist: {}", e.getExportItem().getResultPath()).getMessage();
+					throw new IllegalStateException(message, e);
+				}
 			}
 		};
 		
