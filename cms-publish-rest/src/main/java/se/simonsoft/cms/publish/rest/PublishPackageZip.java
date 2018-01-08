@@ -35,6 +35,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.export.CmsExportItemCmsFile;
+import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
@@ -140,7 +142,11 @@ public class PublishPackageZip {
 	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
 		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, null);
+		
 		PublishExportJob job = new PublishExportJob(s, "zip");
+		//TODO: unsure of the ExportPath here.  
+		job.addExportItem(new CmsExportItemCmsFile(cmsItemPublish, new CmsExportPath(cmsItemPublish.getId().getRelPath().toString())));
+		
 		return job;
 	}
 
