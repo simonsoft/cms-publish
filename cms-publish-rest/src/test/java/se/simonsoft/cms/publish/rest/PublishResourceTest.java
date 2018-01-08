@@ -15,16 +15,21 @@
  */
 package se.simonsoft.cms.publish.rest;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
@@ -41,41 +46,58 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishResourceTest {
 	
+	@Mock Map<CmsRepository, CmsItemLookupReporting> lookupMapMock;
+	@Mock PublishConfigurationDefault publishConfigurationMock;
+	@Mock CmsItemLookupReporting lookupReportingMock;
+	@Mock PublishPackageZip packageZipMock;
+	@Mock CmsItem itemMock;
+	@Mock ReposHtmlHelper htmlHelperMock;
+	@Mock PublishJobStorageFactory storageFactoryMock;
+	
+	@Before
+	public void setUp() {
+		MockitoAnnotations.initMocks(this);
+	}
+	
 	@Test
 	public void publishResourceTest() throws Exception {
-		Map<CmsRepository, CmsItemLookupReporting> lookupMapMock = mock(Map.class);
-		PublishConfigurationDefault publishConfigurationMock = mock(PublishConfigurationDefault.class);
-		CmsItemLookupReporting lookupReportingMock = mock(CmsItemLookupReporting.class);
-		PublishPackageZip packageZipMock = mock(PublishPackageZip.class);
-		CmsItem itemMock = mock(CmsItem.class);
-		TranslationTracking translationTrackingMock = mock(TranslationTracking.class);
-		ReposHtmlHelper htmlHelperMock = mock(ReposHtmlHelper.class);
-		PublishJobStorageFactory storageFactoryMock = mock(PublishJobStorageFactory.class);
 		
 		Map<CmsRepository, TranslationTracking> ttMap = new HashMap<CmsRepository, TranslationTracking>();
 		
+		//Mock item set up
 		RepoRevision revision = new RepoRevision(203, new Date());
 		CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
 		
+		when(lookupMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
+		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
+		when(itemMock.getId()).thenReturn(itemId);
+		when(itemMock.getRevisionChanged()).thenReturn(revision);
+		
+		//Config setup
 		PublishConfig config = new PublishConfig();
 		config.setVisible(true);
 		config.setOptions(new PublishConfigOptions());
 		config.getOptions().setFormat("pdf");
-		Map<String, PublishConfig> configMap = new HashMap();
+		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
 		configMap.put("config", config);
 		
+		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
+		
+		//Profiling mock setup.
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe();
 		recipe.setName("Active");
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(recipe);
-				
-		Mockito.when(lookupMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
-		Mockito.when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
-		Mockito.when(itemMock.getId()).thenReturn(itemId);
-		Mockito.when(itemMock.getRevisionChanged()).thenReturn(revision);
-		Mockito.when(publishConfigurationMock.getConfigurationFiltered(Mockito.any(CmsItemPublish.class))).thenReturn(configMap);
-		Mockito.when(publishConfigurationMock.getItemProfilingSet(Mockito.any(CmsItemPublish.class))).thenReturn(ppSet);
-		PublishResource resource = new PublishResource("localhost", lookupMapMock, publishConfigurationMock, packageZipMock, ttMap, htmlHelperMock, storageFactoryMock, new VelocityEngine());
+		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
+		
+		PublishResource resource = new PublishResource("localhost",
+														lookupMapMock,
+														publishConfigurationMock,
+														packageZipMock,
+														ttMap,
+														htmlHelperMock,
+														storageFactoryMock,
+														getVelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
 		
@@ -85,11 +107,28 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
 		assertTrue(releaseForm.contains("pdf"));
 		assertTrue(releaseForm.contains("Active"));
-		
-//		File tmpFile = new File("apa.html");
-//		FileOutputStream output = new FileOutputStream(tmpFile);
-//		output.write(releaseForm.getBytes());
-//		output.close();
-		
+	}
+	
+	
+	//TODO: Maybe we should inject a velocity engine in testSetup. 
+	private VelocityEngine getVelocityEngine() {
+
+		VelocityEngine engine = new VelocityEngine();
+		engine.setProperty("runtime.references.strict", true);
+
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		p.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.SimpleLog4JLogSystem");
+		p.put("runtime.log.logsystem.log4j.category", "velocity");
+		p.put("runtime.log.logsystem.log4j.logger", "velocity");
+
+		try {
+			engine.init(p);
+		} catch (Exception e) {
+			throw new RuntimeException("Could not initilize Velocity engine with given properties.");
+		}
+
+		return engine;
 	}
 }
