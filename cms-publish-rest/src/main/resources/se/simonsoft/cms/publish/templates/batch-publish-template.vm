@@ -108,14 +108,20 @@ $(document).ready(function () {
       var checked = $("input[type=checkbox]:checked").length;
 
       if(!checked) {
-      	$('#warning').show(100);
+      	$('#warning').show();
         return false;
       }
 
     });
     
     $("input[type=checkbox]").click(function() {
-    	$('#warning').hide(100);
+    
+    	var checked = $("input[type=checkbox]:checked").length;
+    	if (!checked) {
+    		$('#warning').show();
+    	} else {
+    		$('#warning').hide();
+    	}
     });
     
 });
