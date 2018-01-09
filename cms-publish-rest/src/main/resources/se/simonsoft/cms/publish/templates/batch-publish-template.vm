@@ -104,20 +104,19 @@ $reposHeadTags
 
 <script type="text/javascript">
 $(document).ready(function () {
-    $('#submit').click(function() {
-      var checked = $("input[type=checkbox]:checked").length;
 
-      if(!checked) {
+
+	var checkedSelector = 'input[type=checkbox]:checked';
+	//Will prevent submits by returning false if no boxes is checked.
+    $('#submit').click(function() {
+      if(!$(checkedSelector).length) {
       	$('#warning').show();
         return false;
       }
-
     });
     
-    $("input[type=checkbox]").click(function() {
-    
-    	var checked = $("input[type=checkbox]:checked").length;
-    	if (!checked) {
+    $('input[type=checkbox]').click(function() {
+    	if (!$(checkedSelector).length) {
     		$('#warning').show();
     	} else {
     		$('#warning').hide();
