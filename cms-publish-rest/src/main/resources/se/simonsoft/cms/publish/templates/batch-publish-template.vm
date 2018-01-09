@@ -124,6 +124,8 @@ $(document).ready(function () {
     	}
     });
     
+    $('input[type=radio]').first().prop('checked', true);
+    
 });
 
 </script>
