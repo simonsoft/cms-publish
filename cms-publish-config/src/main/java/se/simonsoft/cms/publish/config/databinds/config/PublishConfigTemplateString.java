@@ -71,9 +71,8 @@ public class PublishConfigTemplateString {
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty("runtime.references.strict", true);
 		Properties props = new Properties();
-		props.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.SimpleLog4JLogSystem");
-		props.put("runtime.log.logsystem.log4j.category", "velocity");
-		props.put("runtime.log.logsystem.log4j.logger", "velocity");
+		//Disable velocity logging.
+		props.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
 		ve.init(props);
 		
 		PublishConfigTemplateString.ve = ve;
