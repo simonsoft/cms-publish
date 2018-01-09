@@ -111,6 +111,13 @@ public class PublishPackageZip {
 			}
 			
 		}
+		
+		try {
+			zos.finish();
+		} catch (IOException e) {
+			logger.error("Could not finish zip");
+			throw new RuntimeException("Could not finish zip", e);
+		}
 		logger.debug("Getting zip files at S3 and re-package them.");
 	}
 	
