@@ -142,12 +142,7 @@ public class PublishPackageZip {
 	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
 		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, null);
-		
-		PublishExportJob job = new PublishExportJob(s, "zip");
-		//TODO: unsure of the ExportPath here.  
-		job.addExportItem(new CmsExportItemCmsFile(cmsItemPublish, new CmsExportPath(cmsItemPublish.getId().getRelPath().toString())));
-		
-		return job;
+		return new PublishExportJob(s, "zip");
 	}
 
 }
