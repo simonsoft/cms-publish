@@ -49,7 +49,7 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.export.CmsExportItemNotFoundException;
+import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -159,30 +159,34 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'publication': publication name is required");
 		}
 		
+		if (!includeRelease && !includeTranslations) {
+			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
+		}
+		
 		final List<CmsItem> items = new ArrayList<CmsItem>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
-		CmsItem item = lookupReporting.getItem(itemId);
+		CmsItem releaseItem = lookupReporting.getItem(itemId);
 		
 		if (includeRelease) {
-			items.add(item);
+			items.add(releaseItem);
 		}
 		
 		if (includeTranslations) {
-			items.addAll(getTranslationItems(itemId, publication));
+			List<CmsItem> translationItems = getTranslationItems(itemId, publication);
+			if (translationItems.isEmpty()) {
+				throw new IllegalArgumentException("Translations requested, no translations found.");
+			}
+			items.addAll(translationItems);
 		}
 		
 		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
 		Map<String, PublishConfig> configurationFiltered = null;
-		for (CmsItem i: items) {
-			configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(i));
-			if (isConfigurationValid(configurationFiltered, publication)) {
-				publishedItems.add(i);
+		for (CmsItem item: items) {
+			configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
+			if (configurationFiltered.containsKey(publication)) {
+				publishedItems.add(item);
 			}
-		}
-		
-		if (configurationFiltered == null) {
-			throw new IllegalStateException("There is no valid publish configuration for item: " + item.getId().getLogicalId());
 		}
 		
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
@@ -192,8 +196,8 @@ public class PublishResource {
 			public void write(OutputStream os) throws IOException, WebApplicationException {
 				try {
 					repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
-				} catch (CmsExportItemNotFoundException e) {
-					String message = MessageFormatter.format("Published item does not exist: {}", e.getExportItem().getResultPath()).getMessage();
+				} catch (CmsExportJobNotFoundException e) {
+					String message = MessageFormatter.format("Published job does not exist: {}", e.getExportJob().getJobPath().toString()).getMessage();
 					throw new IllegalStateException(message, e);
 				}
 			}
@@ -202,10 +206,6 @@ public class PublishResource {
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
-	}
-	
-	private boolean isConfigurationValid(Map<String, PublishConfig> configurationFiltered, String publication) {
-		return (configurationFiltered != null && !configurationFiltered.isEmpty() && configurationFiltered.get(publication) != null);
 	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
