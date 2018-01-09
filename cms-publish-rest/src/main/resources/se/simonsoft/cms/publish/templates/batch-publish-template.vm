@@ -82,7 +82,10 @@ $reposHeadTags
 		</p>
 		<p>
 			<label for="submit"></label>
-			<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
+			<div>
+				<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
+				<span id="warning" style="color:red; display:none;">At least one document type has to be selected.</span>
+			</div>
 		</p>
 	</fieldset>
 </form>
@@ -98,4 +101,24 @@ $reposHeadTags
 </div>
 
 </body>
+
+<script type="text/javascript">
+$(document).ready(function () {
+    $('#submit').click(function() {
+      var checked = $("input[type=checkbox]:checked").length;
+
+      if(!checked) {
+      	$('#warning').show(100);
+        return false;
+      }
+
+    });
+    
+    $("input[type=checkbox]").click(function() {
+    	$('#warning').hide(100);
+    });
+    
+});
+
+</script>
 </html>
