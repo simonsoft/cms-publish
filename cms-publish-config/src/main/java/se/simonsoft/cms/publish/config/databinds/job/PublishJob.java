@@ -49,6 +49,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 		this.typeInclude = pj.getTypeInclude();
 		this.profilingInclude = pj.getProfilingInclude();
 		this.profilingNameInclude = pj.getProfilingNameInclude();
+		this.areaMainInclude = pj.isAreaMainInclude();
 	}
 	
 	public PublishJob(PublishConfig pc) {
@@ -61,6 +62,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 		this.typeInclude = pc.getTypeInclude();
 		this.profilingInclude = pc.getProfilingInclude();
 		this.profilingNameInclude = pc.getProfilingNameInclude();
+		this.areaMainInclude = pc.isAreaMainInclude();
 	}
 	
 	public PublishJob() {

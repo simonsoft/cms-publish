@@ -2,6 +2,7 @@
   "active": true,
   "visible": true,
   "typeInclude": ["operator", "service"],
+  "areaMainInclude": true,
   "areas": [
     {
         "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf"
