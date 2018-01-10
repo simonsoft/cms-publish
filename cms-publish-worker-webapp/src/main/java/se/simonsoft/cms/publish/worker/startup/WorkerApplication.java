@@ -23,9 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -46,14 +44,12 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
-	private final String bucketName = "cms-automation";
 	
 	private static String AWS_REGION = Regions.EU_WEST_1.getName();
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
 	private static String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String BUCKET_NAME = "cms-automation";
 	
-	private String awsId;
-	private String awsSecret;
 	private String cloudId; 
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
@@ -77,6 +73,15 @@ public class WorkerApplication extends ResourceConfig {
             	bind(publishJobService).to(PublishJobService.class);
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
+            	
+            	
+            	String bucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	if (bucket != null) {
+            		logger.debug("Will use bucket: {} specified in environment", bucket);
+            		bind(bucket).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	} else {
+            		bind(BUCKET_NAME).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	}
             	
             	cloudId = environment.getParamOptional("CLOUDID");
             	
@@ -105,7 +110,7 @@ public class WorkerApplication extends ResourceConfig {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
 					logger.debug("Starting publish worker...");
 					new AwsStepfunctionPublishWorker(cloudId,
-							bucketName,
+							BUCKET_NAME,
 							credentials,
 							reader,
 							writer,
