@@ -28,6 +28,8 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +37,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.item.export.CmsExportItemCmsFile;
-import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
@@ -53,10 +53,11 @@ public class PublishPackageZip {
 	private static final Logger logger = LoggerFactory.getLogger(PublishPackageZip.class);
 	
 	@Inject
-	public PublishPackageZip(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-							@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
-							AWSCredentialsProvider credentials,
-							PublishJobStorageFactory storageFactory) {
+	public PublishPackageZip(
+			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
+			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
+			AWSCredentialsProvider credentials,
+			PublishJobStorageFactory storageFactory) {
 		
 		this.cloudId = cloudId;
 		this.bucketName = bucketName;
