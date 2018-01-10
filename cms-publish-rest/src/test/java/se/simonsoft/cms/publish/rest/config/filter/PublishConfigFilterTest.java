@@ -109,6 +109,64 @@ public class PublishConfigFilterTest {
 		assertTrue(filter.accept(publishConfig, null));
 	}
 	
+	
+	@Test
+	public void testAreaMainFilterDefault() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigSimple);
+		PublishConfigFilter filter = new PublishConfigFilterAreaMain();
+		
+		CmsItem itemMock = mock(CmsItem.class);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMock.getProperties()).thenReturn(props);
+		assertFalse(new CmsItemPublish(itemMock).isRelease());
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
+		
+		CmsItem itemMockRelease = mock(CmsItem.class);
+		CmsItemPropertiesMap propsRelease = new CmsItemPropertiesMap("cms:status", "Released");
+		propsRelease.and("abx:ReleaseLabel", "B");
+		propsRelease.and("abx:AuthorMaster", "Bogus");
+		propsRelease.and("abx:ReleaseMaster", "Bogus");
+		when(itemMockRelease.getProperties()).thenReturn(propsRelease);
+		assertTrue(new CmsItemPublish(itemMockRelease).isRelease());
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockRelease)));
+		itemMockRelease = null;
+		propsRelease = null;
+		
+		CmsItem itemMockTranslation = mock(CmsItem.class);
+		CmsItemPropertiesMap propsTranslation = new CmsItemPropertiesMap("cms:status", "Released");
+		propsTranslation.and("abx:ReleaseLabel", "B");
+		propsTranslation.and("abx:TranslationLocale", "de-DE");
+		propsTranslation.and("abx:AuthorMaster", "Bogus");
+		propsTranslation.and("abx:TranslationMaster", "Bogus");
+		when(itemMockTranslation.getProperties()).thenReturn(propsTranslation);
+		assertFalse(new CmsItemPublish(itemMockTranslation).isRelease());
+		assertTrue(new CmsItemPublish(itemMockTranslation).isTranslation());
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockTranslation)));
+	}
+	
+	
+	@Test
+	public void testAreaMainFilterInclude() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);
+		PublishConfigFilter filter = new PublishConfigFilterAreaMain();
+		
+		CmsItem itemMock = mock(CmsItem.class);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMock.getProperties()).thenReturn(props);
+		assertFalse(new CmsItemPublish(itemMock).isRelease());
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
+		
+		CmsItem itemMockRelease = mock(CmsItem.class);
+		CmsItemPropertiesMap propsRelease = new CmsItemPropertiesMap("cms:status", "Released");
+		propsRelease.and("abx:ReleaseLabel", "B");
+		propsRelease.and("abx:AuthorMaster", "Bogus");
+		propsRelease.and("abx:ReleaseMaster", "Bogus");
+		when(itemMockRelease.getProperties()).thenReturn(propsRelease);
+		assertTrue(new CmsItemPublish(itemMockRelease).isRelease());
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockRelease)));
+	}
+	
+	
 	@Test
 	public void testTypeFilter() throws Exception {
 		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);

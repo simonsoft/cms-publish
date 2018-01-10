@@ -28,6 +28,7 @@ public class PublishConfig {
 	protected List<String> typeInclude;
 	protected Boolean profilingInclude;
 	protected List<String> profilingNameInclude = null; // No array means include all profiling recipes.
+	protected boolean areaMainInclude = false; // Disable Main / Author area by default.
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	
@@ -77,6 +78,12 @@ public class PublishConfig {
 	}
 	public void setProfilingNameInclude(List<String> profilingInclude) {
 		this.profilingNameInclude = profilingInclude;
+	}
+	public boolean isAreaMainInclude() {
+		return this.areaMainInclude;
+	}
+	public void setAreaMainInclude(boolean areaMainInclude) {
+		this.areaMainInclude = areaMainInclude;
 	}
 	public List<PublishConfigArea> getAreas() {
 		return areas;
