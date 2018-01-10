@@ -78,6 +78,15 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
+            	
+            	String bucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	if (bucket != null) {
+            		logger.debug("Will use bucket: {} specified in environment", bucket);
+            		bind(bucket).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	} else {
+            		bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	}
+            	
             	cloudId = environment.getParamOptional("CLOUDID");
             	
             	awsAccountId = getAwsAccountId(credentials);

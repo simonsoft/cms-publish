@@ -27,14 +27,16 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 public class PublishJobStorageFactory {
 	
 	private final String pathVersion = "cms4";
-	private final String s3bucket = "cms-automation"; //TODO: Bucket may be injected.
-	
+	private final String s3bucket;
 	private final String cloudId;
 
 	@Inject
-	public PublishJobStorageFactory(@Named("config:se.simonsoft.cms.cloudid") String cloudId) {
+	public PublishJobStorageFactory(
+			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
+			@Named("config:se.simonsoft.cms.publish.bucket") String bucket) {
 		
 		this.cloudId = cloudId;
+		this.s3bucket = bucket;
 	}
 	
 	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName, PublishProfilingRecipe profiling) {

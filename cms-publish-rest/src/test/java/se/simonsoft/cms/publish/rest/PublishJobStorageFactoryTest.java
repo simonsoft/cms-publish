@@ -34,6 +34,7 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 public class PublishJobStorageFactoryTest {
 	
 	private final String configName = "simple-pdf";
+	private final String bucketName = "cms-automation";
 	private CmsItemPublish mockItem;
 	
 	@Before
@@ -50,7 +51,7 @@ public class PublishJobStorageFactoryTest {
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("s3");
 		
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
@@ -68,7 +69,7 @@ public class PublishJobStorageFactoryTest {
 		
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("fs");
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
@@ -85,7 +86,7 @@ public class PublishJobStorageFactoryTest {
 		
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("fs");
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishProfilingRecipe profiling = new PublishProfilingRecipe();
 		profiling.setName("test_name");
 		
@@ -107,7 +108,7 @@ public class PublishJobStorageFactoryTest {
 		
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType(null);
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
@@ -125,7 +126,7 @@ public class PublishJobStorageFactoryTest {
 		
 		PublishConfigStorage cs = new PublishConfigStorage();
 		cs.setType("");
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
@@ -144,7 +145,7 @@ public class PublishJobStorageFactoryTest {
 		//No config will default the storage to S3.
 		PublishConfigStorage cs = null;
 		
-		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId");
+		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, null);
 	
 		assertEquals("cloudId", s.getPathcloudid());
