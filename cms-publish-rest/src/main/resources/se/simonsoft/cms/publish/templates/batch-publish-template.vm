@@ -34,7 +34,7 @@ $reposHeadTags
 </div>
 
 <div class="column" style="width: 70%">
-<form id="export-publications-form" method="get" action="release/download">
+<form id="export-publications-form" method="get" action="./download/">
 	<fieldset>
 		<legend>Batch publish <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
 		
