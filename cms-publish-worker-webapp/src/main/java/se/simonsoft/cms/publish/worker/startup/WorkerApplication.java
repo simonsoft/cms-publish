@@ -52,8 +52,6 @@ public class WorkerApplication extends ResourceConfig {
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
 	private static String AWS_ACTIVITY_NAME = "abxpe";
 	
-	private String awsId;
-	private String awsSecret;
 	private String cloudId; 
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
