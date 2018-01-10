@@ -44,11 +44,11 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
-	private final String bucketName = "cms-automation";
 	
 	private static String AWS_REGION = Regions.EU_WEST_1.getName();
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
 	private static String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String BUCKET_NAME = "cms-automation";
 	
 	private String cloudId; 
 	private String awsAccountId;
@@ -80,7 +80,7 @@ public class WorkerApplication extends ResourceConfig {
             		logger.debug("Will use bucket: {} specified in environment", bucket);
             		bind(bucket).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	} else {
-            		bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            		bind(BUCKET_NAME).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	}
             	
             	cloudId = environment.getParamOptional("CLOUDID");
@@ -110,7 +110,7 @@ public class WorkerApplication extends ResourceConfig {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
 					logger.debug("Starting publish worker...");
 					new AwsStepfunctionPublishWorker(cloudId,
-							bucketName,
+							BUCKET_NAME,
 							credentials,
 							reader,
 							writer,
