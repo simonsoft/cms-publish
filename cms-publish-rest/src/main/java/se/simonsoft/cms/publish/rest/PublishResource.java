@@ -185,6 +185,9 @@ public class PublishResource {
 			configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 			if (configurationFiltered.containsKey(publication)) {
 				publishedItems.add(item);
+			} else {
+				String msg = MessageFormatter.format("Field 'publication': publication name '{}' not defined for item {}.", publication, item.getId()).getMessage();
+				throw new IllegalArgumentException(msg);
 			}
 		}
 		
