@@ -119,9 +119,8 @@ public class PublishResourceTest {
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
 		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		p.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.SimpleLog4JLogSystem");
-		p.put("runtime.log.logsystem.log4j.category", "velocity");
-		p.put("runtime.log.logsystem.log4j.logger", "velocity");
+		//Disable velocity logging.
+		p.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
 
 		try {
 			engine.init(p);
