@@ -72,7 +72,7 @@ $reposHeadTags
 						<input id="dopub" 
 							name="publication" 
 							type="radio" 
-							value="$mapEntry.getValue().getOptions().getFormat()">$mapEntry.getValue().getOptions().getFormat()
+							value="$mapEntry.getKey()">$mapEntry.getKey()
 						</input>
 					#end
 				#end
@@ -84,7 +84,7 @@ $reposHeadTags
 			<label for="submit"></label>
 			<div>
 				<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
-				<span id="warning" style="color:red; display:none;">At least one document type has to be selected.</span>
+				<span id="warning" style="color:red; display:none;">At least one document area must be selected.</span>
 			</div>
 		</p>
 	</fieldset>
