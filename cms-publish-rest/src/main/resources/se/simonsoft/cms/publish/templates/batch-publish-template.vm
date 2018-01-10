@@ -18,7 +18,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Simonsoft CMS PE integration</title>
+<title>Export Publications</title>
 $reposHeadTags
 </head>
 <body>
@@ -29,12 +29,12 @@ $reposHeadTags
 </div>
 
 <div id="intro">
-<h1>Batch Publish</h1>
+<h1>Export Publications</h1>
 <p>NOTE: This service is <b>no longer</b> intended for sending translations to the TSP, see <b>Export Translations</b> on the translation details page.</p>
 </div>
 
 <div class="column" style="width: 70%">
-<form id="arbortextcompose" method="get" action="release/download">
+<form id="export-publications-form" method="get" action="release/download">
 	<fieldset>
 		<legend>Batch publish <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
 		
