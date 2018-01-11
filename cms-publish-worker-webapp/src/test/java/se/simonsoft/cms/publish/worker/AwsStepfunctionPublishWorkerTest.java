@@ -67,7 +67,6 @@ public class AwsStepfunctionPublishWorkerTest {
 	@Mock AWSStepFunctionsClient mockClient;
 	@Mock GetActivityTaskResult mockTaskResult;
 	@Mock PublishJobService mockJobService;
-//	@Mock PublishJobExporter mockJobExporter;
 	@Mock WorkerStatusReport mockWorkerStatusReport;
 	@Mock AWSCredentialsProvider credentials;
 	
