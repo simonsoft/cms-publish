@@ -56,6 +56,9 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEv
 @Singleton
 public class AwsStepfunctionPublishWorker {
 
+	private final String cloudId;
+	private final String bucketName;
+	private final AWSCredentialsProvider credentials;
 	private final AWSStepFunctions client;
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
@@ -63,7 +66,7 @@ public class AwsStepfunctionPublishWorker {
 	private final WorkerStatusReport workerStatusReport;
 	private final String jobExtension = "zip";
 	
-	private CmsExportAwsWriterSingle exportWriter; // Can not be final, protected setMethod to be able to mock it.
+	private CmsExportAwsWriterSingle exportWriter;
 	private Date startUpTime;
 	private ObjectReader reader;
 	private ObjectWriter writer;
@@ -81,8 +84,11 @@ public class AwsStepfunctionPublishWorker {
 			PublishJobService publishJobService,
 			WorkerStatusReport workerStatusReport
 			) {
+		
+		this.cloudId = cloudId;
+		this.bucketName = bucketName;
+		this.credentials = credentials;
 
-		this.exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
@@ -213,13 +219,15 @@ public class AwsStepfunctionPublishWorker {
 		
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
 		
-		PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
-		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(publishTicket,
+		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(options,
 				publishJobService,
 				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
 		job.addExportItem(exportItem);
 		job.prepare();
-		
+		//This is a workaround for tests. The writer has to be created and set by the test to be able to mock it. 
+		if (exportWriter == null) {
+			exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
+		}
 		logger.debug("Preparing writer for export...");
 		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
