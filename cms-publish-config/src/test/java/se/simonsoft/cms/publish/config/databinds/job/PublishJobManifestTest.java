@@ -17,8 +17,7 @@ package se.simonsoft.cms.publish.config.databinds.job;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -71,7 +70,7 @@ public class PublishJobManifestTest {
 		
 		PublishConfigManifest config = new PublishConfigManifest();
 		
-		Map<String, String> metaTemplates = new HashMap<String, String>();
+		LinkedHashMap<String, String> metaTemplates = new LinkedHashMap<String, String>();
 		metaTemplates.put("static", "template");
 		config.setMetaTemplates(metaTemplates);
 		
@@ -83,7 +82,7 @@ public class PublishJobManifestTest {
 		PublishJobManifest job = new PublishJobManifest(config);
 		job.setType("test");
 		
-		Map<String, String> meta = new HashMap<String, String>();
+		LinkedHashMap<String, String> meta = new LinkedHashMap<String, String>();
 		meta.put("static", "value");
 		job.setMeta(meta);
 		

@@ -15,8 +15,7 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -30,11 +29,11 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
 public class PublishJobManifest extends PublishConfigManifest {
 	
 	private String type = null;
-	private Map<String, String> job = new HashMap<String, String>();
-	private Map<String, String> document = new HashMap<String, String>();;
-	private Map<String, String> master = null;
-	private Map<String, String> custom = null;
-	private Map<String, String> meta = null;
+	private LinkedHashMap<String, String> job = new LinkedHashMap<String, String>();
+	private LinkedHashMap<String, String> document = new LinkedHashMap<String, String>();;
+	private LinkedHashMap<String, String> master = null;
+	private LinkedHashMap<String, String> custom = null;
+	private LinkedHashMap<String, String> meta = null;
 	
 	public PublishJobManifest() {
 		super();
@@ -53,18 +52,18 @@ public class PublishJobManifest extends PublishConfigManifest {
 		
 		PublishJobManifest r = new PublishJobManifest();
 		// Explicitly not setting type.
-		r.setJob(new HashMap<String, String>(job));
-		r.setDocument(new HashMap<String, String>(document));
+		r.setJob(new LinkedHashMap<String, String>(job));
+		r.setDocument(new LinkedHashMap<String, String>(document));
 		
 
 		if (master != null) {
-			r.setMaster(new HashMap<String, String>(master));
+			r.setMaster(new LinkedHashMap<String, String>(master));
 		}
 		if (custom != null) {
-			r.setCustom(new HashMap<String, String>(custom));
+			r.setCustom(new LinkedHashMap<String, String>(custom));
 		}
 		if (meta != null) {
-			r.setMeta(new HashMap<String, String>(meta));
+			r.setMeta(new LinkedHashMap<String, String>(meta));
 		}
 		
 		return r;
@@ -72,12 +71,12 @@ public class PublishJobManifest extends PublishConfigManifest {
 	
 	
 	@JsonIgnore // Not included in job
-	public Map<String, String> getCustomTemplates() {
+	public LinkedHashMap<String, String> getCustomTemplates() {
 		return customTemplates;
 	}
 
 	@JsonIgnore // Not included in job
-	public Map<String, String> getMetaTemplates() {
+	public LinkedHashMap<String, String> getMetaTemplates() {
 		return metaTemplates;
 	}
 
@@ -89,43 +88,43 @@ public class PublishJobManifest extends PublishConfigManifest {
 		this.type = type;
 	}
 
-	public Map<String, String> getJob() {
+	public LinkedHashMap<String, String> getJob() {
 		return this.job;
 	}
 
-	public void setJob(Map<String, String> job) {
+	public void setJob(LinkedHashMap<String, String> job) {
 		this.job = job;
 	}
 
-	public Map<String, String> getDocument() {
+	public LinkedHashMap<String, String> getDocument() {
 		return this.document;
 	}
 
-	public void setDocument(Map<String, String> document) {
+	public void setDocument(LinkedHashMap<String, String> document) {
 		this.document = document;
 	}
 
-	public Map<String, String> getMaster() {
+	public LinkedHashMap<String, String> getMaster() {
 		return this.master;
 	}
 
-	public void setMaster(Map<String, String> master) {
+	public void setMaster(LinkedHashMap<String, String> master) {
 		this.master = master;
 	}
 
-	public Map<String, String> getCustom() {
+	public LinkedHashMap<String, String> getCustom() {
 		return this.custom;
 	}
 
-	public void setCustom(Map<String, String> custom) {
+	public void setCustom(LinkedHashMap<String, String> custom) {
 		this.custom = custom;
 	}
 
-	public Map<String, String> getMeta() {
+	public LinkedHashMap<String, String> getMeta() {
 		return this.meta;
 	}
 
-	public void setMeta(Map<String, String> meta) {
+	public void setMeta(LinkedHashMap<String, String> meta) {
 		this.meta = meta;
 	}
 
