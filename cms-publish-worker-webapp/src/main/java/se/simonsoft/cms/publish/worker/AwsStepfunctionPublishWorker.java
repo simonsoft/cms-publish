@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.export.CmsExportPath;
+import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
@@ -56,17 +57,14 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEv
 @Singleton
 public class AwsStepfunctionPublishWorker {
 
-	private final String cloudId;
-	private final String bucketName;
-	private final AWSCredentialsProvider credentials;
 	private final AWSStepFunctions client;
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService publishJobService;
 	private final WorkerStatusReport workerStatusReport;
 	private final String jobExtension = "zip";
+	private final PublishExportWriterProvider exportWriterProvider;
 	
-	private CmsExportAwsWriterSingle exportWriter;
 	private Date startUpTime;
 	private ObjectReader reader;
 	private ObjectWriter writer;
@@ -74,9 +72,8 @@ public class AwsStepfunctionPublishWorker {
 	private static final Logger logger = LoggerFactory.getLogger(AwsStepfunctionPublishWorker.class);
 
 	@Inject
-	public AwsStepfunctionPublishWorker(@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
-			AWSCredentialsProvider credentials,
+	public AwsStepfunctionPublishWorker(
+			PublishExportWriterProvider exportWriterProvider,
 			ObjectReader reader,
 			ObjectWriter writer,
 			AWSStepFunctions client,
@@ -85,9 +82,7 @@ public class AwsStepfunctionPublishWorker {
 			WorkerStatusReport workerStatusReport
 			) {
 		
-		this.cloudId = cloudId;
-		this.bucketName = bucketName;
-		this.credentials = credentials;
+		this.exportWriterProvider = exportWriterProvider;
 
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
@@ -224,10 +219,9 @@ public class AwsStepfunctionPublishWorker {
 				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
 		job.addExportItem(exportItem);
 		job.prepare();
-		//This is a workaround for tests. The writer has to be created and set by the test to be able to mock it. 
-		if (exportWriter == null) {
-			exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
-		}
+		
+		CmsExportWriter exportWriter = exportWriterProvider.getWriter(options);
+		
 		logger.debug("Preparing writer for export...");
 		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job to S3.");
@@ -304,10 +298,6 @@ public class AwsStepfunctionPublishWorker {
 	private void updateStatusReport(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent(action, timeStamp, description);
 		workerStatusReport.addWorkerEvent(event);
-	}
-	//Necessary for tests. Tests has to be able to set the writer to a mock instance.
-	protected void setExportWriter(CmsExportAwsWriterSingle writer) {
-		this.exportWriter = writer;
 	}
 	
 	private void updateWorkerError(Date timeStamp, Exception e) {
