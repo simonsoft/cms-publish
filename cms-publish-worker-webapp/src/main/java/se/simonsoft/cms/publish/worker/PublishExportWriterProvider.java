@@ -73,7 +73,7 @@ public class PublishExportWriterProvider {
 		} else if (storageType.trim().equals("fs")) {
 			exportWriter = new CmsExportDavWriterSingle(fsParent, null); //TODO: We will need to refactor dav writer into fs writer without the secret and expiry.
 		} else {
-			throw new IllegalArgumentException("Provider can only provid writers for S3 and FS, requsted writer: " + storageType);
+			throw new IllegalArgumentException("Provider can only provid writers for s3 and fs, requsted writer: " + storageType);
 		}
 		
 		return exportWriter; 
