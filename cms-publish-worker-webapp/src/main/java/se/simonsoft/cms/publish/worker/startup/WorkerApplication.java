@@ -48,6 +48,11 @@ public class WorkerApplication extends ResourceConfig {
 	private static String AWS_REGION = Regions.EU_WEST_1.getName();
 	private static String AWS_ARN_STATE_START = "arn:aws:states";
 	private static String AWS_ACTIVITY_NAME = "abxpe";
+	
+	private static final String APT_APPLICATION = "APTAPPLICATION";
+	private static final String APT_APPLICATION_RESULT = "$aptpath/application";
+	private static final String APT_PATHNAME = "APTPATHNAME";
+	private static final String APT_PATHNAME_RESULT = "$aptpath/pathname";
 	private static final String BUCKET_NAME = "cms-automation";
 	
 	private String cloudId; 
@@ -65,11 +70,12 @@ public class WorkerApplication extends ResourceConfig {
 			@Override
             protected void configure() {
             	
-				String aptapplicationPrefix = getAptapplicationPrefix();
+				String aptapplicationPrefix = getAptPrefix(APT_APPLICATION_RESULT, APT_APPLICATION);
+				String aptpathNamePrefix = getAptPrefix(APT_PATHNAME_RESULT, APT_PATHNAME);
 				
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	PublishServicePe publishServicePe = new PublishServicePe();
-            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix);
+            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix, aptpathNamePrefix);
             	bind(publishJobService).to(PublishJobService.class);
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
@@ -177,12 +183,10 @@ public class WorkerApplication extends ResourceConfig {
 		return accountId;
 
 	}
-
 	
-	private String getAptapplicationPrefix() {
-		String result = "$aptpath/application";
+	private String getAptPrefix(String result, String envVariableName) {
 		
-		String envVariable = this.environment.getParamOptional("APTAPPLICATION");
+		String envVariable = this.environment.getParamOptional(envVariableName);
 		
 		if (envVariable != null) {
 			String[] split = envVariable.split(";");
