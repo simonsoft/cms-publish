@@ -114,11 +114,14 @@ public class PublishJobService {
 	
 	private String formatParam(String param) {
 		
-		final String prefix = "$aptapplication";
+		final String applicationPrefix = "$aptapplication";
+		final String pathNamePrefix = "$aptpathname";
 		String result;
 		
-		if (param.startsWith(prefix)) {
-			result = this.aptapplicationPrefix.concat(param.substring(prefix.length()));
+		if (param.startsWith(applicationPrefix)) {
+			result = this.aptapplicationPrefix.concat(param.substring(applicationPrefix.length()));
+		} else if (param.startsWith(pathNamePrefix)) {
+			result = this.aptpathnamePrefix.concat(param.substring(pathNamePrefix.length()));
 		} else {
 			result = param;
 		}
