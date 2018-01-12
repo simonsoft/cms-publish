@@ -84,7 +84,7 @@ public class PublishJobService {
 		return ticket;
 	}
 	
-	public void getCompletedJob(PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
+	public void getCompletedJob(PublishJobOptions jobOptions, PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
 		logger.debug("Getting OutputStream from job with ticket: {}", ticket.toString());
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");

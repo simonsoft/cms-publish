@@ -25,6 +25,7 @@ import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class CmsExportItemPublishJob implements CmsExportItem {
@@ -34,20 +35,23 @@ public class CmsExportItemPublishJob implements CmsExportItem {
 	private final CmsExportPath cmsExportPath;
 	
 	private boolean ready = false;
+	private PublishJobOptions options;
 	
 	private static final Logger logger = LoggerFactory.getLogger(CmsExportItemPublishJob.class);
 	
-	public CmsExportItemPublishJob(PublishTicket ticket, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
-		if (ticket == null) {
-			throw new IllegalArgumentException("PublishExportItem publish ticket must not be null or empty.");
+	public CmsExportItemPublishJob(PublishJobOptions options, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
+		if (options == null) {
+			throw new IllegalArgumentException("PublishExportItem options must not be null or empty.");
 		}
 		if (cmsExportPath == null) {
 			throw new IllegalArgumentException("PublishExportItems cmsExportPath must not be null.");
 		}
 		
-		this.ticket = ticket;
+		this.options = options;
 		this.publishJobService = publishJobService;
 		this.cmsExportPath = cmsExportPath;
+		this.ticket =  new PublishTicket(options.getProgress().getParams().get("ticket"));
+		
 	}
 
 	@Override
@@ -68,7 +72,7 @@ public class CmsExportItemPublishJob implements CmsExportItem {
 	@Override
 	public void getResultStream(OutputStream stream) {
 		try {
-			this.publishJobService.getCompletedJob(ticket, stream);
+			this.publishJobService.getCompletedJob(options, ticket, stream);
 		} catch (IOException | PublishException e) {
 			logger.error("Failed when writing publish job. {}", e.getMessage());
 			throw new RuntimeException(e);
