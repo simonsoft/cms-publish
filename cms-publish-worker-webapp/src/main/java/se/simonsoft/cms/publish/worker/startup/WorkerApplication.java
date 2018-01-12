@@ -54,6 +54,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String cloudId; 
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
+	private String bucketName = BUCKET_NAME; 
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -76,12 +77,10 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
             	
-            	String bucket = environment.getParamOptional("PUBLISH_BUCKET");
-            	if (bucket != null) {
-            		logger.debug("Will use bucket: {} specified in environment", bucket);
-            		bind(bucket).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	} else {
-            		bind(BUCKET_NAME).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	String envBucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	if (envBucket != null) {
+            		logger.debug("Will use bucket: {} specified in environment", envBucket);
+            		bucketName = envBucket;
             	}
             	
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
