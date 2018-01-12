@@ -132,8 +132,9 @@ public class AwsStepfunctionPublishWorker {
 						PublishJobOptions options = null;
 						
 						try {
-							logger.debug("Got a task from workflow. {}", taskResult.getInput());
-							options = deserializeInputToOptions(taskResult.getInput());
+							String taskInput = taskResult.getInput();
+							logger.debug("Got a task from workflow. {}", taskInput);
+							options = deserializeInputToOptions(taskInput);
 
 							if (hasTicket(options)) {
 								// The second activity is no longer used, moving towards a single activity.
@@ -152,7 +153,7 @@ public class AwsStepfunctionPublishWorker {
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(options);
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
-								waitForJob(publishTicket);
+								waitForJob(taskResult, publishTicket);
 								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
 								String exportPath = exportCompletedJob(publishTicket, options);
 								progress = getJobProgress(publishTicket, true);
@@ -162,14 +163,17 @@ public class AwsStepfunctionPublishWorker {
 							
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
+							logger.error("Exception: " + e.getMessage(), e);
 							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e)); // TODO: Consider if e.getMessage() must be set as message on CommandRuntimeException.
 							
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
+							logger.warn("CommandRuntimeException: " + e.getErrorName(), e);
 							sendTaskResult(taskResult, e);
 							
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
+							logger.error("Unexpected exception: " + e.getMessage(), e);
 							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed"));
 						}
 					} else {
@@ -209,7 +213,7 @@ public class AwsStepfunctionPublishWorker {
 		return progressAsJson;
 	}
 	
-	private void waitForJob(PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
+	private void waitForJob(GetActivityTaskResult taskResult, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 		
 		final int interval = 10;
 		final Long MAX_WAIT = 7200L; // TODO: Configurable
@@ -225,6 +229,8 @@ public class AwsStepfunctionPublishWorker {
 						updateStatusReport("Waiting...", new Date(), ticket.toString());
 					}
 					Thread.sleep(interval * 1000);
+					
+					sendTaskHeartbeat(taskResult);
 				}
 				
 			} catch (InterruptedException e) {
@@ -258,10 +264,8 @@ public class AwsStepfunctionPublishWorker {
 		
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
 		
-
-		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(options,
-				publishJobService,
-				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
+		CmsExportPath exportPath = new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip")));
+		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(ticket, options, publishJobService, exportPath);
 		job.addExportItem(exportItem);
 		job.prepare();
 		
@@ -317,6 +321,7 @@ public class AwsStepfunctionPublishWorker {
 	
 	
 	private void sendTaskHeartbeat(GetActivityTaskResult taskResult) {
+		logger.debug("Sending heartbeat...");
 		SendTaskHeartbeatRequest req = new SendTaskHeartbeatRequest();
 		req.setTaskToken(taskResult.getTaskToken());
 		client.sendTaskHeartbeat(req);
@@ -332,6 +337,13 @@ public class AwsStepfunctionPublishWorker {
 	
 	
 	private void sendTaskResult(GetActivityTaskResult taskResult, CommandRuntimeException e) {
+		
+		try {
+			throw new RuntimeException("wtf");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
 		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
 		failReq.setTaskToken(taskResult.getTaskToken());
 		failReq.setError(e.getErrorName());
@@ -345,7 +357,6 @@ public class AwsStepfunctionPublishWorker {
 	
 	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted) {
 		PublishJobProgress progress = new PublishJobProgress();
-		progress.setParams(new HashMap<String, String>());
 		progress.getParams().put("ticket", ticket.toString());
 		progress.getParams().put("completed", String.valueOf(isCompleted));
 		return progress;

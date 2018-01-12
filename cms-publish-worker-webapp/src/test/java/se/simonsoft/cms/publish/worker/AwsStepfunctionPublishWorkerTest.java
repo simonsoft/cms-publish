@@ -32,13 +32,18 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import com.amazonaws.ResponseMetadata;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClient;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
 import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
+import com.amazonaws.services.stepfunctions.model.SendTaskHeartbeatRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
+import com.amazonaws.services.stepfunctions.model.SendTaskSuccessResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -68,13 +73,32 @@ public class AwsStepfunctionPublishWorkerTest {
 	@Mock AWSCredentialsProvider credentials;
 	@Mock PublishExportWriterProvider mockWriterProvider;
 	@Mock CmsExportAwsWriterSingle mockExportWriter;
+	@Mock SendTaskSuccessResult mockTaskSuccessResult;
+	@Mock ResponseMetadata mockResponseMetadata;
 	
 	@Before
 	public void initMocks() {
 		MockitoAnnotations.initMocks(this);
 		
 		when(mockTaskResult.getTaskToken()).thenReturn("1923904724");
-		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
+		when(mockTaskSuccessResult.getSdkResponseMetadata()).thenReturn(mockResponseMetadata);
+		when(mockResponseMetadata.getRequestId()).thenReturn("mockRequestId");
+		when(mockClient.sendTaskSuccess(any(SendTaskSuccessRequest.class))).thenReturn(mockTaskSuccessResult);
+		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenAnswer(new Answer<GetActivityTaskResult>() {
+
+			boolean first = true;
+			
+			@Override
+			public GetActivityTaskResult answer(InvocationOnMock invocation) throws Throwable {
+				if (first) {
+					first = false;
+					return mockTaskResult;
+				} else {
+					Thread.sleep(60000);
+					return null;
+				}
+			}
+		});
 		when(mockWriterProvider.getWriter(any(PublishJobOptions.class))).thenReturn(mockExportWriter);
 	}
 
@@ -87,23 +111,29 @@ public class AwsStepfunctionPublishWorkerTest {
 
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithoutTicket));
 		when(mockJobService.publishJob(any(PublishJobOptions.class))).thenReturn(ticket);
+		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false, true, true);
 
-		ArgumentCaptor<SendTaskSuccessRequest> argument = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
+		ArgumentCaptor<SendTaskSuccessRequest> success = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
+		ArgumentCaptor<SendTaskFailureRequest> failure = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
 
 		new AwsStepfunctionPublishWorker(mockWriterProvider, spyReader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
-		Thread.sleep(300);
+		Thread.sleep(11000);
 
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
-		verify(mockTaskResult, times(2)).getInput();
+		verify(mockTaskResult, times(1)).getInput();
 		verify(spyReader, times(1)).forType(PublishJobOptions.class);
 		verify(mockJobService, times(1)).publishJob(any(PublishJobOptions.class));
-		verify(mockClient, times(1)).sendTaskSuccess(argument.capture());
+		verify(mockJobService, times(2)).isCompleted(ticket);
 		
-		SendTaskSuccessRequest value = argument.getValue();
-		assertEquals("{\"params\":{\"ticket\":\"44\",\"completed\":\"false\"}}", value.getOutput());
+		verify(mockClient, times(0)).sendTaskFailure(failure.capture());
+		verify(mockClient, times(1)).sendTaskHeartbeat(any(SendTaskHeartbeatRequest.class));
+		verify(mockClient, times(1)).sendTaskSuccess(success.capture());
+		
+		SendTaskSuccessRequest value = success.getValue();
+		assertEquals("{\"params\":{\"ticket\":\"44\",\"completed\":\"true\",\"pathResult\":\"name-from-cmsconfig-publish/vvab/xml/documents/900108.xml/900108.zip\"}}", value.getOutput());
 	}
 
-	@Test
+	@Test @Deprecated
 	public void testHasTicketNotCompleted() throws Exception {
 
 		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
@@ -116,13 +146,13 @@ public class AwsStepfunctionPublishWorkerTest {
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
-		verify(mockTaskResult, times(2)).getInput();
+		verify(mockTaskResult, times(1)).getInput();
 		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 		
 		assertEquals("JobPending", requestCaptor.getValue().getError());
 	}
 
-	@Test
+	@Test @Deprecated
 	public void testHasTicketCompleted() throws InterruptedException, IOException, PublishException {
 
 		ArgumentCaptor<SendTaskSuccessRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
@@ -134,14 +164,14 @@ public class AwsStepfunctionPublishWorkerTest {
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
-		verify(mockTaskResult, times(2)).getInput();
+		verify(mockTaskResult, times(1)).getInput();
 		verify(mockClient, times(1)).sendTaskSuccess(requestCaptor.capture());
 		
 		SendTaskSuccessRequest value = requestCaptor.getValue();
 		assertEquals("{\"params\":{\"ticket\":\"1234\",\"completed\":\"true\"}}", value.getOutput());
 	}
 	
-	@Test
+	@Test @Deprecated
 	public void testHasTicketButPEHasLostTheJob() throws Exception {
 		
 		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
@@ -154,7 +184,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
-		verify(mockTaskResult, times(2)).getInput();
+		verify(mockTaskResult, times(1)).getInput();
 		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 		
 		//TODO: Not implemented "JobMissing", consider risk of infinite loop.

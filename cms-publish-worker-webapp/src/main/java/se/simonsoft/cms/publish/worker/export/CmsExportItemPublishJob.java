@@ -39,19 +39,22 @@ public class CmsExportItemPublishJob implements CmsExportItem {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CmsExportItemPublishJob.class);
 	
-	public CmsExportItemPublishJob(PublishJobOptions options, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
+	public CmsExportItemPublishJob(PublishTicket ticket, PublishJobOptions options, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
+
+		if (ticket == null) {
+			throw new IllegalArgumentException("PublishExportItem ticket must not be null.");
+		}
 		if (options == null) {
-			throw new IllegalArgumentException("PublishExportItem options must not be null or empty.");
+			throw new IllegalArgumentException("PublishExportItem options must not be null.");
 		}
 		if (cmsExportPath == null) {
 			throw new IllegalArgumentException("PublishExportItems cmsExportPath must not be null.");
 		}
 		
+		this.ticket =  ticket;
 		this.options = options;
 		this.publishJobService = publishJobService;
-		this.cmsExportPath = cmsExportPath;
-		this.ticket =  new PublishTicket(options.getProgress().getParams().get("ticket"));
-		
+		this.cmsExportPath = cmsExportPath;		
 	}
 
 	@Override
