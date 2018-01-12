@@ -24,24 +24,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.AbortedException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.stepfunctions.AWSStepFunctions;
-import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
-import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
-import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
-import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
-import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.item.export.CmsExportWriter;
@@ -53,6 +40,16 @@ import se.simonsoft.cms.publish.config.export.PublishExportJob;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublishJob;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+
+import com.amazonaws.AbortedException;
+import com.amazonaws.services.stepfunctions.AWSStepFunctions;
+import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
+import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
+import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
+import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {
@@ -130,7 +127,6 @@ public class AwsStepfunctionPublishWorker {
 						String progressAsJson = null;
 						final String taskToken = taskResult.getTaskToken();
 						logger.debug("tasktoken: {}", taskToken);
-						updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
 						PublishJobOptions options = null;
 						
 						try {
@@ -138,24 +134,22 @@ public class AwsStepfunctionPublishWorker {
 							options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
-								updateStatusReport("Retrieving", new Date(), "ActivityArn: " + activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
+								updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
 								progressAsJson = exportJob(options, taskToken);
 								sendTaskResult(taskToken, progressAsJson);
 							} else {
-								updateStatusReport("Enqueue", new Date(), "ActivityArn: " + activityArn);
+								updateStatusReport("Enqueueing", new Date(), "");
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(taskToken, options);
 								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
 								sendTaskResult(taskToken, progressAsJson);
-								updateStatusReport("Enqueued", new Date(), "ActivityArn: "+ activityArn + " Ticket: " + publishTicket.toString());
+								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
 						} catch (CommandRuntimeException e) {
-							updateStatusReport("Retrieving" ,
-									new Date(), 
-									e.getMessage() + ", ActivityArn: "+ activityArn + " Ticket: " + options.getProgress().getParams().get("ticket"));
+							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
 							
 							sendTaskResult(taskToken, e.getMessage(), e);
 						} catch (Exception e) {
@@ -212,6 +206,8 @@ public class AwsStepfunctionPublishWorker {
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
 		logger.debug("Preparing publishJob {} for export to s3", options.getPathname());
 		
+		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
+		
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
 		
 
@@ -225,11 +221,11 @@ public class AwsStepfunctionPublishWorker {
 		
 		logger.debug("Preparing writer for export...");
 		exportWriter.prepare(job);
-		logger.debug("Writer is prepared. Writing job to S3.");
+		logger.debug("Writer is prepared. Writing job.");
 		exportWriter.write();
 
-		logger.debug("Job has been exported to S3.");
-		updateStatusReport("Exporting PublishJob to s3", new Date(), activityArn);
+		logger.debug("Job has been exported.");
+		updateStatusReport("Exported PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
 		
 		return job.getJobPath();
 	}
