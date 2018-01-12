@@ -46,6 +46,7 @@ import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
 import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
+import com.amazonaws.services.stepfunctions.model.SendTaskHeartbeatRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -146,20 +147,27 @@ public class AwsStepfunctionPublishWorker {
 								}
 							} else {
 								// Request publish and wait for completion.
+								PublishJobProgress progress = options.getProgress();
 								updateStatusReport("Enqueueing", new Date(), options.getSource());
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(options);
-								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
-								sendTaskResult(taskResult, progressAsJson);
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
+								waitForJob(publishTicket);
+								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
+								String exportPath = exportCompletedJob(publishTicket, options);
+								progress = getJobProgress(publishTicket, true);
+								progress.getParams().put("pathResult", exportPath);
+								sendTaskResult(taskResult, getProgressAsJson(progress));
 							}
+							
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e)); // TODO: Consider if e.getMessage() must be set as message on CommandRuntimeException. 
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e)); // TODO: Consider if e.getMessage() must be set as message on CommandRuntimeException.
+							
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
-							
 							sendTaskResult(taskResult, e);
+							
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed"));
@@ -171,7 +179,7 @@ public class AwsStepfunctionPublishWorker {
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
 						} catch (InterruptedException e) {
 							updateWorkerError(new Date(), e);
-							logger.error("Could not sleep thread", e.getMessage());
+							logger.error("Thread sleep interrupted: ", e.getMessage());
 						}
 					}
 				}
@@ -179,6 +187,7 @@ public class AwsStepfunctionPublishWorker {
 		});
 	}
 	
+	@Deprecated
 	private String exportJob(PublishJobOptions options) throws PublishException, IOException, CommandRuntimeException {
 		logger.debug("Job has a ticket, checking if it is ready for export.");
 		
@@ -199,6 +208,37 @@ public class AwsStepfunctionPublishWorker {
 		}
 		return progressAsJson;
 	}
+	
+	private void waitForJob(PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
+		
+		final int interval = 10;
+		final Long MAX_WAIT = 7200L; // TODO: Configurable
+		final long iterations = MAX_WAIT / interval;
+		
+		for (int i = 0; i < iterations; i++) {
+			try {
+				if (isJobCompleted(ticket)) { 
+					logger.debug("Job is completed: {}", ticket);
+					return;
+				} else {
+					if ((i % 6) == 0) {
+						updateStatusReport("Waiting...", new Date(), ticket.toString());
+					}
+					Thread.sleep(interval * 1000);
+				}
+				
+			} catch (InterruptedException e) {
+				logger.error("Thread sleep interrupted: {}", e.getMessage(), e);
+				throw new CommandRuntimeException("JobInterrupted");
+			
+			} catch (Exception e) {
+				throw new RuntimeException("Failed while waiting for job: " + e.getMessage(), e);
+			
+			}
+		}
+		throw new CommandRuntimeException("JobStuck");
+	}
+	
 	
 	private boolean hasTaskToken(GetActivityTaskResult taskResult) {
 		return taskResult != null && taskResult.getTaskToken() != null && !taskResult.getTaskToken().isEmpty();
@@ -276,8 +316,13 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	
+	private void sendTaskHeartbeat(GetActivityTaskResult taskResult) {
+		SendTaskHeartbeatRequest req = new SendTaskHeartbeatRequest();
+		req.setTaskToken(taskResult.getTaskToken());
+		client.sendTaskHeartbeat(req);
+	}
+	
 	private void sendTaskResult(GetActivityTaskResult taskResult, String resultJson) {
-		
 		SendTaskSuccessRequest succesReq = new SendTaskSuccessRequest();
 		succesReq.setTaskToken(taskResult.getTaskToken());
 		succesReq.setOutput(resultJson);
