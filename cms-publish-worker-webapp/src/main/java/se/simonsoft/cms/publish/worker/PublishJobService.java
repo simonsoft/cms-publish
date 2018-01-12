@@ -121,7 +121,7 @@ public class PublishJobService {
 		if (param.startsWith(prefix)) {
 			result = this.aptapplicationPrefix.concat(param.substring(prefix.length()));
 		} else if (param.startsWith(prefixPath)){
-			result = pathName.concat(pathName.substring(prefixPath.length()));
+			result = pathName.concat(param.substring(prefixPath.length()));
 		} else {
 			result = param;
 		}
