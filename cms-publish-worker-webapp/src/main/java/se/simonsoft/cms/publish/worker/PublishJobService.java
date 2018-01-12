@@ -15,6 +15,9 @@
  */
 package se.simonsoft.cms.publish.worker;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -29,11 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
+import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
-import se.simonsoft.cms.publish.config.databinds.job.*;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
-import se.simonsoft.cms.publish.PublishSource;
 
 public class PublishJobService {
 
@@ -96,7 +99,18 @@ public class PublishJobService {
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
 		
-		pe.getResultStream(ticket, request, outputStream);
+		
+		if (jobOptions.getFormat().equals("web")) {
+			logger.debug("Reuested format is web, creating temp file to be able to add root folder.");
+			String filePath = writeToTmpFile(jobOptions, ticket, request);
+			
+			FileInputStream fis = new FileInputStream(filePath);
+			PublishZipFolderUtil.addRootFolder(jobOptions.getPathname(), fis, outputStream);
+			fis.close();
+		} else {
+			pe.getResultStream(ticket, request, outputStream);
+		}
+		
 	}
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
 		logger.debug("Adding data to the jobs params: [}");
@@ -131,5 +145,17 @@ public class PublishJobService {
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
 		return pe.isCompleted(ticket, request);
+	}
+	
+	private String writeToTmpFile(PublishJobOptions jobOptions, PublishTicket ticket, PublishRequestDefault request) throws IOException, PublishException {
+		
+		File temp = File.createTempFile(jobOptions.getPathname(), ".tmp");
+		FileOutputStream fout = new FileOutputStream(temp);
+		pe.getResultStream(ticket, request, fout);
+		logger.debug("Temporary file placed at: {}", temp.getAbsolutePath());
+		fout.flush();
+		fout.close();
+		
+		return temp.getAbsolutePath();
 	}
 }
