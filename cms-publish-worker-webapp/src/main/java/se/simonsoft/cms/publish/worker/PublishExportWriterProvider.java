@@ -15,20 +15,25 @@
  */
 package se.simonsoft.cms.publish.worker;
 
+import java.io.File;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
+import se.simonsoft.cms.item.dav.DavShareArea;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
 public class PublishExportWriterProvider {
 	
-	private final String cloudId;
-	private final String bucketName;
-	private final AWSCredentialsProvider credentials;
+	private String cloudId;
+	private String bucketName;
+	private AWSCredentialsProvider credentials;
+	private File davParent;
+	private DavShareArea davShareArea;
 	
 	@Inject
 	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.cloudid") String cloudId, 
@@ -41,11 +46,22 @@ public class PublishExportWriterProvider {
 		
 	}
 	
+	@Inject
+	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.dav.local") File davParent, DavShareArea davShareArea) {
+		
+		this.davParent = davParent;
+		this.davShareArea = davShareArea;
+		
+		throw new UnsupportedOperationException("PublishExportWriterProvider can not yet provide a dav writer.");
+		
+	}
+	
 	public CmsExportWriter getWriter(PublishJobOptions options) {
 		
 		//TODO: what should options object contain to choose a local writer?
 		if (options.getParams().get("storage") != null && options.getParams().get("storage").equals("local")) {
-			throw new UnsupportedOperationException("Exporting the files to local disk is not yet implmented.");
+			//TODO: Implement with CmsExportDavWriterSingle 
+			throw new UnsupportedOperationException("Exporting the files to local disk is not yet implemented.");
 		}
 		
 		return new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
