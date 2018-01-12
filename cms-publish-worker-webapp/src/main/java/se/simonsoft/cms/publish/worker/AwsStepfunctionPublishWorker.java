@@ -226,7 +226,7 @@ public class AwsStepfunctionPublishWorker {
 					return;
 				} else {
 					if ((i % 6) == 0) {
-						updateStatusReport("Waiting...", new Date(), ticket.toString());
+						updateStatusReport("Waiting...", new Date(), "Ticket: " + ticket.toString());
 					}
 					Thread.sleep(interval * 1000);
 					
