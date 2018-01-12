@@ -84,10 +84,11 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
-            	bind(writerProvider).to(PublishExportWriterProvider.class);
             	
             	cloudId = environment.getParamOptional("CLOUDID");
+            	
+            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
+            	bind(writerProvider).to(PublishExportWriterProvider.class);
             	
             	awsAccountId = getAwsAccountId(credentials);
             	
