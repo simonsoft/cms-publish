@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
+import se.simonsoft.cms.publish.worker.PublishExportWriterProvider;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
@@ -53,6 +54,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String cloudId; 
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
+	private String bucketName = BUCKET_NAME; 
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -75,15 +77,18 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
             	
-            	String bucket = environment.getParamOptional("PUBLISH_BUCKET");
-            	if (bucket != null) {
-            		logger.debug("Will use bucket: {} specified in environment", bucket);
-            		bind(bucket).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	} else {
-            		bind(BUCKET_NAME).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	String envBucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	if (envBucket != null) {
+            		logger.debug("Will use bucket: {} specified in environment", envBucket);
+            		bucketName = envBucket;
             	}
             	
+            	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	
             	cloudId = environment.getParamOptional("CLOUDID");
+            	
+            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
+            	bind(writerProvider).to(PublishExportWriterProvider.class);
             	
             	awsAccountId = getAwsAccountId(credentials);
             	
@@ -109,9 +114,8 @@ public class WorkerApplication extends ResourceConfig {
 				if (cloudId != null) {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
 					logger.debug("Starting publish worker...");
-					new AwsStepfunctionPublishWorker(cloudId,
-							BUCKET_NAME,
-							credentials,
+					new AwsStepfunctionPublishWorker(
+							writerProvider,
 							reader,
 							writer,
 							client,

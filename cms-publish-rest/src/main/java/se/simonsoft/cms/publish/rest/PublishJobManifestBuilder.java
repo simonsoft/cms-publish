@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,9 +69,9 @@ public class PublishJobManifestBuilder {
 	}
 	
 	
-	private Map<String, String> buildJob(CmsItemPublish item, PublishJob job) {
+	private LinkedHashMap<String, String> buildJob(CmsItemPublish item, PublishJob job) {
 		
-		Map<String, String> result = new HashMap<String, String>();
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
 		result.put("itemid", job.getItemId().getLogicalId());
 		result.put("format", job.getOptions().getFormat());
@@ -79,9 +80,9 @@ public class PublishJobManifestBuilder {
 	}
 	
 	
-	private Map<String, String> buildDocument(CmsItemPublish item, PublishJob job) {
+	private LinkedHashMap<String, String> buildDocument(CmsItemPublish item, PublishJob job) {
 	
-		Map<String, String> result = new HashMap<String, String>();
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
 		String docnoTemplate = job.getArea().getDocnoDocumentTemplate();
 		
@@ -102,9 +103,9 @@ public class PublishJobManifestBuilder {
 	}
 	
 	
-	private Map<String, String> buildMaster(CmsItemPublish item, PublishJob job) {
+	private LinkedHashMap<String, String> buildMaster(CmsItemPublish item, PublishJob job) {
 		
-		Map<String, String> result = new HashMap<String, String>();
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
 		String docnoTemplate = job.getArea().getDocnoMasterTemplate();
 		
@@ -117,9 +118,9 @@ public class PublishJobManifestBuilder {
 	}
 	
 	
-	private Map<String, String> buildMap(CmsItemPublish item, Map<String, String> map) {
+	private LinkedHashMap<String, String> buildMap(CmsItemPublish item, Map<String, String> map) {
 		
-		Map<String, String> result = new HashMap<String, String>();
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
 		if (map == null || map.isEmpty()) {
 			return null;

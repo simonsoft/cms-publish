@@ -79,7 +79,7 @@ public class PublishResourceTest {
 		config.setOptions(new PublishConfigOptions());
 		config.getOptions().setFormat("pdf");
 		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
-		configMap.put("config", config);
+		configMap.put("print", config);
 		
 		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
 		
@@ -105,7 +105,7 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("Sa s.xml"));
 		assertTrue(releaseForm.contains("203"));
 		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
-		assertTrue(releaseForm.contains("pdf"));
+		assertTrue(releaseForm.contains("print"));
 		assertTrue(releaseForm.contains("Active"));
 	}
 	

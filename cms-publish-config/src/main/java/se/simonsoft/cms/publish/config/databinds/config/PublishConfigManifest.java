@@ -15,8 +15,7 @@
  */
 package se.simonsoft.cms.publish.config.databinds.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -24,22 +23,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties (ignoreUnknown=true)
 public class PublishConfigManifest {
 	
-	protected Map<String, String> customTemplates = new HashMap<String, String>();
-	protected Map<String, String> metaTemplates = new HashMap<String, String>();
+	protected LinkedHashMap<String, String> customTemplates = new LinkedHashMap<String, String>();
+	protected LinkedHashMap<String, String> metaTemplates = new LinkedHashMap<String, String>();
 	
-	public Map<String, String> getCustomTemplates() {
+	public LinkedHashMap<String, String> getCustomTemplates() {
 		return customTemplates;
 	}
 	
-	public void setCustomTemplates(Map<String, String> customTemplates) {
+	public void setCustomTemplates(LinkedHashMap<String, String> customTemplates) {
 		this.customTemplates = customTemplates;
 	}
 
-	public Map<String, String> getMetaTemplates() {
+	public LinkedHashMap<String, String> getMetaTemplates() {
 		return metaTemplates;
 	}
 
-	public void setMetaTemplates(Map<String, String> metaTemplates) {
+	public void setMetaTemplates(LinkedHashMap<String, String> metaTemplates) {
 		this.metaTemplates = metaTemplates;
 	}
 }

@@ -17,7 +17,6 @@ package se.simonsoft.cms.publish.worker;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -60,16 +59,15 @@ public class AwsStepfunctionPublishWorkerTest {
 	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
 	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
 	
-	private final String cloudId = "demo1";
-	private final String bucketName = "bucketName";
 	private final String activityArn = "any_acitivtyArn";
 	
 	@Mock AWSStepFunctionsClient mockClient;
 	@Mock GetActivityTaskResult mockTaskResult;
 	@Mock PublishJobService mockJobService;
-//	@Mock PublishJobExporter mockJobExporter;
 	@Mock WorkerStatusReport mockWorkerStatusReport;
 	@Mock AWSCredentialsProvider credentials;
+	@Mock PublishExportWriterProvider mockWriterProvider;
+	@Mock CmsExportAwsWriterSingle mockExportWriter;
 	
 	@Before
 	public void initMocks() {
@@ -77,6 +75,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		
 		when(mockTaskResult.getTaskToken()).thenReturn("1923904724");
 		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenReturn(mockTaskResult, null);
+		when(mockWriterProvider.getWriter(any(PublishJobOptions.class))).thenReturn(mockExportWriter);
 	}
 
 	@Test
@@ -91,7 +90,7 @@ public class AwsStepfunctionPublishWorkerTest {
 
 		ArgumentCaptor<SendTaskSuccessRequest> argument = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, spyReader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(mockWriterProvider, spyReader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -113,7 +112,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false);
 		
 		
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -131,9 +130,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithTicketCompleted));
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
 		
-		AwsStepfunctionPublishWorker awsStepfunctionPublishWorker = new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
-		CmsExportAwsWriterSingle mockExportWriter = mock(CmsExportAwsWriterSingle.class);
-		awsStepfunctionPublishWorker.setExportWriter(mockExportWriter);
+		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -153,7 +150,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		//PeService should throw a PublishException if it has lost the job.
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
 		
-		new AwsStepfunctionPublishWorker(cloudId, bucketName, credentials, reader, writer, mockClient, "any_acitivtyArn", mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, "any_acitivtyArn", mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
