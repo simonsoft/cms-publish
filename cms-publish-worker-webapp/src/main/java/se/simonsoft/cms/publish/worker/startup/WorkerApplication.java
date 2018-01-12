@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
+import se.simonsoft.cms.publish.worker.PublishExportWriterProvider;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
@@ -83,6 +84,10 @@ public class WorkerApplication extends ResourceConfig {
             		bind(BUCKET_NAME).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	}
             	
+            	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
+            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
+            	bind(writerProvider).to(PublishExportWriterProvider.class);
+            	
             	cloudId = environment.getParamOptional("CLOUDID");
             	
             	awsAccountId = getAwsAccountId(credentials);
@@ -109,9 +114,8 @@ public class WorkerApplication extends ResourceConfig {
 				if (cloudId != null) {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
 					logger.debug("Starting publish worker...");
-					new AwsStepfunctionPublishWorker(cloudId,
-							BUCKET_NAME,
-							credentials,
+					new AwsStepfunctionPublishWorker(
+							writerProvider,
 							reader,
 							writer,
 							client,
