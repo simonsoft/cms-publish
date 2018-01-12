@@ -47,6 +47,7 @@ import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
 import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
+import com.amazonaws.services.stepfunctions.model.SendTaskSuccessResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -114,6 +115,7 @@ public class AwsStepfunctionPublishWorker {
 						updateWorkerError(new Date(), e);
 					} catch (Exception e) {
 						final int failureRetrySleep = 30;
+						updateWorkerError(new Date(), e);
 						logger.error("Client failed getActivtyTask: {}", e.getMessage(), e);
 						logger.info("Client retry in {} seconds...", failureRetrySleep);
 						try {
@@ -125,8 +127,7 @@ public class AwsStepfunctionPublishWorker {
 					if (hasTaskToken(taskResult)) {
 						PublishTicket publishTicket = null;
 						String progressAsJson = null;
-						final String taskToken = taskResult.getTaskToken();
-						logger.debug("tasktoken: {}", taskToken);
+						logger.debug("tasktoken: {}", taskResult.getTaskToken());
 						PublishJobOptions options = null;
 						
 						try {
@@ -134,27 +135,34 @@ public class AwsStepfunctionPublishWorker {
 							options = deserializeInputToOptions(taskResult.getInput());
 
 							if (hasTicket(options)) {
-								updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
-								progressAsJson = exportJob(options, taskToken);
-								sendTaskResult(taskToken, progressAsJson);
+								// The second activity is no longer used, moving towards a single activity.
+								if (hasCompleted(options)) {
+									updateStatusReport("Completed passthrough activity", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
+									sendTaskResult(taskResult, getProgressAsJson(options.getProgress()));
+								} else {
+									updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
+									progressAsJson = exportJob(options);
+									sendTaskResult(taskResult, progressAsJson);
+								}
 							} else {
-								updateStatusReport("Enqueueing", new Date(), "");
+								// Request publish and wait for completion.
+								updateStatusReport("Enqueueing", new Date(), options.getSource());
 								logger.debug("Job has no ticket, requesting publish.");
-								publishTicket = requestPublish(taskToken, options);
+								publishTicket = requestPublish(options);
 								progressAsJson = getProgressAsJson(getJobProgress(publishTicket, false));
-								sendTaskResult(taskToken, progressAsJson);
+								sendTaskResult(taskResult, progressAsJson);
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
 							}
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
-							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e)); // TODO: Consider if e.getMessage() must be set as message on CommandRuntimeException. 
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
 							
-							sendTaskResult(taskToken, e.getMessage(), e);
+							sendTaskResult(taskResult, e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
-							sendTaskResult(taskToken, e.getMessage(), new CommandRuntimeException("JobFailed"));
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed"));
 						}
 					} else {
 						
@@ -171,7 +179,7 @@ public class AwsStepfunctionPublishWorker {
 		});
 	}
 	
-	private String exportJob(PublishJobOptions options, String taskToken) throws PublishException, IOException, CommandRuntimeException {
+	private String exportJob(PublishJobOptions options) throws PublishException, IOException, CommandRuntimeException {
 		logger.debug("Job has a ticket, checking if it is ready for export.");
 		
 		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
@@ -196,7 +204,7 @@ public class AwsStepfunctionPublishWorker {
 		return taskResult != null && taskResult.getTaskToken() != null && !taskResult.getTaskToken().isEmpty();
 	}
 	
-	private PublishTicket requestPublish(String taskToken, PublishJobOptions options) throws InterruptedException, PublishException {
+	private PublishTicket requestPublish(PublishJobOptions options) throws InterruptedException, PublishException {
 		PublishTicket ticket = publishJobService.publishJob(options);
 		
 		logger.debug("JobService returned ticket: {}", ticket.toString());
@@ -240,6 +248,16 @@ public class AwsStepfunctionPublishWorker {
         return hasTicket;
 	}
 	
+	private boolean hasCompleted(PublishJobOptions options) {
+		logger.debug("Checking if options has completed already");
+		
+		boolean hasCompleted = false;
+        if (options.getProgress() != null && options.getProgress().getParams().containsKey("completed")) {
+        	hasCompleted = options.getProgress().getParams().get("completed").equalsIgnoreCase("true");
+        }
+        return hasCompleted;
+	}
+	
 	private PublishJobOptions deserializeInputToOptions(String input) {
 		PublishJobOptions options = null;
 		try {
@@ -257,16 +275,26 @@ public class AwsStepfunctionPublishWorker {
 		return publishJobService.isCompleted(ticket);
 	}
 	
-	private void sendTaskResult(String taskToken, String progressResultJson) {
-		SendTaskSuccessRequest sendTaskSuccessRequest = new SendTaskSuccessRequest().withTaskToken(taskToken).withOutput(progressResultJson);
-		client.sendTaskSuccess(sendTaskSuccessRequest);
+	
+	private void sendTaskResult(GetActivityTaskResult taskResult, String resultJson) {
+		
+		SendTaskSuccessRequest succesReq = new SendTaskSuccessRequest();
+		succesReq.setTaskToken(taskResult.getTaskToken());
+		succesReq.setOutput(resultJson);
+		SendTaskSuccessResult sendTaskSuccess = client.sendTaskSuccess(succesReq);
+		logger.debug("Task succesfully executed with request id: {}", sendTaskSuccess.getSdkResponseMetadata().getRequestId());
 	}
 	
-	private void sendTaskResult(String taskToken, String readableCause, CommandRuntimeException e) {
+	
+	private void sendTaskResult(GetActivityTaskResult taskResult, CommandRuntimeException e) {
 		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
-		failReq.setTaskToken(taskToken);
-		failReq.setCause(readableCause);
+		failReq.setTaskToken(taskResult.getTaskToken());
 		failReq.setError(e.getErrorName());
+		if (e.getMessage() != null && !e.getMessage().isEmpty()) {
+			failReq.setCause(e.getMessage());
+		} else if (e.getCause() != null) {
+			failReq.setCause(e.getCause().getMessage());
+		}
 		client.sendTaskFailure(failReq);
 	}
 	
