@@ -186,11 +186,9 @@ public class WorkerApplication extends ResourceConfig {
 	private String getAptapplicationPrefix() {
 		String result = "$aptpath/application";
 		
-		String envVariable = this.environment.getParamOptional("APTAPPLICATION");
-		
-		if (envVariable != null) {
-			String[] split = envVariable.split(";");
-			result = split[0].replaceAll("\\", "/");
+		EnvironmentPathList epl = new EnvironmentPathList(environment);
+		if (epl.getPathFirst("APTAPPLICATION") != null) {
+			result = epl.getPathFirst("APTAPPLICATION");
 		}
 		return result;
 	}
