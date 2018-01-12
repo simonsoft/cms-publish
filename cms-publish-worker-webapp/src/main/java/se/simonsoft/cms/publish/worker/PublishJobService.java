@@ -100,7 +100,7 @@ public class PublishJobService {
 		request.addConfig("path", this.publishPath);
 		
 		
-		if (jobOptions.getFormat().equals("web")) {
+		if (jobOptions != null && jobOptions.getFormat().equals("web")) {
 			logger.debug("Reuested format is web, creating temp file to be able to add root folder.");
 			String filePath = writeToTmpFile(jobOptions, ticket, request);
 			

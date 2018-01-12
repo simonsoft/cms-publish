@@ -25,6 +25,11 @@
 		</style>
 		</head>
 	<body>
-		<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber&options=$options">job</a></p>
+		#if( $options )
+			<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber&options=$options">job</a></p>
+		#else
+			<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber&options=">job</a></p>	
+		#end
+		
 	</body>
 </html>

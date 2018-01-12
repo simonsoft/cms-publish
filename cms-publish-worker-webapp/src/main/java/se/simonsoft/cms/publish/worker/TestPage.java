@@ -20,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Properties;
 
 import javax.inject.Inject;
@@ -148,10 +147,6 @@ public class TestPage {
 			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
 		}
 		
-		if ( optionsJson == null || optionsJson.trim().isEmpty()) {
-			throw new IllegalArgumentException("The given options was either empty or null");
-		}
-		
 		PublishTicket ticket = new PublishTicket(ticketNumber);
 		
 		Boolean completed = publishJobService.isCompleted(ticket);
@@ -159,9 +154,11 @@ public class TestPage {
 			throw new IllegalStateException("Job is not completed.");
 		}
 		
-		ObjectReader readerOptions = reader.forType(PublishJobOptions.class);
-		PublishJobOptions options = readerOptions.readValue(optionsJson);
-		
+		PublishJobOptions options = null;
+		if (optionsJson != null && !optionsJson.trim().isEmpty()) {
+			ObjectReader readerOptions = reader.forType(PublishJobOptions.class);
+			options = readerOptions.readValue(optionsJson);
+		}
 		
 		File temp = File.createTempFile("se.simonsoft.publish.worker.test", "");
 		FileOutputStream fopStream = new FileOutputStream(temp);
