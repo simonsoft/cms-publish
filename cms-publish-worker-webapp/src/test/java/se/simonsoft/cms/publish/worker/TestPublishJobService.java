@@ -46,6 +46,7 @@ import se.simonsoft.cms.publish.worker.PublishJobService;
 public class TestPublishJobService {
 	
 	private static final String aptapplicationPrefix = "bogus";
+	private static final String aptpathnamePrefix = "boguspath";
 	
 	ObjectMapper mapper = new ObjectMapper();
 	ObjectReader reader = mapper.reader(PublishJobOptions.class);
@@ -55,7 +56,7 @@ public class TestPublishJobService {
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
 		PublishFormat format = new PublishFormatPDF();
-		PublishJobService service = new PublishJobService(pe, aptapplicationPrefix);
+		PublishJobService service = new PublishJobService(pe, aptapplicationPrefix, aptpathnamePrefix);
 		PublishJobOptions job = reader.readValue(getJsonString());
 		PublishTicket publishTicket = new PublishTicket("2");
 		
@@ -74,7 +75,7 @@ public class TestPublishJobService {
         assertEquals("http://localhost:8080", pr.getConfig().get("host"));
         assertEquals("/e3/servlet/e3", pr.getConfig().get("path"));
         assertEquals("yes", pr.getParams().get("zip-output"));
-        assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
+        assertEquals("boguspath/DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
         assertEquals("pdf", pr.getParams().get("type"));
         assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
