@@ -15,18 +15,17 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class PublishJobProgress {
 	
-	private Map <String, String> params = new HashMap<>();
+	private LinkedHashMap<String, String> params = new LinkedHashMap<>();
 
-	public Map <String, String> getParams() {
+	public LinkedHashMap<String, String> getParams() {
 		return params;
 	}
 
-	public void setParams(Map <String, String> params) {
+	public void setParams(LinkedHashMap <String, String> params) {
 		this.params = params;
 	}
 	

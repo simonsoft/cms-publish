@@ -22,7 +22,7 @@
 		"pathcloudid": "demo1",
 		"pathconfigname": "name-from-cmsconfig-publish",
 		"pathdir": "/vvab/xml/documents/900108.xml",
-		"pathnamebase": "900108 or profiling.name, ",
+		"pathnamebase": "900108",
 		"params": {
 			"specific": "parameter for future destination types",
 			"s3bucket": "cms-automation",
