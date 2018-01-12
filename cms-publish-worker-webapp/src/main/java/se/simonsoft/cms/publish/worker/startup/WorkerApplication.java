@@ -60,7 +60,7 @@ public class WorkerApplication extends ResourceConfig {
 
 	public WorkerApplication()  {
 		
-		System.out.println("WORKER CONFIG");
+		logger.info("Worker Webapp starting...");
 		
 		register(new AbstractBinder() {
 
