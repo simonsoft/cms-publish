@@ -41,13 +41,15 @@ public class PublishJobService {
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
 	private final String aptapplicationPrefix;
+	private final String aptpathnamePrefix;
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 	
 	@Inject
-	public PublishJobService(PublishServicePe pe, @Named("APTAPPLICATION") String aptapplicationPrefix) {
+	public PublishJobService(PublishServicePe pe, @Named("APTAPPLICATION") String aptapplicationPrefix, @Named("APTPATHNAME") String aptpathnamePrefix) {
 		this.pe = pe;
 		this.aptapplicationPrefix = aptapplicationPrefix;
+		this.aptpathnamePrefix = aptpathnamePrefix;
 	}
 
 	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
@@ -101,7 +103,7 @@ public class PublishJobService {
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
 		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");
-		request.addParam("zip-root", options.getPathname());
+		request.addParam("zip-root", formatParam(options.getPathname()));
 		request.addParam("type", options.getFormat());
 		request.addParam("file-type", "xml");
 
