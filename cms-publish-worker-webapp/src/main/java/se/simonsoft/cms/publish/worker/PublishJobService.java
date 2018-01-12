@@ -107,18 +107,21 @@ public class PublishJobService {
 
 		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
 		for (Map.Entry<String, String> entry : entrySet) {
-			request.addParam(entry.getKey(), formatParam(entry.getValue()));
+			request.addParam(entry.getKey(), formatParam(entry.getValue(), options.getPathname()));
 		}
 		return request;
 	}
 	
-	private String formatParam(String param) {
+	private String formatParam(String param, String pathName) {
 		
 		final String prefix = "$aptapplication";
+		final String prefixPath = "$pathname";
 		String result;
 		
 		if (param.startsWith(prefix)) {
 			result = this.aptapplicationPrefix.concat(param.substring(prefix.length()));
+		} else if (param.startsWith(prefixPath)){
+			result = pathName.concat(param.substring(prefixPath.length()));
 		} else {
 			result = param;
 		}

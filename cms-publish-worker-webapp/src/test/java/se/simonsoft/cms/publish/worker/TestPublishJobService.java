@@ -77,6 +77,7 @@ public class TestPublishJobService {
         assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
         assertEquals("pdf", pr.getParams().get("type"));
         assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
+        assertEquals("DOC_900108_Released.pdf/somepath", pr.getParams().get("pathname"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
         assertEquals("x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
         assertEquals("pdf", pr.getFormat().getFormat());

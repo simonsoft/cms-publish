@@ -5,7 +5,8 @@
 	"format": "pdf",
 	"params": {
 		"stylesheet": "$aptapplication/axdocbook.style",
-		"pdfconfig": "smallfile.pdfcf"
+		"pdfconfig": "smallfile.pdfcf",
+		"pathname": "$pathname/somepath"
 	},
 	"manifest": {
 		"type": "default",
