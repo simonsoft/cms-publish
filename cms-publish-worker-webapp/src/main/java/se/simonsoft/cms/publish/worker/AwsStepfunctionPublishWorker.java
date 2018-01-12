@@ -214,8 +214,7 @@ public class AwsStepfunctionPublishWorker {
 		
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
 		
-		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(options,
-				publishJobService,
+		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(ticket, publishJobService,
 				new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip"))));
 		job.addExportItem(exportItem);
 		job.prepare();
