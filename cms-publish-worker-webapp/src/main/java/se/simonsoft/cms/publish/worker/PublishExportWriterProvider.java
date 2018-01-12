@@ -23,7 +23,7 @@ import javax.inject.Named;
 import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
-import se.simonsoft.cms.item.dav.DavShareArea;
+import se.simonsoft.cms.export.storage.CmsExportDavWriterSingle;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
@@ -32,11 +32,11 @@ public class PublishExportWriterProvider {
 	private String cloudId;
 	private String bucketName;
 	private AWSCredentialsProvider credentials;
-	private File davParent;
-	private DavShareArea davShareArea;
+	private File fsParent;
 	
 	@Inject
-	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.cloudid") String cloudId, 
+	public PublishExportWriterProvider(
+			@Named("config:se.simonsoft.cms.cloudid") String cloudId, 
     		@Named("config:se.simonsoft.cms.aws.bucket.name") String bucketName, 
     		AWSCredentialsProvider credentials) {
 		
@@ -47,10 +47,9 @@ public class PublishExportWriterProvider {
 	}
 	
 	@Inject
-	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.dav.local") File davParent, DavShareArea davShareArea) {
+	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.dav.local") File fsParent) {
 		
-		this.davParent = davParent;
-		this.davShareArea = davShareArea;
+		this.fsParent = fsParent;
 		
 		throw new UnsupportedOperationException("PublishExportWriterProvider can not yet provide a dav writer.");
 		
@@ -58,13 +57,26 @@ public class PublishExportWriterProvider {
 	
 	public CmsExportWriter getWriter(PublishJobOptions options) {
 		
-		//TODO: what should options object contain to choose a local writer?
-		if (options.getParams().get("storage") != null && options.getParams().get("storage").equals("local")) {
-			//TODO: Implement with CmsExportDavWriterSingle 
-			throw new UnsupportedOperationException("Exporting the files to local disk is not yet implemented.");
+		if (options == null) {
+			throw new IllegalArgumentException("Provider need a valid PublishJobOptions object");
 		}
 		
-		return new CmsExportAwsWriterSingle(cloudId, bucketName, credentials);
+		String storageType = options.getStorage().getType();
+		
+		if (storageType == null) {
+			throw new IllegalArgumentException("No storage type selected");
+		}
+		
+		CmsExportWriter exportWriter = null;
+		if (storageType.trim().equals("s3")) {
+			exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials); 
+		} else if (storageType.trim().equals("fs")) {
+			exportWriter = new CmsExportDavWriterSingle(fsParent, null); //TODO: We will need to refactor dav writer into fs writer without the secret and expiry.
+		} else {
+			throw new IllegalArgumentException("Provider can only provid writers for S3 and FS, requsted writer: " + storageType);
+		}
+		
+		return exportWriter; 
 	}
 
 }
