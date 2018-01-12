@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URLEncoder;
 import java.util.Properties;
 
 import javax.inject.Inject;
@@ -38,14 +39,11 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
-import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 @Path("/test")
 public class TestPage {
@@ -143,7 +141,7 @@ public class TestPage {
 	@Path("ticket/result")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response getResult(@QueryParam("ticketnumber") String ticketNumber) throws IOException, PublishException {
+	public Response getResult(@QueryParam("ticketnumber") String ticketNumber, @QueryParam("options") String  optionsJson) throws IOException, PublishException {
 		
 		if ( ticketNumber == null || ticketNumber.trim().isEmpty()) {
 			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
@@ -156,9 +154,15 @@ public class TestPage {
 			throw new IllegalStateException("Job is not completed.");
 		}
 		
+		PublishJobOptions options = null;
+		if (optionsJson != null && !optionsJson.trim().isEmpty()) {
+			ObjectReader readerOptions = reader.forType(PublishJobOptions.class);
+			options = readerOptions.readValue(optionsJson);
+		}
+		
 		File temp = File.createTempFile("se.simonsoft.publish.worker.test", "");
 		FileOutputStream fopStream = new FileOutputStream(temp);
-		publishJobService.getCompletedJob(ticket, fopStream);
+		publishJobService.getCompletedJob(options, ticket, fopStream);
 
 		ResponseBuilder response = Response.ok(temp, MediaType.APPLICATION_OCTET_STREAM);
 	    response.header("Content-Disposition", "attachment; filename=document"+ ticket.toString() +".zip");
@@ -193,9 +197,9 @@ public class TestPage {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
 		ObjectReader reader = this.reader.forType(PublishJobOptions.class);
-		PublishJobOptions job = reader.readValue(jsonstring);
+		PublishJobOptions jobOptions = reader.readValue(jsonstring);
 		
-		PublishTicket ticket = publishJobService.publishJob(job);
+		PublishTicket ticket = publishJobService.publishJob(jobOptions);
 		
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
@@ -205,6 +209,7 @@ public class TestPage {
 
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
+		context.put("options", URLEncoder.encode(jsonstring, "UTF-8").replaceAll("\\+", "%20"));
 		
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/GetTicketTemplate.vm");
 		

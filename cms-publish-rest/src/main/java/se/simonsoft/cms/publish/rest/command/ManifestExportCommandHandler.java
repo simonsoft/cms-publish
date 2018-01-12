@@ -37,7 +37,6 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 
 
 	private static final Logger logger = LoggerFactory.getLogger(ManifestExportCommandHandler.class);
-//	private final CmsExportAwsWriterSingle awsWriter;
 	private final ObjectWriter writerPublishManifest;
 	private final String manifestExtension = "json";
 	private final String cloudId;

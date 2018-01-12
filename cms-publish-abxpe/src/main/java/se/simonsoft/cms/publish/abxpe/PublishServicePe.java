@@ -246,7 +246,8 @@ public class PublishServicePe implements PublishService {
 			});
 			
 		} catch (HttpStatusError e) {
-			throw new PublishException("Failed to get job with ticket: " + ticket + " run completeness check before requesting job.", e);
+			logger.error("Error when trying to get completed job: {}", e.getMessage());
+			throw new PublishException("Failed to get job with ticket: " + ticket + " check if job is completed before requesting job.", e);
 		} catch (IOException e) {
 			throw new RuntimeException("Publishing Engine communication failed", e);
 		}
