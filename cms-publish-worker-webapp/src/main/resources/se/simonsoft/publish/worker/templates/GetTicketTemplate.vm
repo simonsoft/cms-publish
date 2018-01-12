@@ -25,6 +25,6 @@
 		</style>
 		</head>
 	<body>
-		<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber">job</a></p>
+		<p id="getJob">Get your published: <a href="http://localhost:8080/worker/rest/test/ticket/result?ticketnumber=$ticketNumber&options=$options">job</a></p>
 	</body>
 </html>
