@@ -20,12 +20,11 @@ import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
-import se.simonsoft.cms.export.storage.CmsExportDavWriterSingle;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+
+import com.amazonaws.auth.AWSCredentialsProvider;
 
 public class PublishExportWriterProvider {
 	
@@ -71,7 +70,7 @@ public class PublishExportWriterProvider {
 		if (storageType.trim().equals("s3")) {
 			exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials); 
 		} else if (storageType.trim().equals("fs")) {
-			exportWriter = new CmsExportDavWriterSingle(fsParent, null); //TODO: We will need to refactor dav writer into fs writer without the secret and expiry.
+			//exportWriter = new CmsExportDavWriterSingle(fsParent, null); //TODO: We will need to refactor dav writer into fs writer without the secret and expiry.
 		} else {
 			throw new IllegalArgumentException("Provider can only provid writers for s3 and fs, requsted writer: " + storageType);
 		}
