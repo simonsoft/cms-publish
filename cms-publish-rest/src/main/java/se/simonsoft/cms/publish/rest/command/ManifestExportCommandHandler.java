@@ -22,23 +22,28 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
+import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
+import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
+import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
+
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class ManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
 	private static final Logger logger = LoggerFactory.getLogger(ManifestExportCommandHandler.class);
 	private final ObjectWriter writerPublishManifest;
-	private final String manifestExtension = "json";
+	private final String extensionManifest = "json";
+	private final String extensionPublishResult = "zip";
 	private final String cloudId;
 	private final String bucketName;
 	private final AWSCredentialsProvider credentials;
@@ -49,7 +54,7 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 			AWSCredentialsProvider credentials,
 			ObjectWriter objectWriter) {
 		
-		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
+		this.writerPublishManifest = objectWriter;
 		this.cloudId = cloudId;
 		this.bucketName = bucketName;
 		this.credentials = credentials;
@@ -65,9 +70,14 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
 		}
 		
+		if (!isPublishResultExists(itemId, options)) {
+			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
+			throw new CommandRuntimeException("PublishResultMissing");
+		}
+		
 		logger.debug("Preparing publishJob manifest{} for export to s3", manifest);
 
-		PublishExportJob job = new PublishExportJob(options.getStorage(), this.manifestExtension);
+		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionManifest);
 		CmsExportItemPublishManifest exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 		
 		job.addExportItem(exportItem);
@@ -82,4 +92,30 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 		
 		return null;
 	}
+	
+	
+	private boolean isPublishResultExists(CmsItemId itemId, PublishJobOptions options) {
+		
+		boolean result = false;
+		
+		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionPublishResult);
+		// No item when reading.
+		job.prepare();
+
+		logger.debug("Preparing reader in order to verify that Publish result exists...");
+		CmsExportAwsReaderSingle exportReader = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
+		try {
+			exportReader.prepare(job);
+			// TODO: Can we get the size to verify that the file is not empty?
+			result = true;
+		} catch (CmsExportAccessDeniedException | CmsExportJobNotFoundException e) {
+			logger.info("Publish result missing: {}", itemId);
+		} catch (Exception e) {
+			logger.warn("Exception when reading Publish bucket: {}", e.getMessage(), e);
+		}
+		
+		return result;
+	}
+
+	
 }

@@ -38,7 +38,7 @@ public class CmsExportItemPublishManifest implements CmsExportItem {
 	
 	public CmsExportItemPublishManifest(ObjectWriter writer, PublishJobManifest jobManifest) {
 		
-		this.writer = writer.forType(PublishJobManifest.class);
+		this.writer = writer.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
 		this.jobManifest = jobManifest.forPublish();
 	}
 
@@ -48,7 +48,7 @@ public class CmsExportItemPublishManifest implements CmsExportItem {
         if (ready) {
             throw new IllegalStateException("Export item:" + "Publish manifest" + " is already prepared");
         }
-		// TODO Can we add jobid here?
+
 		this.ready = true;
 	}
 
