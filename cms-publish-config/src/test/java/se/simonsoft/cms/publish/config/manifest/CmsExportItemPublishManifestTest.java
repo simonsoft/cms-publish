@@ -58,7 +58,7 @@ public class CmsExportItemPublishManifestTest {
 		
 		exportItem.getResultStream(stream);
 		
-		assertEquals("{\"job\":{},\"document\":{},\"meta\":{\"static\":\"value\"}}", stream.toString());
+		assertEquals("{\n  \"job\" : { },\n  \"document\" : { },\n  \"meta\" : {\n    \"static\" : \"value\"\n  }\n}", stream.toString());
 		
 		PublishJobManifest parsed = reader.readValue(stream.toString());
 		assertNotNull(parsed);
