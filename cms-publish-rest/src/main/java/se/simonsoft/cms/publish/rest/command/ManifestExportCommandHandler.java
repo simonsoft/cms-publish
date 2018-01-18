@@ -98,9 +98,9 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 		
 		boolean result = false;
 		
+		// TODO: Change type to CmsImportJob.
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionPublishResult);
-		// No item when reading.
-		job.prepare();
+		// No items, no prepare for CmsImportJob.
 
 		logger.debug("Preparing reader in order to verify that Publish result exists...");
 		CmsExportAwsReaderSingle exportReader = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
