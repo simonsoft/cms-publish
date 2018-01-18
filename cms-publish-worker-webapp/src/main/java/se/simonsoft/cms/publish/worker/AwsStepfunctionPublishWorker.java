@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -337,12 +336,6 @@ public class AwsStepfunctionPublishWorker {
 	
 	
 	private void sendTaskResult(GetActivityTaskResult taskResult, CommandRuntimeException e) {
-		
-		try {
-			throw new RuntimeException("wtf");
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 		
 		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
 		failReq.setTaskToken(taskResult.getTaskToken());
