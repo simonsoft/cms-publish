@@ -20,9 +20,10 @@ import java.io.OutputStream;
 import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
+import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 
-public class PublishExportJob extends CmsExportJobSingle implements CmsExportJob.SingleItem {
+public class PublishExportJob extends CmsExportJobSingle implements CmsExportJob.SingleItem, CmsImportJob {
 
 	public PublishExportJob(PublishJobStorage storage, String jobExtension) {
 		super(createJobPrefix(storage), getJobName(storage), jobExtension);

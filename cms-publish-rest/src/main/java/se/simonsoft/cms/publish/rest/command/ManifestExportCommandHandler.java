@@ -29,6 +29,7 @@ import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
+import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
@@ -98,8 +99,7 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 		
 		boolean result = false;
 		
-		// TODO: Change type to CmsImportJob.
-		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionPublishResult);
+		CmsImportJob job = new PublishExportJob(options.getStorage(), this.extensionPublishResult);
 		// No items, no prepare for CmsImportJob.
 
 		logger.debug("Preparing reader in order to verify that Publish result exists...");
