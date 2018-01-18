@@ -37,6 +37,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
@@ -79,9 +80,8 @@ public class PublishPackageZip {
 			logger.debug("PublishExportJobs created.");
 		}
 		
-		
 		logger.debug("Creating readers for: {} import jobs", downloadJobs.size());
-		for (PublishExportJob j: downloadJobs) {
+		for (CmsImportJob j: downloadJobs) {
 			CmsExportAwsReaderSingle r = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
 			r.prepare(j);
 			awsReaders.add(r);
