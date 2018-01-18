@@ -20,11 +20,15 @@ import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
-import se.simonsoft.cms.item.export.CmsExportWriter;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+
+import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
+import se.simonsoft.cms.item.export.CmsExportFsWriterSingle;
+import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
 public class PublishExportWriterProvider {
 	
@@ -33,24 +37,20 @@ public class PublishExportWriterProvider {
 	private AWSCredentialsProvider credentials;
 	private File fsParent;
 	
+	
+	private static final Logger logger = LoggerFactory.getLogger(PublishExportWriterProvider.class);
+	
 	@Inject
 	public PublishExportWriterProvider(
 			@Named("config:se.simonsoft.cms.cloudid") String cloudId, 
     		@Named("config:se.simonsoft.cms.aws.bucket.name") String bucketName, 
-    		AWSCredentialsProvider credentials) {
+    		AWSCredentialsProvider credentials,
+    		@Named("config:se.simonsoft.cms.dav.local") File fsParent) {
 		
 		this.cloudId = cloudId;
 		this.bucketName = bucketName;
 		this.credentials = credentials;
-		
-	}
-	
-	@Inject
-	public PublishExportWriterProvider(@Named("config:se.simonsoft.cms.dav.local") File fsParent) {
-		
 		this.fsParent = fsParent;
-		
-		throw new UnsupportedOperationException("PublishExportWriterProvider can not yet provide a dav writer.");
 		
 	}
 	
@@ -68,13 +68,14 @@ public class PublishExportWriterProvider {
 		
 		CmsExportWriter exportWriter = null;
 		if (storageType.trim().equals("s3")) {
+			logger.debug("Storage type is: {} returning initializing S3 writer", storageType);
 			exportWriter = new CmsExportAwsWriterSingle(cloudId, bucketName, credentials); 
 		} else if (storageType.trim().equals("fs")) {
-			//exportWriter = new CmsExportDavWriterSingle(fsParent, null); //TODO: We will need to refactor dav writer into fs writer without the secret and expiry.
+			logger.debug("Storage type is: {} returning initializing Fs writer", storageType);
+			exportWriter = new CmsExportFsWriterSingle(fsParent);
 		} else {
 			throw new IllegalArgumentException("Provider can only provid writers for s3 and fs, requsted writer: " + storageType);
 		}
-		
 		return exportWriter; 
 	}
 
