@@ -28,7 +28,7 @@ import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.worker.PublishJobService;
 
-public class CmsExportItemPublishJob implements CmsExportItem {
+public class CmsExportItemPublish implements CmsExportItem {
 	
 	private final PublishTicket ticket;
 	private final PublishJobService publishJobService;
@@ -37,18 +37,15 @@ public class CmsExportItemPublishJob implements CmsExportItem {
 	private boolean ready = false;
 	private PublishJobOptions options;
 	
-	private static final Logger logger = LoggerFactory.getLogger(CmsExportItemPublishJob.class);
+	private static final Logger logger = LoggerFactory.getLogger(CmsExportItemPublish.class);
 	
-	public CmsExportItemPublishJob(PublishTicket ticket, PublishJobOptions options, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
+	public CmsExportItemPublish(PublishTicket ticket, PublishJobOptions options, PublishJobService publishJobService, CmsExportPath cmsExportPath) {
 
 		if (ticket == null) {
 			throw new IllegalArgumentException("PublishExportItem ticket must not be null.");
 		}
 		if (options == null) {
 			throw new IllegalArgumentException("PublishExportItem options must not be null.");
-		}
-		if (cmsExportPath == null) {
-			throw new IllegalArgumentException("PublishExportItems cmsExportPath must not be null.");
 		}
 		
 		this.ticket =  ticket;

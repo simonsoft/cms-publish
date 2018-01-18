@@ -36,7 +36,7 @@ import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
-import se.simonsoft.cms.publish.worker.export.CmsExportItemPublishJob;
+import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
 
@@ -263,8 +263,7 @@ public class AwsStepfunctionPublishWorker {
 		
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
 		
-		CmsExportPath exportPath = new CmsExportPath("/".concat(options.getStorage().getPathnamebase().concat(".zip")));
-		CmsExportItemPublishJob exportItem = new CmsExportItemPublishJob(ticket, options, publishJobService, exportPath);
+		CmsExportItemPublish exportItem = new CmsExportItemPublish(ticket, options, publishJobService, null);
 		job.addExportItem(exportItem);
 		job.prepare();
 		
