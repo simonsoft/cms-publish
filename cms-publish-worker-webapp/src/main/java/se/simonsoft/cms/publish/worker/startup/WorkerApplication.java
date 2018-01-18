@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.worker.startup;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -77,7 +78,8 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
             	
-            	String envBucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	
+            	String envBucket = environment.getParamOptional("PUBLISH_S3_BUCKET");
             	if (envBucket != null) {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
             		bucketName = envBucket;
@@ -86,8 +88,17 @@ public class WorkerApplication extends ResourceConfig {
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	
             	cloudId = environment.getParamOptional("CLOUDID");
+            	String fileParentPath = environment.getParamOptional("PUBLISH_FS_PATH");
+            	File fsParent = null;
+            	if (fileParentPath != null && !fileParentPath.trim().isEmpty()) {
+            		bind(fileParentPath).named("config:se.simonsoft.cms.dav.local").to(String.class);
+            		fsParent = new File(fileParentPath);
+            	} else {
+            		logger.warn("No environment value set for PUBLISH_FS_PATH, will not be able to write to file system.");
+            	}
             	
-            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
+            	
+            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials, fsParent);
             	bind(writerProvider).to(PublishExportWriterProvider.class);
             	
             	awsAccountId = getAwsAccountId(credentials);
