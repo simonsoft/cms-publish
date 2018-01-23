@@ -33,10 +33,9 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-
-import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
@@ -45,24 +44,17 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishPackageZip {
 	
+	private final CmsExportProvider exportProvider;
 	private final PublishJobStorageFactory storageFactory;
-
-	private final String cloudId;
-	private final String bucketName;
-	private final AWSCredentialsProvider credentials;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishPackageZip.class);
 	
 	@Inject
 	public PublishPackageZip(
-			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
-			AWSCredentialsProvider credentials,
+			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
 			PublishJobStorageFactory storageFactory) {
 		
-		this.cloudId = cloudId;
-		this.bucketName = bucketName;
-		this.credentials = credentials;
+		this.exportProvider = exportProvider;
 		this.storageFactory = storageFactory;
 	}
 	
@@ -70,7 +62,7 @@ public class PublishPackageZip {
 	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<String> profiles, OutputStream os) {
 		
 		final List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
-		final List<CmsExportAwsReaderSingle> awsReaders = new ArrayList<>();
+		final List<CmsExportReader> readers = new ArrayList<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
 		for (CmsItem item: items) {
@@ -82,13 +74,13 @@ public class PublishPackageZip {
 		
 		logger.debug("Creating readers for: {} import jobs", downloadJobs.size());
 		for (CmsImportJob j: downloadJobs) {
-			CmsExportAwsReaderSingle r = new CmsExportAwsReaderSingle(cloudId, bucketName, credentials);
+			CmsExportReader r = exportProvider.getReader();
 			r.prepare(j);
-			awsReaders.add(r);
+			readers.add(r);
 		}
 		
 		
-		for (CmsExportAwsReaderSingle r: awsReaders) {
+		for (CmsExportReader r: readers) {
 			InputStream contents = r.getContents();
 			// Assuming that published zip files do not contain non-file data btw file entries such that the zip becomes incompatible with native Java ZIP (which does not read the "central directory").
 			// https://stackoverflow.com/questions/12030703/uncompressing-a-zip-file-in-memory-in-java
