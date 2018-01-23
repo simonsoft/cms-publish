@@ -31,10 +31,10 @@
             },
             "document": {
                 "docno": "DOC_900108",
+                "versionrelease": "B",
+                "versioniteration": "0000000145",
                 "status": "Released",
-                "releaselabel": "B",
-                "lang": "sv-SE",
-                "baselinerevision": "0000000145"
+                "lang": "sv-SE"
             },
             "custom": {
                 "type": "OPERATOR",

@@ -32,14 +32,14 @@
             },
             "document": {
                 "docno": "DOC_900108_en-GB",
+                "versionrelease": "B",
+                "versioniteration": "0000000145",
                 "status": "Released",
-                "releaselabel": "B",
-                "lang": "en-GB",
-                "baselinerevision": "0000000145"
+                "lang": "en-GB"
             },
             "master": {
                 "docno": "DOC_900108",
-                "releaselabel": "B",
+                "versionrelease": "B",
                 "lang": "sv-SE"
             },
             "custom": {

@@ -88,16 +88,17 @@ public class PublishJobManifestBuilder {
 		
 		String docno = templateEvaluator.evaluate(docnoTemplate);
 		result.put("docno", docno);
-		result.put("status", item.getStatus());
 		if (item.isRelease() || item.isTranslation()) {
-			result.put("releaselabel", item.getReleaseLabel());
+			result.put("versionrelease", item.getReleaseLabel());
 		}
+		result.put("versioniteration", String.format("%010d", job.getItemId().getPegRev()));
+		
+		result.put("status", item.getStatus());
 		if (item.isRelease()) {
 			result.put("lang", item.getReleaseLocale());
 		} else if (item.isTranslation()) {
 			result.put("lang", item.getTranslationLocale());
 		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
-		result.put("baselinerevision", String.format("%010d", job.getItemId().getPegRev()));
 		
 		return result;
 	}
@@ -111,7 +112,7 @@ public class PublishJobManifestBuilder {
 		
 		String docno = templateEvaluator.evaluate(docnoTemplate);
 		result.put("docno", docno);
-		result.put("releaselabel", item.getReleaseLabel());
+		result.put("versionrelease", item.getReleaseLabel());
 		result.put("lang", item.getReleaseLocale());
 		
 		return result;
