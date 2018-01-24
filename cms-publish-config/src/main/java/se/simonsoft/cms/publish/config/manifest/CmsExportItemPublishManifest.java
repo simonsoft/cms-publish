@@ -76,7 +76,7 @@ public class CmsExportItemPublishManifest implements CmsExportItem {
 	@Override
 	public CmsExportPath getResultPath() {
 		
-		throw new IllegalArgumentException("Publish manifest should not be placed inside an archive.");
+		return null; // CmsExportJobSingle validates that getResultPath() is null.
 	}
 
 }

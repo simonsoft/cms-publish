@@ -72,7 +72,7 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 			throw new CommandRuntimeException("PublishResultMissing");
 		}
 		
-		logger.debug("Preparing publishJob manifest{} for export to s3", manifest);
+		logger.debug("Preparing publishJob manifest for export to S3: {}", manifest); // TODO: Remove?
 
 		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionManifest);
 		CmsExportItemPublishManifest exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
