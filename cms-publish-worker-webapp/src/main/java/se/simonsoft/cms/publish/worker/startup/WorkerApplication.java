@@ -53,8 +53,6 @@ public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
 	
-	private static String AWS_REGION = Regions.EU_WEST_1.getName();
-	private static String AWS_ARN_STATE_START = "arn:aws:states";
 	private static String AWS_ACTIVITY_NAME = "abxpe";
 	private static final String BUCKET_NAME = "cms-automation";
 	
@@ -80,9 +78,11 @@ public class WorkerApplication extends ResourceConfig {
 				String aptapplicationPrefix = getAptapplicationPrefix();
 				
             	bind(new PublishServicePe()).to(PublishServicePe.class);
+            	
             	PublishServicePe publishServicePe = new PublishServicePe();
             	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix);
             	bind(publishJobService).to(PublishJobService.class);
+            	
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
@@ -93,9 +93,7 @@ public class WorkerApplication extends ResourceConfig {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
             		bucketName = envBucket;
             	}
-            	
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	
             	cloudId = environment.getParamOptional("CLOUDID");
             	
             	region = Region.getRegion(Regions.fromName("eu-west-1")); // Currently hardcoded, might need different regions annotated per service. 
@@ -109,6 +107,7 @@ public class WorkerApplication extends ResourceConfig {
             	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, envBucket, region, credentials));
             	bind(exportProviders).named("config:se.simonsoft.cms.publish.export.providers").to(Map.class);
             	
+            	//Bind AWS client
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
             	AWSStepFunctions client = AWSStepFunctionsClientBuilder.standard()
@@ -118,8 +117,6 @@ public class WorkerApplication extends ResourceConfig {
         				.build();
             	
             	bind(client).to(AWSStepFunctions.class);
-            	String activityArn = getAwsArn("activity", AWS_ACTIVITY_NAME);
-            	logger.info("AWS Activity ARN: {}", activityArn);
             	
             	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
@@ -136,7 +133,10 @@ public class WorkerApplication extends ResourceConfig {
 							reader,
 							writer,
 							client,
-							activityArn,
+							region,
+							awsAccountId,
+							cloudId,
+							AWS_ACTIVITY_NAME,
 							publishJobService,
 							workerStatusReport);
 
@@ -150,53 +150,25 @@ public class WorkerApplication extends ResourceConfig {
 		
 	}
 	
-	private String getAwsArn(String type, String name) {
-		
-		String awsArn = null;
-		
-		if (awsAccountId != null) {
+	private String getAwsAccountId(AWSCredentialsProvider credentials, Region region) {
 
-			final String arnDelimiter = ":";
-			final String nameDelimiter = "-";
-			final String namePrefix = "cms";
-
-			final StringBuilder sb = new StringBuilder(AWS_ARN_STATE_START);
-			sb.append(arnDelimiter);
-			sb.append(AWS_REGION);
-			sb.append(arnDelimiter);
-			sb.append(awsAccountId); 
-			sb.append(arnDelimiter);
-			sb.append(type);
-			sb.append(arnDelimiter);
-			sb.append(namePrefix);
-			sb.append(nameDelimiter);
-			sb.append(cloudId);
-			sb.append(nameDelimiter);
-			sb.append(name);
-			awsArn = sb.toString();
-		}
-		
-		return awsArn;
-	}
-
-	private String getAwsAccountId(AWSCredentialsProvider credentials) {
-		
 		logger.debug("Requesting aws to get a account Id");
-		
+
 		String accountId = null;
 		try {
-			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
+			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard()
+					.withCredentials(credentials)
+					.withRegion(region.getName())
+					.build();
 			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
 			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
 			accountId = response.getAccount();
 		} catch (Exception e) {
 			logger.error("Could not get a AWS account id: {}", e.getMessage());
 		}
-		
-		logger.debug("Requested aws account id: {}", accountId);
-		
-		return accountId;
 
+		logger.debug("Requested aws account id: {}", accountId);
+		return accountId;
 	}
 
 	

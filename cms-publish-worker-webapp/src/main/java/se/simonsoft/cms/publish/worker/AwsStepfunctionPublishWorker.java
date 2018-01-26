@@ -77,7 +77,10 @@ public class AwsStepfunctionPublishWorker {
 			ObjectReader reader,
 			ObjectWriter writer,
 			AWSStepFunctions client,
-			String activityArn,
+			Region region,
+			String account,
+			String cloudId,
+			String activityName, 
 			PublishJobService publishJobService,
 			WorkerStatusReport workerStatusReport
 			) {
@@ -86,7 +89,7 @@ public class AwsStepfunctionPublishWorker {
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
-		this.activityArn = activityArn; 
+		this.activityArn ="arn:aws:states:" + region.getName() + ":" + account + ":activity:cms-" + cloudId + "-" + activityName; 
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
 		this.workerStatusReport = workerStatusReport;
