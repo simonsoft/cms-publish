@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,19 +29,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.simonsoft.cms.item.command.CommandRuntimeException;
-import se.simonsoft.cms.item.export.CmsExportPath;
-import se.simonsoft.cms.item.export.CmsExportWriter;
-import se.simonsoft.cms.publish.PublishException;
-import se.simonsoft.cms.publish.PublishTicket;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
-import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
-import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
-import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
-
 import com.amazonaws.AbortedException;
+import com.amazonaws.regions.Region;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
@@ -52,6 +42,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import se.simonsoft.cms.item.command.CommandRuntimeException;
+import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.publish.PublishException;
+import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
+import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+
 @Singleton
 public class AwsStepfunctionPublishWorker {
 
@@ -61,7 +63,7 @@ public class AwsStepfunctionPublishWorker {
 	private final PublishJobService publishJobService;
 	private final WorkerStatusReport workerStatusReport;
 	private final String jobExtension = "zip";
-	private final PublishExportWriterProvider exportWriterProvider;
+	private final Map<String, CmsExportProvider> exportProviders;
 	
 	private Date startUpTime;
 	private ObjectReader reader;
@@ -71,7 +73,7 @@ public class AwsStepfunctionPublishWorker {
 
 	@Inject
 	public AwsStepfunctionPublishWorker(
-			PublishExportWriterProvider exportWriterProvider,
+			Map<String, CmsExportProvider> exportProviders,
 			ObjectReader reader,
 			ObjectWriter writer,
 			AWSStepFunctions client,
@@ -80,8 +82,7 @@ public class AwsStepfunctionPublishWorker {
 			WorkerStatusReport workerStatusReport
 			) {
 		
-		this.exportWriterProvider = exportWriterProvider;
-
+		this.exportProviders = exportProviders;
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
@@ -267,7 +268,7 @@ public class AwsStepfunctionPublishWorker {
 		job.addExportItem(exportItem);
 		job.prepare();
 		
-		CmsExportWriter exportWriter = exportWriterProvider.getWriter(options);
+		CmsExportWriter exportWriter = exportProviders.get(options.getStorage().getType()).getWriter();
 		
 		logger.debug("Preparing writer for export...");
 		exportWriter.prepare(job);
