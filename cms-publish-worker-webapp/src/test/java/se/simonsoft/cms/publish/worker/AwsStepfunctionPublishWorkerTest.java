@@ -26,6 +26,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +39,8 @@ import org.mockito.stubbing.Answer;
 
 import com.amazonaws.ResponseMetadata;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClient;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
@@ -48,7 +52,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
+import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
@@ -59,31 +66,40 @@ public class AwsStepfunctionPublishWorkerTest {
 	private ObjectMapper mapper = new ObjectMapper();
 	private ObjectReader reader = mapper.reader();
 	private ObjectWriter writer = mapper.writer();
+	private Map<String, CmsExportProvider> exportProviders = new HashMap<>();
 	
 	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-no-ticket.json";
 	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/webapp/resources/publish-job-not-completed.json";
 	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/webapp/resources/publish-job-has-ticket-completed.json";
 	
-	private final String activityArn = "any_acitivtyArn";
+	private final String cloudId = "test-cloudId"; 
+	private final String awsAccountId = "test-accountid";
+	private final String activityName = "abxpe";
 	
 	@Mock AWSStepFunctionsClient mockClient;
 	@Mock GetActivityTaskResult mockTaskResult;
 	@Mock PublishJobService mockJobService;
 	@Mock WorkerStatusReport mockWorkerStatusReport;
 	@Mock AWSCredentialsProvider credentials;
-	@Mock PublishExportWriterProvider mockWriterProvider;
 	@Mock CmsExportAwsWriterSingle mockExportWriter;
 	@Mock SendTaskSuccessResult mockTaskSuccessResult;
 	@Mock ResponseMetadata mockResponseMetadata;
+	@Mock CmsExportProviderFsSingle mockExportFsProvider;
+	@Mock CmsExportProviderAwsSingle mockExportAwsProvider;
+	@Mock CmsExportAwsWriterSingle mockExportAwsWriterSingle;
 	
 	@Before
 	public void initMocks() {
 		MockitoAnnotations.initMocks(this);
 		
+		exportProviders.put("fs", mockExportFsProvider);
+    	exportProviders.put("s3", mockExportAwsProvider);
+		
 		when(mockTaskResult.getTaskToken()).thenReturn("1923904724");
 		when(mockTaskSuccessResult.getSdkResponseMetadata()).thenReturn(mockResponseMetadata);
 		when(mockResponseMetadata.getRequestId()).thenReturn("mockRequestId");
 		when(mockClient.sendTaskSuccess(any(SendTaskSuccessRequest.class))).thenReturn(mockTaskSuccessResult);
+		when(mockExportAwsProvider.getWriter()).thenReturn(mockExportAwsWriterSingle);
 		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenAnswer(new Answer<GetActivityTaskResult>() {
 
 			boolean first = true;
@@ -99,7 +115,9 @@ public class AwsStepfunctionPublishWorkerTest {
 				}
 			}
 		});
-		when(mockWriterProvider.getWriter(any(PublishJobOptions.class))).thenReturn(mockExportWriter);
+		
+		
+		
 	}
 
 	@Test
@@ -116,7 +134,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		ArgumentCaptor<SendTaskSuccessRequest> success = ArgumentCaptor.forClass(SendTaskSuccessRequest.class);
 		ArgumentCaptor<SendTaskFailureRequest> failure = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
 
-		new AwsStepfunctionPublishWorker(mockWriterProvider, spyReader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(exportProviders, spyReader, writer, mockClient, Region.getRegion(Regions.EU_WEST_1), awsAccountId, cloudId, activityName, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(11000);
 
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -142,7 +160,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(false);
 		
 		
-		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(exportProviders, reader, writer, mockClient, Region.getRegion(Regions.EU_WEST_1), awsAccountId, cloudId, activityName, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -160,7 +178,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockTaskResult.getInput()).thenReturn(getJsonString(this.jsonStringWithTicketCompleted));
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenReturn(true);
 		
-		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, activityArn, mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(exportProviders, reader, writer, mockClient, Region.getRegion(Regions.EU_WEST_1), awsAccountId, cloudId, activityName, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
@@ -180,7 +198,7 @@ public class AwsStepfunctionPublishWorkerTest {
 		//PeService should throw a PublishException if it has lost the job.
 		when(mockJobService.isCompleted(any(PublishTicket.class))).thenThrow(new PublishException("Transaction id 1234 is invalid."));
 		
-		new AwsStepfunctionPublishWorker(mockWriterProvider, reader, writer, mockClient, "any_acitivtyArn", mockJobService, mockWorkerStatusReport);
+		new AwsStepfunctionPublishWorker(exportProviders, reader, writer, mockClient, Region.getRegion(Regions.EU_WEST_1), awsAccountId, cloudId, activityName, mockJobService, mockWorkerStatusReport);
 		Thread.sleep(300);
 		
 		verify(mockClient, times(2)).getActivityTask(any(GetActivityTaskRequest.class));
