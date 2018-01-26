@@ -47,6 +47,7 @@ import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
+import se.simonsoft.cms.publish.worker.export.CmsExportProviderNotConfigured;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
@@ -103,7 +104,15 @@ public class WorkerApplication extends ResourceConfig {
             	
             	//Bind of export providers.
             	Map<String, CmsExportProvider> exportProviders = new HashMap<>();
-            	exportProviders.put("fs", new CmsExportProviderFsSingle(new File(fsParent)));
+            	CmsExportProvider cmsExportProviderFsSingle = null;
+            	if (fsParent != null && !fsParent.trim().isEmpty()) {
+					cmsExportProviderFsSingle = new CmsExportProviderFsSingle(new File(fsParent));
+            	} else {
+            		logger.warn("Could not instansiate CmsExportProviderFsSingle, will not be able to export to file system.");
+            		cmsExportProviderFsSingle = new CmsExportProviderNotConfigured("fs");
+            	}
+            	
+            	exportProviders.put("fs", cmsExportProviderFsSingle);
             	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, envBucket, region, credentials));
             	bind(exportProviders).named("config:se.simonsoft.cms.publish.export.providers").to(Map.class);
             	
