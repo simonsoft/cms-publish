@@ -54,7 +54,9 @@ public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
 	
-	private static String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String PUBLISH_FS_PATH_ENV = "PUBLISH_FS_PATH";
+	private static final String PUBLISH_S3_BUCKET_ENV = "PUBLISH_S3_BUCKET";
 	private static final String BUCKET_NAME = "cms-automation";
 	
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
@@ -87,9 +89,7 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
-            	String fsParent = environment.getParamOptional("PUBLISH_FS_PATH");
-            	
-            	String envBucket = environment.getParamOptional("PUBLISH_S3_BUCKET");
+            	String envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
             	if (envBucket != null) {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
             		bucketName = envBucket;
@@ -102,6 +102,7 @@ public class WorkerApplication extends ResourceConfig {
         		bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
             	
+            	String fsParent = environment.getParamOptional(PUBLISH_FS_PATH_ENV);
             	//Bind of export providers.
             	Map<String, CmsExportProvider> exportProviders = new HashMap<>();
             	CmsExportProvider cmsExportProviderFsSingle = null;
