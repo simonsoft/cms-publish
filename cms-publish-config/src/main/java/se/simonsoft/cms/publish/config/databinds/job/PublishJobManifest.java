@@ -28,7 +28,6 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PublishJobManifest extends PublishConfigManifest {
 	
-	private String type = null;
 	private LinkedHashMap<String, String> job = new LinkedHashMap<String, String>();
 	private LinkedHashMap<String, String> document = new LinkedHashMap<String, String>();;
 	private LinkedHashMap<String, String> master = null;
@@ -44,6 +43,7 @@ public class PublishJobManifest extends PublishConfigManifest {
 		if (config != null) {
 			setCustomTemplates(config.getCustomTemplates());
 			setMetaTemplates(config.getMetaTemplates());
+			setType(config.getType());
 		}
 	}
 	
@@ -78,14 +78,6 @@ public class PublishJobManifest extends PublishConfigManifest {
 	@JsonIgnore // Not included in job
 	public LinkedHashMap<String, String> getMetaTemplates() {
 		return metaTemplates;
-	}
-
-	public String getType() {
-		return this.type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
 	}
 
 	public LinkedHashMap<String, String> getJob() {
