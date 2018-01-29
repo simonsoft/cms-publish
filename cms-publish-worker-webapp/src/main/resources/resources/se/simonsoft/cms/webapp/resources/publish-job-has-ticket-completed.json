@@ -18,7 +18,7 @@
 		}
 	},
 	"storage": {
-		"type": "s3 / fs / ...",
+		"type": "s3",
 		"pathversion": "cms4",
 		"pathcloudid": "demo1",
 		"pathconfigname": "name-from-cmsconfig-publish",
@@ -28,6 +28,27 @@
 			"specific": "parameter for future destination types",
 			"s3bucket": "cms-automation",
 			"fspath": "\\\\?\\C:\\my_dir"
+		}
+	},
+	"manifest": {
+		"type": "default",
+		"job": {
+			"itemid": "x-svn:///svn/demo1^/vvab/release/C/xml/documents/900108.xml?p=324",
+			"format": "pdf"
+		},
+		"document": {
+			"docno": "DOC_900108",
+			"versionrelease": "C",
+			"versioniteration": "0000000324",
+			"status": "Released",
+			"lang": null
+		},
+		"custom": {
+			"type": "OPERATOR",
+			"static": "value"
+		},
+		"meta": {
+			"type": "operator"
 		}
 	},
 	"postprocess": {

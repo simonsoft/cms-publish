@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
+import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.export.storage.CmsExportAwsWriterSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
@@ -87,6 +88,7 @@ public class AwsStepfunctionPublishWorkerTest {
 	@Mock CmsExportProviderFsSingle mockExportFsProvider;
 	@Mock CmsExportProviderAwsSingle mockExportAwsProvider;
 	@Mock CmsExportAwsWriterSingle mockExportAwsWriterSingle;
+	@Mock CmsExportAwsReaderSingle mockExportAwsReaderSingle;
 	
 	@Before
 	public void initMocks() {
@@ -100,7 +102,9 @@ public class AwsStepfunctionPublishWorkerTest {
 		when(mockResponseMetadata.getRequestId()).thenReturn("mockRequestId");
 		when(mockClient.sendTaskSuccess(any(SendTaskSuccessRequest.class))).thenReturn(mockTaskSuccessResult);
 		when(mockExportAwsProvider.getWriter()).thenReturn(mockExportAwsWriterSingle);
+		when(mockExportAwsProvider.getReader()).thenReturn(mockExportAwsReaderSingle);
 		when(mockClient.getActivityTask(any(GetActivityTaskRequest.class))).thenAnswer(new Answer<GetActivityTaskResult>() {
+		
 
 			boolean first = true;
 			
