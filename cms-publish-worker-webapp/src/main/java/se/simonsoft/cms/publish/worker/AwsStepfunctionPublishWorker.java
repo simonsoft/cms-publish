@@ -45,11 +45,13 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.manifest.PublishManifestExportCommandHandler;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
@@ -142,6 +144,10 @@ public class AwsStepfunctionPublishWorker {
 							if (hasTicket(options)) {
 								// The second activity is no longer used, moving towards a single activity.
 								if (hasCompleted(options)) {
+									logger.debug("Job is completed exporting manifest...");
+									PublishManifestExportCommandHandler manifestExport = new PublishManifestExportCommandHandler(exportProviders.get(options.getStorage().getType()), writer);
+									manifestExport.handleExternalCommand(new CmsItemIdArg(options.getManifest().getJob().get("itemid")), options);
+									
 									updateStatusReport("Completed passthrough activity", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
 									sendTaskResult(taskResult, getProgressAsJson(options.getProgress()));
 								} else {
