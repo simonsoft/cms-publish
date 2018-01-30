@@ -20,6 +20,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Export Publications</title>
 $reposHeadTags
+
+
+<style>
+	.publications input {
+		margin-top: 5px;
+	}
+	
+
+</style>
+
 </head>
 <body>
 
@@ -64,27 +74,27 @@ $reposHeadTags
 				#end
 			#end
 		</p>
-		<p id="dopub">
+		<p class="publications">
 			<label for="dopub">publications</label>
-		</p>
-		<div style="margin-left: 165px;">
-		#if (! $configuration.entrySet().isEmpty())
-		
+			#if (! $configuration.entrySet().isEmpty())
 				#foreach ($mapEntry in $configuration.entrySet())
 					#if( $mapEntry.getValue().isVisible() )
-					<div style="padding-top: 2px;">
-							<input id="$mapEntry.getKey()" 
-								name="publication" 
-								type="radio" 
-								value="$mapEntry.getKey()"/>
-								<label for="$mapEntry.getKey()" style="float:none;">$mapEntry.getKey()</label>
-					</div>
+					
+						<input id="$mapEntry.getKey()" 
+							name="publication" 
+							type="radio" 
+							value="$mapEntry.getKey()">$mapEntry.getKey()
+						</input>
+						#if ($velocityCount > 1)
+							<label></label>
+						#end
+						<br/>
 					#end
 				#end
 			#else
 				<div id="dopub" style="padding-top: 1px; color:red;">No publications configured</div>
 			#end
-		</div>
+		</p>
 		<p>
 			<label for="submit"></label>
 			<div>
