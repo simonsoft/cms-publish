@@ -15,6 +15,9 @@
  */
 package se.simonsoft.cms.publish.worker.startup;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
@@ -36,21 +40,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
+import se.simonsoft.cms.item.export.CmsExportPrefix;
+import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
-import se.simonsoft.cms.publish.worker.PublishExportWriterProvider;
+import se.simonsoft.cms.publish.worker.export.CmsExportProviderNotConfigured;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 
 public class WorkerApplication extends ResourceConfig {
 	
 	private final Environment environment = new Environment();
 	
-	private static String AWS_REGION = Regions.EU_WEST_1.getName();
-	private static String AWS_ARN_STATE_START = "arn:aws:states";
-	private static String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String AWS_ACTIVITY_NAME = "abxpe";
+	private static final String PUBLISH_FS_PATH_ENV = "PUBLISH_FS_PATH";
+	private static final String PUBLISH_S3_BUCKET_ENV = "PUBLISH_S3_BUCKET";
 	private static final String BUCKET_NAME = "cms-automation";
 	
+	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
+	
+	private Region region; // The Region class will be in SDK 2.0 (Regions will be removed).
 	private String cloudId; 
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
@@ -70,28 +81,43 @@ public class WorkerApplication extends ResourceConfig {
 				String aptapplicationPrefix = getAptapplicationPrefix();
 				
             	bind(new PublishServicePe()).to(PublishServicePe.class);
+            	
             	PublishServicePe publishServicePe = new PublishServicePe();
             	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix);
             	bind(publishJobService).to(PublishJobService.class);
+            	
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
             	
-            	
-            	String envBucket = environment.getParamOptional("PUBLISH_BUCKET");
+            	String envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
             	if (envBucket != null) {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
             		bucketName = envBucket;
             	}
-            	
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	
             	cloudId = environment.getParamOptional("CLOUDID");
             	
-            	PublishExportWriterProvider writerProvider = new PublishExportWriterProvider(cloudId, bucketName, credentials);
-            	bind(writerProvider).to(PublishExportWriterProvider.class);
+            	region = Region.getRegion(Regions.fromName("eu-west-1")); // Currently hardcoded, might need different regions annotated per service. 
+        		// Might need to determine which region we are running in for EC2. See SDK 2.0, might have a Region Provider Chain.
+        		bind(region).to(Region.class);
+            	awsAccountId = getAwsAccountId(credentials, region);
             	
-            	awsAccountId = getAwsAccountId(credentials);
+            	String fsParent = environment.getParamOptional(PUBLISH_FS_PATH_ENV);
+            	//Bind of export providers.
+            	Map<String, CmsExportProvider> exportProviders = new HashMap<>();
+            	CmsExportProvider cmsExportProviderFsSingle = null;
+            	if (fsParent != null && !fsParent.trim().isEmpty()) {
+					cmsExportProviderFsSingle = new CmsExportProviderFsSingle(new File(fsParent));
+            	} else {
+            		logger.warn("Could not instansiate CmsExportProviderFsSingle, will not be able to export to file system.");
+            		cmsExportProviderFsSingle = new CmsExportProviderNotConfigured("fs");
+            	}
             	
+            	exportProviders.put("fs", cmsExportProviderFsSingle);
+            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, envBucket, region, credentials));
+            	bind(exportProviders).to(Map.class);
+            	
+            	//Bind AWS client
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
             	AWSStepFunctions client = AWSStepFunctionsClientBuilder.standard()
@@ -101,8 +127,6 @@ public class WorkerApplication extends ResourceConfig {
         				.build();
             	
             	bind(client).to(AWSStepFunctions.class);
-            	String activityArn = getAwsArn("activity", AWS_ACTIVITY_NAME);
-            	logger.info("AWS Activity ARN: {}", activityArn);
             	
             	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
@@ -115,11 +139,14 @@ public class WorkerApplication extends ResourceConfig {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.
 					logger.debug("Starting publish worker...");
 					new AwsStepfunctionPublishWorker(
-							writerProvider,
+							exportProviders,
 							reader,
 							writer,
 							client,
-							activityArn,
+							region,
+							awsAccountId,
+							cloudId,
+							AWS_ACTIVITY_NAME,
 							publishJobService,
 							workerStatusReport);
 
@@ -133,53 +160,25 @@ public class WorkerApplication extends ResourceConfig {
 		
 	}
 	
-	private String getAwsArn(String type, String name) {
-		
-		String awsArn = null;
-		
-		if (awsAccountId != null) {
+	private String getAwsAccountId(AWSCredentialsProvider credentials, Region region) {
 
-			final String arnDelimiter = ":";
-			final String nameDelimiter = "-";
-			final String namePrefix = "cms";
-
-			final StringBuilder sb = new StringBuilder(AWS_ARN_STATE_START);
-			sb.append(arnDelimiter);
-			sb.append(AWS_REGION);
-			sb.append(arnDelimiter);
-			sb.append(awsAccountId); 
-			sb.append(arnDelimiter);
-			sb.append(type);
-			sb.append(arnDelimiter);
-			sb.append(namePrefix);
-			sb.append(nameDelimiter);
-			sb.append(cloudId);
-			sb.append(nameDelimiter);
-			sb.append(name);
-			awsArn = sb.toString();
-		}
-		
-		return awsArn;
-	}
-
-	private String getAwsAccountId(AWSCredentialsProvider credentials) {
-		
 		logger.debug("Requesting aws to get a account Id");
-		
+
 		String accountId = null;
 		try {
-			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard().withCredentials(credentials).withRegion(AWS_REGION).build();
+			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard()
+					.withCredentials(credentials)
+					.withRegion(region.getName())
+					.build();
 			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
 			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
 			accountId = response.getAccount();
 		} catch (Exception e) {
 			logger.error("Could not get a AWS account id: {}", e.getMessage());
 		}
-		
-		logger.debug("Requested aws account id: {}", accountId);
-		
-		return accountId;
 
+		logger.debug("Requested aws account id: {}", accountId);
+		return accountId;
 	}
 
 	

@@ -20,6 +20,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Export Publications</title>
 $reposHeadTags
+
+
+<style>
+	.publications input {
+		margin-top: 5px;
+	}
+	
+
+</style>
+
 </head>
 <body>
 
@@ -64,16 +74,21 @@ $reposHeadTags
 				#end
 			#end
 		</p>
-		<p>
+		<p class="publications">
 			<label for="dopub">publications</label>
 			#if (! $configuration.entrySet().isEmpty())
 				#foreach ($mapEntry in $configuration.entrySet())
 					#if( $mapEntry.getValue().isVisible() )
-						<input id="dopub" 
+					
+						<input id="$mapEntry.getKey()" 
 							name="publication" 
 							type="radio" 
 							value="$mapEntry.getKey()">$mapEntry.getKey()
 						</input>
+						#if ($velocityCount > 1)
+							<label></label>
+						#end
+						<br/>
 					#end
 				#end
 			#else

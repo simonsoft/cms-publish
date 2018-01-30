@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.rest.command;
+package se.simonsoft.cms.publish.config.manifest;
 
 
 import javax.inject.Inject;
@@ -34,14 +34,13 @@ import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
-import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-public class ManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
+public class PublishManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
-	private static final Logger logger = LoggerFactory.getLogger(ManifestExportCommandHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
 	private final String extensionManifest = "json";
@@ -49,7 +48,7 @@ public class ManifestExportCommandHandler implements ExternalCommandHandler<Publ
 
 
 	@Inject
-	public ManifestExportCommandHandler(
+	public PublishManifestExportCommandHandler(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
 			ObjectWriter objectWriter
 			) {

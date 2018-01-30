@@ -17,7 +17,7 @@
 		}
 	},
 	"storage": {
-		"type": "s3 / fs / ...",
+		"type": "s3",
 		"pathversion": "cms4",
 		"pathcloudid": "demo1",
 		"pathconfigname": "name-from-cmsconfig-publish",
