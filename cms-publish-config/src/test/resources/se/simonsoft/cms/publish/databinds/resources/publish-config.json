@@ -34,7 +34,8 @@
       "delivery": {
           "type": "webhook",
           "params": {
-              "url": "https://target.example.com/something?secret=super"
+              "url": "https://target.example.com/something?secret=super",
+              "presign": true
           }
           
       }
