@@ -32,7 +32,11 @@
       },
       
       "delivery": {
-          "type": "webhook"
+          "type": "webhook",
+          "params": {
+              "url": "https://target.example.com/something?secret=super"
+          }
+          
       }
   }
 }
