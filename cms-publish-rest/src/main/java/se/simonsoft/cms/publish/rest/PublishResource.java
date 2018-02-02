@@ -191,6 +191,15 @@ public class PublishResource {
 			}
 		}
 		
+		//TODO: Not tested. 
+		for (String c: configurationFiltered.keySet()) {
+			PublishConfig publishConfig = configurationFiltered.get(c);
+			String type = publishConfig.getOptions().getStorage().getType();
+			if (type != null && !type.equals("s3")) {
+				throw new IllegalStateException("Field 'publication': publication name " + type + " is not permitted to execute this action.");
+			}
+		}
+		
 		final PublishConfig publishConfig = configurationFiltered.get(publication);
 		
 		StreamingOutput stream = new StreamingOutput() {
