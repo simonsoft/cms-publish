@@ -191,7 +191,6 @@ public class PublishResource {
 			}
 		}
 		
-		//TODO: Not tested. 
 		for (String c: configurationFiltered.keySet()) {
 			PublishConfig publishConfig = configurationFiltered.get(c);
 			String type = publishConfig.getOptions().getStorage().getType();
