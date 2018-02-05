@@ -195,7 +195,7 @@ public class PublishResource {
 			PublishConfig publishConfig = configurationFiltered.get(c);
 			String type = publishConfig.getOptions().getStorage().getType();
 			if (type != null && !type.equals("s3")) {
-				throw new IllegalStateException("Field 'publication': publication name " + type + " is not permitted to execute this action.");
+				throw new IllegalStateException("Field 'publication': publication name " + type + " can not be exported (configured for non-default storage).");
 			}
 		}
 		
