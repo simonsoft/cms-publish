@@ -191,16 +191,13 @@ public class PublishResource {
 			}
 		}
 		
-		for (String c: configurationFiltered.keySet()) {
-			PublishConfig publishConfig = configurationFiltered.get(c);
+		final PublishConfig publishConfig = configurationFiltered.get(publication);
+		if (publishConfig.getOptions().getStorage() != null) {
 			String type = publishConfig.getOptions().getStorage().getType();
 			if (type != null && !type.equals("s3")) {
 				throw new IllegalStateException("Field 'publication': publication name " + type + " can not be exported (configured for non-default storage).");
 			}
 		}
-		
-		final PublishConfig publishConfig = configurationFiltered.get(publication);
-		
 		StreamingOutput stream = new StreamingOutput() {
 			@Override
 			public void write(OutputStream os) throws IOException, WebApplicationException {
