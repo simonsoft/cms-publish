@@ -45,6 +45,7 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 
@@ -104,9 +105,18 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			}
 			logger.debug("Post data body. Archive: {}, Manifest: {}", archive, manifest);
 		} else {
-			//TODO: implement FS.
+			PublishJobProgress progress = options.getProgress();
+			if (progress == null) {
+				throw new IllegalArgumentException("Storage is set to: {}, need a valid PublishJobProgress object.");
+			}
+			archive = progress.getParams().get("archive");
+			manifest = progress.getParams().get("manifest");
 		}
-
+		
+		if (archive == null || manifest == null) {
+			throw new IllegalArgumentException("Illegal paths/urls to archive and or manifest.");
+		}
+		
 		makeRequest(options.getDelivery().getParams().get("url"), getPostBody(archive, manifest));
 		
 		
