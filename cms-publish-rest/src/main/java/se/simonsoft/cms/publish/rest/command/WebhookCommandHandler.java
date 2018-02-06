@@ -53,25 +53,25 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 
 
 	private final AmazonS3 s3Client;
-	private final RestClient restClient;
-	private final Date expiery;
+	private final Long expiry;
 	private final String bucketName;
-	private final String archiveExt = ".zip";
-	private final String manifestExt = ".json";
+	private final String archiveExt = "zip";
+	private final String manifestExt = "json";
+	private final HttpClient client;
 
 	private static final Logger logger = LoggerFactory.getLogger(WebhookCommandHandler.class);
 
 	@Inject
 	public WebhookCommandHandler(
-						RestClient restClient,
-						Date expiery,
+						@Named("config:se.simonsoft.cms.publish.webhook.expiry") Long expiryMinutes,
 						@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
+						HttpClient client,
 						Region region,
 						AWSCredentialsProvider credentials) {
 
-		this.restClient = restClient;
-		this.expiery = expiery;
+		this.expiry = expiryMinutes;
 		this.bucketName = bucketName;
+		this.client = client;
 		this.s3Client = AmazonS3Client.builder()
 				.withRegion(region.getName())
 				.withCredentials(credentials)
