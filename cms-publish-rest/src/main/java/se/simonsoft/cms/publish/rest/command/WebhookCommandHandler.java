@@ -93,32 +93,29 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		String archive = null;
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
-			
-			final String s3BasePath = getS3BasePath(storage);
-			
-			String manifestUrl;
-			String archiveUrl;
 			String presign = options.getDelivery().getParams().get("presign");
+			String archivePath = getParentPath(storage, archiveExt);
+			String manifestPath = getParentPath(storage, manifestExt);
 			if (presign != null && presign.equals("true")) {
-				logger.debug("Generating presigned urls with expiery: {}", expiery.getTime());
-				archiveUrl = getPresignedUrl(expiery ,s3BasePath, archiveExt).toString();
-				manifestUrl = getPresignedUrl(expiery, s3BasePath, manifestExt).toString();
+				archive = getPresignedUrl(archivePath).toString();
+				manifest = getPresignedUrl(manifestPath).toString();
 			} else {
-				logger.debug("Presigned urls is disabled, will use bucket paths.");
-				archiveUrl = String.format("%s/%s%s", bucketName, s3BasePath, archiveExt);
-				manifestUrl = String.format("%s/%s%s", bucketName, s3BasePath, manifestExt);
+				archive = s3Client.getUrl(bucketName, archivePath).toString();
+				manifest = s3Client.getUrl(bucketName, manifestPath).toString();
 			}
-			
-			logger.debug("Post data body. Archive: {}, Manifest: {}", archiveUrl, manifestUrl);
-			makeRequest(options.getDelivery().getParams().get("url"), getPostBody(archiveUrl, manifestUrl));
+			logger.debug("Post data body. Archive: {}, Manifest: {}", archive, manifest);
+		} else {
+			//TODO: implement FS.
 		}
 
+		makeRequest(options.getDelivery().getParams().get("url"), getPostBody(archive, manifest));
+		
+		
 		return null;
 	}
 	
 	private void makeRequest(String urlStr, List<NameValuePair> pairs) {
 		
-		HttpClient client= new DefaultHttpClient();
 		HttpPost request = new HttpPost(urlStr);
 
 		try {
@@ -139,25 +136,25 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	    return pairs;
 	}
 
-	private URL getPresignedUrl(Date expiery, String s3BasePath, String extension) {
+	private URL getPresignedUrl(String path) {
 		GeneratePresignedUrlRequest request =
-                new GeneratePresignedUrlRequest("cms-review-jandersson", s3BasePath.concat(extension));
+                new GeneratePresignedUrlRequest("cms-review-jandersson", path);
         request.setMethod(HttpMethod.GET);
-        request.setExpiration(expiery);
+        request.setExpiration(getExpiryDate());
+        
         logger.debug("Requesting S3 for presigned URLs.");
+        
        return s3Client.generatePresignedUrl(request);
 	}
 
-	private String getS3BasePath(PublishJobStorage storage) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(storage.getPathversion());
-		sb.append("/");
-		sb.append(storage.getPathcloudid());
-		sb.append("/");
-		sb.append(storage.getPathconfigname());
-		sb.append(storage.getPathdir());
-		sb.append("/");
-		sb.append(storage.getPathnamebase());
-		return sb.toString();
+	private Date getExpiryDate() {
+		Calendar date = Calendar.getInstance();
+		long t = date.getTimeInMillis();
+		long millis = TimeUnit.MINUTES.toMillis(expiry);
+		return new Date(t + millis);
+	}
+
+	private String getParentPath(PublishJobStorage storage, String extension) {
+		return new PublishExportJob(storage, extension).getJobPath();
 	}
 }
