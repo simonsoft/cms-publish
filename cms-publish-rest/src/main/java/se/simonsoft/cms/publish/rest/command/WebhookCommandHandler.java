@@ -84,6 +84,13 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		logger.debug("WebhookCommandHandler called, will send request to: {}", options.getDelivery().getParams().get("url"));
 		
 		final PublishJobStorage storage = options.getStorage();
+		
+		if (storage == null) {
+			throw new IllegalArgumentException("WebhookCommandHandler need a valid PublishJobStorage object.");
+		}
+		
+		String manifest = null;
+		String archive = null;
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
 			
