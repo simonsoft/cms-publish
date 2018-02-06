@@ -66,7 +66,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		
-		logger.debug("WebhookCommandHandler called, will call webhook.");
+		logger.debug("WebhookCommandHandler called, will send request to: {}", options.getDelivery().getParams().get("url"));
 		
 		final PublishJobStorage storage = options.getStorage();
 
@@ -82,12 +82,12 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 				archiveUrl = getPresignedUrl(expiery ,s3BasePath, archiveExt).toString();
 				manifestUrl = getPresignedUrl(expiery, s3BasePath, manifestExt).toString();
 			} else {
-				logger.debug("do not presign the urls bucket: {}", bucketName);
+				logger.debug("Presigned urls is disabled, will use bucket paths.");
 				archiveUrl = String.format("%s/%s%s", bucketName, s3BasePath, archiveExt);
 				manifestUrl = String.format("%s/%s%s", bucketName, s3BasePath, manifestExt);
 			}
 			
-			logger.debug("Post body archive: {}, manifest: {}", archiveUrl, manifestUrl);
+			logger.debug("Post data body. Archive: {}, Manifest: {}", archiveUrl, manifestUrl);
 			makeRequest(options.getDelivery().getParams().get("url"), getPostBody(archiveUrl, manifestUrl));
 		}
 
@@ -101,6 +101,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 
 		try {
 			request.setEntity(new UrlEncodedFormEntity(pairs));
+			logger.debug("Making request...");
 			HttpResponse resp = client.execute(request);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed", e);
@@ -117,12 +118,11 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	}
 
 	private URL getPresignedUrl(Date expiery, String s3BasePath, String extension) {
-		logger.debug("Url: {}", s3BasePath.concat(extension));
 		GeneratePresignedUrlRequest request =
                 new GeneratePresignedUrlRequest("cms-review-jandersson", s3BasePath.concat(extension));
         request.setMethod(HttpMethod.GET);
         request.setExpiration(expiery);
-        
+        logger.debug("Requesting S3 for presigned URLs.");
        return s3Client.generatePresignedUrl(request);
 	}
 
