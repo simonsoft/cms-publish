@@ -86,6 +86,10 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		exportWriter.write();
 		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
 		
+		if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
+			options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
+		}
+		
 		return null;
 	}
 	
