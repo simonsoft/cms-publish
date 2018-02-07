@@ -93,17 +93,9 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		String archive = null;
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
-			String presign = options.getDelivery().getParams().get("presign");
-			String archivePath = getParentPath(storage, archiveExt);
-			String manifestPath = getParentPath(storage, manifestExt);
-			if (presign != null && presign.equals("true")) {
-				archive = getPresignedUrl(archivePath).toString();
-				manifest = getPresignedUrl(manifestPath).toString();
-			} else {
-				archive = s3Client.getUrl(bucketName, archivePath).toString();
-				manifest = s3Client.getUrl(bucketName, manifestPath).toString();
-			}
-			logger.debug("Post data body. Archive: {}, Manifest: {}", archive, manifest);
+			Boolean presign = new Boolean(options.getDelivery().getParams().get("presign"));
+			archive = getS3Url(getParentPath(storage, archiveExt), presign).toString();
+			manifest = getS3Url(getParentPath(storage, manifestExt), presign).toString();
 		} else {
 			PublishJobProgress progress = options.getProgress();
 			if (progress == null) {
@@ -145,15 +137,20 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	    return pairs;
 	}
 
-	private URL getPresignedUrl(String path) {
-		GeneratePresignedUrlRequest request =
-                new GeneratePresignedUrlRequest("cms-review-jandersson", path);
-        request.setMethod(HttpMethod.GET);
-        request.setExpiration(getExpiryDate());
-        
-        logger.debug("Requesting S3 for presigned URLs.");
-        
-       return s3Client.generatePresignedUrl(request);
+	private URL getS3Url(String path, Boolean presign) {
+		
+		URL url = null;
+		if (presign != null && presign) { 
+			GeneratePresignedUrlRequest request =
+					new GeneratePresignedUrlRequest(bucketName, path);
+			request.setMethod(HttpMethod.GET);
+			request.setExpiration(getExpiryDate());
+			url = s3Client.generatePresignedUrl(request);
+		} else {
+			url = s3Client.getUrl(bucketName, path);
+		}
+		
+       return url;
 	}
 
 	private Date getExpiryDate() {
