@@ -115,14 +115,15 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		return null;
 	}
 	
-	private void makeRequest(String urlStr, List<NameValuePair> pairs) {
-		
+	private HttpResponse makeRequest(String urlStr, List<NameValuePair> pairs) {
 		HttpPost request = new HttpPost(urlStr);
-
+		
 		try {
 			request.setEntity(new UrlEncodedFormEntity(pairs));
 			logger.debug("Making request...");
 			HttpResponse resp = client.execute(request);
+			return resp;
+			
 		} catch (IOException e) {
 			throw new RuntimeException("Failed", e);
 		}
