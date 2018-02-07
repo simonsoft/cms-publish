@@ -165,7 +165,7 @@ public class AwsStepfunctionPublishWorker {
 								waitForJob(taskResult, publishTicket);
 								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
 								String exportPath = exportCompletedJob(publishTicket, options);
-								progress = getJobProgress(publishTicket, true);
+								progress = getJobProgress(publishTicket, true, options);
 								progress.getParams().put("pathResult", exportPath);
 								sendTaskResult(taskResult, getProgressAsJson(progress));
 							}
@@ -206,7 +206,7 @@ public class AwsStepfunctionPublishWorker {
 		
 		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
 		final boolean jobCompleted = isJobCompleted(publishTicket);
-		final PublishJobProgress progress = getJobProgress(publishTicket, jobCompleted);
+		final PublishJobProgress progress = getJobProgress(publishTicket, jobCompleted, options);
 		final String progressAsJson = getProgressAsJson(progress);
 		
 		String exportPath = null;
@@ -283,6 +283,16 @@ public class AwsStepfunctionPublishWorker {
 		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job.");
 		exportWriter.write();
+		
+		if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
+			if (options.getProgress() == null) {
+				PublishJobProgress progress = new PublishJobProgress(); 
+				progress.getParams().put("archive", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
+				options.setProgress(progress);
+			} else {
+				options.getProgress().getParams().put("archive", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());;
+			}
+		}
 
 		logger.debug("Job has been exported.");
 		updateStatusReport("Exported PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
@@ -357,10 +367,17 @@ public class AwsStepfunctionPublishWorker {
 		client.sendTaskFailure(failReq);
 	}
 	
-	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted) {
-		PublishJobProgress progress = new PublishJobProgress();
+	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted, PublishJobOptions options) {
+		PublishJobProgress progress = null;
+		if (options.getProgress() == null) {
+			progress = new PublishJobProgress();
+		} else {
+			progress = options.getProgress();
+		}
+		
 		progress.getParams().put("ticket", ticket.toString());
 		progress.getParams().put("completed", String.valueOf(isCompleted));
+		
 		return progress;
 	}
 	
