@@ -109,19 +109,12 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			String manifestKey = getS3Key(options.getStorage(), getJobPath(storage, manifestExt));
 			manifest = getS3Url(manifestKey, presign).toString();
 		} else {
-			
-			PublishJobProgress progress = options.getProgress();
-			if (progress == null) {
-				throw new IllegalArgumentException("Storage is 'not' set to default, need a valid PublishJobProgress object.");
-			}
-			archive = progress.getParams().get("archive");
-			manifest = progress.getParams().get("manifest");
+			archive = options.getProgress().getParams().get("archive");
+			manifest = options.getProgress().getParams().get("manifest");
 			if (archive == null || manifest == null) {
-				throw new IllegalArgumentException("Illegal paths/urls to archive and or manifest.");
+				throw new IllegalArgumentException("Illegal paths to archive and or manifest.");
 			}
 		}
-		
-		
 		
 		HttpResponse response = makeRequest(options.getDelivery(), getPostBody(archive, manifest));
 		int statusCode = response.getStatusLine().getStatusCode();
