@@ -116,11 +116,11 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			}
 			archive = progress.getParams().get("archive");
 			manifest = progress.getParams().get("manifest");
+			if (archive == null || manifest == null) {
+				throw new IllegalArgumentException("Illegal paths/urls to archive and or manifest.");
+			}
 		}
 		
-		if (archive == null || manifest == null) {
-			throw new IllegalArgumentException("Illegal paths/urls to archive and or manifest.");
-		}
 		
 		makeRequest(options.getDelivery(), getPostBody(archive, manifest));
 		
