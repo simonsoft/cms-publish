@@ -81,12 +81,12 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		
-		logger.debug("WebhookCommandHandler called, will send request to: {}", options.getDelivery().getParams().get("url"));
+		logger.debug("WebhookCommandHandler will try to send request to: {}", options.getDelivery().getParams().get("url"));
 		
 		final PublishJobStorage storage = options.getStorage();
 		
 		if (storage == null) {
-			throw new IllegalArgumentException("WebhookCommandHandler need a valid PublishJobStorage object.");
+			throw new IllegalArgumentException("Need a valid PublishJobStorage object with params archive and manifest.");
 		}
 		
 		String manifest = null;
@@ -97,9 +97,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			archive = getS3Url(getParentPath(storage, archiveExt), presign).toString();
 			manifest = getS3Url(getParentPath(storage, manifestExt), presign).toString();
 		} else {
+			
 			PublishJobProgress progress = options.getProgress();
 			if (progress == null) {
-				throw new IllegalArgumentException("Storage is set to: {}, need a valid PublishJobProgress object.");
+				throw new IllegalArgumentException("Storage is 'not' set to default, need a valid PublishJobProgress object.");
 			}
 			archive = progress.getParams().get("archive");
 			manifest = progress.getParams().get("manifest");
@@ -110,7 +111,6 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		}
 		
 		makeRequest(options.getDelivery().getParams().get("url"), getPostBody(archive, manifest));
-		
 		
 		return null;
 	}
@@ -125,7 +125,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			return resp;
 			
 		} catch (IOException e) {
-			throw new RuntimeException("Failed", e);
+			throw new RuntimeException("Failed when trying to execute http request to: " + urlStr, e);
 		}
 	}
 	
