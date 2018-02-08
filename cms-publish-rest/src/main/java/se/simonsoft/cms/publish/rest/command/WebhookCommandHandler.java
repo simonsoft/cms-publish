@@ -129,7 +129,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private HttpResponse makeRequest(PublishJobDelivery delivery, List<NameValuePair> pairs) {
 		HttpPost request = new HttpPost(delivery.getParams().get("url"));
 		
-		for(Entry<String, String> e: delivery.getHeaders().entrySet()) {
+		for (Entry<String, String> e: delivery.getHeaders().entrySet()) {
 			request.addHeader(e.getKey(), e.getValue());
 		}
 		
