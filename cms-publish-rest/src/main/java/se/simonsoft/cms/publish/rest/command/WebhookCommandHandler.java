@@ -89,13 +89,14 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			throw new IllegalArgumentException("Need a valid PublishJobDelivery object with param url.");
 		}
 		
-		logger.debug("WebhookCommandHandler will try to send request to: {}", options.getDelivery().getParams().get("url"));
-		
 		final PublishJobStorage storage = options.getStorage();
 		
 		if (storage == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobStorage object with params archive and manifest.");
 		}
+		
+		logger.debug("WebhookCommandHandler will try to send request to: {}", options.getDelivery().getParams().get("url"));
+		
 		
 		String manifest = null;
 		String archive = null;
