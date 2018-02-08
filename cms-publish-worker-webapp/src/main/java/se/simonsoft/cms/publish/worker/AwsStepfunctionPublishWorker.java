@@ -285,12 +285,13 @@ public class AwsStepfunctionPublishWorker {
 		exportWriter.write();
 		
 		if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
+			String exportPath = ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString();
 			if (options.getProgress() == null) {
 				PublishJobProgress progress = new PublishJobProgress(); 
-				progress.getParams().put("archive", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
+				progress.getParams().put("archive", exportPath);
 				options.setProgress(progress);
 			} else {
-				options.getProgress().getParams().put("archive", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());;
+				options.getProgress().getParams().put("archive", exportPath);
 			}
 		}
 
