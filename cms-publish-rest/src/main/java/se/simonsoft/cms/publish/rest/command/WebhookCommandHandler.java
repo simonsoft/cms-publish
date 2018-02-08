@@ -85,6 +85,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		
+		if (options.getDelivery() == null) {
+			throw new IllegalArgumentException("Need a valid PublishJobDelivery object with param url.");
+		}
+		
 		logger.debug("WebhookCommandHandler will try to send request to: {}", options.getDelivery().getParams().get("url"));
 		
 		final PublishJobStorage storage = options.getStorage();
