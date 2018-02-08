@@ -24,7 +24,7 @@ public class PublishJobOptions extends PublishConfigOptions {
 	private PublishJobManifest manifest;
 	private PublishJobStorage storage;
 	private PublishJobPostProcess postprocess;
-	private PublishJobProgress progress = null;
+	private PublishJobProgress progress = new PublishJobProgress();
 	private PublishJobDelivery delivery;
 
 	
