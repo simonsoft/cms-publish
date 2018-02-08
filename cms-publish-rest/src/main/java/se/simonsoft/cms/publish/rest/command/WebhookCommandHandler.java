@@ -49,7 +49,6 @@ import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 
