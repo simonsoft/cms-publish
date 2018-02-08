@@ -104,9 +104,9 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
 			Boolean presign = new Boolean(options.getDelivery().getParams().get("presign"));
-			String archiveKey = getKey(options.getStorage(), getJobPath(storage, archiveExt));
+			String archiveKey = getS3Key(options.getStorage(), getJobPath(storage, archiveExt));
 			archive = getS3Url(archiveKey, presign).toString();
-			String manifestKey = getKey(options.getStorage(), getJobPath(storage, manifestExt));
+			String manifestKey = getS3Key(options.getStorage(), getJobPath(storage, manifestExt));
 			manifest = getS3Url(manifestKey, presign).toString();
 		} else {
 			
@@ -181,7 +181,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		return new PublishExportJob(storage, extension).getJobPath();
 	}
 
-	private String getKey(PublishJobStorage storage ,String jobPath) {
+	private String getS3Key(PublishJobStorage storage ,String jobPath) {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(storage.getPathversion());
