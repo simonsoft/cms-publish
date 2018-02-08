@@ -179,16 +179,16 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private String getJobPath(PublishJobStorage storage, String extension) {
 		return new PublishExportJob(storage, extension).getJobPath();
 	}
-	
-	   private String getKey(PublishJobStorage storage ,String jobPath) {
 
-	        StringBuilder sb = new StringBuilder();
-	        sb.append(storage.getPathversion());
-	        sb.append("/");
-	        sb.append(storage.getPathcloudid());
-	        sb.append("/");
-	        sb.append(jobPath);
+	private String getKey(PublishJobStorage storage ,String jobPath) {
 
-	        return sb.toString();
-	    }
+		StringBuilder sb = new StringBuilder();
+		sb.append(storage.getPathversion());
+		sb.append("/");
+		sb.append(storage.getPathcloudid());
+		sb.append("/");
+		sb.append(jobPath);
+
+		return sb.toString();
+	}
 }
