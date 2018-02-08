@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -56,13 +55,14 @@ import se.simonsoft.cms.publish.config.export.PublishExportJob;
 public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
-	private final AmazonS3 s3Client;
 	private final Long expiry;
 	private final String bucketName;
+	private final HttpClient client;
+	private final AmazonS3 s3Client;
+
 	private final String archiveExt = "zip";
 	private final String manifestExt = "json";
-	private final HttpClient client;
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(WebhookCommandHandler.class);
 
 	@Inject
@@ -72,7 +72,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 						HttpClient client,
 						Region region,
 						AWSCredentialsProvider credentials) {
-
+		
 		this.expiry = expiryMinutes;
 		this.bucketName = bucketName;
 		this.client = client;
@@ -98,8 +98,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
 			Boolean presign = new Boolean(options.getDelivery().getParams().get("presign"));
-			archive = getS3Url(getParentPath(storage, archiveExt), presign).toString();
-			manifest = getS3Url(getParentPath(storage, manifestExt), presign).toString();
+			String archiveKey = getKey(options.getStorage(), getJobPath(storage, archiveExt));
+			archive = getS3Url(archiveKey, presign).toString();
+			String manifestKey = getKey(options.getStorage(), getJobPath(storage, manifestExt));
+			manifest = getS3Url(manifestKey, presign).toString();
 		} else {
 			
 			PublishJobProgress progress = options.getProgress();
@@ -170,7 +172,19 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		return new Date(t + millis);
 	}
 
-	private String getParentPath(PublishJobStorage storage, String extension) {
+	private String getJobPath(PublishJobStorage storage, String extension) {
 		return new PublishExportJob(storage, extension).getJobPath();
 	}
+	
+	   private String getKey(PublishJobStorage storage ,String jobPath) {
+
+	        StringBuilder sb = new StringBuilder();
+	        sb.append(storage.getPathversion());
+	        sb.append("/");
+	        sb.append(storage.getPathcloudid());
+	        sb.append("/");
+	        sb.append(jobPath);
+
+	        return sb.toString();
+	    }
 }
