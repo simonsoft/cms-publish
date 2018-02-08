@@ -128,8 +128,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private HttpResponse makeRequest(PublishJobDelivery delivery, List<NameValuePair> pairs) {
 		HttpPost request = new HttpPost(delivery.getParams().get("url"));
 		
-		Map<String, String> headers = delivery.getHeaders();
-		for(Entry<String, String> e: headers.entrySet()) {
+		for(Entry<String, String> e: delivery.getHeaders().entrySet()) {
 			request.addHeader(e.getKey(), e.getValue());
 		}
 		
