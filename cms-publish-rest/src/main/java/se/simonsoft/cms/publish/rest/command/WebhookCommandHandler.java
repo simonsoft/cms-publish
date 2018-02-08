@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.rest.command;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -134,7 +135,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		}
 		
 		try {
-			request.setEntity(new UrlEncodedFormEntity(pairs));
+			request.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
 			logger.debug("Making request...");
 			HttpResponse resp = client.execute(request);
 			return resp;
