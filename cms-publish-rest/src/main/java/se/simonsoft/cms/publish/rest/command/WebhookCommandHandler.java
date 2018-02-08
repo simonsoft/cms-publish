@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +45,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 
 import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
@@ -122,8 +122,16 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		}
 		
 		
-		makeRequest(options.getDelivery(), getPostBody(archive, manifest));
 		
+		HttpResponse response = makeRequest(options.getDelivery(), getPostBody(archive, manifest));
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode >= 200 && statusCode <= 299) {
+			logger.debug("Requested excuted with response code: {}", statusCode);
+		} else if (statusCode >= 300 && statusCode <= 399){
+			logger.debug("Server responded with redirect ({}): {}", statusCode, response.getHeaders("Location"));
+		} else {
+			throw new CommandRuntimeException("WebhookFailed");
+		}
 		return null;
 	}
 	
