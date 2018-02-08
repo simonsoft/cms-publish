@@ -33,6 +33,9 @@
       
       "delivery": {
           "type": "webhook",
+          "headers": {
+          	"headername": "headerValue"
+          },
           "params": {
               "url": "https://target.example.com/something?secret=super",
               "presign": true
