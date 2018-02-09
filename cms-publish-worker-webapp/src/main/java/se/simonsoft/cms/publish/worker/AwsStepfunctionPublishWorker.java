@@ -164,8 +164,10 @@ public class AwsStepfunctionPublishWorker {
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
 								waitForJob(taskResult, publishTicket);
 								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
+								
 								String exportPath = exportCompletedJob(publishTicket, options);
-								progress = getJobProgress(publishTicket, true);
+								progress.getParams().put("ticket", publishTicket.toString());
+								progress.getParams().put("completed", "true");
 								progress.getParams().put("pathResult", exportPath);
 								sendTaskResult(taskResult, getProgressAsJson(progress));
 							}
@@ -205,8 +207,10 @@ public class AwsStepfunctionPublishWorker {
 		logger.debug("Job has a ticket, checking if it is ready for export.");
 		
 		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
-		final boolean jobCompleted = isJobCompleted(publishTicket);
-		final PublishJobProgress progress = getJobProgress(publishTicket, jobCompleted);
+		final Boolean jobCompleted = isJobCompleted(publishTicket);
+		PublishJobProgress progress = options.getProgress();
+		progress.getParams().put("ticket", publishTicket.toString());
+		progress.getParams().put("completed", jobCompleted.toString());
 		final String progressAsJson = getProgressAsJson(progress);
 		
 		String exportPath = null;
@@ -283,6 +287,11 @@ public class AwsStepfunctionPublishWorker {
 		exportWriter.prepare(job);
 		logger.debug("Writer is prepared. Writing job.");
 		exportWriter.write();
+		
+		if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
+			String exportPath = ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString();
+			options.getProgress().getParams().put("archive", exportPath);
+		}
 
 		logger.debug("Job has been exported.");
 		updateStatusReport("Exported PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
@@ -355,13 +364,6 @@ public class AwsStepfunctionPublishWorker {
 			failReq.setCause(e.getCause().getMessage());
 		}
 		client.sendTaskFailure(failReq);
-	}
-	
-	private PublishJobProgress getJobProgress(PublishTicket ticket, boolean isCompleted) {
-		PublishJobProgress progress = new PublishJobProgress();
-		progress.getParams().put("ticket", ticket.toString());
-		progress.getParams().put("completed", String.valueOf(isCompleted));
-		return progress;
 	}
 	
 	private String getProgressAsJson(PublishJobProgress progress) {

@@ -28,6 +28,7 @@ public class PublishJobDelivery extends PublishConfigDelivery {
 		if (config != null) {
 			setParams(config.getParams());
 			setType(config.getType());
+			setHeaders(config.getHeaders());
 		}
 	}
 
