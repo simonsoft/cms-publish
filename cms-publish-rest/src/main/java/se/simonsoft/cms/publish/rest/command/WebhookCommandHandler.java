@@ -130,7 +130,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			logger.debug("Got a response with status code: {}", statusCode);
 		} else if (statusCode >= 300 && statusCode <= 399){
 			logger.warn("Server responded with redirect ({}): {}", statusCode, response.getHeaders("Location"));
-			throw new CommandRuntimeException("WebhookRedirect");
+			throw new CommandRuntimeException("WebhookFailed");
 		} else {
 			throw new CommandRuntimeException("WebhookFailed");
 		}
