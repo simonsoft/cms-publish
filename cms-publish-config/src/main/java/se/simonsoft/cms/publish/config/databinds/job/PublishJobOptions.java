@@ -42,7 +42,6 @@ public class PublishJobOptions extends PublishConfigOptions {
 		this.setManifest(new PublishJobManifest(config.getManifest()));
 		this.storage = new PublishJobStorage(config.getStorage());
 		this.postprocess = new PublishJobPostProcess(config.getPostprocess());
-		// progress is allowed to be null.
 		this.delivery = new PublishJobDelivery(config.getDelivery());
 	}
 	
