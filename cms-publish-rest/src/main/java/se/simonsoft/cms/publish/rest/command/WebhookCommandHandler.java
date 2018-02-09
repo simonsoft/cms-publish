@@ -117,7 +117,14 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			}
 		}
 		
-		HttpResponse response = makeRequest(options.getDelivery(), getPostBody(archive, manifest));
+		HttpResponse response;
+		try {
+			response = makeRequest(options.getDelivery(), getPostBody(archive, manifest));
+		} catch (Exception e) {
+			throw new CommandRuntimeException("WebhookFailed", e);
+		}
+		
+		
 		int statusCode = response.getStatusLine().getStatusCode();
 		if (statusCode >= 200 && statusCode <= 299) {
 			logger.debug("Got a response with status code: {}", statusCode);
