@@ -70,6 +70,11 @@ public class PublishJobStorageFactory {
 	}
 	
 	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
+		
+		if (itemId.getPegRev() == null) {
+			throw new IllegalArgumentException("ItemId must have revision.");
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		
 		if (profiling == null) {
