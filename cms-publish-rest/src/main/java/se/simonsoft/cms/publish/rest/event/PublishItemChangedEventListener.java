@@ -15,10 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest.event;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,13 +26,13 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectReader;
+
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
-import se.simonsoft.cms.item.config.CmsConfigOption;
-import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
-import se.simonsoft.cms.item.info.CmsRepositoryLookup;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
@@ -51,10 +48,6 @@ import se.simonsoft.cms.publish.rest.PublishConfiguration;
 import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
-import se.simonsoft.cms.release.ReleaseProperties;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -123,7 +116,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		logger.debug("Starting executions for {} number of PublishJobs", jobs.size());
 		for (PublishJob job: jobs) {
-			workflowExecutor.startExecution(job);
+			try {
+				workflowExecutor.startExecution(job);
+			} catch (WorkflowExecutionException e) {
+				logger.error("Failed to start execution for itemId '{}': {}", job.getItemId(), e.getMessage());
+			}
 		}
 	}
 	
