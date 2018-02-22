@@ -53,9 +53,7 @@ import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
-import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -138,8 +136,6 @@ public class PublishResource {
 				workflowExecutions.add(executionsStatus.getWorkflowExecutions(i.getId(), false));
 			}
 		}
-		
-		logger.debug("Unfinished Executions: {}", workflowExecutions.size());
 		
 		VelocityContext context = new VelocityContext();
 		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
