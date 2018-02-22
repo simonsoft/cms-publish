@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
+import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
@@ -120,6 +121,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 				workflowExecutor.startExecution(job);
 			} catch (WorkflowExecutionException e) {
 				logger.error("Failed to start execution for itemId '{}': {}", job.getItemId(), e.getMessage());
+				throw new RuntimeException("Publish execution failed: " + e.getMessage(), e);
 			}
 		}
 	}
