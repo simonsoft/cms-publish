@@ -109,7 +109,7 @@ $reposHeadTags
 				#foreach ($executionSet in $workflowExecutions)
 					#foreach ($execution in $executionSet)
 						<p class="workflowStatusWarning $execution.getInput().getConfigname()">
-						 Workflow for config: $execution.getInput().getConfigname() has not finished for item $execution.getInput().getItemId().getRelPath()
+						 Workflow for config: $execution.getInput().getConfigname() has not finished for item $execution.getInput().getItemId()
 						</p>
 					#end
 				#end
@@ -154,13 +154,11 @@ $(document).ready(function () {
     $('input[type=radio]').first().prop('checked', true);
     
     $('input[type=radio]:checked', function() {
-    	console.log('display warning for init publication.', this);
     	$('.' + $('input[type=radio]:checked').val()).show();
     });
     
     $('input[type=radio]').change(function() {
     	$('.workflowStatusWarning').hide();
-  		console.log('changed displaying: ' + this.value);
  		$('.' + this.value).show();
     });
     
