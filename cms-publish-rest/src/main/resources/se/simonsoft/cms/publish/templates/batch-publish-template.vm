@@ -27,6 +27,11 @@ $reposHeadTags
 		margin-top: 5px;
 	}
 	
+	.workflowStatusWarning {
+		color:red;
+		display: none;
+	}
+	
 
 </style>
 
@@ -83,7 +88,8 @@ $reposHeadTags
 						<input id="$mapEntry.getKey()" 
 							name="publication" 
 							type="radio" 
-							value="$mapEntry.getKey()">$mapEntry.getKey()
+							value="$mapEntry.getKey()"
+							class="publicationBtn">$mapEntry.getKey()
 						</input>
 						#if ($velocityCount > 1)
 							<label></label>
@@ -100,6 +106,13 @@ $reposHeadTags
 			<div>
 				<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
 				<span id="warning" style="color:red; display:none;">At least one document area must be selected.</span>
+				#foreach ($executionSet in $workflowExecutions)
+					#foreach ($execution in $executionSet)
+						<p class="workflowStatusWarning $execution.getInput().getConfigname()">
+						 Workflow for config: $execution.getInput().getConfigname() has not finished for item $execution.getInput().getItemId().getRelPath()
+						</p>
+					#end
+				#end
 			</div>
 		</p>
 	</fieldset>
@@ -139,6 +152,17 @@ $(document).ready(function () {
     });
     
     $('input[type=radio]').first().prop('checked', true);
+    
+    $('input[type=radio]:checked', function() {
+    	console.log('display warning for init publication.', this);
+    	$('.' + $('input[type=radio]:checked').val()).show();
+    });
+    
+    $('input[type=radio]').change(function() {
+    	$('.workflowStatusWarning').hide();
+  		console.log('changed displaying: ' + this.value);
+ 		$('.' + this.value).show();
+    });
     
 });
 

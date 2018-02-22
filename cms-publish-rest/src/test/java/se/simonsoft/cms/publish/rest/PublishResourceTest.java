@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -36,8 +37,11 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.workflow.WorkflowExecution;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -53,6 +57,7 @@ public class PublishResourceTest {
 	@Mock CmsItem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
+	@Mock WorkflowExecutionStatus executionStatusMock;
 	
 	@Before
 	public void setUp() {
@@ -72,6 +77,9 @@ public class PublishResourceTest {
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
+		HashSet<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
+		executions.add(new WorkflowExecution("1", "RUNNING", new Date(), null, new PublishJob()));
+		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions);
 		
 		//Config setup
 		PublishConfig config = new PublishConfig();
@@ -91,6 +99,7 @@ public class PublishResourceTest {
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 		
 		PublishResource resource = new PublishResource("localhost",
+														executionStatusMock,
 														lookupMapMock,
 														publishConfigurationMock,
 														packageZipMock,
@@ -107,6 +116,7 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
 		assertTrue(releaseForm.contains("print"));
 		assertTrue(releaseForm.contains("Active"));
+		assertTrue(releaseForm.contains("is not finished"));
 	}
 	
 	

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -50,7 +51,11 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.workflow.WorkflowExecution;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -61,6 +66,7 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 @Path("/publish4")
 public class PublishResource {
 	
+	private final WorkflowExecutionStatus executionsStatus;
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
@@ -73,6 +79,7 @@ public class PublishResource {
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
+			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZip repackageService,
@@ -83,6 +90,7 @@ public class PublishResource {
 			) {
 		
 		this.hostname = hostname;
+		this.executionsStatus = executionStatus;
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
@@ -109,6 +117,8 @@ public class PublishResource {
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
+		
+		
 		logger.debug("Requesting profilingSet...");
 		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
 		
@@ -118,7 +128,18 @@ public class PublishResource {
 			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
 		}
 		
+		
+		final List<Set<WorkflowExecution>> workflowExecutions = new ArrayList<>();
+		workflowExecutions.add(executionsStatus.getWorkflowExecutions(itemId, true));
+		
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+		for (Entry<String, PublishConfig> entry: configuration.entrySet()) {
+			for (CmsItem i: getTranslationItems(itemId, entry.getKey())) {
+				workflowExecutions.add(executionsStatus.getWorkflowExecutions(i.getId(), false));
+			}
+		}
+		
+		logger.debug("Unfinished Executions: {}", workflowExecutions.size());
 		
 		VelocityContext context = new VelocityContext();
 		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
@@ -126,6 +147,7 @@ public class PublishResource {
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
 		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
+		context.put("workflowExecutions", workflowExecutions);
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
