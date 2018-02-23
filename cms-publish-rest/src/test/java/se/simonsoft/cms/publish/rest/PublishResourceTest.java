@@ -98,21 +98,33 @@ public class PublishResourceTest {
 		
 		when(translationTrackingMock.getTranslations(any(CmsItemId.class))).thenReturn(translations);
 		
+		
 		HashSet<WorkflowExecution> executions1 = new HashSet<WorkflowExecution>();
+		
 		PublishJob publishJob1 = new PublishJob();
 		publishJob1.setConfigname("pdf");
+		executions1.add(new WorkflowExecution("1", "RUNNING", new Date(), null, publishJob1));
+		
 		PublishJob publishJob2 = new PublishJob();
 		publishJob2.setConfigname("html");
-		executions1.add(new WorkflowExecution("1", "RUNNING", new Date(), null, publishJob1));
 		executions1.add(new WorkflowExecution("2", "RUNNING", new Date(), null, publishJob2));
 		
+		
 		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
+		
 		PublishJob publishJob3 = new PublishJob();
 		publishJob3.setConfigname("html");
+		executions2.add(new WorkflowExecution("3", "RUNNING", new Date(), null, publishJob3));
+		
 		PublishJob publishJob4 = new PublishJob();
 		publishJob4.setConfigname("pdf");
-		executions2.add(new WorkflowExecution("3", "RUNNING", new Date(), null, publishJob3));
 		executions2.add(new WorkflowExecution("4", "FAILED", new Date(), null, publishJob4));
+		
+		PublishJob publishJob5 = new PublishJob();
+		publishJob5.setConfigname("pdf");
+		executions2.add(new WorkflowExecution("5", "FAILED", new Date(), null, publishJob5));
+		
+		
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
 		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
 		
@@ -144,8 +156,6 @@ public class PublishResourceTest {
 														getVelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
-		
-		System.out.println(releaseForm);
 		
 		assertTrue(releaseForm.contains("http://demo.simonsoftcms.se/svn/demo1"));
 		assertTrue(releaseForm.contains("Sa s.xml"));
