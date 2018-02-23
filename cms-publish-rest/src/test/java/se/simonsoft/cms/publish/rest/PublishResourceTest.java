@@ -17,11 +17,14 @@ package se.simonsoft.cms.publish.rest;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -34,6 +37,7 @@ import org.mockito.MockitoAnnotations;
 
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
@@ -45,6 +49,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
@@ -58,16 +63,17 @@ public class PublishResourceTest {
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
 	@Mock WorkflowExecutionStatus executionStatusMock;
+	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
+	@Mock TranslationTracking translationTrackingMock;
 	
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void publishResourceTest() throws Exception {
-		
-		Map<CmsRepository, TranslationTracking> ttMap = new HashMap<CmsRepository, TranslationTracking>();
 		
 		//Mock item set up
 		RepoRevision revision = new RepoRevision(203, new Date());
@@ -77,9 +83,38 @@ public class PublishResourceTest {
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
-		HashSet<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
-		executions.add(new WorkflowExecution("1", "RUNNING", new Date(), null, new PublishJob()));
-		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions);
+		when(trackingMapMock.get(any(CmsRepository.class))).thenReturn(translationTrackingMock);
+		
+		List<CmsItemTranslation> translations = new ArrayList<CmsItemTranslation>();
+		CmsItemTranslation translationMock1 = mock(CmsItemTranslation.class);
+		translations.add(translationMock1);
+		CmsItemId translationItemId = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml");
+		
+		CmsItem itemTranslationMock = mock(CmsItem.class);
+		when(itemTranslationMock.getId()).thenReturn(translationItemId);
+		
+		when(translationMock1.getTranslation()).thenReturn(translationItemId);
+		when(lookupReportingMock.getItem(translationItemId)).thenReturn(itemTranslationMock);
+		
+		when(translationTrackingMock.getTranslations(any(CmsItemId.class))).thenReturn(translations);
+		
+		HashSet<WorkflowExecution> executions1 = new HashSet<WorkflowExecution>();
+		PublishJob publishJob1 = new PublishJob();
+		publishJob1.setConfigname("pdf");
+		PublishJob publishJob2 = new PublishJob();
+		publishJob2.setConfigname("html");
+		executions1.add(new WorkflowExecution("1", "RUNNING", new Date(), null, publishJob1));
+		executions1.add(new WorkflowExecution("2", "RUNNING", new Date(), null, publishJob2));
+		
+		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
+		PublishJob publishJob3 = new PublishJob();
+		publishJob3.setConfigname("html");
+		PublishJob publishJob4 = new PublishJob();
+		publishJob4.setConfigname("pdf");
+		executions2.add(new WorkflowExecution("3", "RUNNING", new Date(), null, publishJob3));
+		executions2.add(new WorkflowExecution("4", "FAILED", new Date(), null, publishJob4));
+		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
+		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
 		
 		//Config setup
 		PublishConfig config = new PublishConfig();
@@ -103,12 +138,14 @@ public class PublishResourceTest {
 														lookupMapMock,
 														publishConfigurationMock,
 														packageZipMock,
-														ttMap,
+														trackingMapMock,
 														htmlHelperMock,
 														storageFactoryMock,
 														getVelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
+		
+		System.out.println(releaseForm);
 		
 		assertTrue(releaseForm.contains("http://demo.simonsoftcms.se/svn/demo1"));
 		assertTrue(releaseForm.contains("Sa s.xml"));
@@ -116,7 +153,10 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
 		assertTrue(releaseForm.contains("print"));
 		assertTrue(releaseForm.contains("Active"));
-		assertTrue(releaseForm.contains("is not finished"));
+		assertTrue(releaseForm.contains("Workflow for release with config: pdf has RUNNING executions."));
+		assertTrue(releaseForm.contains("Workflow for release with config: html has RUNNING executions."));
+		assertTrue(releaseForm.contains("Workflow for translations with config: html has RUNNING executions."));
+		assertTrue(releaseForm.contains("Workflow for translations with config: pdf has FAILED executions."));
 	}
 	
 	

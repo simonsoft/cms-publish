@@ -53,7 +53,9 @@ import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -127,15 +129,43 @@ public class PublishResource {
 		}
 		
 		
-		final List<Set<WorkflowExecution>> workflowExecutions = new ArrayList<>();
-		workflowExecutions.add(executionsStatus.getWorkflowExecutions(itemId, true));
+		Set<WorkflowExecution> releaseStatus = executionsStatus.getWorkflowExecutions(itemId, true);
+		logger.debug("releaseStatus size: {}", releaseStatus.size());
+		Map<String, Set<String>> configStatusRelease = new HashMap<String, Set<String>>();
+		for (WorkflowExecution we: releaseStatus) {
+			PublishJob input = (PublishJob) we.getInput();
+			Set<String> set = configStatusRelease.get(we.getStatus());
+			if (set == null) {
+				set = new HashSet<String>();
+			}
+			
+			set.add(input.getConfigname());
+			configStatusRelease.put(we.getStatus(), set);
+		}
+		
+		
+		Set<WorkflowExecution> translationStatuses = getExecutionStatusForTranslations(itemId);
+		logger.debug("translationsStatus size: {}", translationStatuses.size());
+		Map<String, Set<String>> configStatusTrans = new HashMap<String, Set<String>>();
+		for (WorkflowExecution we: translationStatuses) {
+			PublishJob input = (PublishJob) we.getInput();
+			logger.debug("we.getStatus: {}", we.getStatus());
+			Set<String> set = configStatusTrans.get(we.getStatus());
+			if (set == null) {
+				set = new HashSet<String>();
+			}
+			set.add(input.getConfigname());
+			for (String s: set) {
+				logger.debug("translation status: {}", s);
+			}
+			configStatusTrans.put(we.getStatus(), set);
+		}
+		
+		for (String k: configStatusTrans.keySet()) {
+			logger.debug("key: {}", k);
+		}
 		
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
-		for (Entry<String, PublishConfig> entry: configuration.entrySet()) {
-			for (CmsItem i: getTranslationItems(itemId, entry.getKey())) {
-				workflowExecutions.add(executionsStatus.getWorkflowExecutions(i.getId(), false));
-			}
-		}
 		
 		VelocityContext context = new VelocityContext();
 		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
@@ -143,8 +173,9 @@ public class PublishResource {
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
 		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
-		context.put("workflowExecutions", workflowExecutions);
-
+		context.put("translationExecutions", configStatusTrans);
+		context.put("releaseExecutions", configStatusRelease);
+		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
 
@@ -231,6 +262,17 @@ public class PublishResource {
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
+	}
+	
+	private Set<WorkflowExecution> getExecutionStatusForTranslations(CmsItemId release) {
+		
+		List<CmsItem> translationItems = getTranslationItems(release, null);
+		Set<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
+		for (CmsItem i: translationItems) {
+			Set<WorkflowExecution> workflowExecutions = executionsStatus.getWorkflowExecutions(i.getId(), false);
+			executions.addAll(workflowExecutions);
+		}
+		return executions;
 	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
