@@ -141,7 +141,7 @@ $reposHeadTags
 $(document).ready(function () {
 
 
-	var checkedSelector = 'input[type=checkbox]:checked';
+	
 	//Will prevent submits by returning false if no boxes is checked.
     $('#submit').click(function() {
       if(!$(checkedSelector).length) {
@@ -151,11 +151,7 @@ $(document).ready(function () {
     });
     
     $('input[type=checkbox]').click(function() {
-    	if (!$(checkedSelector).length) {
-    		$('#warning').show();
-    	} else {
-    		$('#warning').hide();
-    	}
+    	
     });
     
     $('input[type=radio]').first().prop('checked', true);
@@ -165,24 +161,25 @@ $(document).ready(function () {
     });
     
     var displayWarnings =function() {
-    	console.log("change registered hiding all warnings");
+    	
+    	if (!$('input[type=checkbox]:checked').length) {
+    		$('#warning').show();
+    	} else {
+    		$('#warning').hide();
+    	}
+    	
     	$('.workflowStatusWarning').hide();
     	var config = $('input[type=radio]:checked').val()
-    	console.log('cofig: ' + config)
     	var selector = '.workflowStatusWarning';
     	
     	if ($('#includerelease:checked').length > 0) {
-    		console.log('selector: ' + selector + '.releaseStatus' + '.' + config);
     		$(selector + '.releaseStatus' + '.' + config).show();
     	}
     	
     	if ($('#includetranslation:checked').length > 0) {
-    		console.log('selector: ' + selector + '.translationStatus' + '.' + config);
     		$(selector + '.translationStatus' + '.' + config).show();
     	}
-   		console.log('displaying selector: ' + selector);
    		
- 		
     };
     
     $('input[type=radio]').click(function() {
