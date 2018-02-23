@@ -117,8 +117,6 @@ public class PublishResource {
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
-		
-		
 		logger.debug("Requesting profilingSet...");
 		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
 		
@@ -126,43 +124,6 @@ public class PublishResource {
 		if (itemProfilingSet != null) {
 			itemProfilings = itemProfilingSet.getMap();
 			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
-		}
-		
-		
-		Set<WorkflowExecution> releaseStatus = executionsStatus.getWorkflowExecutions(itemId, true);
-		logger.debug("releaseStatus size: {}", releaseStatus.size());
-		Map<String, Set<String>> configStatusRelease = new HashMap<String, Set<String>>();
-		for (WorkflowExecution we: releaseStatus) {
-			PublishJob input = (PublishJob) we.getInput();
-			Set<String> set = configStatusRelease.get(we.getStatus());
-			if (set == null) {
-				set = new HashSet<String>();
-			}
-			
-			set.add(input.getConfigname());
-			configStatusRelease.put(we.getStatus(), set);
-		}
-		
-		
-		Set<WorkflowExecution> translationStatuses = getExecutionStatusForTranslations(itemId);
-		logger.debug("translationsStatus size: {}", translationStatuses.size());
-		Map<String, Set<String>> configStatusTrans = new HashMap<String, Set<String>>();
-		for (WorkflowExecution we: translationStatuses) {
-			PublishJob input = (PublishJob) we.getInput();
-			logger.debug("we.getStatus: {}", we.getStatus());
-			Set<String> set = configStatusTrans.get(we.getStatus());
-			if (set == null) {
-				set = new HashSet<String>();
-			}
-			set.add(input.getConfigname());
-			for (String s: set) {
-				logger.debug("translation status: {}", s);
-			}
-			configStatusTrans.put(we.getStatus(), set);
-		}
-		
-		for (String k: configStatusTrans.keySet()) {
-			logger.debug("key: {}", k);
 		}
 		
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
@@ -173,8 +134,14 @@ public class PublishResource {
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
 		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
-		context.put("translationExecutions", configStatusTrans);
+		
+		Set<WorkflowExecution> releaseStatus = executionsStatus.getWorkflowExecutions(itemId, true);
+		Map<String, Set<String>> configStatusRelease = getFilteredStatuses(releaseStatus);
 		context.put("releaseExecutions", configStatusRelease);
+		
+		Set<WorkflowExecution> translationStatuses = getExecutionStatusForTranslations(itemId);
+		Map<String, Set<String>> configStatusTrans = getFilteredStatuses(translationStatuses);
+		context.put("translationExecutions", configStatusTrans);
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -262,6 +229,23 @@ public class PublishResource {
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
+	}
+	
+	private Map<String, Set<String>> getFilteredStatuses(Set<WorkflowExecution> executions) {
+		
+		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
+		
+		for (WorkflowExecution we: executions) {
+			PublishJob input = (PublishJob) we.getInput();
+			Set<String> set = configStatuses.get(we.getStatus());
+			if (set == null) {
+				set = new HashSet<String>();
+			}
+			set.add(input.getConfigname());
+			configStatuses.put(we.getStatus(), set);
+		}
+		
+		return configStatuses;
 	}
 	
 	private Set<WorkflowExecution> getExecutionStatusForTranslations(CmsItemId release) {
