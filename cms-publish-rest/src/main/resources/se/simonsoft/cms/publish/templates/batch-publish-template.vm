@@ -183,11 +183,9 @@ $(document).ready(function () {
     };
     
     $('input[type=radio]').click(function() {
-    	console.log("radio btn change");
     	displayWarnings();
     });
     $('input[type=checkbox]').click(function() {
-    	console.log("checkbox change");
     	displayWarnings();
     });
     
