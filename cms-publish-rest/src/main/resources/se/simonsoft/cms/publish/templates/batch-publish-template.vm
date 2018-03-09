@@ -109,14 +109,14 @@ $reposHeadTags
 				#foreach ($status in $releaseExecutions.keySet())
 					#foreach ($config in $releaseExecutions.get($status))
 					<p class="workflowStatusWarning releaseStatus $config" >
-						Workflow for release with config: $config has $status executions.
+						Publish of the Release with config $config is $status.toLowerCase().
 					</p>
 					#end
 				#end
 				#foreach ($status in $translationExecutions.keySet())
 					#foreach ($config in $translationExecutions.get($status))
 					<p class="workflowStatusWarning translationStatus $config" >
-						Workflow for translations with config: $config has $status executions.
+						Publish of the Translations with config $config is $status.toLowerCase().
 					</p>
 					#end
 				#end

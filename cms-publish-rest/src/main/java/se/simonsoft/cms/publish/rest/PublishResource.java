@@ -133,12 +133,14 @@ public class PublishResource {
 		context.put("configuration", configuration);
 		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
 		
-		Set<WorkflowExecution> releaseStatus = executionsStatus.getWorkflowExecutions(itemId, true);
-		Map<String, Set<String>> configStatusRelease = getFilteredStatuses(releaseStatus);
+		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
+		//Key: Execution status, Value set<configNames> 
+		Map<String, Set<String>> configStatusRelease = getFilteredConfigs(releaseExecutions);
 		context.put("releaseExecutions", configStatusRelease);
 		
-		Set<WorkflowExecution> translationStatuses = getExecutionStatusForTranslations(itemId);
-		Map<String, Set<String>> configStatusTrans = getFilteredStatuses(translationStatuses);
+		Set<WorkflowExecution> translationExecutions = getExecutionStatusForTranslations(itemId);
+		//Key: Execution status, Value set<configNames> 
+		Map<String, Set<String>> configStatusTrans = getFilteredConfigs(translationExecutions);
 		context.put("translationExecutions", configStatusTrans);
 		
 		StringWriter wr = new StringWriter();
@@ -229,8 +231,8 @@ public class PublishResource {
 				.build();
 	}
 	
-	private Map<String, Set<String>> getFilteredStatuses(Set<WorkflowExecution> executions) {
-		
+	private Map<String, Set<String>> getFilteredConfigs(Set<WorkflowExecution> executions) {
+		// Key: Execution status, Value set<configNames> 
 		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
 		
 		for (WorkflowExecution we: executions) {
