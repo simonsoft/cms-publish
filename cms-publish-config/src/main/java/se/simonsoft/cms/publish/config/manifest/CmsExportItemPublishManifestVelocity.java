@@ -51,11 +51,11 @@ public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
 	public void prepare() {
 		
         if (ready) {
-            throw new IllegalStateException("Export item:" + "Publish manifest velocity" + " is already prepared");
+            throw new IllegalStateException("Export item:" + " Publish manifest velocity" + " is already prepared");
         }
         
         if (template == null) {
-        	throw new IllegalStateException("Export item:" + "Publish manifest velocity" + " requires a valid velocity template");
+        	throw new IllegalStateException("Export item:" + " Publish manifest velocity" + " requires a valid velocity template");
         }
 
 		this.ready = true;
