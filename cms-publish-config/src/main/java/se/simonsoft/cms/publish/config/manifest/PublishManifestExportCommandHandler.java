@@ -78,7 +78,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		CmsExportItem exportItem;
 		String ext; //TODO: To support more formats then json and xml, we need a way to determine the extension of the manifest.
 		if (manifest.getType().equalsIgnoreCase("velocity")) {
-			logger.debug("Manifest will be serilized with velocity");
+			logger.debug("Manifest will be serialized with velocity");
 			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
 			ext = extensionManifestXml;
 		} else {
