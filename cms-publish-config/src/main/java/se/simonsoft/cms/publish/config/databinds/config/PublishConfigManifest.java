@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class PublishConfigManifest {
 	
 	private String type = null;
+	private String template = null;
 	protected LinkedHashMap<String, String> customTemplates = new LinkedHashMap<String, String>();
 	protected LinkedHashMap<String, String> metaTemplates = new LinkedHashMap<String, String>();
 	
@@ -49,6 +50,14 @@ public class PublishConfigManifest {
 
 	public void setMetaTemplates(LinkedHashMap<String, String> metaTemplates) {
 		this.metaTemplates = metaTemplates;
+	}
+
+	public String getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(String template) {
+		this.template = template;
 	}
 	
 }
