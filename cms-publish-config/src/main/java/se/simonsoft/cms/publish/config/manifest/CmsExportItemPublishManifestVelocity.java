@@ -76,7 +76,7 @@ public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
 		
 		PublishConfigTemplateString t = new PublishConfigTemplateString();
 		
-		t.withEntry("jobs", jobManifest.getJob());
+		t.withEntry("job", jobManifest.getJob());
 		t.withEntry("document", jobManifest.getDocument());
 		t.withEntry("master", jobManifest.getMaster());
 		t.withEntry("custom", jobManifest.getCustom());

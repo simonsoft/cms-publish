@@ -17,7 +17,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
 	<job>
-		#foreach ($jobEntry in $jobs.entrySet())
+		#foreach ($jobEntry in $job.entrySet())
 			<$jobEntry.key>$esc.xml($jobEntry.value)</$jobEntry.key>
 		#end
 	</job>
