@@ -25,10 +25,10 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 
 
 /**
- * ExportItem that will use Velocity to parse template from config.
- * Velocity engine is configured with XML escape tool. 
+ * ExportItem that will use Velocity template from config to serialize the manifest.
+ * Velocity engine is configured with XML escape tool.
  * The Velocity engine is configured to strict evaluation, requires null checks on maps that could be null.
- * Will not accept null values.
+ * Will not accept that a key is mapped to a null value, if there is a chance for this it has to be handled with null checks in template.
  * @author jandersson
  */
 public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
