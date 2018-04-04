@@ -58,7 +58,7 @@ public class CmsExportItemPublishManifestVelocityTest {
 		
 		assertFalse(invalidContent.contains(">"));
 		assertFalse(invalidContent.contains("<"));
-		assertTrue("& should be escapde to amp." , invalidContent.contains("&amp;"));
+		assertTrue("& should be escaped to amp." , invalidContent.contains("&amp;"));
 		assertFalse("Null maps should not exists", content.contains("<master>"));
 	}
 	
