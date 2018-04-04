@@ -26,6 +26,7 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
+import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
@@ -43,7 +44,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
-	private final String extensionManifest = "json";
+	private final String extensionManifestJson = "json";
+	private final String extensionManifestXml = "xml";
 	private final String extensionPublishResult = "zip";
 
 
@@ -54,7 +56,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			) {
 		
 		this.exportProvider = exportProvider;
-		this.writerPublishManifest = objectWriter;	
+		this.writerPublishManifest = objectWriter;
+		//TODO: Should we inject it or should the exportItem instantiate own version?
 	}
 
 	@Override
@@ -73,9 +76,18 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		logger.debug("Preparing publishJob manifest for export to S3: {}", manifest); // TODO: Remove?
 
-		PublishExportJob job = new PublishExportJob(options.getStorage(), this.extensionManifest);
-		CmsExportItemPublishManifest exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
+		CmsExportItem exportItem;
+		String ext; //TODO: To support more formats then json and xml, we need a way to determine the extension of the manifest.
+		if (manifest.getType().equalsIgnoreCase("velocity")) {
+			logger.debug("Manifest will be serilized with velocity");
+			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
+			ext = extensionManifestXml;
+		} else {
+			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
+			ext = extensionManifestJson;
+		}
 		
+		PublishExportJob job = new PublishExportJob(options.getStorage(), ext);
 		job.addExportItem(exportItem);
 		job.prepare();
 
