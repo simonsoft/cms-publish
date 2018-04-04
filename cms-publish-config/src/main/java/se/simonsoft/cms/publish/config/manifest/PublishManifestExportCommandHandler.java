@@ -57,7 +57,6 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		this.exportProvider = exportProvider;
 		this.writerPublishManifest = objectWriter;
-		//TODO: Should we inject it or should the exportItem instantiate own version?
 	}
 
 	@Override
