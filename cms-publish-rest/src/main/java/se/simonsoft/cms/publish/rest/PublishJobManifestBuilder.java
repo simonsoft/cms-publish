@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
@@ -33,6 +36,9 @@ public class PublishJobManifestBuilder {
 	private final PublishConfigTemplateString templateEvaluator;
 	
 	private static final String DEFAULT_TYPE = "default";
+	
+	private static final Logger logger = LoggerFactory.getLogger(PublishJobManifestBuilder.class);
+	
 	
 	public PublishJobManifestBuilder(PublishConfigTemplateString templateEvaluator) {
 	
@@ -95,7 +101,12 @@ public class PublishJobManifestBuilder {
 		
 		result.put("status", item.getStatus());
 		if (item.isRelease()) {
-			result.put("lang", item.getReleaseLocale());
+			String releaseLocale = item.getReleaseLocale(); // Available on Release since CMS 4.3 only.
+			if (releaseLocale == null) {
+				logger.warn("Fallback to abx:lang property for item: {}", item.getId());
+				releaseLocale = item.getProperties().getString("abx:lang");
+			}
+			result.put("lang", releaseLocale);
 		} else if (item.isTranslation()) {
 			result.put("lang", item.getTranslationLocale());
 		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
@@ -113,7 +124,7 @@ public class PublishJobManifestBuilder {
 		String docno = templateEvaluator.evaluate(docnoTemplate);
 		result.put("docno", docno);
 		result.put("versionrelease", item.getReleaseLabel());
-		result.put("lang", item.getReleaseLocale());
+		result.put("lang", item.getReleaseLocale()); // Available on Translations since CMS 3.0.2
 		
 		return result;
 	}
