@@ -29,7 +29,7 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
 public class PublishJobManifest extends PublishConfigManifest {
 	
 	private LinkedHashMap<String, String> job = new LinkedHashMap<String, String>();
-	private LinkedHashMap<String, String> document = new LinkedHashMap<String, String>();;
+	private LinkedHashMap<String, String> document = new LinkedHashMap<String, String>();
 	private LinkedHashMap<String, String> master = null;
 	private LinkedHashMap<String, String> custom = null;
 	private LinkedHashMap<String, String> meta = null;
@@ -44,6 +44,7 @@ public class PublishJobManifest extends PublishConfigManifest {
 			setCustomTemplates(config.getCustomTemplates());
 			setMetaTemplates(config.getMetaTemplates());
 			setType(config.getType());
+			setTemplate(config.getTemplate());
 		}
 	}
 	
