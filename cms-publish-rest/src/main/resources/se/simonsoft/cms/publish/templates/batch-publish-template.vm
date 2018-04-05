@@ -27,6 +27,11 @@ $reposHeadTags
 		margin-top: 5px;
 	}
 	
+	.workflowStatusWarning {
+		color:red;
+		display: none;
+	}
+	
 
 </style>
 
@@ -87,7 +92,8 @@ $reposHeadTags
 						<input id="$mapEntry.getKey()" 
 							name="publication" 
 							type="radio" 
-							value="$mapEntry.getKey()">$mapEntry.getKey()
+							value="$mapEntry.getKey()"
+							class="publicationBtn">$mapEntry.getKey()
 						</input>
 						<br/>
 					#end
@@ -102,6 +108,20 @@ $reposHeadTags
 			<div>
 				<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
 				<span id="warning" style="color:red; display:none;">At least one document area must be selected.</span>
+				#foreach ($status in $releaseExecutions.keySet())
+					#foreach ($config in $releaseExecutions.get($status))
+					<p class="workflowStatusWarning releaseStatus $config" >
+						Publish of the Release with config $config is $status.toLowerCase().
+					</p>
+					#end
+				#end
+				#foreach ($status in $translationExecutions.keySet())
+					#foreach ($config in $translationExecutions.get($status))
+					<p class="workflowStatusWarning translationStatus $config" >
+						Publish of the Translations with config $config is $status.toLowerCase().
+					</p>
+					#end
+				#end
 			</div>
 		</p>
 	</fieldset>
@@ -123,7 +143,7 @@ $reposHeadTags
 $(document).ready(function () {
 
 
-	var checkedSelector = 'input[type=checkbox]:checked';
+	
 	//Will prevent submits by returning false if no boxes is checked.
     $('#submit').click(function() {
       if(!$(checkedSelector).length) {
@@ -133,14 +153,43 @@ $(document).ready(function () {
     });
     
     $('input[type=checkbox]').click(function() {
-    	if (!$(checkedSelector).length) {
+    	
+    });
+    
+    $('input[type=radio]').first().prop('checked', true);
+    
+    $('input[type=radio]:checked', function() {
+    	$('.' + $('input[type=radio]:checked').val()).show();
+    });
+    
+    var displayWarnings =function() {
+    	
+    	if (!$('input[type=checkbox]:checked').length) {
     		$('#warning').show();
     	} else {
     		$('#warning').hide();
     	}
-    });
+    	
+    	$('.workflowStatusWarning').hide();
+    	var config = $('input[type=radio]:checked').val()
+    	var selector = '.workflowStatusWarning';
+    	
+    	if ($('#includerelease:checked').length > 0) {
+    		$(selector + '.releaseStatus' + '.' + config).show();
+    	}
+    	
+    	if ($('#includetranslation:checked').length > 0) {
+    		$(selector + '.translationStatus' + '.' + config).show();
+    	}
+   		
+    };
     
-    $('input[type=radio]').first().prop('checked', true);
+    $('input[type=radio]').click(function() {
+    	displayWarnings();
+    });
+    $('input[type=checkbox]').click(function() {
+    	displayWarnings();
+    });
     
 });
 

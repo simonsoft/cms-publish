@@ -50,7 +50,10 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.workflow.WorkflowExecution;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -61,6 +64,7 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 @Path("/publish4")
 public class PublishResource {
 	
+	private final WorkflowExecutionStatus executionsStatus;
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
@@ -73,6 +77,7 @@ public class PublishResource {
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
+			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZip repackageService,
@@ -83,6 +88,7 @@ public class PublishResource {
 			) {
 		
 		this.hostname = hostname;
+		this.executionsStatus = executionStatus;
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
@@ -126,7 +132,17 @@ public class PublishResource {
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
 		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
-
+		
+		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
+		//Key: Execution status, Value set<configNames> 
+		Map<String, Set<String>> configStatusRelease = getFilteredConfigs(releaseExecutions);
+		context.put("releaseExecutions", configStatusRelease);
+		
+		Set<WorkflowExecution> translationExecutions = getExecutionStatusForTranslations(itemId);
+		//Key: Execution status, Value set<configNames> 
+		Map<String, Set<String>> configStatusTrans = getFilteredConfigs(translationExecutions);
+		context.put("translationExecutions", configStatusTrans);
+		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
 
@@ -213,6 +229,34 @@ public class PublishResource {
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
 				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
 				.build();
+	}
+	
+	private Map<String, Set<String>> getFilteredConfigs(Set<WorkflowExecution> executions) {
+		// Key: Execution status, Value set<configNames> 
+		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
+		
+		for (WorkflowExecution we: executions) {
+			PublishJob input = (PublishJob) we.getInput();
+			Set<String> set = configStatuses.get(we.getStatus());
+			if (set == null) {
+				set = new HashSet<String>();
+			}
+			set.add(input.getConfigname());
+			configStatuses.put(we.getStatus(), set);
+		}
+		
+		return configStatuses;
+	}
+	
+	private Set<WorkflowExecution> getExecutionStatusForTranslations(CmsItemId release) {
+		
+		List<CmsItem> translationItems = getTranslationItems(release, null);
+		Set<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
+		for (CmsItem i: translationItems) {
+			Set<WorkflowExecution> workflowExecutions = executionsStatus.getWorkflowExecutions(i.getId(), false);
+			executions.addAll(workflowExecutions);
+		}
+		return executions;
 	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
