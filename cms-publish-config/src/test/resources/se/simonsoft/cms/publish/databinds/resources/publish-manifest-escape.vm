@@ -14,37 +14,37 @@
  * limitations under the License.
  *#
 
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <manifest>
-	<job>
-		#foreach ($jobEntry in $job.entrySet())
-			<$jobEntry.key>$esc.xml($jobEntry.value)</$jobEntry.key>
-		#end
-	</job>
-	<document>
-		#foreach ($docEntry in $document.entrySet())
-			<$docEntry.key>$esc.xml($docEntry.value)</$docEntry.key>
-		#end
-	</document>
-	#if ($master)
-		<master>
-			#foreach ($masterEntry in $master.entrySet())
-				<$masterEntry.key>$esc.xml($masterEntry.value)</$masterEntry.key>
-			#end
-		</master>
-	#end
-	#if ($custom)
-		<custom>
-			#foreach ($customEntry in $custom.entrySet())
-				<$customEntry.key>$esc.xml($customEntry.value)</$customEntry.key>
-			#end
-		</custom>
-	#end
-	#if ($meta)
-		<meta>
-			#foreach ($metaEntry in $meta.entrySet())
-				<$metaEntry.key>$esc.xml($metaEntry.value)</$metaEntry.key>
-			#end
-		</meta>
-	#end
+   <job>
+#foreach($jobEntry in $job.entrySet())
+      <$jobEntry.key>$esc.xml($jobEntry.value)</$jobEntry.key>
+#end
+   </job>
+   <document>
+#foreach ($docEntry in $document.entrySet())
+      <$docEntry.key>$esc.xml($docEntry.value)</$docEntry.key>
+#end
+   </document>
+#if ($master)
+   <master>
+#foreach ($masterEntry in $master.entrySet())
+      <$masterEntry.key>$esc.xml($masterEntry.value)</$masterEntry.key>
+#end
+   </master>
+#end
+#if ($custom)
+   <custom>
+#foreach ($customEntry in $custom.entrySet())
+      <$customEntry.key>$esc.xml($customEntry.value)</$customEntry.key>
+#end
+   </custom>
+#end
+#if ($meta)
+   <meta>
+#foreach ($metaEntry in $meta.entrySet())
+      <$metaEntry.key>$esc.xml($metaEntry.value)</$metaEntry.key>
+#end
+   </meta>
+#end
 </manifest>
