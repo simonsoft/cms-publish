@@ -156,17 +156,16 @@ public class PublishResourceTest {
 														getVelocityEngine());
 		
 		String releaseForm = resource.getReleaseForm(itemId);
-		
 		assertTrue(releaseForm.contains("http://demo.simonsoftcms.se/svn/demo1"));
 		assertTrue(releaseForm.contains("Sa s.xml"));
 		assertTrue(releaseForm.contains("203"));
 		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
 		assertTrue(releaseForm.contains("print"));
 		assertTrue(releaseForm.contains("Active"));
-		assertTrue(releaseForm.contains("Workflow for release with config: pdf has RUNNING executions."));
-		assertTrue(releaseForm.contains("Workflow for release with config: html has RUNNING executions."));
-		assertTrue(releaseForm.contains("Workflow for translations with config: html has RUNNING executions."));
-		assertTrue(releaseForm.contains("Workflow for translations with config: pdf has FAILED executions."));
+		assertTrue(releaseForm.contains("Publish of the Release with config pdf is running."));
+		assertTrue(releaseForm.contains("Publish of the Release with config html is running."));
+		assertTrue(releaseForm.contains("Publish of the Translations with config html is running."));
+		assertTrue(releaseForm.contains("Publish of the Translations with config pdf is failed."));
 	}
 	
 	

@@ -44,6 +44,7 @@ public class PublishJobManifest extends PublishConfigManifest {
 			setCustomTemplates(config.getCustomTemplates());
 			setMetaTemplates(config.getMetaTemplates());
 			setType(config.getType());
+			setPathext(config.getPathext());
 			setTemplate(config.getTemplate());
 		}
 	}

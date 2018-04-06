@@ -36,6 +36,7 @@ public class PublishJobManifestBuilder {
 	private final PublishConfigTemplateString templateEvaluator;
 	
 	private static final String DEFAULT_TYPE = "default";
+	private static final String DEFAULT_PATHEXT = "json";
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobManifestBuilder.class);
 	
@@ -52,6 +53,10 @@ public class PublishJobManifestBuilder {
 		
 		if (manifest.getType() == null) {
 			manifest.setType(DEFAULT_TYPE);
+		}
+		
+		if (manifest.getPathext() == null) {
+			manifest.setPathext(DEFAULT_PATHEXT);
 		}
 		
 		manifest.setJob(buildJob(item, job));

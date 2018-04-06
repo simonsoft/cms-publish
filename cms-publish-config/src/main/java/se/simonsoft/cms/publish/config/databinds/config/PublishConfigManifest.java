@@ -25,6 +25,7 @@ public class PublishConfigManifest {
 	
 	private String type = null;
 	private String template = null;
+	private String pathext = null;
 	protected LinkedHashMap<String, String> customTemplates = new LinkedHashMap<String, String>();
 	protected LinkedHashMap<String, String> metaTemplates = new LinkedHashMap<String, String>();
 	
@@ -58,6 +59,14 @@ public class PublishConfigManifest {
 
 	public void setTemplate(String template) {
 		this.template = template;
+	}
+
+	public String getPathext() {
+		return pathext;
+	}
+
+	public void setPathext(String pathext) {
+		this.pathext = pathext;
 	}
 	
 }
