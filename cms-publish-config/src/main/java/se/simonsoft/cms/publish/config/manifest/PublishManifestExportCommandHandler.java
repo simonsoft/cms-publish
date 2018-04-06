@@ -73,9 +73,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		logger.debug("Preparing publishJob manifest for export to S3: {}", manifest); // TODO: Remove?
 
-		CmsExportItem exportItem;
-		String ext; //All formats except json should be serialized with velocity.
-		if (manifest.getPathtext() != null && !manifest.getPathtext().equalsIgnoreCase("json")) {
+		CmsExportItem exportItem; 
+		if (manifest.getTemplate() != null) {
 			logger.debug("Manifest will be serialized with velocity");
 			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
 		} else {
