@@ -45,7 +45,6 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
 	private final String extensionManifestJson = "json";
-	private final String extensionManifestXml = "xml";
 	private final String extensionPublishResult = "zip";
 
 
@@ -76,11 +75,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		logger.debug("Preparing publishJob manifest for export to S3: {}", manifest); // TODO: Remove?
 
 		CmsExportItem exportItem;
-		String ext; //TODO: To support more formats then json and xml, we need a way to determine the extension of the manifest.
-		if (manifest.getType().equalsIgnoreCase("velocity")) {
+		String ext; //All formats except json should be serialized with velocity.
+		if (manifest.getPathtext() != null && !manifest.getPathtext().equalsIgnoreCase("json")) {
 			logger.debug("Manifest will be serialized with velocity");
 			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
-			ext = extensionManifestXml;
+			ext = manifest.getPathtext(); 
 		} else {
 			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 			ext = extensionManifestJson;
