@@ -113,7 +113,6 @@ public class AwsStepfunctionPublishWorker {
 					GetActivityTaskResult taskResult = null;
 					
 					try {
-						logger.debug("Client getting activity task");
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
 					} catch (AbortedException e) {
