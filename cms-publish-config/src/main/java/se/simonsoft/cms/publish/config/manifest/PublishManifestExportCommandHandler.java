@@ -44,7 +44,6 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
-	private final String extensionManifestJson = "json";
 	private final String extensionPublishResult = "zip";
 
 
@@ -79,13 +78,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		if (manifest.getPathtext() != null && !manifest.getPathtext().equalsIgnoreCase("json")) {
 			logger.debug("Manifest will be serialized with velocity");
 			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
-			ext = manifest.getPathtext(); 
 		} else {
 			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
-			ext = extensionManifestJson;
 		}
 		
-		PublishExportJob job = new PublishExportJob(options.getStorage(), ext);
+		PublishExportJob job = new PublishExportJob(options.getStorage(), manifest.getPathext());
 		job.addExportItem(exportItem);
 		job.prepare();
 
