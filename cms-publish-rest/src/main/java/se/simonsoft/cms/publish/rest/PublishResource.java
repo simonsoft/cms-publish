@@ -211,7 +211,8 @@ public class PublishResource {
 		if (publishConfig.getOptions().getStorage() != null) {
 			String type = publishConfig.getOptions().getStorage().getType();
 			if (type != null && !type.equals("s3")) {
-				throw new IllegalStateException("Field 'publication': publication name " + type + " can not be exported (configured for non-default storage).");
+				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
+				throw new IllegalStateException(msg);
 			}
 		}
 		StreamingOutput stream = new StreamingOutput() {
