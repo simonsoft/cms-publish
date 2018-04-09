@@ -66,6 +66,10 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
 		}
 		
+		if (manifest.getPathext() == null) {
+			throw new IllegalArgumentException("Requires a valid PublishJobManifest object with 'pathext' field (likely pre-release job).");
+		}
+		
 		if (!isPublishResultExists(itemId, options)) {
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
