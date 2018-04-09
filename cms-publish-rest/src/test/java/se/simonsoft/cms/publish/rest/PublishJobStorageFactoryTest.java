@@ -95,7 +95,7 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cloudId", s.getPathcloudid());
 		assertEquals("simple-pdf", s.getPathconfigname());
 		assertEquals("/vvab/xml/documents/900108.xml", s.getPathdir());
-		assertEquals("test_name_r0000000100", s.getPathnamebase());
+		assertEquals("900108_r0000000100_test_name", s.getPathnamebase());
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("fs", s.getType());
 		assertEquals(null, s.getParams().get("s3bucket"));

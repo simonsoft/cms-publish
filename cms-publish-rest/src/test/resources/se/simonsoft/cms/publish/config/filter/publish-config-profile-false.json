@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "visible": true,
+  "statusInclude": ["Review", "Released"],
+  "profilingInclude": false,
+  "areas": [
+    {
+        "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf"
+    }
+  ],
+  "options" : {
+      "type": "abxpe",
+      "format": "pdf",
+      "params": {
+          "stylesheet": "axdocbook.style",
+          "pdfconfig": "smallfile.pdfcf"
+      },
+      
+      "storage": {
+        "type": "s3"
+        
+      }
+      
+  }
+}

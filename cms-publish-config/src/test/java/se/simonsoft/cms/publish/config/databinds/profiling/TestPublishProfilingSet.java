@@ -16,14 +16,13 @@
 package se.simonsoft.cms.publish.config.databinds.profiling;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,9 +30,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 
 public class TestPublishProfilingSet {
 	private static ObjectReader reader;
@@ -43,12 +39,12 @@ public class TestPublishProfilingSet {
 		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader(PublishProfilingSet.class);
 	}
+	
+	
 	@Test
-	public void testDeserialize() throws JsonProcessingException, IOException {
-		PublishProfilingSet ppSet = reader.readValue(getJsonString());
-		PublishProfilingSet ppSetSecondJson = reader.readValue(getSecondJsonString());
+	public void testDeserializeOs() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonOs());
 
-		//Testing first string
 		assertEquals("osx", ppSet.get("osx").getName());
 		assertEquals("%20", ppSet.get("osx").getLogicalexpr());
 		assertEquals(" ", ppSet.get("osx").getLogicalExprDecoded());
@@ -56,18 +52,62 @@ public class TestPublishProfilingSet {
 		assertEquals("linux", ppSet.get("linux").getName());
 		assertEquals("%3A", ppSet.get("linux").getLogicalexpr());
 		assertEquals(":", ppSet.get("linux").getLogicalExprDecoded());
-
-		//Testing second String
-		assertEquals("internal", ppSetSecondJson.get("internal").getName());
-		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSetSecondJson.get("internal").getLogicalexpr());
-		assertEquals("<ProfileRef alias=\"Profiling\" value=\"internal\"/>", ppSetSecondJson.get("internal").getLogicalExprDecoded());
-
-
 	}
+	
+	
+	@Test
+	public void testDeserializeInternal() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
+
+		assertEquals("internal", ppSet.get("internal").getName());
+		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSet.get("internal").getLogicalexpr());
+		assertEquals("<ProfileRef alias=\"Profiling\" value=\"internal\"/>", ppSet.get("internal").getLogicalExprDecoded());
+	}
+	
+	
+	@Test
+	public void testOrderOs() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonOs());
+		
+		// Should preserve order.
+		Iterator<PublishProfilingRecipe> it = ppSet.iterator();
+		assertEquals("osx", it.next().getName());
+		assertEquals("linux", it.next().getName());
+				
+		Map<String, PublishProfilingRecipe> map = ppSet.getMap();
+		Iterator<String> keys = map.keySet().iterator();
+		assertEquals("osx", keys.next());
+		assertEquals("linux", keys.next());		
+	}
+	
+	
+	@Test
+	public void testOrder() {
+		
+		PublishProfilingRecipe p1 = new PublishProfilingRecipe();
+		p1.setName("A");
+		PublishProfilingRecipe p2 = new PublishProfilingRecipe();
+		p2.setName("B");
+		PublishProfilingRecipe p3 = new PublishProfilingRecipe();
+		p3.setName("C");
+		
+		PublishProfilingSet ppSet = new PublishProfilingSet();
+		ppSet.add(p2);
+		ppSet.add(p1);
+		ppSet.add(p3);
+		
+		Map<String, PublishProfilingRecipe> map = ppSet.getMap();
+		Iterator<String> keys = map.keySet().iterator();
+		assertEquals("B", keys.next());
+		assertEquals("A", keys.next());
+		assertEquals("C", keys.next());	
+	}
+	
+	
 	@Test
 	public void testImplementedSetMethods() throws JsonProcessingException, IOException {
-		PublishProfilingSet ppSetSecondJson = reader.readValue(getSecondJsonString());
-		PublishProfilingSet ppSet = reader.readValue(getJsonString());
+		PublishProfilingSet ppSetSecondJson = reader.readValue(getJsonInternal());
+		PublishProfilingSet ppSet = reader.readValue(getJsonOs());
 		PublishProfilingSet emptySet = new PublishProfilingSet();
 
 		assertEquals(2, ppSet.size());
@@ -93,7 +133,7 @@ public class TestPublishProfilingSet {
 	}
 	@Test
 	public void testUnsupportedMethods() throws JsonProcessingException, IOException {
-		PublishProfilingSet ppSet = reader.readValue(getSecondJsonString());
+		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		try {
 			Object[] a = null;
@@ -151,7 +191,7 @@ public class TestPublishProfilingSet {
 	}
 	@Test
 	public void testMethodParameterInput() throws JsonProcessingException, IOException {
-		PublishProfilingSet ppSet = reader.readValue(getSecondJsonString());
+		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		try {
 			int i = 44;
@@ -163,7 +203,7 @@ public class TestPublishProfilingSet {
 	}
 	@Test
 	public void testDuplicateNames() throws JsonProcessingException, IOException {
-		PublishProfilingSet ppSet = reader.readValue(getSecondJsonString());
+		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		try {
 			PublishProfilingRecipe ppRecipe = new PublishProfilingRecipe();
@@ -179,10 +219,10 @@ public class TestPublishProfilingSet {
 			assertEquals("Duplicate names in PublishProfilingSet is not allowed.", e.getMessage());
 		}
 	}
-	private String getJsonString() {
+	private String getJsonOs() {
 		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";
 	}
-	private String getSecondJsonString() {
+	private String getJsonInternal() {
 		return "[{\"logicalexpr\":\"%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E\",\"name\":\"internal\",\"profiling\":\"internal\"}]";
 	}
 
