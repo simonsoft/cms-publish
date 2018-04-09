@@ -39,6 +39,7 @@ import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.export.PublishExportJob;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
@@ -58,18 +59,29 @@ public class PublishPackageZip {
 		this.storageFactory = storageFactory;
 	}
 	
-	
-	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<String> profiles, OutputStream os) {
+	// Note: All aspects of PublishConfig does not necessarily apply to all items.
+	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<PublishProfilingRecipe> profilingSet, OutputStream os) {
 		
 		final List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
 		final List<CmsExportReader> readers = new ArrayList<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
+		logger.debug("Creating PublishExportJobs from: {} items", items.size());
 		for (CmsItem item: items) {
-			logger.debug("Creating PublishExportJobs from: {} items", items.size());
-			PublishExportJob downloadJob = getPublishDownloadJob(item, config, configName);
-			downloadJobs.add(downloadJob);
-			logger.debug("PublishExportJobs created.");
+			if (profilingSet == null) {
+				// No profiling, one publication per item.
+				downloadJobs.add(getPublishDownloadJob(item, config, configName, null));
+			} else {
+				// Profiling, zero or more publications per item.
+				for (PublishProfilingRecipe profilingRecipe: profilingSet) {
+					downloadJobs.add(getPublishDownloadJob(item, config, configName, profilingRecipe));
+				}
+			}
+		}
+		logger.debug("PublishExportJobs created.");
+		
+		if (downloadJobs.isEmpty()) {
+			throw new IllegalArgumentException("No publications to export with this combination of items and profiling.");
 		}
 		
 		logger.debug("Creating readers for: {} import jobs", downloadJobs.size());
@@ -129,9 +141,9 @@ public class PublishPackageZip {
 		}
 	}
 	
-	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName) {
+	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
-		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, null);
+		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, profiling);
 		return new PublishExportJob(s, "zip");
 	}
 

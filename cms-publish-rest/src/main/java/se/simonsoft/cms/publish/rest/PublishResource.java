@@ -115,9 +115,8 @@ public class PublishResource {
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
-		logger.debug("Requesting profilingSet...");
+
 		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
-		
 		Map<String, PublishProfilingRecipe> itemProfilings = new HashMap<>(); //Initialize the map to prevent NPE in Velocity.
 		if (itemProfilingSet != null) {
 			itemProfilings = itemProfilingSet.getMap();
@@ -135,12 +134,12 @@ public class PublishResource {
 		
 		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
 		//Key: Execution status, Value set<configNames> 
-		Map<String, Set<String>> configStatusRelease = getFilteredConfigs(releaseExecutions);
+		Map<String, Set<String>> configStatusRelease = getExecutionConfigs(releaseExecutions);
 		context.put("releaseExecutions", configStatusRelease);
 		
 		Set<WorkflowExecution> translationExecutions = getExecutionStatusForTranslations(itemId);
 		//Key: Execution status, Value set<configNames> 
-		Map<String, Set<String>> configStatusTrans = getFilteredConfigs(translationExecutions);
+		Map<String, Set<String>> configStatusTrans = getExecutionConfigs(translationExecutions);
 		context.put("translationExecutions", configStatusTrans);
 		
 		StringWriter wr = new StringWriter();
@@ -196,9 +195,8 @@ public class PublishResource {
 		}
 		
 		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
-		Map<String, PublishConfig> configurationFiltered = null;
 		for (CmsItem item: items) {
-			configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
+			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 			if (configurationFiltered.containsKey(publication)) {
 				publishedItems.add(item);
 			} else {
@@ -207,7 +205,10 @@ public class PublishResource {
 			}
 		}
 		
-		final PublishConfig publishConfig = configurationFiltered.get(publication);
+		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
+		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(releaseItem));
+		final PublishConfig publishConfig = configurationsRelease.get(publication);
+		
 		if (publishConfig.getOptions().getStorage() != null) {
 			String type = publishConfig.getOptions().getStorage().getType();
 			if (type != null && !type.equals("s3")) {
@@ -215,11 +216,36 @@ public class PublishResource {
 				throw new IllegalStateException(msg);
 			}
 		}
+		
+		// Profiling:
+		// Filtering above takes care of mismatch btw includeFiltering and whether item has Profiling.
+		// The 'profiling' parameter should only be allowed if configuration has includeProfiling = true, required then.
+		if (Boolean.TRUE.equals(publishConfig.getProfilingInclude())) {
+			if (profiling.length == 0) {
+				String msg = MessageFormatter.format("Field 'profiling': required for publication name '{}'.", publication).getMessage();
+				throw new IllegalArgumentException(msg);
+			}
+		} else {
+			if (profiling.length > 0) {
+				String msg = MessageFormatter.format("Field 'profiling': not allowed for publication name '{}'.", publication).getMessage();
+				throw new IllegalArgumentException(msg);
+			}
+		}
+		
+		
+		final Set<PublishProfilingRecipe> profilingSet;
+		if (profiling.length > 0) {
+			profilingSet = getProfilingSetSelected(new CmsItemPublish(releaseItem), publishConfig, profiling);
+		} else {
+			profilingSet = null;
+		}
+		
+		
 		StreamingOutput stream = new StreamingOutput() {
 			@Override
 			public void write(OutputStream os) throws IOException, WebApplicationException {
 				try {
-					repackageService.getZip(publishedItems, publication, publishConfig, null, os); // Profiles are null at the moment.
+					repackageService.getZip(publishedItems, publication, publishConfig, profilingSet, os);
 				} catch (CmsExportJobNotFoundException e) {
 					String message = MessageFormatter.format("Published job does not exist: {}", e.getExportJob().getJobPath().toString()).getMessage();
 					throw new IllegalStateException(message, e);
@@ -232,7 +258,36 @@ public class PublishResource {
 				.build();
 	}
 	
-	private Map<String, Set<String>> getFilteredConfigs(Set<WorkflowExecution> executions) {
+	
+	// Order will not be preserved, should not matter for packaging the publications.
+	private Set<PublishProfilingRecipe> getProfilingSetSelected(CmsItemPublish item, PublishConfig publishConfig, String[] profiling) {
+		
+		Map<String, PublishProfilingRecipe> profilingAll = this.publishConfiguration.getItemProfilingSet(item).getMap();
+		HashSet<PublishProfilingRecipe> profilingSet = new HashSet<PublishProfilingRecipe>(profilingAll.size());
+		List<String> profilingInclude = publishConfig.getProfilingNameInclude();
+		
+		for (String name: profiling) {
+			if (name.trim().isEmpty()) {
+				throw new IllegalArgumentException("Field 'profiling': empty value");
+			}
+			
+			if (!profilingAll.containsKey(name)) {
+				String msg = MessageFormatter.format("Field 'profiling': name '{}' not defined on item.", name).getMessage();
+				throw new IllegalArgumentException(msg);
+			}
+			
+			if (profilingInclude != null && !profilingInclude.contains(name)) {
+				String msg = MessageFormatter.format("Field 'profiling': name '{}' not included in selected publish config", name).getMessage();
+				throw new IllegalArgumentException(msg);
+			}
+			
+			profilingSet.add(profilingAll.get(name));
+		}
+		return profilingSet;
+	}
+	
+	
+	private Map<String, Set<String>> getExecutionConfigs(Set<WorkflowExecution> executions) {
 		// Key: Execution status, Value set<configNames> 
 		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
 		
