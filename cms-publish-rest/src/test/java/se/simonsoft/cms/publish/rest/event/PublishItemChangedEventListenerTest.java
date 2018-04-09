@@ -66,6 +66,7 @@ import se.simonsoft.cms.publish.rest.PublishConfigurationDefault;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterProfiling;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
 
@@ -86,6 +87,7 @@ public class PublishItemChangedEventListenerTest {
 	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
 	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
 	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
+	private final String pathConfigProfilingFalse = "se/simonsoft/cms/publish/config/filter/publish-config-profile-false.json";
 	
 	private final String pathJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
 	private final String pathJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
@@ -137,6 +139,9 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
+		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
 		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
 		
@@ -228,6 +233,9 @@ public class PublishItemChangedEventListenerTest {
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
 		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
+		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
 		
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
@@ -256,8 +264,8 @@ public class PublishItemChangedEventListenerTest {
 		initProfilingMock();
 
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
-		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:status", getPublishConfigFromPath(pathConfigStatus));
-		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigStatus));
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:simple", getPublishConfigFromPath(pathConfigSimple));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigSimple));
 		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
 
 		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
@@ -270,6 +278,9 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
+		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
 		
 		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
@@ -297,9 +308,7 @@ public class PublishItemChangedEventListenerTest {
 
 		// Profiling
 		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
-		assertNull(profiling); // No profilingInclude on config means publish the full document.
-		
-		
+		assertNull(profiling); // No profilingInclude on config means publish the full document.	
 	}
 
 	@Test
@@ -321,6 +330,9 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
+		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
 		
 		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
@@ -377,6 +389,9 @@ public class PublishItemChangedEventListenerTest {
 		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
 		filters.add(statusFilterSpy);
 		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
+		
 		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
 		
@@ -410,6 +425,53 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("900276_r0000000443_osx", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("osxonly", storage.getPathconfigname());
+	}
+	
+	
+	@Test
+	public void testProfiling1False() throws Exception {
+
+		initProfilingMock();
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOptionStatus = new CmsConfigOptionBase<>("cmsconfig-publish:profilefalse", getPublishConfigFromPath(pathConfigProfilingFalse));
+		CmsConfigOptionBase<String> configOptionBogus = new CmsConfigOptionBase<>("cmsconfig-bogus:bogus", getPublishConfigFromPath(pathConfigProfilingFalse));
+		when(mockOptionIterator.next()).thenReturn(configOptionStatus, configOptionBogus);
+
+		//Real implementations of the filters. Declared as spies to be able to verify that they have been called.
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		PublishConfigFilterActive activeFilterSpy = spy(new PublishConfigFilterActive());
+		filters.add(activeFilterSpy);
+		
+		PublishConfigFilterType typeFilterSpy = spy(new PublishConfigFilterType());
+		filters.add(typeFilterSpy);
+		
+		PublishConfigFilterStatus statusFilterSpy = spy(new PublishConfigFilterStatus());
+		filters.add(statusFilterSpy);
+		
+		PublishConfigFilterProfiling profilingFilterSpy = spy(new PublishConfigFilterProfiling());
+		filters.add(profilingFilterSpy);
+		
+		
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+		
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+																mockWorkflowExec,
+																filters,
+																mapper.reader(),
+																new PublishJobStorageFactory("demo1", bucketName));
+		//Test starting point. 
+		eventListener.onItemChange(mockItem);
+		
+		//Verifies that our mocks and spies has been called a certain amount of times.
+		verify(mockOptionIterator, times(2)).next();
+		verify(activeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(typeFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		verify(statusFilterSpy, times(1)).accept(any(PublishConfig.class), any(CmsItem.class));
+		
+		//Captures PublishJob arguments that our mocked workflow been called with.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class); 
+		verify(mockWorkflowExec, times(0)).startExecution(argCaptor.capture());
 	}
 	
 	

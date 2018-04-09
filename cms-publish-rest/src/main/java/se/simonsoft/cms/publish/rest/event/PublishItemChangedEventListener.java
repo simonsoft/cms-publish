@@ -104,8 +104,14 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			String configName = configEntry.getKey();
 			PublishConfig config = configEntry.getValue();
 			
+			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
+			if (itemPublish.hasProfiles() && config.getProfilingInclude() != null && Boolean.FALSE.equals(config.getProfilingInclude())) {
+				throw new IllegalArgumentException("Item should not have profiling, filtering incorrect.");
+			}
+			
 			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
 				// One or many jobs with profiling.
+				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
 				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName));
 			} else {
 				// Normal, non-profiling job.
@@ -129,9 +135,9 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 		
-		PublishProfilingSet profilesSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
+		PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
 		
-		for (PublishProfilingRecipe profilesRecipe: profilesSet) {
+		for (PublishProfilingRecipe profilesRecipe: profilingSet) {
 			
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.

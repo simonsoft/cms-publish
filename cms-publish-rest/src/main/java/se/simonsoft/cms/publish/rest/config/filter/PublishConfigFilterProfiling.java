@@ -32,6 +32,7 @@ public class PublishConfigFilterProfiling implements PublishConfigFilter {
 		CmsItemPublish itemPublish = (CmsItemPublish) item;
 		
 		if (config.getProfilingInclude() == null) {
+			// Always include if profilingInclude is not set: normal publish / non-filtered publish for item with profiles.
 			return true;
 		} else {
 			return config.getProfilingInclude().equals(itemPublish.hasProfiles());
