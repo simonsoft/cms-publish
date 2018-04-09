@@ -352,7 +352,7 @@ public class PublishItemChangedEventListenerTest {
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
 		assertEquals("s3", storage.getType());
 		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
-		assertEquals("osx_r0000000443", storage.getPathnamebase());
+		assertEquals("900276_r0000000443_osx", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("all", storage.getPathconfigname());
 	}
@@ -407,7 +407,7 @@ public class PublishItemChangedEventListenerTest {
 		PublishJobStorage storage = publishJob.getOptions().getStorage();
 		assertEquals("s3", storage.getType());
 		assertEquals("/vvab/xml/documents/900276.xml", storage.getPathdir());
-		assertEquals("osx_r0000000443", storage.getPathnamebase());
+		assertEquals("900276_r0000000443_osx", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("osxonly", storage.getPathconfigname());
 	}

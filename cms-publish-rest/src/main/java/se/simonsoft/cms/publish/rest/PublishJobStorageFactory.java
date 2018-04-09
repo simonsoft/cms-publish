@@ -76,13 +76,18 @@ public class PublishJobStorageFactory {
 		}
 		
 		StringBuilder sb = new StringBuilder();
+		sb.append(itemId.getRelPath().getNameBase());
 		
-		if (profiling == null) {
-			sb.append(itemId.getRelPath().getNameBase());
-		} else {
+		sb.append(String.format("_r%010d", itemId.getPegRev()));
+		
+		if (profiling != null) {
+			if (profiling.getName() == null || profiling.getName().trim().isEmpty()) {
+				throw new IllegalArgumentException("Profiling Name must not be empty.");
+			}
+			
+			sb.append('_');
 			sb.append(profiling.getName());
 		}
-		sb.append(String.format("_r%010d", itemId.getPegRev()));
 		return sb.toString();
 	}
 }
