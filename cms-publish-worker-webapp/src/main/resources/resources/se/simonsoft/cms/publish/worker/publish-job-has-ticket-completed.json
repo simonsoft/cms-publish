@@ -32,6 +32,7 @@
 	},
 	"manifest": {
 		"type": "default",
+		"pathext": "json",
 		"job": {
 			"itemid": "x-svn:///svn/demo1^/vvab/release/C/xml/documents/900108.xml?p=324",
 			"format": "pdf"
