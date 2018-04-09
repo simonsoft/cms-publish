@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -61,6 +62,45 @@ public class TestPublishProfilingSet {
 		assertEquals("internal", ppSet.get("internal").getName());
 		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSet.get("internal").getLogicalexpr());
 		assertEquals("<ProfileRef alias=\"Profiling\" value=\"internal\"/>", ppSet.get("internal").getLogicalExprDecoded());
+	}
+	
+	
+	@Test
+	public void testOrderOs() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonOs());
+		
+		// Should preserve order.
+		Iterator<PublishProfilingRecipe> it = ppSet.iterator();
+		assertEquals("osx", it.next().getName());
+		assertEquals("linux", it.next().getName());
+				
+		Map<String, PublishProfilingRecipe> map = ppSet.getMap();
+		Iterator<String> keys = map.keySet().iterator();
+		assertEquals("osx", keys.next());
+		assertEquals("linux", keys.next());		
+	}
+	
+	
+	@Test
+	public void testOrder() {
+		
+		PublishProfilingRecipe p1 = new PublishProfilingRecipe();
+		p1.setName("A");
+		PublishProfilingRecipe p2 = new PublishProfilingRecipe();
+		p2.setName("B");
+		PublishProfilingRecipe p3 = new PublishProfilingRecipe();
+		p3.setName("C");
+		
+		PublishProfilingSet ppSet = new PublishProfilingSet();
+		ppSet.add(p2);
+		ppSet.add(p1);
+		ppSet.add(p3);
+		
+		Map<String, PublishProfilingRecipe> map = ppSet.getMap();
+		Iterator<String> keys = map.keySet().iterator();
+		assertEquals("B", keys.next());
+		assertEquals("A", keys.next());
+		assertEquals("C", keys.next());	
 	}
 	
 	

@@ -16,34 +16,36 @@
 package se.simonsoft.cms.publish.config.databinds.profiling;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
-	private Map<String, PublishProfilingRecipe> map = new HashMap<String, PublishProfilingRecipe>();
+	private LinkedHashMap<String, PublishProfilingRecipe> map = new LinkedHashMap<String, PublishProfilingRecipe>();
 
 	public PublishProfilingRecipe get(String index) {
 		return map.get(index);
 	}
+	
 	public Map<String, PublishProfilingRecipe> getMap() {
 		return this.map;
 	}
-	public void setMap(Map<String, PublishProfilingRecipe> list) {
-		this.map = list;
-	}
+	
 	public PublishProfilingSet() {
 	}
+	
 	@Override
 	public int size() {
 		return map.size();
 	}
+	
 	@Override
 	public boolean isEmpty() {
 		return map.isEmpty();
 	}
+	
 	@Override
 	public boolean contains(Object o) {
 		if (!(o instanceof String) ){
@@ -51,18 +53,22 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 		}
 		return map.containsKey(o);
 	}
+	
 	@Override
 	public Iterator<PublishProfilingRecipe> iterator() {
 		return map.values().iterator();
 	}
+	
 	@Override
 	public Object[] toArray() {
 		return map.values().toArray();
 	}
+	
 	@Override
 	public <T> T[] toArray(T[] a) {
 		throw new UnsupportedOperationException("PublishProfilingSet.toArray(T[] a) is not supported");
 	}
+	
 	@Override
 	public boolean add(PublishProfilingRecipe e) {
 		boolean changed = false;
@@ -75,6 +81,7 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 		map.put(e.getName(), e);
 		return true;
 	}
+	
 	@Override
 	public boolean remove(Object o) {
 		throw new UnsupportedOperationException("PublishingProfilingSet.remove() is not supported");
