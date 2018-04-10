@@ -50,7 +50,7 @@ $reposHeadTags
 
 <form id="export-publications-form" method="get" action="./download/">
 	<fieldset>
-		<legend>Batch publish <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
+		<legend>Export Publications <code>$item.getId().getRelPath().getName()</code> <span class="revision">$item.getRevisionChanged().getNumber()</span></legend>
 		
 		<input name="item" type="hidden" value="$item.getId()" />
 		
@@ -105,7 +105,7 @@ $reposHeadTags
 		<p>
 			<label for="submit"></label>
 			<div>
-				<input id="submit" type="submit" name="submit" value="Batch Publish" tabindex="3" />
+				<input id="submit" type="submit" name="submit" value="Export" tabindex="3" />
 				<span id="warning" style="color:red; display:none;">At least one document area must be selected.</span>
 				#foreach ($status in $releaseExecutions.keySet())
 					#foreach ($config in $releaseExecutions.get($status))
