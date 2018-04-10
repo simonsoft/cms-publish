@@ -114,7 +114,7 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	
             	exportProviders.put("fs", cmsExportProviderFsSingle);
-            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, envBucket, region, credentials));
+            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials));
             	bind(exportProviders).to(Map.class);
             	
             	//Bind AWS client
