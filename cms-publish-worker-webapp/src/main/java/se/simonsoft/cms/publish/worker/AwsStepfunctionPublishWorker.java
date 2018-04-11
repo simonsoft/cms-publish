@@ -244,7 +244,8 @@ public class AwsStepfunctionPublishWorker {
 					
 					sendTaskHeartbeat(taskResult);
 				}
-				
+			} catch (PublishException e) {
+				throw e;
 			} catch (InterruptedException e) {
 				logger.error("Thread sleep interrupted: {}", e.getMessage(), e);
 				throw new CommandRuntimeException("JobInterrupted");
