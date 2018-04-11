@@ -206,6 +206,18 @@ public class PublishServicePe implements PublishService {
 				result = true;
 			}
 			
+			if (result) {
+				StringBuffer jobHeadRequestUri = new StringBuffer(this.peUri);
+				jobHeadRequestUri.append("?&f=qt-retrieve");// The retrieve req
+				jobHeadRequestUri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+				
+				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
+				ResponseHeaders head = this.httpClient.head(jobHeadRequestUri.toString());
+				if (head.getStatus() != 200) {
+					throw new PublishException("Publish job has status completed but trying to get the job fails with status: " + head.getStatus());
+				}
+			}
+			
 		} catch (HttpStatusError e) {
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
