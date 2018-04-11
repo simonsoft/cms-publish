@@ -271,7 +271,7 @@ public class AwsStepfunctionPublishWorker {
 	}
 	
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
-		logger.debug("Preparing publishJob {} for export to s3", options.getPathname());
+		logger.debug("Preparing publishJob {} for export to {}", options.getPathname(), options.getStorage().getType());
 		
 		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
 		
