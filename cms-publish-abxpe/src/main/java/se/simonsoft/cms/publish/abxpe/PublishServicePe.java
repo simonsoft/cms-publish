@@ -353,8 +353,9 @@ public class PublishServicePe implements PublishService {
 	protected String parseErrorResponseBody(String responseBody) {
 		
 		if (responseBody == null) {
-			return "PE has failed with job but did not return a error response.";
+			return "";
 		}
+		
 		String res = "";
 		try {
 			//Replacing new lines and charachter returns to make the regex more simple.
