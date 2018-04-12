@@ -214,9 +214,12 @@ public class PublishServicePe implements PublishService {
 				jobHeadRequestUri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
 				
 				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
+				
 				ResponseHeaders head = this.httpClient.head(jobHeadRequestUri.toString());
+				byteOutputStream.reset();
+				
 				if (head.getStatus() != 200) {
-					throw new PublishException("Publish job has status completed but trying to get the job fails with status: " + head.getStatus());
+					getErrorRespons(jobHeadRequestUri.toString(), byteOutputStream);
 				}
 			}
 			
@@ -368,6 +371,26 @@ public class PublishServicePe implements PublishService {
 		final Matcher matcher = pattern.matcher(responseBody);
 		matcher.find();
 		return matcher.group(1);
+	}
+	
+	private void getErrorRespons(String requestUri, final ByteArrayOutputStream baos) throws IOException, PublishException {
+		
+		try {
+			this.httpClient.get(requestUri.toString(), new RestResponse() {
+				@Override
+				public OutputStream getResponseStream(
+						ResponseHeaders headers) {
+					logger.debug("Got response from PE with headers {}", headers);
+					return baos; // The output stream will be empty, since this request always fails.
+				}
+			});
+			
+		//We now that this request will fail. The reponse body is included in the exception.
+		} catch (HttpStatusError e) {
+			String response = e.getResponse();
+			String errorMessage = parseErrorResponseBody(response);
+			throw new PublishException(errorMessage);
+		}
 	}
 	
 	
