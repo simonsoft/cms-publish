@@ -216,10 +216,9 @@ public class PublishServicePe implements PublishService {
 				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
 				
 				ResponseHeaders head = this.httpClient.head(getJobRequestUri.toString());
-				byteOutputStream.reset();
 				
 				if (head.getStatus() != 200) {
-					getErrorResponse(getJobRequestUri.toString(), byteOutputStream);
+					getErrorResponse(getJobRequestUri.toString());
 				}
 			}
 			
@@ -373,7 +372,7 @@ public class PublishServicePe implements PublishService {
 		return matcher.group(1);
 	}
 	
-	private void getErrorResponse(String requestUri, final ByteArrayOutputStream baos) throws IOException, PublishException {
+	private void getErrorResponse(String requestUri) throws IOException, PublishException {
 		
 		try {
 			this.httpClient.get(requestUri.toString(), new RestResponse() {
@@ -381,7 +380,7 @@ public class PublishServicePe implements PublishService {
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
 					logger.debug("Got response from PE with headers {}", headers);
-					return baos; // The output stream will be empty, since this request always fails.
+					return null; // The output stream will be empty, since this request always fails.
 				}
 			});
 			
