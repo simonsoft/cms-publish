@@ -219,7 +219,7 @@ public class PublishServicePe implements PublishService {
 				byteOutputStream.reset();
 				
 				if (head.getStatus() != 200) {
-					getErrorRespons(jobHeadRequestUri.toString(), byteOutputStream);
+					getErrorResponse(jobHeadRequestUri.toString(), byteOutputStream);
 				}
 			}
 			
@@ -373,7 +373,7 @@ public class PublishServicePe implements PublishService {
 		return matcher.group(1);
 	}
 	
-	private void getErrorRespons(String requestUri, final ByteArrayOutputStream baos) throws IOException, PublishException {
+	private void getErrorResponse(String requestUri, final ByteArrayOutputStream baos) throws IOException, PublishException {
 		
 		try {
 			this.httpClient.get(requestUri.toString(), new RestResponse() {
