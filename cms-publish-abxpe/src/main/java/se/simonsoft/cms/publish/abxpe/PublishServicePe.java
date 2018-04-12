@@ -25,6 +25,8 @@ import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -350,6 +352,21 @@ public class PublishServicePe implements PublishService {
 		}
 		logger.debug("End");
 		return null;
+	}
+	
+	/**
+	 * Use only when we now the response body is a PE failed HTML response. 
+	 * The method is based on the assumption that all error body's first p element contains the error message (Should only be one p element).
+	 * @param responseBody
+	 * @return
+	 */
+	private String parseErrorResponseBody(String responseBody) {
+		
+		// all content between p tags, ok with new lines.
+		final Pattern pattern = Pattern.compile("<p>[\\s\\S](.+?)[\\s\\S]</p>"); 
+		final Matcher matcher = pattern.matcher(responseBody);
+		matcher.find();
+		return matcher.group(1);
 	}
 	
 	
