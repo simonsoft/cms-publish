@@ -138,7 +138,7 @@ public class PublishingEngineServiceTest {
 	public void testParseNull() {
 		PublishServicePe pe = new PublishServicePe();
 		String parsed = pe.parseErrorResponseBody(null);
-		assertEquals(parsed, "PE has failed with job but did not return a error response.");
+		assertEquals(parsed, "");
 	}
 	
 	@Test
