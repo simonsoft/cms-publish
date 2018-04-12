@@ -16,7 +16,6 @@
 package se.simonsoft.cms.publish.abxpe;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -114,5 +113,95 @@ public class PublishingEngineServiceTest {
 		} catch (Exception e) {
 			assertEquals("Publishing failed (java.net.UnknownHostException): bogus.pdsvision.net", e.getMessage());
 		}
+	}
+	
+	@Test
+	public void testParseHtmlErrorResponse() throws Exception {
+		
+		PublishServicePe pe = new PublishServicePe();
+		String parsed = pe.parseErrorResponseBody(getPEStandardFomratedResponse());
+		
+		assertFalse("Do not start with p tag", parsed.startsWith("<p>"));
+		assertFalse("Do not start with p tag", parsed.endsWith("</p>"));
+		assertTrue("text in p tag", parsed.contains("stylesheet &#39;C:\\Program Files\\PTC\\Arbortext PE/simonsoft.vabb/doctypes/VVAB/vvab.style&#39;"));
+		
+		
+		pe.parseErrorResponseBody(getResponseWithNewLinesInP());
+		
+		assertFalse("Do not start with p tag", parsed.startsWith("<p>"));
+		assertFalse("Do not start with p tag", parsed.endsWith("</p>"));
+		assertTrue("text in p tag", parsed.contains("stylesheet &#39;C:\\Program Files\\PTC\\Arbortext PE/simonsoft.vabb/doctypes/VVAB/vvab.style&#39;"));
+	}
+	
+	
+	@Test
+	public void testParseNull() {
+		PublishServicePe pe = new PublishServicePe();
+		String parsed = pe.parseErrorResponseBody(null);
+		assertEquals(parsed, "");
+	}
+	
+	@Test
+	public void testParseResponseNoP() {
+		PublishServicePe pe = new PublishServicePe();
+		String parsed = pe.parseErrorResponseBody("<html> <body> <div>content</div> </body> </html>");
+		
+		assertEquals("No match should return empty string." ,"", parsed);
+	}
+	
+	
+	
+	private String getResponseWithNewLinesInP() {
+		return "<html>\n" + 
+				"<head>\n" + 
+				"<link rel=\"stylesheet\" href=\"/e3/pestyle.css\" type=\"text/css\"><title>\n" + 
+				"Servigistics Arbortext Publishing Engine Convert Internal Error\n" + 
+				"</title>\n" + 
+				"</head>\n" + 
+				"<body topmargin=\"0\" leftmargin=\"0\">\n" + 
+				"<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n" + 
+				"<tr><td><img src=\"/e3/e3.jpg\" alt=\"Servigistics Arbortext Publishing Engine\"></td>\n" + 
+				"<td width=\"100%\" style=\"background-color: #FFFFFF\"></td>\n" + 
+				"</tr>\n" + 
+				"</table>\n" + 
+				"<div style=\"margin-left: 6pt\">\n" + 
+				"<h2>\n" + 
+				"Servigistics Arbortext Publishing Engine Convert Internal Error\n" + 
+				"</h2>\n" + 
+				"<p>\n" + 
+				"\n" + 
+				"e3::convert:  stylesheet &#39;C:\\Program Files\\PTC\\Arbortext PE/simonsoft.vabb/doctypes/VVAB/vvab.style&#39; does not exist.<p><B>Other information</B><BR>&nbsp;&nbsp;&nbsp;<B>Version:&nbsp;</B>7.0 M080 <BR>&nbsp;&nbsp;&nbsp;<B>Platform:&nbsp;</B>Windows Server 2012 R2 Standard Evaluation <BR>&nbsp;&nbsp;&nbsp;<B>Stylesheet:&nbsp;</B>\n" + 
+				"$aptpath/simonsoft.vabb/doctypes/VVAB/vvab.style\n" + 
+				" <BR></P>\n" + 
+				"</p>\n" + 
+				"</div>\n" + 
+				"</body>\n" + 
+				"</html>";
+	}
+	
+	
+	private String getPEStandardFomratedResponse() {
+		return "<html>\n" + 
+				"<head>\n" + 
+				"<link rel=\"stylesheet\" href=\"/e3/pestyle.css\" type=\"text/css\"><title>\n" + 
+				"Servigistics Arbortext Publishing Engine Convert Internal Error\n" + 
+				"</title>\n" + 
+				"</head>\n" + 
+				"<body topmargin=\"0\" leftmargin=\"0\">\n" + 
+				"<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">\n" + 
+				"<tr><td><img src=\"/e3/e3.jpg\" alt=\"Servigistics Arbortext Publishing Engine\"></td>\n" + 
+				"<td width=\"100%\" style=\"background-color: #FFFFFF\"></td>\n" + 
+				"</tr>\n" + 
+				"</table>\n" + 
+				"<div style=\"margin-left: 6pt\">\n" + 
+				"<h2>\n" + 
+				"Servigistics Arbortext Publishing Engine Convert Internal Error\n" + 
+				"</h2>\n" + 
+				"<p>\n" + 
+				"e3::convert:  stylesheet &#39;C:\\Program Files\\PTC\\Arbortext PE/simonsoft.vabb/doctypes/VVAB/vvab.style&#39; does not exist.<p><B>Other information</B><BR>&nbsp;&nbsp;&nbsp;<B>Version:&nbsp;</B>7.0 M080 <BR>&nbsp;&nbsp;&nbsp;<B>Platform:&nbsp;</B>Windows Server 2012 R2 Standard Evaluation <BR>&nbsp;&nbsp;&nbsp;<B>Stylesheet:&nbsp;</B>$aptpath/simonsoft.vabb/doctypes/VVAB/vvab.style <BR></P>\n" + 
+				"</p>\n" + 
+				"</div>\n" + 
+				"</body>\n" + 
+				"</html>";
 	}
 }

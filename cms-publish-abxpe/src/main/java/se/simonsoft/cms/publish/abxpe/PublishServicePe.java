@@ -25,6 +25,8 @@ import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -206,6 +208,18 @@ public class PublishServicePe implements PublishService {
 				result = true;
 			}
 			
+			if (result) {
+				String jobRequestURI = getJobRequestURI(ticket);
+				
+				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
+				
+				ResponseHeaders head = this.httpClient.head(jobRequestURI.toString());
+				
+				if (head.getStatus() != 200) {
+					getErrorResponseMessageHTML(jobRequestURI.toString());
+				}
+			}
+			
 		} catch (HttpStatusError e) {
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
@@ -224,13 +238,7 @@ public class PublishServicePe implements PublishService {
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
 			// Create the uri
-		StringBuffer uri = new StringBuffer();
-		uri.append(this.peUri);
-
-		// General always mandatory params
-		uri.append("?&f=qt-retrieve");// The retrieve req
-		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
-		
+		String uri = getJobRequestURI(ticket);
 		final OutputStream outputStream = outStream;
 		
 		try {
@@ -259,12 +267,7 @@ public class PublishServicePe implements PublishService {
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		// THIS IS NOT WORKING YET. 
 		// Create the uri
-		StringBuffer uri = new StringBuffer();
-		uri.append(this.peUri);
-
-		// General always mandatory params
-		uri.append("?&f=qt-retrieve");// The retrieve req
-		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+		String uri = getJobRequestURI(ticket);
 
 		final OutputStream outputStream = outStream;
 
@@ -297,6 +300,7 @@ public class PublishServicePe implements PublishService {
 	 */
 	private String parseResponse(String element, String attribute, InputStream content) throws PublishException{
 		logger.debug("Start");
+		logger.debug("Start parse response");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
 			
@@ -336,8 +340,56 @@ public class PublishServicePe implements PublishService {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		logger.debug("End");
+		logger.debug("End parse response");
 		return null;
+	}
+	
+	/**
+	 * Use only when we know the response body is a PE failed HTML response. 
+	 * The method is based on the assumption that all error body's first p element contains the error message (Should only be one p element).
+	 * @param responseBody
+	 * @return
+	 */
+	protected String parseErrorResponseBody(String responseBody) {
+		
+		if (responseBody == null) {
+			return "";
+		}
+		
+		String res = "";
+		try {
+			//Replacing new lines and charachter returns to make the regex more simple.
+			responseBody = responseBody.replaceAll("\n", " ");
+			responseBody = responseBody.replaceAll("\r", "");
+			final Pattern pattern = Pattern.compile("<p>(.*)</p>"); // all content between p tags 
+			final Matcher matcher = pattern.matcher(responseBody);
+			matcher.find();
+			res = matcher.group(1);
+		} catch (Exception e) {
+			logger.debug("Could not match p element in response body: {}", responseBody);
+		}
+		
+		return res;
+	}
+	
+	private void getErrorResponseMessageHTML(String requestUri) throws IOException, PublishException {
+		
+		try {
+			this.httpClient.get(requestUri.toString(), new RestResponse() {
+				@Override
+				public OutputStream getResponseStream(
+						ResponseHeaders headers) {
+					logger.debug("Got response from PE with headers {}", headers);
+					return null; // The output stream will be empty, since this request always fails.
+				}
+			});
+			
+		//We now that this request will fail. The reponse body is included in the exception.
+		} catch (HttpStatusError e) {
+			String response = e.getResponse();
+			String errorMessage = parseErrorResponseBody(response);
+			throw new PublishException(errorMessage);
+		}
 	}
 	
 	
@@ -365,5 +417,17 @@ public class PublishServicePe implements PublishService {
 			// encoding is a constant so we must consider this a fatal runtime environment issue
 			throw new RuntimeException("Unexpected JVM behavior: failed to encode URL using " + PE_URL_ENCODING, e);
 		}
+	}
+	
+	private String getJobRequestURI(PublishTicket ticket) {
+		
+		StringBuffer uriBuffer = new StringBuffer();
+		uriBuffer.append(this.peUri);
+
+		// General always mandatory params
+		uriBuffer.append("?&f=qt-retrieve");// The retrieve req
+		uriBuffer.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+		
+		return uriBuffer.toString();
 	}
 }
