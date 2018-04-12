@@ -73,7 +73,7 @@ $reposHeadTags
 		<p> 
 			#if (! $itemProfiling.entrySet().isEmpty())
 			<label for="profiling">profiling</label>
-			<div>
+			<div style="display: inline-block;">
 				#foreach ($mapEntry in $itemProfiling.entrySet())
 					<input id="dosrc" name="profiling" type="checkbox" value="$mapEntry.getValue().getName()">$mapEntry.getValue().getName()</input>
 					<br/>
@@ -83,7 +83,7 @@ $reposHeadTags
 		</p>
 		<p class="publications">
 			<label for="dopub">publications</label>
-			<div>
+			<div style="display: inline-block;">
 			#if (! $configuration.entrySet().isEmpty())
 				#foreach ($mapEntry in $configuration.entrySet())
 					#if( $mapEntry.getValue().isVisible() )
