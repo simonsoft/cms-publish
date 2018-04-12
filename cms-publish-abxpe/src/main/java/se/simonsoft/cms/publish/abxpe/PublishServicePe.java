@@ -311,6 +311,7 @@ public class PublishServicePe implements PublishService {
 	 */
 	private String parseResponse(String element, String attribute, InputStream content) throws PublishException{
 		logger.debug("Start");
+		logger.debug("Start parse response");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
 			
@@ -350,7 +351,7 @@ public class PublishServicePe implements PublishService {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		logger.debug("End");
+		logger.debug("End parse response");
 		return null;
 	}
 	
