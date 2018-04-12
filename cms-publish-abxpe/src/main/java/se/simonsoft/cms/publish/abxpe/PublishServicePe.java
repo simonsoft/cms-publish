@@ -209,16 +209,14 @@ public class PublishServicePe implements PublishService {
 			}
 			
 			if (result) {
-				StringBuffer getJobRequestUri = new StringBuffer(this.peUri);
-				getJobRequestUri.append("?&f=qt-retrieve");// The retrieve req
-				getJobRequestUri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+				String jobRequestURI = getJobRequestURI(ticket);
 				
 				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
 				
-				ResponseHeaders head = this.httpClient.head(getJobRequestUri.toString());
+				ResponseHeaders head = this.httpClient.head(jobRequestURI.toString());
 				
 				if (head.getStatus() != 200) {
-					getErrorResponse(getJobRequestUri.toString());
+					getErrorResponse(jobRequestURI.toString());
 				}
 			}
 			
@@ -240,13 +238,7 @@ public class PublishServicePe implements PublishService {
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		
 			// Create the uri
-		StringBuffer uri = new StringBuffer();
-		uri.append(this.peUri);
-
-		// General always mandatory params
-		uri.append("?&f=qt-retrieve");// The retrieve req
-		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
-		
+		String uri = getJobRequestURI(ticket);
 		final OutputStream outputStream = outStream;
 		
 		try {
@@ -275,12 +267,7 @@ public class PublishServicePe implements PublishService {
 		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		// THIS IS NOT WORKING YET. 
 		// Create the uri
-		StringBuffer uri = new StringBuffer();
-		uri.append(this.peUri);
-
-		// General always mandatory params
-		uri.append("?&f=qt-retrieve");// The retrieve req
-		uri.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+		String uri = getJobRequestURI(ticket);
 
 		final OutputStream outputStream = outStream;
 
@@ -417,5 +404,17 @@ public class PublishServicePe implements PublishService {
 			// encoding is a constant so we must consider this a fatal runtime environment issue
 			throw new RuntimeException("Unexpected JVM behavior: failed to encode URL using " + PE_URL_ENCODING, e);
 		}
+	}
+	
+	private String getJobRequestURI(PublishTicket ticket) {
+		
+		StringBuffer uriBuffer = new StringBuffer();
+		uriBuffer.append(this.peUri);
+
+		// General always mandatory params
+		uriBuffer.append("?&f=qt-retrieve");// The retrieve req
+		uriBuffer.append("&id=" + ticket.toString()); // And ask for publication with ticket id
+		
+		return uriBuffer.toString();
 	}
 }
