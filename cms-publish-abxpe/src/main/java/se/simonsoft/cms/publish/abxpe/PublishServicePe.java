@@ -216,7 +216,7 @@ public class PublishServicePe implements PublishService {
 				ResponseHeaders head = this.httpClient.head(jobRequestURI.toString());
 				
 				if (head.getStatus() != 200) {
-					getErrorResponse(jobRequestURI.toString());
+					getErrorResponseMessageHTML(jobRequestURI.toString());
 				}
 			}
 			
@@ -345,21 +345,33 @@ public class PublishServicePe implements PublishService {
 	}
 	
 	/**
-	 * Use only when we now the response body is a PE failed HTML response. 
+	 * Use only when we know the response body is a PE failed HTML response. 
 	 * The method is based on the assumption that all error body's first p element contains the error message (Should only be one p element).
 	 * @param responseBody
 	 * @return
 	 */
-	private String parseErrorResponseBody(String responseBody) {
+	protected String parseErrorResponseBody(String responseBody) {
 		
-		// all content between p tags, ok with new lines.
-		final Pattern pattern = Pattern.compile("<p>[\\s\\S](.+?)[\\s\\S]</p>"); 
-		final Matcher matcher = pattern.matcher(responseBody);
-		matcher.find();
-		return matcher.group(1);
+		if (responseBody == null) {
+			return "PE has failed with job but did not return a error response.";
+		}
+		String res = "";
+		try {
+			//Replacing new lines and charachter returns to make the regex more simple.
+			responseBody = responseBody.replaceAll("\n", " ");
+			responseBody = responseBody.replaceAll("\r", "");
+			final Pattern pattern = Pattern.compile("<p>(.*)</p>"); // all content between p tags 
+			final Matcher matcher = pattern.matcher(responseBody);
+			matcher.find();
+			res = matcher.group(1);
+		} catch (Exception e) {
+			logger.debug("Could not match p element in response body: {}", responseBody);
+		}
+		
+		return res;
 	}
 	
-	private void getErrorResponse(String requestUri) throws IOException, PublishException {
+	private void getErrorResponseMessageHTML(String requestUri) throws IOException, PublishException {
 		
 		try {
 			this.httpClient.get(requestUri.toString(), new RestResponse() {
