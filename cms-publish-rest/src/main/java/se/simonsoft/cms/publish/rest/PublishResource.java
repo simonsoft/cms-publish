@@ -48,6 +48,7 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
@@ -249,6 +250,10 @@ public class PublishResource {
 				} catch (CmsExportJobNotFoundException e) {
 					String message = MessageFormatter.format("Published job does not exist: {}", e.getExportJob().getJobPath().toString()).getMessage();
 					throw new IllegalStateException(message, e);
+				} catch (CmsExportAccessDeniedException e) {
+					// We can not determine if the exception is because lack of list buckets credentials or that the job is missing.
+					// TODO: CmsExportAccessDeniedExcpetion do not take a job so it is not possible to include the job path.
+					throw new IllegalStateException("Published job does not exist", e);
 				}
 			}
 		};
