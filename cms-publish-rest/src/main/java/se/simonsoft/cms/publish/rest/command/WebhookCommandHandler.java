@@ -85,6 +85,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		
+		// TODO: We might be able to suppress webhooks that executes after the document has been iterated.
+		// This could prevent out-of-order webhooks.
+		// Might need PublishJob, especially if we want to evaluate if this publishconfig is supposed to execute for the subsequent iterations. 
+		
 		if (options.getDelivery() == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobDelivery object with param url.");
 		}
