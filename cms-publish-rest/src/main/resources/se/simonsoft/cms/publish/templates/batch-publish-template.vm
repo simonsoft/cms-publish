@@ -88,8 +88,7 @@ $reposHeadTags
 				#foreach ($mapEntry in $configuration.entrySet())
 					#if( $mapEntry.getValue().isVisible() )
 					
-						<input id="$mapEntry.getKey()" 
-							name="publication" 
+						<input name="publication" 
 							type="radio" 
 							value="$mapEntry.getKey()"
 							class="publicationBtn">$mapEntry.getKey()
