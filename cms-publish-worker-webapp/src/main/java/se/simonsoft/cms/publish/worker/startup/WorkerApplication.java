@@ -16,9 +16,15 @@
 package se.simonsoft.cms.publish.worker.startup;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Manifest;
+
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Context;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -49,6 +55,9 @@ import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
 import se.simonsoft.cms.publish.worker.export.CmsExportProviderNotConfigured;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
+import se.simonsoft.cms.version.CmsComponentVersion;
+import se.simonsoft.cms.version.CmsComponentVersionManifest;
+import se.simonsoft.cms.version.CmsComponents;
 
 public class WorkerApplication extends ResourceConfig {
 	
@@ -66,12 +75,19 @@ public class WorkerApplication extends ResourceConfig {
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
 	private String bucketName = BUCKET_NAME; 
+	private ServletContext context;
 	
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
-	public WorkerApplication()  {
+	private static CmsComponentVersion webappVersion;
+
+	public WorkerApplication(@Context ServletContext context)  {
 		
-		logger.info("Worker Webapp starting...");
+		logger.info("Worker Webapp starting with context: " + context);
+		this.context = context;
+		setWebappVersion(context);
+		context.setAttribute("buildName", webappVersion.toString());
+		CmsComponents.logAllVersions();
 		
 		register(new AbstractBinder() {
 
@@ -191,6 +207,23 @@ public class WorkerApplication extends ResourceConfig {
 		}
 		return result;
 	}
-
+	
+	private void setWebappVersion(ServletContext context) {
+		InputStream manifestIn = context.getResourceAsStream("/META-INF/MANIFEST.MF");
+		if (manifestIn != null) {
+			Manifest mf = null;
+			try {
+				mf = new Manifest(manifestIn);
+				webappVersion = new CmsComponentVersionManifest(mf);
+				logger.info("Build: {}", webappVersion);
+			} catch (IOException e) {
+				logger.debug("Failed to read webapp manifest", e.getMessage());
+			}
+		}
+	}
+	
+	public static CmsComponentVersion getWebappVersion() {
+		return webappVersion;
+	}
 
 }

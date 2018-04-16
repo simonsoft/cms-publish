@@ -19,9 +19,18 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Simonsoft Worker Webapp</title>
+		<style>
+			.webappVersion {
+				color: grey;
+				font-size: 12px;
+				margin-top: -20px;
+			}
+		
+		</style>
 	</head>
 	<body>
-    	<h2>Simonsoft Worker Webapp</h2>
+    	<h2>Simonsoft Worker Webapp versions</h2>
+    	<p class="webappVersion">${buildName}</p>
     	<p><a href="rest/status">Status</a></p>
     	<p><a href="rest/test/form">Publish Document</a></p>
     	<p><a href="rest/test/publish/job">Publish Job</a></p>
