@@ -37,7 +37,7 @@ import se.simonsoft.cms.version.CmsComponentVersion;
 import se.simonsoft.cms.version.CmsComponents;
 
 
-@Path("versions")
+@Path("info/version")
 public class VersionsResource {
 	
 	
