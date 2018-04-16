@@ -83,8 +83,9 @@ public class WorkerApplication extends ResourceConfig {
 
 	public WorkerApplication(@Context ServletContext context)  {
 		
-		logger.info("Worker Webapp starting with context: " + context);
 		this.context = context;
+		logger.info("Worker Webapp starting with context: " + context);
+		
 		setWebappVersion(context);
 		context.setAttribute("buildName", webappVersion.toString());
 		CmsComponents.logAllVersions();
