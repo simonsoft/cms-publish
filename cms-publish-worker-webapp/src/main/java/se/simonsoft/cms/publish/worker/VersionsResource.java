@@ -17,8 +17,11 @@ package se.simonsoft.cms.publish.worker;
 
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -56,14 +59,16 @@ public class VersionsResource {
 		
 		VelocityContext context = new VelocityContext();
 		//Name of dep and version (String) defined in pom.xml
-		Map<String, String> versions = new HashMap<String, String>();
-		for (String name: CmsComponents.getNames()) {
+		Set<String> components = new TreeSet<String>();
+		components.addAll(CmsComponents.getNames());
+		
+		Map<String, String> versions = new LinkedHashMap<String, String>();
+		for (String name: components) {
 			CmsComponentVersion version = CmsComponents.getVersion(name);
 			versions.put(name, version.getVersion());
 		}
 		
 		context.put("depVersions", versions);
-		logger.debug("Versions webapp: {}", WorkerApplication.getWebappVersion().toString());
 		context.put("webappVersion", WorkerApplication.getWebappVersion().toString());
 		
 		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/VersionsTemplate.vm");
