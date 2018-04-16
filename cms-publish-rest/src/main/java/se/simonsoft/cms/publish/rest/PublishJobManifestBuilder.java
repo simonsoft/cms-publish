@@ -84,9 +84,9 @@ public class PublishJobManifestBuilder {
 		
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
-		result.put("itemid", job.getItemId().getLogicalId());
+		result.put("configname", job.getConfigname());
 		result.put("format", job.getOptions().getFormat());
-		result.put("pathnamebase", job.getOptions().getStorage().getPathnamebase());
+		result.put("itemid", job.getItemId().getLogicalId());
 		
 		return result;
 	}
