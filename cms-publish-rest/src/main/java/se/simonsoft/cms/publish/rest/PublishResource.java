@@ -127,7 +127,7 @@ public class PublishResource {
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
 		
 		VelocityContext context = new VelocityContext();
-		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/templates/batch-publish-template.vm");
+		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/rest/export-release-form.vm");
 		context.put("item", item);
 		context.put("itemProfiling", itemProfilings);
 		context.put("configuration", configuration);
