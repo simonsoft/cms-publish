@@ -158,7 +158,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalId());
-		pj.setAction("publish-noop");
+		pj.setAction("publish-noop"); // TODO: Remove the noop action, no longer used.
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
