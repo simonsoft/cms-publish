@@ -28,7 +28,8 @@
             "type": "default",
             "job": {
                 "itemid": "x-svn:///svn/demo1^/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145",
-                "format": "pdf"
+                "format": "pdf",
+                "pathnamebase": "900108_r0000000145"
             },
             "document": {
                 "docno": "DOC_900108_en-GB",

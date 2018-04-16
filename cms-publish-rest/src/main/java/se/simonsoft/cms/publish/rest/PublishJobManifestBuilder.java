@@ -86,6 +86,7 @@ public class PublishJobManifestBuilder {
 		
 		result.put("itemid", job.getItemId().getLogicalId());
 		result.put("format", job.getOptions().getFormat());
+		result.put("pathnamebase", job.getOptions().getStorage().getPathnamebase());
 		
 		return result;
 	}
