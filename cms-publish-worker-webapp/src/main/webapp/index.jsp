@@ -18,7 +18,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Simonsoft Worker Webapp</title>
+		<title>SimonsoftCMS Publish Worker</title>
 		<style>
 			.webappVersion {
 				color: grey;
@@ -29,8 +29,8 @@
 		</style>
 	</head>
 	<body>
-    	<h2>Simonsoft Worker Webapp versions</h2>
-    	<p class="webappVersion">${buildName}</p>
+    	<h2>Simonsoft Worker Webapp</h2>
+    	<p class="webappVersion"><a href="rest/info/version">${buildName}</a></p>
     	<p><a href="rest/status">Status</a></p>
     	<p><a href="rest/test/form">Publish Document</a></p>
     	<p><a href="rest/test/publish/job">Publish Job</a></p>
