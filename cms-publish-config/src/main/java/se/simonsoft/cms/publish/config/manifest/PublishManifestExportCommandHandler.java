@@ -80,7 +80,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		CmsExportItem exportItem; 
 		if (manifest.getTemplate() != null) {
 			logger.debug("Manifest will be serialized with velocity");
-			exportItem = new CmsExportItemPublishManifestVelocity(manifest);
+			exportItem = new CmsExportItemPublishManifestVelocity(options);
 		} else {
 			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 		}

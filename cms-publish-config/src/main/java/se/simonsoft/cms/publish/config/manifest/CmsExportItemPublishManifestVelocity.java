@@ -22,6 +22,7 @@ import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportPath;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
 
 /**
@@ -33,18 +34,20 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
  */
 public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
 	
+	private final PublishJobOptions jobOptions;
 	private final PublishJobManifest jobManifest;
 	private final String template;
 	
 	private boolean ready = false;
 
 	public CmsExportItemPublishManifestVelocity(
-			PublishJobManifest jobManifest
+			PublishJobOptions jobOptions
 			) {
 		
+		this.jobOptions = jobOptions;
 		// Getting template string before it is removed in forPublish.
-		this.template = jobManifest.getTemplate();
-		this.jobManifest = jobManifest.forPublish();
+		this.template = jobOptions.getManifest().getTemplate();
+		this.jobManifest = jobOptions.getManifest().forPublish();
 	}
 	
 	@Override
@@ -81,6 +84,10 @@ public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
 		t.withEntry("master", jobManifest.getMaster());
 		t.withEntry("custom", jobManifest.getCustom());
 		t.withEntry("meta", jobManifest.getMeta());
+		
+		// Providing the storage object for custom manifests.
+		// Using leading uppercase to distinguish from objects inside the manifest.
+		t.withEntry("Storage", jobOptions.getStorage());
 		
 		String evaluated = t.evaluate(template);
 		

@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 
 public class CmsExportItemPublishManifestVelocityTest {
 
@@ -39,12 +40,15 @@ public class CmsExportItemPublishManifestVelocityTest {
 	public void testPublishManifestVelocity() throws Exception {
 		
 		PublishJobManifest manifest = getManifest();
+		PublishJobOptions options = new PublishJobOptions();
+		options.setManifest(manifest);
+		
 		manifest.setTemplate(getTestResourceAsString("se/simonsoft/cms/publish/databinds/resources/publish-manifest-escape.vm"));
 		
 		//Adding invalid chars
 		manifest.getDocument().put("invalid", "i>nva<l&d");
 		
-		CmsExportItemPublishManifestVelocity exportItem = new CmsExportItemPublishManifestVelocity(manifest);
+		CmsExportItemPublishManifestVelocity exportItem = new CmsExportItemPublishManifestVelocity(options);
 		exportItem.prepare();
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
