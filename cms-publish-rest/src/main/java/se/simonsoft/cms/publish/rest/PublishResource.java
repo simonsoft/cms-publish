@@ -48,6 +48,7 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
@@ -259,8 +260,28 @@ public class PublishResource {
 		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
+				.header("Content-Disposition", "attachment; filename=" + getFilename(items, publication, releaseItem) + ".zip")
 				.build();
+	}
+	
+	private String getFilename(List<CmsItem> items, String publication, CmsItem releaseItem) {
+		long rev = 0;
+		for (CmsItem item: items) {
+			long number = item.getRevisionChanged().getNumber();
+			if (rev < number) {
+				rev = number;
+			}
+		}
+		
+		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(releaseItem.getId().getRelPath().getNameBase());
+		sb.append("_" + releaseLabel);
+		sb.append("_" + publication);
+		sb.append(String.format("_r%010d", rev));
+		
+		return sb.toString();
 	}
 	
 	
