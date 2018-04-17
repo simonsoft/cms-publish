@@ -275,7 +275,7 @@ public class PublishResource {
 		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
 		
 		if (releaseLabel == null) {
-			throw new IllegalStateException("Item must be a release");
+			throw new IllegalStateException("The Release does not have a Release Label property.");
 		}
 		
 		StringBuilder sb = new StringBuilder();
