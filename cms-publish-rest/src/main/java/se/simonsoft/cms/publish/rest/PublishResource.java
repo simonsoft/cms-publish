@@ -48,7 +48,6 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
