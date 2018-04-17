@@ -184,7 +184,7 @@ public class AwsStepfunctionPublishWorker {
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed"));
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e));
 						}
 					} else {
 						
