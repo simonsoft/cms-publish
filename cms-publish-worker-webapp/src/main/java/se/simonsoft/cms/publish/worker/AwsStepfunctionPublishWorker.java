@@ -174,7 +174,7 @@ public class AwsStepfunctionPublishWorker {
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Exception: " + e.getMessage(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e)); // TODO: Consider if e.getMessage() must be set as message on CommandRuntimeException.
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e));
 							
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
@@ -184,7 +184,7 @@ public class AwsStepfunctionPublishWorker {
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed"));
+							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e));
 						}
 					} else {
 						
