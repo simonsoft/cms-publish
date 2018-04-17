@@ -267,7 +267,7 @@ public class PublishResource {
 	private String getFilename(List<CmsItem> items, String publication, CmsItem releaseItem) {
 		long rev = 0;
 		for (CmsItem item: items) {
-			long number = item.getRevisionChanged().getNumber();
+			long number = item.getId().getPegRev();
 			if (rev < number) {
 				rev = number;
 			}
