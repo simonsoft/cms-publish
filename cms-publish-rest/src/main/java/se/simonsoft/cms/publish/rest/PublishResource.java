@@ -275,6 +275,10 @@ public class PublishResource {
 		
 		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
 		
+		if (releaseLabel == null) {
+			throw new IllegalStateException("Item must be a release");
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		sb.append(releaseItem.getId().getRelPath().getNameBase());
 		sb.append("_" + releaseLabel);
