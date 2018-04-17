@@ -259,7 +259,7 @@ public class PublishResource {
 		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=" + getFilename(items, publication, releaseItem) + ".zip")
+				.header("Content-Disposition", "attachment; filename=" + getFilenameDownload(items, publication, releaseItem) + ".zip")
 				.build();
 	}
 	
@@ -271,6 +271,7 @@ public class PublishResource {
 				rev = number;
 			}
 		}
+	private String getFilenameDownload(List<CmsItem> items, String publication, CmsItem releaseItem) {
 		
 		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
 		
