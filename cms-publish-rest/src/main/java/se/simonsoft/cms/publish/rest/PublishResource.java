@@ -263,14 +263,6 @@ public class PublishResource {
 				.build();
 	}
 	
-	private String getFilename(List<CmsItem> items, String publication, CmsItem releaseItem) {
-		long rev = 0;
-		for (CmsItem item: items) {
-			long number = item.getId().getPegRev();
-			if (rev < number) {
-				rev = number;
-			}
-		}
 	private String getFilenameDownload(List<CmsItem> items, String publication, CmsItem releaseItem) {
 		
 		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
@@ -283,9 +275,22 @@ public class PublishResource {
 		sb.append(releaseItem.getId().getRelPath().getNameBase());
 		sb.append("_" + releaseLabel);
 		sb.append("_" + publication);
-		sb.append(String.format("_r%010d", rev));
+		long revLatest = getRevLatest(items);
+		sb.append(String.format("_r%010d", revLatest));
 		
 		return sb.toString();
+	}
+	
+	private long getRevLatest(List<CmsItem> items) {
+		
+		long rev = 0;
+		for (CmsItem item: items) {
+			long number = item.getId().getPegRev();
+			if (rev < number) {
+				rev = number;
+			}
+		}
+		return rev;
 	}
 	
 	
