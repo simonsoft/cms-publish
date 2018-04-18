@@ -40,7 +40,7 @@ $reposHeadTags
 
 <div id="commandbar">
 <a class="repository" href="$item.getId().getRepositoryUrl()">return to repository</a>
-<a class="details" href="$item.getId().getUrl()?p=$item.getId().getPegRev()&rweb=details">details</a>
+<a class="details" href="$item.getId().getUrl()?rweb=details">details</a>
 </div>
 
 <div id="intro">

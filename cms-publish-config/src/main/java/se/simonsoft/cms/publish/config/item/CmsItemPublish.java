@@ -43,15 +43,27 @@ public class CmsItemPublish implements CmsItem {
 	}
 	
 	public String getReleaseLabel() {
-		return item.getProperties().getString("abx:ReleaseLabel");
+		String rl = item.getProperties().getString("abx:ReleaseLabel");
+		if (rl != null && rl.trim().isEmpty()) {
+			throw new IllegalStateException("Property 'ReleaseLabel' must not be an empty string");
+		}
+		return rl;
 	}
 	
 	public String getReleaseLocale() {
-		return item.getProperties().getString("abx:ReleaseLocale");
+		String rl = item.getProperties().getString("abx:ReleaseLocale");
+		if (rl != null && rl.trim().isEmpty()) {
+			throw new IllegalStateException("Property 'ReleaseLocale' must not be an empty string");
+		}
+		return rl;
 	}
 	
 	public String getTranslationLocale() {
-		return item.getProperties().getString("abx:TranslationLocale");
+		String tl = item.getProperties().getString("abx:TranslationLocale");
+		if (tl != null && tl.trim().isEmpty()) {
+			throw new IllegalStateException("Property 'TranslationLocale' must not be an empty string");
+		}
+		return tl; 
 	}
 	
 	public boolean hasProfiles() {

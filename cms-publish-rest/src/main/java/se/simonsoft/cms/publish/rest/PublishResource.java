@@ -259,8 +259,38 @@ public class PublishResource {
 		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=" + storageFactory.getNameBase(itemId, null) + ".zip")
+				.header("Content-Disposition", "attachment; filename=" + getFilenameDownload(items, publication, releaseItem) + ".zip")
 				.build();
+	}
+	
+	private String getFilenameDownload(List<CmsItem> items, String publication, CmsItem releaseItem) {
+		
+		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
+		
+		if (releaseLabel == null) {
+			throw new IllegalStateException("The Release does not have a Release Label property.");
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(releaseItem.getId().getRelPath().getNameBase());
+		sb.append("_" + releaseLabel);
+		sb.append("_" + publication);
+		long revLatest = getRevLatest(items);
+		sb.append(String.format("_r%010d", revLatest));
+		
+		return sb.toString();
+	}
+	
+	private long getRevLatest(List<CmsItem> items) {
+		
+		long rev = 0;
+		for (CmsItem item: items) {
+			long number = item.getId().getPegRev();
+			if (rev < number) {
+				rev = number;
+			}
+		}
+		return rev;
 	}
 	
 	
