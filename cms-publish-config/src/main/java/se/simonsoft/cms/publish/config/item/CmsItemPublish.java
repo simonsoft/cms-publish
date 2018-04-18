@@ -44,7 +44,7 @@ public class CmsItemPublish implements CmsItem {
 	
 	public String getReleaseLabel() {
 		String rl = item.getProperties().getString("abx:ReleaseLabel");
-		if (rl.trim().isEmpty()) {
+		if (rl != null && rl.trim().isEmpty()) {
 			throw new IllegalStateException("Property 'ReleaseLabel' must not be an empty string");
 		}
 		return rl;
@@ -52,7 +52,7 @@ public class CmsItemPublish implements CmsItem {
 	
 	public String getReleaseLocale() {
 		String rl = item.getProperties().getString("abx:ReleaseLocale");
-		if (rl.trim().isEmpty()) {
+		if (rl != null && rl.trim().isEmpty()) {
 			throw new IllegalStateException("Property 'ReleaseLocale' must not be an empty string");
 		}
 		return rl;
@@ -60,7 +60,7 @@ public class CmsItemPublish implements CmsItem {
 	
 	public String getTranslationLocale() {
 		String tl = item.getProperties().getString("abx:TranslationLocale");
-		if (tl.trim().isEmpty()) {
+		if (tl != null && tl.trim().isEmpty()) {
 			throw new IllegalStateException("Property 'TranslationLocale' must not be an empty string");
 		}
 		return tl; 
