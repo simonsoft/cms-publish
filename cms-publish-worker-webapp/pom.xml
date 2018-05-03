@@ -12,11 +12,17 @@
 	<parent>
 		<groupId>se.simonsoft</groupId>
 		<artifactId>cms-maven-parent</artifactId>
-		<version>4.1.2</version>
+		<version>4.1.3</version>
 		<relativePath />
 	</parent>
 
 	<repositories>
+		<!-- TODO: Opensource cms-export-aws. -->
+		<repository>
+			<id>pdsvisionReleases</id>
+			<name>PDSVision Releases</name>
+			<url>http://build.pdsvision.net/releases/</url>
+		</repository>
 		<repository>
 			<id>repos.open.repo</id>
 			<name>Simonsoft / Repos Open Repository</name>
@@ -117,13 +123,19 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-export-aws</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
+			<version>1.2.0</version>
 		</dependency>
 		
 		<dependency>
     		<groupId>com.amazonaws</groupId>
     		<artifactId>aws-java-sdk-stepfunctions</artifactId>
-    		<version>1.11.218</version>
+    		<version>${aws-java-sdk1-version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-sts</artifactId>
+			<version>${aws-java-sdk1-version}</version>
 		</dependency>
 		
 		<dependency>
