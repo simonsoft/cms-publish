@@ -81,16 +81,16 @@ public class PublishItemChangedEventListenerTest {
 	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
 	
 	@SuppressWarnings("unused")
-	private final String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
-	private final String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
+	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";
+	private final String pathConfigStatus = "se/simonsoft/cms/publish/rest/config/filter/publish-config-status.json";
 	@SuppressWarnings("unused")
-	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
-	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
-	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
-	private final String pathConfigProfilingFalse = "se/simonsoft/cms/publish/config/filter/publish-config-profile-false.json";
+	private final String pathConfigType = "se/simonsoft/cms/publish/rest/config/filter/publish-config-type.json";
+	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/rest/config/filter/publish-config-profile-all.json";
+	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/rest/config/filter/publish-config-profile-osx.json";
+	private final String pathConfigProfilingFalse = "se/simonsoft/cms/publish/rest/config/filter/publish-config-profile-false.json";
 	
-	private final String pathJobStatusRelease = "se/simonsoft/cms/publish/config/filter/publish-job-status-release.json";
-	private final String pathJobStatusTranslation = "se/simonsoft/cms/publish/config/filter/publish-job-status-translation.json";
+	private final String pathJobStatusRelease = "se/simonsoft/cms/publish/rest/config/filter/publish-job-status-release.json";
+	private final String pathJobStatusTranslation = "se/simonsoft/cms/publish/rest/config/filter/publish-job-status-translation.json";
 	
 	private final String bucketName = "cms-automation";
 	
