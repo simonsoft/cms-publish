@@ -61,7 +61,7 @@ public class StatusView {
 		context.put("workerEvents", workerEvents);
 		context.put("workerLoop", workerLoop);
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/StatusTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/StatusTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);

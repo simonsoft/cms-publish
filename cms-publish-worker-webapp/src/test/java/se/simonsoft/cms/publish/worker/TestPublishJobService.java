@@ -91,7 +91,7 @@ public class TestPublishJobService {
 	}
 	
 	public String getJsonString() throws IOException {
-		String jsonPath = "resources/se/simonsoft/cms/publish/worker/publish-job-options.json";
+		String jsonPath = "se/simonsoft/cms/publish/worker/publish-job-options.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
 		StringBuilder out = new StringBuilder();

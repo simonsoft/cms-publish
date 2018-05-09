@@ -115,7 +115,7 @@ public class TestPublishConfig extends TestCase {
 	}
 	
 	private String getPublishConfigAsString() throws FileNotFoundException, IOException {
-		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config.json";
+		String jsonPath = "se/simonsoft/cms/publish/config/databinds/config/publish-config.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
 		StringBuilder out = new StringBuilder();
@@ -127,7 +127,7 @@ public class TestPublishConfig extends TestCase {
 		return out.toString();
 	}
 	private String getPublishConfig2AsString() throws FileNotFoundException, IOException {
-		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-config2.json";
+		String jsonPath = "se/simonsoft/cms/publish/config/databinds/config/publish-config2.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
 		StringBuilder out = new StringBuilder();

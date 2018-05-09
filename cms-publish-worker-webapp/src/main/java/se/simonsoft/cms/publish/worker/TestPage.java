@@ -91,7 +91,7 @@ public class TestPage {
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/GetTicketTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/GetTicketTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -110,7 +110,7 @@ public class TestPage {
 		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/DocumentFormTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/DocumentFormTemplate.vm");
 
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -130,7 +130,7 @@ public class TestPage {
 
 		VelocityContext context = new VelocityContext();
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/TicketFormTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/TicketFormTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -181,7 +181,7 @@ public class TestPage {
 
 		VelocityContext context = new VelocityContext();
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/PublishJobForm.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/PublishJobForm.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
@@ -211,7 +211,7 @@ public class TestPage {
 		context.put("ticketNumber", ticket.toString());
 		context.put("options", URLEncoder.encode(jsonstring, "UTF-8").replaceAll("\\+", "%20"));
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/GetTicketTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/GetTicketTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);

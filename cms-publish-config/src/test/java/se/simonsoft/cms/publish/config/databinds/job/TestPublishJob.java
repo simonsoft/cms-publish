@@ -110,7 +110,7 @@ public class TestPublishJob {
 	}
 
 	private String getJsonString() throws FileNotFoundException, IOException {
-		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-job.json";
+		String jsonPath = "se/simonsoft/cms/publish/config/databinds/job/publish-job.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
 		StringBuilder out = new StringBuilder();

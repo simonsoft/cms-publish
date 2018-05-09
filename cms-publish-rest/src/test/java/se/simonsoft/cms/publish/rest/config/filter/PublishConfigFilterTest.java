@@ -45,12 +45,12 @@ public class PublishConfigFilterTest {
 	
 	private final ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
 	
-	private final String pathConfigSimple = "se/simonsoft/cms/publish/config/filter/publish-config-simple.json";
-	private final String pathConfigStatus = "se/simonsoft/cms/publish/config/filter/publish-config-status.json";
-	private final String pathConfigType = "se/simonsoft/cms/publish/config/filter/publish-config-type.json";
-	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/config/filter/publish-config-profile-all.json";
+	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";
+	private final String pathConfigStatus = "se/simonsoft/cms/publish/rest/config/filter/publish-config-status.json";
+	private final String pathConfigType = "se/simonsoft/cms/publish/rest/config/filter/publish-config-type.json";
+	private final String pathConfigProfilingAll = "se/simonsoft/cms/publish/rest/config/filter/publish-config-profile-all.json";
 	@SuppressWarnings("unused")
-	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/config/filter/publish-config-profile-osx.json";
+	private final String pathConfigProfilingOsx = "se/simonsoft/cms/publish/rest/config/filter/publish-config-profile-osx.json";
 	
 	
 	@Test

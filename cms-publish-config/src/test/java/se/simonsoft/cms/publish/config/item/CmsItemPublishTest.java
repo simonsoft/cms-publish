@@ -48,7 +48,7 @@ public class CmsItemPublishTest {
 	}
 	
 	private CmsItemPublish getItem() throws FileNotFoundException, IOException {
-		String jsonPath = "se/simonsoft/cms/publish/databinds/resources/publish-report3-release.json";
+		String jsonPath = "se/simonsoft/cms/publish/config/item/publish-report3-release.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		
 		PublishJobReport3 report3 = reader.readValue(resourceAsStream);

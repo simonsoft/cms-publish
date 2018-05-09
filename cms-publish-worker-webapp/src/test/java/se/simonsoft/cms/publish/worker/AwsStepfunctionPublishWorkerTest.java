@@ -69,9 +69,9 @@ public class AwsStepfunctionPublishWorkerTest {
 	private ObjectWriter writer = mapper.writer();
 	private Map<String, CmsExportProvider> exportProviders = new HashMap<>();
 	
-	private final String jsonStringWithoutTicket = "resources/se/simonsoft/cms/publish/worker/publish-job-no-ticket.json";
-	private final String jsonStringNotCompletedTicket = "resources/se/simonsoft/cms/publish/worker/publish-job-not-completed.json";
-	private final String jsonStringWithTicketCompleted = "resources/se/simonsoft/cms/publish/worker/publish-job-has-ticket-completed.json";
+	private final String jsonStringWithoutTicket = "se/simonsoft/cms/publish/worker/publish-job-no-ticket.json";
+	private final String jsonStringNotCompletedTicket = "se/simonsoft/cms/publish/worker/publish-job-not-completed.json";
+	private final String jsonStringWithTicketCompleted = "se/simonsoft/cms/publish/worker/publish-job-has-ticket-completed.json";
 	
 	private final String cloudId = "test-cloudId"; 
 	private final String awsAccountId = "test-accountid";
