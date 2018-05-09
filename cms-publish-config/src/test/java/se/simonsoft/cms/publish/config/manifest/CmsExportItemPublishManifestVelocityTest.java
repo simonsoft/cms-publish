@@ -43,7 +43,7 @@ public class CmsExportItemPublishManifestVelocityTest {
 		PublishJobOptions options = new PublishJobOptions();
 		options.setManifest(manifest);
 		
-		manifest.setTemplate(getTestResourceAsString("se/simonsoft/cms/publish/databinds/resources/publish-manifest-escape.vm"));
+		manifest.setTemplate(getTestResourceAsString("se/simonsoft/cms/publish/config/manifest/publish-manifest-escape.vm"));
 		
 		//Adding invalid chars
 		manifest.getDocument().put("invalid", "i>nva<l&d");
