@@ -1,0 +1,45 @@
+{
+    "active": true,
+    "visible": true,
+    "profilingInclude": false,
+    "statusInclude": [
+        "In_Translation",
+        "Released"
+    ],
+    "areas": [
+        {
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        },
+        {
+            "type": "release",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        },
+        {
+            "type": "translation",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getTranslationLocale()}_${item.getStatus()}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
+            "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        }
+    ],
+    "options": {
+        "type": "abxpe",
+        "format": "pdf",
+        "params": {
+            "stylesheet": "$aptapplication/se.simonsoft.vvab/doctypes/VVAB/vvab.style",
+            "pdfconfig": "smallfile.pdfcf"
+        },
+        "manifest": {
+            "type": "abxpe",
+            "pathext": "xml",
+            "template": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest>\n <job>\n#foreach($jobEntry in $job.entrySet())\n <$jobEntry.key>$esc.xml($jobEntry.value)<\/$jobEntry.key>\n#end\n <\/job>\n <document>\n#foreach ($docEntry in $document.entrySet())\n <$docEntry.key>$esc.xml($docEntry.value)<\/$docEntry.key>\n#end\n <\/document>\n#if ($master)\n <master>\n#foreach ($masterEntry in $master.entrySet())\n <$masterEntry.key>$esc.xml($masterEntry.value)<\/$masterEntry.key>\n#end\n <\/master>\n#end\n#if ($custom)\n <custom>\n#foreach ($customEntry in $custom.entrySet())\n <$customEntry.key>$esc.xml($customEntry.value)<\/$customEntry.key>\n#end\n <\/custom>\n#end\n#if ($meta)\n <meta>\n#foreach ($metaEntry in $meta.entrySet())\n <$metaEntry.key>$esc.xml($metaEntry.value)<\/$metaEntry.key>\n#end\n <\/meta>\n#end\n<\/manifest>",
+            "customTemplates": {
+                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}",
+                "static": "value"
+            },
+            "metaTemplates": {"type": "${item.getMeta().get(\"embd_xml_a_type\").toString()}"}
+        },
+        "storage": {"type": "fs"}
+    }
+}

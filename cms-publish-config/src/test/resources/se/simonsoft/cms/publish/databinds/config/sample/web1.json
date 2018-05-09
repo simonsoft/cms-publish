@@ -1,0 +1,39 @@
+{
+    "active": true,
+    "visible": true,
+    "profilingInclude": false,
+    "statusInclude": [
+        "Review",
+        "Released"
+    ],
+    "areas": [
+        {
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        },
+        {
+            "type": "release",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"cms:status\")}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        },
+        {
+            "type": "translation",
+            "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getTranslationLocale()}_${item.getStatus()}",
+            "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
+            "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
+        }
+    ],
+    "options": {
+        "type": "abxpe",
+        "format": "web",
+        "params": {
+        },
+        "manifest": {
+            "customTemplates": {
+                "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}",
+                "static": "value"
+            },
+            "metaTemplates": {"type": "${item.getMeta().get(\"embd_xml_a_type\").toString()}"}
+        }
+    }
+}
