@@ -71,7 +71,7 @@ public class VersionsResource {
 		context.put("depVersions", versions);
 		context.put("webappVersion", WorkerApplication.getWebappVersion().toString());
 		
-		Template template = engine.getTemplate("se/simonsoft/publish/worker/templates/VersionsTemplate.vm");
+		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/VersionsTemplate.vm");
 		
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
