@@ -18,7 +18,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>cms-publish-abxpe</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 	
 	<name>Simonsoft CMS Publish Arbortext Publishing Engine integration</name>
@@ -46,12 +46,12 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-publish-interface</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>se.repos</groupId>
 			<artifactId>restclient</artifactId>
-			<version>1.3.2</version>
+			<version>1.3.7</version>
 		</dependency>
 		
 		<!-- logging backend for unit tests: log debug and above to console, no need for config file -->
