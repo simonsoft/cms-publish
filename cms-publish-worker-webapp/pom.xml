@@ -6,7 +6,7 @@
 	<groupId>se.simonsoft.publish.worker</groupId>
 	<artifactId>cms-publish-worker-webapp</artifactId>
 	<packaging>war</packaging>
-	<version>0.2.0</version>
+	<version>0.3.0-SNAPSHOT</version>
 	<name>worker-webapp</name>
 
 	<parent>
