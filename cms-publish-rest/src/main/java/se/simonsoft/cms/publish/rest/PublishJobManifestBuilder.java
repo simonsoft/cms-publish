@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;

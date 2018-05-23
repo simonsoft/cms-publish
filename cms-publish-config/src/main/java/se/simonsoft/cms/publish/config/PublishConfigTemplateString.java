@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.databinds.config;
+package se.simonsoft.cms.publish.config;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.MessageFormat;
 import java.util.Properties;
 
 import org.apache.velocity.VelocityContext;
