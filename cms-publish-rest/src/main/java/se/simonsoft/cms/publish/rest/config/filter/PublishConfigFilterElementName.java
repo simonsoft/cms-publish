@@ -20,16 +20,16 @@ import java.util.List;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
-public class PublishConfigFilterType implements PublishConfigFilter {
+public class PublishConfigFilterElementName implements PublishConfigFilter {
 	
-	private final String fieldName = "embd_xml_a_type";
+	private final String fieldName = "embd_xml_name";
 	
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
 		String fieldValue = (String) item.getMeta().get(fieldName);
 		
 		boolean accept = false;
-		List<String> configInclude = config.getTypeInclude();
+		List<String> configInclude = config.getElementNameInclude();
 		if (configInclude == null || configInclude.contains(fieldValue)) { 
 			accept = true;
 		}

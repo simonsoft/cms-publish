@@ -25,6 +25,7 @@ public class PublishConfig {
 	protected boolean active;
 	protected boolean visible;
 	protected List<String> statusInclude;
+	protected List<String> elementNameInclude;
 	protected List<String> typeInclude;
 	protected Boolean profilingInclude;
 	protected List<String> profilingNameInclude = null; // No array means include all profiling recipes.
@@ -60,6 +61,12 @@ public class PublishConfig {
 	}
 	public void setStatusInclude(List<String> statusInclude) {
 		this.statusInclude = statusInclude;
+	}
+	public List<String> getElementNameInclude() {
+		return this.elementNameInclude;
+	}
+	public void setElementNameInclude(List<String> elementNameInclude) {
+		this.elementNameInclude = elementNameInclude;
 	}
 	public List<String> getTypeInclude() {
 		return this.typeInclude;

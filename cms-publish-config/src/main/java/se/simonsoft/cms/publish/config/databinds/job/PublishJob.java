@@ -46,6 +46,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
 		this.statusInclude = pj.getStatusInclude();
+		this.elementNameInclude = pj.getElementNameInclude();
 		this.typeInclude = pj.getTypeInclude();
 		this.profilingInclude = pj.getProfilingInclude();
 		this.profilingNameInclude = pj.getProfilingNameInclude();
@@ -59,6 +60,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 		this.active = pc.isActive();
 		this.visible = pc.isVisible();
 		this.statusInclude = pc.getStatusInclude();
+		this.elementNameInclude = pc.getElementNameInclude();
 		this.typeInclude = pc.getTypeInclude();
 		this.profilingInclude = pc.getProfilingInclude();
 		this.profilingNameInclude = pc.getProfilingNameInclude();
