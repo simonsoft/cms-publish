@@ -17,7 +17,6 @@ package se.simonsoft.cms.publish.config.manifest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -27,23 +26,22 @@ import java.io.InputStreamReader;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+
+import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigDelivery;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigManifest;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishManifestTemplateTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
 	
-	private ObjectReader readerJob = mapper.reader(PublishJob.class);
 	private ObjectReader readerManifest = mapper.reader(PublishConfigManifest.class); // TODO: PublishJobManifest.class
 	//private String pathJobStatus = "se/simonsoft/cms/publish/config/filter/publish-job-status.json";
 	private String pathManifestJson = "se/simonsoft/cms/publish/config/manifest/manifest-json.vm";

@@ -20,7 +20,7 @@ import java.io.OutputStream;
 
 import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportPath;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
+import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 

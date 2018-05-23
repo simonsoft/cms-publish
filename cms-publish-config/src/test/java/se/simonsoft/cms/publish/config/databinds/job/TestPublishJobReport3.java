@@ -34,7 +34,7 @@ import se.simonsoft.cms.item.Checksum.Algorithm;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
+import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobReport3;
 import se.simonsoft.cms.publish.config.databinds.job.item.PublishJobItem;
@@ -122,6 +122,7 @@ public class TestPublishJobReport3 {
 			PublishJobReport3 report3 = reportReader.readValue(getReport3JsonString());
 
 			report3.getItems().get(0).setDate("09/22/1993T35:20:44.3821Z");
+			@SuppressWarnings("unused")
 			RepoRevision repoR = report3.getItems().get(0).getRevisionChanged();
 			fail("Expected IllegalArgumentException to be thrown");
 		} catch(IllegalArgumentException e) {

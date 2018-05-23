@@ -31,15 +31,14 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
-import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
+import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -54,10 +53,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 
 	private final PublishConfiguration publishConfiguration;
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
-	
-	private final List<PublishConfigFilter> filters;
-	private final ObjectReader readerConfig;
-	private final ObjectReader readerProfiling;
 	
 	private final String type = "publish-job";
 	private final PublishJobStorageFactory storageFactory;
@@ -75,9 +70,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		this.publishConfiguration = publishConfiguration;
 		this.workflowExecutor = workflowExecutor;
-		this.filters = filters;
-		this.readerConfig = reader.forType(PublishConfig.class);
-		this.readerProfiling = reader.forType(PublishProfilingSet.class);
 		this.storageFactory = storageFactory;
 	}
 
