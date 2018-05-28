@@ -18,7 +18,6 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
