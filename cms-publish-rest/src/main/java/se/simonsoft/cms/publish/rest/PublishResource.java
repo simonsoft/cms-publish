@@ -259,7 +259,7 @@ public class PublishResource {
 		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=" + getFilenameDownload(items, publication, releaseItem) + ".zip")
+				.header("Content-Disposition", "attachment; filename=\"" + getFilenameDownload(items, publication, releaseItem) + ".zip\"")
 				.build();
 	}
 	
