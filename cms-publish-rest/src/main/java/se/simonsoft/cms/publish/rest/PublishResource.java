@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -259,7 +260,7 @@ public class PublishResource {
 		};
 		
 		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=" + getFilenameDownload(items, publication, releaseItem) + ".zip")
+				.header("Content-Disposition", "attachment; filename=\"" + getFilenameDownload(items, publication, releaseItem) + ".zip\"")
 				.build();
 	}
 	
