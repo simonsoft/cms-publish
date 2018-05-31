@@ -189,8 +189,13 @@ public class PublishJobManifestBuilder {
 			return areaMap.get("release");
 		} else if (fallback != null) {
 			return fallback;
+		// Differentiating error messages to simplify troubleshooting.	
+		} else if (item.isTranslation()) {
+			throw new IllegalArgumentException("No fallback area configured, item is a Translation.");
+		} else if (item.isRelease()) {
+			throw new IllegalArgumentException("No fallback area configured, item is a Release.");
 		} else {
-			throw new IllegalArgumentException("No fallback area configured.");
+			throw new IllegalArgumentException("No fallback area configured, item is NOT a Release / Translation.");
 		}
 	}
 	
