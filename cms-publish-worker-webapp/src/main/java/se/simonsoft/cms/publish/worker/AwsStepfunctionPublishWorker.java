@@ -182,7 +182,7 @@ public class AwsStepfunctionPublishWorker {
 							sendTaskResultBestEffort(taskResult, e);
 						} catch (TaskTimedOutException e) {
 							String errorMessage = "AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).";
-							updateStatusReport("", new Date(), errorMessage);
+							updateStatusReport("Task timeout", new Date(), errorMessage);
 							logger.error(errorMessage, e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
@@ -388,7 +388,7 @@ public class AwsStepfunctionPublishWorker {
 			sendTaskResult(taskResult, cre);
 		} catch (TaskTimedOutException timedOutEx) {
 			String errorMessage = "AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).";
-			updateStatusReport("", new Date(), errorMessage);
+			updateStatusReport("Task timeout", new Date(), errorMessage);
 			logger.error(errorMessage, timedOutEx);
 		} catch (Exception e) {
 			logger.error("Exception occured when trying to send taskResult", e);
