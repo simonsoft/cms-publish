@@ -38,6 +38,7 @@ import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskHeartbeatRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
 import com.amazonaws.services.stepfunctions.model.SendTaskSuccessResult;
+import com.amazonaws.services.stepfunctions.model.TaskTimedOutException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -174,17 +175,15 @@ public class AwsStepfunctionPublishWorker {
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Exception: " + e.getMessage(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e));
-							
+							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
 							logger.warn("CommandRuntimeException: " + e.getErrorName(), e);
-							sendTaskResult(taskResult, e);
-							
+							sendTaskResultBestEffort(taskResult, e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
-							sendTaskResult(taskResult, new CommandRuntimeException("JobFailed", e));
+							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
 						}
 					} else {
 						
@@ -378,6 +377,16 @@ public class AwsStepfunctionPublishWorker {
 		}
 		logger.debug("Progress is serialized {}", progressJson);
 		return progressJson;
+	}
+	
+	private void sendTaskResultBestEffort(GetActivityTaskResult taskResult, CommandRuntimeException cre) {
+		try {
+			sendTaskResult(taskResult, cre);
+		} catch (TaskTimedOutException timedOutEx) {
+			logger.error("AWS Client has timed out while tring to send task result", timedOutEx);
+		} catch (Exception e) {
+			logger.error("Exception occured when trying to send taskResult", e);
+		}
 	}
 	
 	private void updateStatusReport(String action, Date timeStamp, String description) {
