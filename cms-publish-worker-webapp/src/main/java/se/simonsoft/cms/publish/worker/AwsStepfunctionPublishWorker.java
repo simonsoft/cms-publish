@@ -180,6 +180,8 @@ public class AwsStepfunctionPublishWorker {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
 							logger.warn("CommandRuntimeException: " + e.getErrorName(), e);
 							sendTaskResultBestEffort(taskResult, e);
+						} catch (TaskTimedOutException e) {
+							logger.error("AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).", e);
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
@@ -383,7 +385,7 @@ public class AwsStepfunctionPublishWorker {
 		try {
 			sendTaskResult(taskResult, cre);
 		} catch (TaskTimedOutException timedOutEx) {
-			logger.error("AWS Client has timed out while tring to send task result", timedOutEx);
+			logger.error("AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).", timedOutEx);
 		} catch (Exception e) {
 			logger.error("Exception occured when trying to send taskResult", e);
 		}
