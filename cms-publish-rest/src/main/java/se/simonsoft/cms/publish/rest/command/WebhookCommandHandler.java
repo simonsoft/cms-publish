@@ -152,9 +152,13 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			request.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
 			logger.debug("Making request...");
 			HttpResponse resp = client.execute(request);
+			// Client only has two available connections, 
+			// if we do not release connection after response it will start failing without any exceptions on the third request.
+			request.releaseConnection();
 			return resp;
 			
 		} catch (IOException e) {
+			request.releaseConnection();
 			throw new RuntimeException("Failed when trying to execute http request to: " + delivery.getParams().get("url"), e);
 		}
 	}
