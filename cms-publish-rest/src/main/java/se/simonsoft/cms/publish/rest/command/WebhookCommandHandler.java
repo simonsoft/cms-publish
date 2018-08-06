@@ -128,7 +128,6 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			throw new CommandRuntimeException("WebhookFailed", e);
 		}
 		
-		
 		int statusCode = response.getStatusLine().getStatusCode();
 		if (statusCode >= 200 && statusCode <= 299) {
 			logger.debug("Got a response with status code: {}", statusCode);
@@ -152,14 +151,12 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			request.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
 			logger.debug("Making request...");
 			HttpResponse resp = client.execute(request);
-			// Client only has two available connections, 
-			// if we do not release connection after response it will start failing without any exceptions on the third request.
-			request.releaseConnection();
 			return resp;
 			
 		} catch (IOException e) {
-			request.releaseConnection();
 			throw new RuntimeException("Failed when trying to execute http request to: " + delivery.getParams().get("url"), e);
+		} finally {
+			request.releaseConnection();
 		}
 	}
 	
