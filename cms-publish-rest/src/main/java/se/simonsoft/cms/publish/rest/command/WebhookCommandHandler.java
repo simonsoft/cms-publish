@@ -154,7 +154,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			return resp;
 			
 		} catch (IOException e) {
-			throw new RuntimeException("Failed when trying to execute http request to: " + delivery.getParams().get("url"), e);
+			throw new RuntimeException("Failed executing HTTP request: " + delivery.getParams().get("url"), e);
 		} finally {
 			request.releaseConnection();
 		}
