@@ -19,9 +19,9 @@
 	<repositories>
 		<!-- TODO: Opensource cms-export-aws. -->
 		<repository>
-			<id>pdsvisionReleases</id>
-			<name>PDSVision Releases</name>
-			<url>http://build.pdsvision.net/releases/</url>
+			<id>Simonsoft Releases</id>
+			<name>Simonsoft Releases</name>
+			<url>http://maven.simonsoft.se/releases/</url>
 		</repository>
 		<repository>
 			<id>repos.open.repo</id>
