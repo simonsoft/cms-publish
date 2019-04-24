@@ -19,7 +19,7 @@
 	<repositories>
 		<!-- TODO: cms-export-aws and parts of cms-release needs to be OSS. -->
 		<repository>
-			<id>Simonsoft Releases</id>
+			<id>simonsoft-releases</id>
 			<name>Simonsoft Releases</name>
 			<url>http://maven.simonsoft.se/releases/</url>
 		</repository>
