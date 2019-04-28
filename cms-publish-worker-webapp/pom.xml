@@ -47,7 +47,7 @@
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.4.0.v20161208</version>
+				<version>9.4.17.v20190418</version><!-- TODO: Use parent POM variable. -->
 				<configuration>
 					<scanIntervalSeconds>5</scanIntervalSeconds>
 					<!-- <webApp>${project.build.directory}/${project.artifactId}.war</webApp> -->
