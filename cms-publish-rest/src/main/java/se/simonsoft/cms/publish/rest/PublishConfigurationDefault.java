@@ -34,6 +34,7 @@ import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
+import se.simonsoft.cms.publish.config.PublishConfiguration;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
