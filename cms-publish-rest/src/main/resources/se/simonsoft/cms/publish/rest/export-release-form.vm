@@ -32,7 +32,10 @@ $reposHeadTags
 		display: none;
 	}
 	
-
+	#publish-status::before {
+		content: "\f0f6";
+	}
+	
 </style>
 
 </head>
@@ -41,6 +44,7 @@ $reposHeadTags
 <div id="commandbar">
 <a class="repository" href="$item.getId().getRepositoryUrl()">return to repository</a>
 <a class="details" href="$item.getId().getUrl()?rweb=details">details</a>
+<a class="publishstatus" id="publish-status" href="/cms/rest/workflow/publish?repo=$item.getId().getRepository().getName()" target="_blank">Publish Status</a>
 </div>
 
 <div id="intro">
