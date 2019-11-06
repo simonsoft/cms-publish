@@ -150,7 +150,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalId());
-		pj.setAction("publish-noop"); // TODO: Remove the noop action, no longer used.
+		pj.setAction("publish-preprocess"); // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
