@@ -23,6 +23,7 @@ public class PublishJobOptions extends PublishConfigOptions {
 	private PublishJobProfiling profiling;
 	private PublishJobManifest manifest;
 	private PublishJobStorage storage;
+	private PublishJobPreProcess preprocess;
 	private PublishJobPostProcess postprocess;
 	private PublishJobProgress progress = new PublishJobProgress();
 	private PublishJobDelivery delivery;
@@ -41,6 +42,7 @@ public class PublishJobOptions extends PublishConfigOptions {
 		// TODO: Profiling
 		this.setManifest(new PublishJobManifest(config.getManifest()));
 		this.storage = new PublishJobStorage(config.getStorage());
+		this.preprocess = new PublishJobPreProcess(config.getPreprocess());
 		this.postprocess = new PublishJobPostProcess(config.getPostprocess());
 		this.delivery = new PublishJobDelivery(config.getDelivery());
 	}
@@ -70,6 +72,12 @@ public class PublishJobOptions extends PublishConfigOptions {
 	}
 	public void setStorage(PublishJobStorage storage) {
 		this.storage = storage;
+	}
+	public PublishJobPreProcess getPreprocess() {
+		return preprocess;
+	}
+	public void setPreprocess(PublishJobPreProcess preprocess) {
+		this.preprocess = preprocess;
 	}
 	public PublishJobPostProcess getPostprocess() {
 		return postprocess;

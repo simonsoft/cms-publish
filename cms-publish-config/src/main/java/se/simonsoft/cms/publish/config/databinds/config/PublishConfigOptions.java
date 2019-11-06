@@ -28,6 +28,7 @@ public class PublishConfigOptions {
 	private Map <String, String> params = new HashMap<>();
 	private PublishConfigManifest manifest;
 	private PublishConfigStorage storage;
+	private PublishConfigPreProcess preprocess;
 	private PublishConfigPostProcess postprocess;
 	private PublishConfigDelivery delivery;
 
@@ -61,6 +62,12 @@ public class PublishConfigOptions {
 	}
 	public void setStorage(PublishConfigStorage storage) {
 		this.storage = storage;
+	}
+	public PublishConfigPreProcess getPreprocess() {
+		return preprocess;
+	}
+	public void setPreprocess(PublishConfigPreProcess preProcess) {
+		this.preprocess = preProcess;
 	}
 	public PublishConfigPostProcess getPostprocess() {
 		return postprocess;
