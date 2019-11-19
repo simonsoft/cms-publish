@@ -69,9 +69,8 @@ public class TestPublishConfig extends TestCase {
 	public void testUnkownProperty() {
 		//Getting data from Json
 		try {
-			PublishConfig jsonPc = new PublishConfig();
-			ObjectReader r = new ObjectMapper().reader(PublishConfig.class);
-			jsonPc = r.readValue(getPublishConfig2AsString());
+			@SuppressWarnings("unused")
+			PublishConfig jsonPc = reader.readValue(getPublishConfig2AsString());
 			fail("Expectected UnrecognizedPropertyException to be thrown");
 			
 		}catch(UnrecognizedPropertyException e){
