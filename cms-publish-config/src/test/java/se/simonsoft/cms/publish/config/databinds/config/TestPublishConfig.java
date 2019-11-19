@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import junit.framework.TestCase;
@@ -36,11 +37,13 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 
 public class TestPublishConfig extends TestCase {
 	private ObjectReader reader;
+	private ObjectWriter writer;
 
 	@BeforeClass
 	protected void setUp() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		reader = mapper.reader(PublishConfig.class);
+		reader = mapper.reader().forType(PublishConfig.class);
+		writer = mapper.writer().forType(PublishJob.class);
 	}
 	@Test
 	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
@@ -111,6 +114,11 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("future stuff", job.getOptions().getPostprocess().getType());
 		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
 		assertEquals("webhook", job.getOptions().getDelivery().getType());
+		
+		String jobJson = writer.writeValueAsString(job);
+		
+		String expectedJobJson = "{\"active\":true,\"visible\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[],\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\",\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"},\"manifest\":{\"job\":{},\"document\":{}},\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"},\"pathversion\":null,\"pathcloudid\":null,\"pathconfigname\":null,\"pathdir\":null,\"pathnamebase\":null},\"preprocess\":{\"type\":null,\"params\":{}},\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}},\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}},\"pathname\":null,\"source\":null,\"profiling\":null,\"progress\":{\"params\":{}}},\"configname\":null,\"type\":null,\"action\":null,\"area\":{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null},\"itemid\":null}";
+		assertEquals("full job JSONs",  expectedJobJson, jobJson);
 	}
 	
 	private String getPublishConfigAsString() throws FileNotFoundException, IOException {
