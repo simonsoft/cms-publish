@@ -1,7 +1,7 @@
 {
     "configname": "simple-pdf",
     "type": "publish-job",
-    "action": "publish-noop",
+    "action": "publish-preprocess",
     "active": true,
     "visible": true,
     "statusInclude": [

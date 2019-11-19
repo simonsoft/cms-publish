@@ -166,7 +166,7 @@ public class PublishItemChangedEventListenerTest {
 		//Asserts on argument that executor has been called with.
 		PublishJob publishJob = argCaptor.getValue();
 		assertEquals("status", publishJob.getConfigname());
-		assertEquals("publish-noop", publishJob.getAction());
+		assertEquals("publish-preprocess", publishJob.getAction());
 		assertTrue(publishJob.getStatusInclude().contains("Review"));
 		assertTrue(publishJob.getStatusInclude().contains("Released"));
 		
