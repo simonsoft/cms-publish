@@ -15,7 +15,10 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
+import java.util.Set;
+
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigParameter;
 
 public class PublishJobOptions extends PublishConfigOptions {
 	private String pathname;
@@ -39,13 +42,24 @@ public class PublishJobOptions extends PublishConfigOptions {
 		setFormat(config.getFormat());
 		setParams(config.getParams());
 		
-		// TODO: Profiling
 		this.setManifest(new PublishJobManifest(config.getManifest()));
 		this.storage = new PublishJobStorage(config.getStorage());
 		this.preprocess = new PublishJobPreProcess(config.getPreprocess());
 		this.postprocess = new PublishJobPostProcess(config.getPostprocess());
 		this.delivery = new PublishJobDelivery(config.getDelivery());
 	}
+	
+	
+	/**
+	 * Serialize params in 2 different formats.
+	 * Deserializing only the original object form, not the Name-Value form.
+	 * Deserialize seems to process the data and likely calls add() on the Set.
+	 * @return read-only copy of params
+	 */
+	public Set<PublishConfigParameter> getParamsNameValue() {
+		return new PublishJobParamsNameValue(getParams());
+	}
+	
 	
 	public String getSource() {
 		return source;

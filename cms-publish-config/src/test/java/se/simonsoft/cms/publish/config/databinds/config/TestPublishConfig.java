@@ -117,7 +117,15 @@ public class TestPublishConfig extends TestCase {
 		
 		String jobJson = writer.writeValueAsString(job);
 		
-		String expectedJobJson = "{\"active\":true,\"visible\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[],\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\",\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"},\"manifest\":{\"job\":{},\"document\":{}},\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"},\"pathversion\":null,\"pathcloudid\":null,\"pathconfigname\":null,\"pathdir\":null,\"pathnamebase\":null},\"preprocess\":{\"type\":null,\"params\":{}},\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}},\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}},\"pathname\":null,\"source\":null,\"profiling\":null,\"progress\":{\"params\":{}}},\"configname\":null,\"type\":null,\"action\":null,\"area\":{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null},\"itemid\":null}";
+		String expectedJobJson = "{\"active\":true,\"visible\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[]," + 
+				"\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\"," +
+				"\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"}," +
+				"\"manifest\":{\"job\":{},\"document\":{}}," + 
+				"\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"},\"pathversion\":null,\"pathcloudid\":null,\"pathconfigname\":null,\"pathdir\":null,\"pathnamebase\":null}," + 
+				"\"preprocess\":{\"type\":null,\"params\":{}},\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}}," +
+				"\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}},\"pathname\":null,\"source\":null,\"profiling\":null,\"progress\":{\"params\":{}}," + 
+				"\"paramsNameValue\":[{\"Name\":\"stylesheet\",\"Value\":\"file.css\"},{\"Name\":\"pdfconfig\",\"Value\":\"file.pdf\"},{\"Name\":\"whatever\",\"Value\":\"great\"}]}," + 
+				"\"configname\":null,\"type\":null,\"action\":null,\"area\":{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null},\"itemid\":null}";
 		assertEquals("full job JSONs",  expectedJobJson, jobJson);
 	}
 	
