@@ -33,7 +33,6 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
-import se.simonsoft.cms.release.ReleaseLookup;
 import se.simonsoft.cms.release.export.ReleaseExportOptions;
 import se.simonsoft.cms.release.export.ReleaseExportService;
 
@@ -41,7 +40,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 	private final CmsExportProvider exportProvider;
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
-	private final String bucketName;
+	//private final String bucketName;
 	//private final AmazonS3 s3Client;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishPreprocessCommandHandler.class);
@@ -49,7 +48,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	@Inject
 	public PublishPreprocessCommandHandler(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider, 
-			@Named("config:se.simonsoft.cms.publish.bucket") String bucketName, 
+			//@Named("config:se.simonsoft.cms.publish.bucket") String bucketName, 
 			Map<CmsRepository, ReleaseExportService> exportServices
 			//Region region, 
 			//AWSCredentialsProvider credentials
@@ -57,7 +56,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 		this.exportProvider = exportProvider;
 		this.exportServices = exportServices;
-		this.bucketName = bucketName;
+		//this.bucketName = bucketName;
 		//this.s3Client = AmazonS3Client.builder().withRegion(region.getName()).withCredentials(credentials).build();
 	}
 
@@ -104,8 +103,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			pathext = "zip";
 		}
 		
-		// TODO: Use preprocess options.
-		ReleaseExportOptions exportOptions = new ReleaseExportOptions(); 
+		// Use preprocess options.
+		ReleaseExportOptions exportOptions = new ReleaseExportOptions(preprocess.getParams()); 
 		ReleaseExportService exportService = this.exportServices.get(itemId.getRepository());
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
