@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.config.export;
 
 import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
+import se.simonsoft.cms.item.export.CmsExportJobZip;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.export.CmsImportJobSingle;
@@ -29,7 +30,7 @@ public class PublishExportJobFactory { //extends CmsExportJobSingle implements C
 	}
 	
 	public static CmsExportJob getExportJobZip(PublishJobStorage storage, String jobExtension) {
-		return new CmsExportJob(createJobPrefix(storage), getJobName(storage), jobExtension);
+		return new CmsExportJobZip(createJobPrefix(storage), getJobName(storage), jobExtension);
 	}
 	
 	
