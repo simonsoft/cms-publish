@@ -40,7 +40,7 @@ import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishPackageZip {
@@ -62,7 +62,7 @@ public class PublishPackageZip {
 	// Note: All aspects of PublishConfig does not necessarily apply to all items.
 	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<PublishProfilingRecipe> profilingSet, OutputStream os) {
 		
-		final List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
+		final List<CmsImportJob> downloadJobs = new ArrayList<CmsImportJob>();
 		final List<CmsExportReader> readers = new ArrayList<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
@@ -141,10 +141,10 @@ public class PublishPackageZip {
 		}
 	}
 	
-	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
+	private CmsImportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
 		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, profiling);
-		return new PublishExportJob(s, "zip");
+		return PublishExportJobFactory.getImportJobSingle(s, "zip");
 	}
 
 }

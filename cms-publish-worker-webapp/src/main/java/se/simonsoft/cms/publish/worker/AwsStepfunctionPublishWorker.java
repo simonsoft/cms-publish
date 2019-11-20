@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.command.CommandRuntimeException;
+import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
@@ -51,7 +52,7 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.manifest.PublishManifestExportCommandHandler;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
@@ -278,7 +279,8 @@ public class AwsStepfunctionPublishWorker {
 		
 		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
 		
-		PublishExportJob job = new PublishExportJob(options.getStorage(), this.jobExtension);
+		// The file is already zipped, performing "Single" export.
+		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), this.jobExtension);
 		
 		CmsExportItemPublish exportItem = new CmsExportItemPublish(ticket, options, publishJobService, null);
 		job.addExportItem(exportItem);
