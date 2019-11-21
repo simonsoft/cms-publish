@@ -148,7 +148,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling);
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling, null);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
@@ -167,7 +167,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishConfigStorage configStorage = pj.getOptions().getStorage();
 		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
 		pj.getOptions().setStorage(storage);
-
+		
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		
@@ -177,6 +177,9 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		// Evaluate Velocity for params
 		// Normally we evaluate config fields '...Templates'.
 		// TODO: Decide if this is the long term solution.
+		// Need to refresh the template evaluator to contain the storage object. 
+		templateEvaluator = getTemplateEvaluator(item, profiling, storage);
+		manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
 		
 		logger.debug("Created PublishJob from config: {}", configName);
@@ -196,11 +199,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	}
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling, PublishJobStorage storage) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
 		tmplStr.withEntry("profiling", profiling);
+		// Add storage object to allow configuration of parameters with S3 key etc.
+		tmplStr.withEntry("storage", storage);
 		return tmplStr;
 	}
 }
