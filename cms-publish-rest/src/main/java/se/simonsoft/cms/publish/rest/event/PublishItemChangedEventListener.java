@@ -82,6 +82,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			throw new IllegalArgumentException("Item requires a revision to be published.");
 		}
 		
+		if (!item.getId().getRepository().isHostKnown()) {
+			logger.error("Item requires a known hostname to be published: {}", item.getId().getLogicalIdFull());
+			throw new IllegalArgumentException("Item requires a known hostname to be published: " + item.getId().getLogicalIdFull());
+		}
+		
 		if (item.getKind() != CmsItemKind.File) {
 			return;
 		}
@@ -149,7 +154,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
-		pj.setItemid(item.getId().getLogicalId());
+		pj.setItemid(item.getId().getLogicalIdFull()); // Event workflow has itemid hostname so publish workflow should as well.
 		pj.setAction("publish-preprocess"); // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 		pj.setType(this.type);
 		pj.setConfigname(configName);
