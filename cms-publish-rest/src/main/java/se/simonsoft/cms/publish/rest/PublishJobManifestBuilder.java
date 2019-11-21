@@ -136,7 +136,7 @@ public class PublishJobManifestBuilder {
 	}
 	
 	
-	private LinkedHashMap<String, String> buildMap(CmsItemPublish item, Map<String, String> map) {
+	public LinkedHashMap<String, String> buildMap(CmsItemPublish item, Map<String, String> map) {
 		
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		

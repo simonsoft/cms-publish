@@ -174,6 +174,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		// Build the Manifest, modifies the existing manifest object.
 		manifestBuilder.build(item, pj);
 		
+		// Evaluate Velocity for params
+		// Normally we evaluate config fields '...Templates'.
+		// TODO: Decide if this is the long term solution.
+		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
+		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
 	}
