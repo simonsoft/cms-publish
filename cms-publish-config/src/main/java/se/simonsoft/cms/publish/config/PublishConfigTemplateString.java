@@ -69,6 +69,8 @@ public class PublishConfigTemplateString {
 		}
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty("runtime.references.strict", true);
+		// Also enable velocity strict escape.
+		ve.setProperty("runtime.references.strict.escape", true);
 		Properties props = new Properties();
 		//Disable velocity logging.
 		props.put("runtime.log.logsystem.class", "org.apache.velocity.runtime.log.NullLogChute");
