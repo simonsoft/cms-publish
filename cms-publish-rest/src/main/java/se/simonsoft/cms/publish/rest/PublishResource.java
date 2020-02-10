@@ -199,12 +199,16 @@ public class PublishResource {
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
 		
+		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
+		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(releaseItem));
+		final PublishConfig publishConfig = configurationsRelease.get(publication);
+
 		if (includeRelease) {
 			items.add(releaseItem);
 		}
 		
 		if (includeTranslations) {
-			List<CmsItem> translationItems = getTranslationItems(itemId, publication);
+			List<CmsItem> translationItems = getTranslationItems(itemId, publishConfig);
 			if (translationItems.isEmpty()) {
 				throw new IllegalArgumentException("Translations requested, no translations found.");
 			}
@@ -222,9 +226,6 @@ public class PublishResource {
 			}
 		}
 		
-		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
-		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(releaseItem));
-		final PublishConfig publishConfig = configurationsRelease.get(publication);
 		
 		if (publishConfig.getOptions().getStorage() != null) {
 			String type = publishConfig.getOptions().getStorage().getType();
@@ -366,17 +367,34 @@ public class PublishResource {
 		return executions;
 	}
 
-	private List<CmsItem> getTranslationItems(CmsItemId itemId, String publication) {
+	private List<CmsItem> getTranslationItems(CmsItemId itemId, PublishConfig publishConfig) {
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		final TranslationTracking translationTracking = trackingMap.get(itemId.getRepository());
 		final List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
 
 		logger.debug("Found {} translations.", translations.size());
 
+		List<String> statusInclude = null;
+		// publishConfig is allowed to be null
+		if (publishConfig != null) {
+			statusInclude = publishConfig.getStatusInclude();
+		}
+		// Normalize: empty list is not meaningful when publishing translations.
+		if (statusInclude != null && statusInclude.isEmpty()) {
+			statusInclude = null;
+		}
+		
 		List<CmsItem> items = new ArrayList<CmsItem>();
 		for (CmsItemTranslation t: translations) {
 			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
-			items.add(tItem);
+			// Filter Translations with status not included by the PublishConfiguration.
+			// Currently not filtering on other aspects, would likely indicate configuration mismatch (user should get a failure).
+			if (statusInclude == null || statusInclude.contains(tItem.getStatus())) {
+				logger.debug("Publish including Translation: {}", tItem.getId());
+				items.add(tItem);
+			} else {
+				logger.debug("Publish excluding Translation (status = {}): {}", tItem.getStatus(), tItem.getId());
+			}
 		}
 		
 		return items;
