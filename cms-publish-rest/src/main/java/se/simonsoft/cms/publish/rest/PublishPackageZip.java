@@ -102,7 +102,7 @@ public class PublishPackageZip {
 			try {
 				// AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
 				int trailing = IOUtils.copy(contents, new NullOutputStream());
-				logger.debug("Trailing size: {}", trailing);
+				logger.debug("S3 zip file trailing size: {}", trailing);
 				
 				zis.close();
 			} catch (IOException e) {
@@ -117,7 +117,7 @@ public class PublishPackageZip {
 			logger.error("Could not finish zip");
 			throw new RuntimeException("Could not finish zip", e);
 		}
-		logger.debug("Getting zip files at S3 and re-package them.");
+		logger.debug("Re-packaged zip files from S3.");
 	}
 	
 	private void writeEntries(ZipInputStream zis, ZipOutputStream zos) {
