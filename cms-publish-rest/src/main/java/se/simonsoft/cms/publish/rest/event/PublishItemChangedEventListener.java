@@ -55,6 +55,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 	
 	private final String type = "publish-job";
+	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
 	
@@ -150,7 +151,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalId());
-		pj.setAction("publish-preprocess"); // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
+		pj.setAction(this.action); 
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
