@@ -34,6 +34,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.properties.CmsItemPropertiesMap;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -182,6 +184,39 @@ public class PublishConfigFilterTest {
 		Map<String, Object> emptyMeta = new HashMap<String, Object>();
 		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);
 		assertFalse(filter.accept(publishConfig, itemMockNoType));
+	}
+	
+	
+	@Test
+	public void testPathextFilter() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);
+		PublishConfigFilter filter = new PublishConfigFilterPathext();
+		
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		
+		CmsItem itemXml = mock(CmsItem.class);
+		CmsItemId itemIdXml = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml");
+		when(itemXml.getId()).thenReturn(itemIdXml);
+		when(itemXml.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemXml)));
+		
+		CmsItem itemDita = mock(CmsItem.class);
+		CmsItemId itemIdDita = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.dita");
+		when(itemDita.getId()).thenReturn(itemIdDita);
+		when(itemDita.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemDita)));
+		
+		CmsItem itemDitamap = mock(CmsItem.class);
+		CmsItemId itemIdDitamap = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.ditamap");
+		when(itemDitamap.getId()).thenReturn(itemIdDitamap);
+		when(itemDitamap.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemDitamap)));
+		
+		CmsItem itemPng = mock(CmsItem.class);
+		CmsItemId itemIdPng = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/graphics/0001.png");
+		when(itemPng.getId()).thenReturn(itemIdPng);
+		when(itemPng.getProperties()).thenReturn(props);
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemPng)));
 	}
 	
 	

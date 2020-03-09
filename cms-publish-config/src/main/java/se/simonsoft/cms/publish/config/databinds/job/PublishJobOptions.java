@@ -17,9 +17,12 @@ package se.simonsoft.cms.publish.config.databinds.job;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigParameter;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobOptions extends PublishConfigOptions {
 	private String pathname;
 	private String source;
