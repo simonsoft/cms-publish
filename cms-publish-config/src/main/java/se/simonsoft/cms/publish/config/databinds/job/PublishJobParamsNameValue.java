@@ -26,6 +26,8 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigParameter;
  * Improved compatibility with Step Functions JSONPath.
  * 
  * @author takesson
+ * 
+ * @deprecated Used during development, might be removed.
  */
 public class PublishJobParamsNameValue extends LinkedHashSet<PublishConfigParameter> {
 
@@ -33,6 +35,9 @@ public class PublishJobParamsNameValue extends LinkedHashSet<PublishConfigParame
 	
 
 	public PublishJobParamsNameValue(Map<String, String> paramMap) {
+		if (paramMap == null) {
+			return;
+		}
 		for (Entry<String, String> param: paramMap.entrySet()) {
 			this.add(new PublishConfigParameter(param.getKey(), param.getValue()));
 		}

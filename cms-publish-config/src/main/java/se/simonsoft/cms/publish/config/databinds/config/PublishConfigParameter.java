@@ -17,6 +17,10 @@ package se.simonsoft.cms.publish.config.databinds.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * @author takesson
+ * @deprecated Used during development, might be removed.
+ */
 public class PublishConfigParameter {
 	@JsonProperty("Name")
 	private String name;
