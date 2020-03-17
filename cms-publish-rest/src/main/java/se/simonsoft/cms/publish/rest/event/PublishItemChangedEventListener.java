@@ -160,7 +160,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
-		pj.getOptions().setSource(item.getId().getLogicalId());
+		// The source attribute is used by publishing engines with the ability to directly fetch data from the CMS.
+		// When Preprocess is configured, the source attribute should be null because the preprocessed / exported data should be used instead.
+		if (pj.getOptions().getPreprocess().getType() == null || pj.getOptions().getPreprocess().getType().equals("none")) {
+			pj.getOptions().setSource(item.getId().getLogicalId());			
+		}
 		if (profiling != null) {
 			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
 		}
