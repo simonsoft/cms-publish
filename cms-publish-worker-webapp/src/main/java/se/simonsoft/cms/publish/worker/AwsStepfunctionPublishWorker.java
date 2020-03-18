@@ -116,7 +116,8 @@ public class AwsStepfunctionPublishWorker {
 					try {
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
-						updateStatusReport("AWS worker task", new Date(), taskResult.getTaskToken());
+						// Can we get the workflow execution UUID?
+						//updateStatusReport("AWS worker task", new Date(), taskResult.getTaskToken());
 					} catch (AbortedException e) {
 						logger.warn("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted, e);
 						updateWorkerError(new Date(), e);
