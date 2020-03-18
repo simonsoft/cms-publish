@@ -105,8 +105,8 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	public PublishJobOptions getOptions() {
 		return options;
 	}
-	public void setOptions(PublishJobOptions publish) {
-		this.options = publish;
+	public void setOptions(PublishJobOptions options) {
+		this.options = options;
 	}
 
 
