@@ -240,6 +240,7 @@ public class PublishServicePe implements PublishService {
 			// Create the uri
 		String uri = getJobRequestURI(ticket);
 		final OutputStream outputStream = outStream;
+		logger.debug("Getting result of job with ticket: {}", ticket);
 		
 		try {
 			//What if the job do no exist. This code will probably not handle that. Does it get a response body or does it throw a exception?

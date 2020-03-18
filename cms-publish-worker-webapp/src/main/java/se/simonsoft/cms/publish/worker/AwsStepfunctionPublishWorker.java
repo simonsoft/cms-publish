@@ -116,6 +116,7 @@ public class AwsStepfunctionPublishWorker {
 					try {
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
 						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
+						updateStatusReport("AWS worker task", new Date(), taskResult.getTaskToken());
 					} catch (AbortedException e) {
 						logger.warn("Client aborted getActivtyTask, start up time: {}", startupTimeFormatted, e);
 						updateWorkerError(new Date(), e);
@@ -148,7 +149,7 @@ public class AwsStepfunctionPublishWorker {
 									PublishManifestExportCommandHandler manifestExport = new PublishManifestExportCommandHandler(exportProviders.get(options.getStorage().getType()), writer);
 									manifestExport.handleExternalCommand(new CmsItemIdArg(options.getManifest().getJob().get("itemid")), options);
 									
-									updateStatusReport("Completed passthrough activity", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
+									updateStatusReport("Completed manifest export", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
 									sendTaskResult(taskResult, getProgressAsJson(options.getProgress()));
 								} else {
 									updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
@@ -187,6 +188,10 @@ public class AwsStepfunctionPublishWorker {
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
+							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
+						} catch (Throwable e) {
+							updateWorkerError(new Date(), e);
+							logger.error("Unexpected error: {}", e.getMessage(), e);
 							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
 						}
 					} else {
@@ -400,7 +405,7 @@ public class AwsStepfunctionPublishWorker {
 		workerStatusReport.addWorkerEvent(event);
 	}
 	
-	private void updateWorkerError(Date timeStamp, Exception e) {
+	private void updateWorkerError(Date timeStamp, Throwable e) {
 		WorkerEvent event = new WorkerEvent("Error", timeStamp, e);
 		workerStatusReport.addWorkerEvent(event);
 	}

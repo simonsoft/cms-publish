@@ -58,7 +58,7 @@ public class WorkerStatusReport {
 			this.description = description;
 		}
 		
-		public WorkerEvent(String action, Date timeStamp, Exception e) {
+		public WorkerEvent(String action, Date timeStamp, Throwable e) {
 			this.action = action;
 			this.timeStamp = timeStamp;
 			this.description = e.getMessage();
