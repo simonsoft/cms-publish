@@ -60,52 +60,46 @@ import se.simonsoft.cms.version.CmsComponentVersionManifest;
 import se.simonsoft.cms.version.CmsComponents;
 
 public class WorkerApplication extends ResourceConfig {
-	
+
 	private final Environment environment = new Environment();
-	
+
 	private static final String AWS_ACTIVITY_NAME = "abxpe";
 	private static final String PUBLISH_FS_PATH_ENV = "PUBLISH_FS_PATH";
 	private static final String PUBLISH_S3_BUCKET_ENV = "PUBLISH_S3_BUCKET";
 	private static final String BUCKET_NAME = "cms-automation";
-	
+
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
-	
+
 	private Region region; // The Region class will be in SDK 2.0 (Regions will be removed).
-	private String cloudId; 
+	private String cloudId;
 	private String awsAccountId;
 	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
-	private String bucketName = BUCKET_NAME; 
+	private String bucketName = BUCKET_NAME;
 	private ServletContext context;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
 	private static CmsComponentVersion webappVersion;
 
 	public WorkerApplication(@Context ServletContext context)  {
-		
+
 		this.context = context;
 		logger.info("Worker Webapp starting with context: " + context);
-		
+
 		setWebappVersion(context);
 		context.setAttribute("buildName", getWebappVersionString());
 		CmsComponents.logAllVersions();
-		
+
 		register(new AbstractBinder() {
 
 			@Override
             protected void configure() {
-            	
+
 				String aptapplicationPrefix = getAptapplicationPrefix();
-				
-            	bind(new PublishServicePe()).to(PublishServicePe.class);
-            	
-            	PublishServicePe publishServicePe = new PublishServicePe();
-            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix);
-            	bind(publishJobService).to(PublishJobService.class);
-            	
+
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
-            	
+
             	String envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
             	if (envBucket != null) {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
@@ -113,12 +107,18 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	cloudId = environment.getParamOptional("CLOUDID");
-            	
-            	region = Region.getRegion(Regions.fromName("eu-west-1")); // Currently hardcoded, might need different regions annotated per service. 
-        		// Might need to determine which region we are running in for EC2. See SDK 2.0, might have a Region Provider Chain.
-        		bind(region).to(Region.class);
+
+            	region = Region.getRegion(Regions.fromName("eu-west-1")); // Currently hardcoded, might need different regions annotated per service.
+            	// Might need to determine which region we are running in for EC2. See SDK 2.0,
+            	// might have a Region Provider Chain.
+            	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
-            	
+
+            	bind(new PublishServicePe()).to(PublishServicePe.class);
+            	PublishServicePe publishServicePe = new PublishServicePe();
+            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix, credentials, region);
+            	bind(publishJobService).to(PublishJobService.class);
+
             	String fsParent = environment.getParamOptional(PUBLISH_FS_PATH_ENV);
             	//Bind of export providers.
             	Map<String, CmsExportProvider> exportProviders = new HashMap<>();
@@ -129,11 +129,11 @@ public class WorkerApplication extends ResourceConfig {
             		logger.warn("Could not instansiate CmsExportProviderFsSingle, will not be able to export to file system.");
             		cmsExportProviderFsSingle = new CmsExportProviderNotConfigured("fs");
             	}
-            	
+
             	exportProviders.put("fs", cmsExportProviderFsSingle);
             	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials));
             	bind(exportProviders).to(Map.class);
-            	
+
             	//Bind AWS client
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
@@ -142,9 +142,9 @@ public class WorkerApplication extends ResourceConfig {
         				.withCredentials(credentials)
         				.withClientConfiguration(clientConfiguration)
         				.build();
-            	
+
             	bind(client).to(AWSStepFunctions.class);
-            	
+
             	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
         		ObjectReader reader = mapper.reader();
@@ -174,9 +174,9 @@ public class WorkerApplication extends ResourceConfig {
 				}
             }
         });
-		
+
 	}
-	
+
 	private String getAwsAccountId(AWSCredentialsProvider credentials, Region region) {
 
 		logger.debug("Requesting aws to get a account Id");
@@ -198,17 +198,17 @@ public class WorkerApplication extends ResourceConfig {
 		return accountId;
 	}
 
-	
+
 	private String getAptapplicationPrefix() {
 		String result = "$aptpath/application";
-		
+
 		EnvironmentPathList epl = new EnvironmentPathList(environment);
 		if (epl.getPathFirst("APTAPPLICATION") != null) {
 			result = epl.getPathFirst("APTAPPLICATION");
 		}
 		return result;
 	}
-	
+
 	private void setWebappVersion(ServletContext context) {
 		InputStream manifestIn = context.getResourceAsStream("/META-INF/MANIFEST.MF");
 		if (manifestIn != null) {
@@ -222,7 +222,7 @@ public class WorkerApplication extends ResourceConfig {
 			}
 		}
 	}
-	
+
 	public static String getWebappVersionString() {
 		if (webappVersion != null) {
 			return webappVersion.toString();

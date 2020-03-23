@@ -19,17 +19,33 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Region;
+
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
+import se.simonsoft.cms.item.export.CmsExportPrefix;
+import se.simonsoft.cms.item.export.CmsExportReader;
+import se.simonsoft.cms.item.export.CmsImportJob;
+import se.simonsoft.cms.item.export.CmsImportJobSingle;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSource;
@@ -44,22 +60,37 @@ public class PublishJobService {
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
 	private final String aptapplicationPrefix;
-	
+	private final AWSCredentialsProvider credentials;
+	private final Region region;
+
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
-	
+
 	@Inject
 	public PublishJobService(PublishServicePe pe, @Named("APTAPPLICATION") String aptapplicationPrefix) {
 		this.pe = pe;
 		this.aptapplicationPrefix = aptapplicationPrefix;
+		this.region = null;
+		this.credentials = null;
+	}
+
+	@Inject
+	public PublishJobService(PublishServicePe pe,
+			@Named("APTAPPLICATION") String aptapplicationPrefix,
+			AWSCredentialsProvider credentials,
+			Region region) {
+		this.pe = pe;
+		this.aptapplicationPrefix = aptapplicationPrefix;
+		this.region = region;
+		this.credentials = credentials;
 	}
 
 	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
 		if ( jobOptions == null ) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
-		
+
 		logger.debug("Request to publish with job: {}", jobOptions);
-		
+
 		PublishRequestDefault request = new PublishRequestDefault();
 
 		PublishFormat format = pe.getPublishFormat(jobOptions.getFormat());
@@ -68,11 +99,29 @@ public class PublishJobService {
 		request.addConfig("host", publishHost);
 		request.addConfig("path", publishPath);
 		request = this.getConfigParams(request, jobOptions);
-		
-		final String itemId = jobOptions.getSource();
+
+		final String itemId;
+
+		if ( jobOptions.getSource() == null ) {
+			// The source lies on the S3 storage
+			if (jobOptions.getStorage() != null) {
+				String type = jobOptions.getStorage().getType();
+				if (type != null && !type.equals("s3")) {
+					String msg = MessageFormatter.format("Failed to import the source. Invalid storage type: {}", type).getMessage();
+					throw new IllegalStateException(msg);
+				}
+				itemId = retrieveSource(jobOptions);
+			} else {
+				throw new NullPointerException("The storage cannot be null when the source is!");
+			}
+		} else {
+			// The source is to be retrieved from a repository
+			itemId = jobOptions.getSource();
+		}
+
 		logger.debug("Item to publish {}", itemId);
 		PublishSource source = new PublishSource() {
-			
+
 			@Override
 			public String getURI() {
 				return itemId;
@@ -83,10 +132,10 @@ public class PublishJobService {
 		logger.debug("Request is created with file: {} and format {}, sending to PE", source, format);
 		PublishTicket ticket = pe.requestPublish(request);
 		logger.debug("PE returned a ticket: {}", ticket.toString());
-		
+
 		return ticket;
 	}
-	
+
 	public void getCompletedJob(PublishJobOptions jobOptions, PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
 		logger.debug("Getting OutputStream from job with ticket: {}", ticket);
 		if ( ticket.toString() == "" || ticket == null ) {
@@ -98,12 +147,12 @@ public class PublishJobService {
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
-		
-		
+
+
 		if (jobOptions != null && jobOptions.getFormat().equals("web")) {
 			logger.debug("Reuested format is web, creating temp file to be able to add root folder.");
 			String filePath = writeToTmpFile(jobOptions, ticket, request);
-			
+
 			FileInputStream fis = new FileInputStream(filePath);
 			PublishZipFolderUtil.addRootFolder(jobOptions.getPathname(), fis, outputStream);
 			fis.close();
@@ -119,19 +168,21 @@ public class PublishJobService {
 		request.addParam("type", options.getFormat());
 		request.addParam("file-type", "xml");
 
-		Set<Entry<String,String>> entrySet = options.getParams().entrySet();
-		for (Map.Entry<String, String> entry : entrySet) {
-			request.addParam(entry.getKey(), formatParam(entry.getValue(), options.getPathname()));
+		if ( options.getParams() != null ) {
+			Set<Entry<String,String>> entrySet = options.getParams().entrySet();
+			for (Map.Entry<String, String> entry : entrySet) {
+				request.addParam(entry.getKey(), formatParam(entry.getValue(), options.getPathname()));
+			}
 		}
 		return request;
 	}
-	
+
 	private String formatParam(String param, String pathName) {
-		
+
 		final String prefix = "$aptapplication";
 		final String prefixPath = "$pathname";
 		String result;
-		
+
 		if (param.startsWith(prefix)) {
 			result = this.aptapplicationPrefix.concat(param.substring(prefix.length()));
 		} else if (param.startsWith(prefixPath)){
@@ -141,7 +192,7 @@ public class PublishJobService {
 		}
 		return result;
 	}
-	
+
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
 		logger.debug("Checking if job with ticket: {} is done", ticket.toString());
 		PublishRequestDefault request = new PublishRequestDefault();
@@ -149,16 +200,49 @@ public class PublishJobService {
 		request.addConfig("path", this.publishPath);
 		return pe.isCompleted(ticket, request);
 	}
-	
+
 	private String writeToTmpFile(PublishJobOptions jobOptions, PublishTicket ticket, PublishRequestDefault request) throws IOException, PublishException {
-		
+
 		File temp = File.createTempFile(jobOptions.getPathname(), ".tmp");
 		FileOutputStream fout = new FileOutputStream(temp);
 		pe.getResultStream(ticket, request, fout);
 		logger.debug("Temporary file placed at: {}", temp.getAbsolutePath());
 		fout.flush();
 		fout.close();
-		
+
 		return temp.getAbsolutePath();
+	}
+
+	private String retrieveSource(PublishJobOptions jobOptions) {
+		String jobName = jobOptions.getStorage().getPathconfigname();
+		jobName += jobOptions.getStorage().getPathdir();
+		jobName += "/" + jobOptions.getStorage().getPathnamebase();
+		CmsExportPrefix cmsPrefix = new CmsExportPrefix(jobOptions.getStorage().getPathversion());
+		String cloudId = jobOptions.getStorage().getPathcloudid();
+		String bucketName = jobOptions.getStorage().getParams().get("s3bucket");
+		CmsExportProviderAwsSingle exportProvider = new CmsExportProviderAwsSingle(cmsPrefix, cloudId, bucketName, region, credentials);
+		CmsImportJob downloadJob = new CmsImportJobSingle(null, jobName, "preprocess.zip");
+		CmsExportReader reader = exportProvider.getReader();
+		reader.prepare(downloadJob);
+		InputStream contents = reader.getContents();
+		ZipInputStream zis = new ZipInputStream(contents);
+		try {
+			Path temp = Files.createTempDirectory(null);
+			ZipEntry zipEntry = zis.getNextEntry();
+			while(zipEntry != null) {
+				logger.debug("Unzipping: {}", zipEntry.getName());
+				Path path = Paths.get(temp.toString(), zipEntry.getName());
+				Files.createDirectories(path.getParent());
+				FileOutputStream fos = new FileOutputStream(path.toString());
+				IOUtils.copy(zis, fos);
+				fos.close();
+				zis.closeEntry();
+				zipEntry = zis.getNextEntry();
+			}
+			return temp.toString() + "/document.ditamap";
+		} catch (IOException e) {
+			logger.debug("Error when trying to download new zip entries: {}", e.getMessage());
+			throw new RuntimeException(e);
+		}
 	}
 }
