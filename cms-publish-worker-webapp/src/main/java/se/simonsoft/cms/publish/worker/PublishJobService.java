@@ -85,7 +85,7 @@ public class PublishJobService {
 	}
 
 	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
-		if ( jobOptions == null ) {
+		if (jobOptions == null) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
 
@@ -102,14 +102,14 @@ public class PublishJobService {
 
 		final String itemId;
 
-		if ( jobOptions.getSource() == null ) {
-			// The source lies on the S3 storage
+		if (jobOptions.getSource() == null) {
 			if (jobOptions.getStorage() != null) {
 				String type = jobOptions.getStorage().getType();
 				if (type != null && !type.equals("s3")) {
 					String msg = MessageFormatter.format("Failed to import the source. Invalid storage type: {}", type).getMessage();
 					throw new IllegalStateException(msg);
 				}
+				// The source lies on the S3 storage
 				itemId = retrieveSource(jobOptions);
 			} else {
 				throw new NullPointerException("The storage cannot be null when the source is!");
@@ -126,6 +126,7 @@ public class PublishJobService {
 			public String getURI() {
 				return itemId;
 			}
+
 		};
 		request.setFile(source);
 		request.setFormat(format);
@@ -228,6 +229,7 @@ public class PublishJobService {
 		ZipInputStream zis = new ZipInputStream(contents);
 		try {
 			Path temp = Files.createTempDirectory(null);
+			jobOptions.getProgress().getParams().put("temp", temp.toString());
 			ZipEntry zipEntry = zis.getNextEntry();
 			while(zipEntry != null) {
 				logger.debug("Unzipping: {}", zipEntry.getName());

@@ -16,6 +16,11 @@
 package se.simonsoft.cms.publish.worker;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -169,6 +174,17 @@ public class AwsStepfunctionPublishWorker {
 								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
 								
 								String exportPath = exportCompletedJob(publishTicket, options);
+								// Delete the temporary directory if needed
+								if (progress.getParams().containsKey("temp")) {
+									try {
+										String path = progress.getParams().get("temp");
+										logger.debug("Deleting the temporary directory: {}", path);
+										deleteDirectory(Paths.get(path));
+										progress.getParams().remove("temp");
+									} catch (IOException e) {
+										logger.warn("Failed to delete the temporary directory: {}", e.getMessage(), e);
+									}
+								}
 								progress.getParams().put("ticket", publishTicket.toString());
 								progress.getParams().put("completed", "true");
 								progress.getParams().put("pathResult", exportPath);
@@ -416,5 +432,16 @@ public class AwsStepfunctionPublishWorker {
 	private void updateWorkerLoop(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent("", timeStamp, description);
 		workerStatusReport.setLastWorkerLoop(event);
+	}
+
+	private void deleteDirectory(Path path) throws IOException {
+		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+				for (Path entry : entries) {
+					deleteDirectory(entry);
+				}
+			}
+		}
+		Files.delete(path);
 	}
 }
