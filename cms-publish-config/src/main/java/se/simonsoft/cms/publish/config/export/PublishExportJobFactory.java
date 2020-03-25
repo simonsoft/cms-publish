@@ -15,19 +15,35 @@
  */
 package se.simonsoft.cms.publish.config.export;
 
-import java.io.OutputStream;
-
 import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
+import se.simonsoft.cms.item.export.CmsExportJobZip;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.export.CmsImportJob;
+import se.simonsoft.cms.item.export.CmsImportJobSingle;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 
-public class PublishExportJob extends CmsExportJobSingle implements CmsExportJob.SingleItem, CmsImportJob {
+public class PublishExportJobFactory { //extends CmsExportJobSingle implements CmsExportJob.SingleItem, CmsImportJob {
 
-	public PublishExportJob(PublishJobStorage storage, String jobExtension) {
+	public static CmsExportJobSingle getExportJobSingle(PublishJobStorage storage, String jobExtension) {
+		return new CmsExportJobSingle(createJobPrefix(storage), getJobName(storage), jobExtension);
+	}
+	
+	public static CmsExportJob getExportJobZip(PublishJobStorage storage, String jobExtension) {
+		return new CmsExportJobZip(createJobPrefix(storage), getJobName(storage), jobExtension);
+	}
+	
+	
+	public static CmsImportJob getImportJobSingle(PublishJobStorage storage, String jobExtension) {
+		return new CmsImportJobSingle(createJobPrefix(storage), getJobName(storage), jobExtension);
+	}
+
+
+	/*
+	public PublishExportJobFactory(PublishJobStorage storage, String jobExtension) {
 		super(createJobPrefix(storage), getJobName(storage), jobExtension);
 	}
+	*/
 	
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathconfigname());
@@ -48,8 +64,4 @@ public class PublishExportJob extends CmsExportJobSingle implements CmsExportJob
 		return sb.toString();
 	}
 
-	@Override
-	public void getResultStream(OutputStream out) {
-		super.getResultStream(out);
-	}
 }

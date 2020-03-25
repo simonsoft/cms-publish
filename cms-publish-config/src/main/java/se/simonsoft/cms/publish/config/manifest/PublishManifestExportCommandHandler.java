@@ -28,13 +28,14 @@ import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
+import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -85,7 +86,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 		}
 		
-		PublishExportJob job = new PublishExportJob(options.getStorage(), manifest.getPathext());
+		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), manifest.getPathext());
 		job.addExportItem(exportItem);
 		job.prepare();
 
@@ -108,7 +109,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		boolean result = false;
 		
-		CmsImportJob job = new PublishExportJob(options.getStorage(), this.extensionPublishResult);
+		CmsImportJob job = PublishExportJobFactory.getImportJobSingle(options.getStorage(), this.extensionPublishResult);
 		// No items, no prepare for CmsImportJob.
 
 		logger.debug("Preparing reader in order to verify that Publish result exists...");

@@ -18,10 +18,11 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 
-public class PublishExportJobTest {
+public class PublishExportJobFactoryTest {
 	
 	@Test
 	public void testJobPath() throws Exception {
@@ -33,7 +34,7 @@ public class PublishExportJobTest {
 		storage.setPathdir("vvab/release/B/xml/documents/900108.xml"); //Should not be preceded by a slash, CmsExportJob adds slash directly after prefix.
 		storage.setPathnamebase("900108_r0000000145");
 		
-		PublishExportJob job = new PublishExportJob(storage, "zip");
+		CmsExportJob job = PublishExportJobFactory.getExportJobSingle(storage, "zip");
 		
 		assertEquals("simple-pdf/vvab/release/B/xml/documents/900108.xml/900108_r0000000145.zip" ,job.getJobPath());
 	}

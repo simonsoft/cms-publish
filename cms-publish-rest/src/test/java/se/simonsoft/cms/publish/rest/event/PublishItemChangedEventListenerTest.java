@@ -171,8 +171,8 @@ public class PublishItemChangedEventListenerTest {
 		assertTrue(publishJob.getStatusInclude().contains("Released"));
 		
 		assertEquals("DOC_900276_Released", publishJob.getOptions().getPathname());
-		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getItemid());
-		assertEquals("x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getOptions().getSource());
+		assertEquals("root itemId should be fully qualified, consistent with event wf", "x-svn://ubuntu-cheftest1.pdsvision.net/svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getItemid());
+		assertEquals("source itemId should also be fully qualified, preparation for non-abxpe engines", "x-svn:///svn/demo1^/vvab/xml/documents/900276.xml?p=443", publishJob.getOptions().getSource());
 		
 		// Profiling
 		assertNull(publishJob.getOptions().getProfiling());

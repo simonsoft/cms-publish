@@ -50,7 +50,7 @@ import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 
 public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
@@ -199,7 +199,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		sb.append("/");
 		sb.append(storage.getPathcloudid());
 		sb.append("/");
-		sb.append(new PublishExportJob(storage, extension).getJobPath());
+		sb.append(PublishExportJobFactory.getImportJobSingle(storage, extension).getJobPath());
 
 		return sb.toString();
 	}

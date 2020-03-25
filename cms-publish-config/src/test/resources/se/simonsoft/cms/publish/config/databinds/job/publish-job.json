@@ -25,6 +25,12 @@
 			"pdfconfig": "config.pdf",
 			"whatever": "great"
 		},
+		"paramsNameValue":[
+			{"Name":"stylesheet","Value":"file.css"},
+			{"Name":"pdfconfig","Value":"file.pdf"},
+			{"Name":"whatever","Value":"great"}
+			]
+		,
 		"profiling": {
 			"name": "profilingName",
 			"logicalexpr": "logical.expr"

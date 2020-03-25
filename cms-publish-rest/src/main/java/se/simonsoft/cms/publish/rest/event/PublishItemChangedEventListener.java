@@ -83,6 +83,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			throw new IllegalArgumentException("Item requires a revision to be published.");
 		}
 		
+		if (!item.getId().getRepository().isHostKnown()) {
+			logger.error("Item requires a known hostname to be published: {}", item.getId().getLogicalIdFull());
+			throw new IllegalArgumentException("Item requires a known hostname to be published: " + item.getId().getLogicalIdFull());
+		}
+		
 		if (item.getKind() != CmsItemKind.File) {
 			return;
 		}
@@ -144,18 +149,22 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling);
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling, null);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
-		pj.setItemid(item.getId().getLogicalId());
+		pj.setItemid(item.getId().getLogicalIdFull()); // Event workflow has itemid hostname so publish workflow should as well.
 		pj.setAction(this.action); 
 		pj.setType(this.type);
 		pj.setConfigname(configName);
 		
-		pj.getOptions().setSource(item.getId().getLogicalId());
+		// The source attribute is used by publishing engines with the ability to directly fetch data from the CMS.
+		// When Preprocess is configured, the source attribute should be null because the preprocessed / exported data should be used instead.
+		if (pj.getOptions().getPreprocess().getType() == null || pj.getOptions().getPreprocess().getType().equals("none")) {
+			pj.getOptions().setSource(item.getId().getLogicalId());			
+		}
 		if (profiling != null) {
 			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
 		}
@@ -163,12 +172,20 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishConfigStorage configStorage = pj.getOptions().getStorage();
 		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
 		pj.getOptions().setStorage(storage);
-
+		
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		
 		// Build the Manifest, modifies the existing manifest object.
 		manifestBuilder.build(item, pj);
+		
+		// Evaluate Velocity for params
+		// Normally we evaluate config fields '...Templates'.
+		// TODO: Decide if this is the long term solution.
+		// Need to refresh the template evaluator to contain the storage object. 
+		templateEvaluator = getTemplateEvaluator(item, profiling, storage);
+		manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
+		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
@@ -187,11 +204,16 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	}
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling, PublishJobStorage storage) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
+		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
+		tmplStr.withEntry("aptpath", "$aptpath");
+		// Add the item
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
 		tmplStr.withEntry("profiling", profiling);
+		// Add storage object to allow configuration of parameters with S3 key etc.
+		tmplStr.withEntry("storage", storage);
 		return tmplStr;
 	}
 }

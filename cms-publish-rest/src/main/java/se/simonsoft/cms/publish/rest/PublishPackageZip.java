@@ -40,7 +40,7 @@ import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
-import se.simonsoft.cms.publish.config.export.PublishExportJob;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishPackageZip {
@@ -62,7 +62,7 @@ public class PublishPackageZip {
 	// Note: All aspects of PublishConfig does not necessarily apply to all items.
 	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<PublishProfilingRecipe> profilingSet, OutputStream os) {
 		
-		final List<PublishExportJob> downloadJobs = new ArrayList<PublishExportJob>();
+		final List<CmsImportJob> downloadJobs = new ArrayList<CmsImportJob>();
 		final List<CmsExportReader> readers = new ArrayList<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
@@ -102,7 +102,7 @@ public class PublishPackageZip {
 			try {
 				// AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
 				int trailing = IOUtils.copy(contents, new NullOutputStream());
-				logger.debug("Trailing size: {}", trailing);
+				logger.debug("S3 zip file trailing size: {}", trailing);
 				
 				zis.close();
 			} catch (IOException e) {
@@ -117,7 +117,7 @@ public class PublishPackageZip {
 			logger.error("Could not finish zip");
 			throw new RuntimeException("Could not finish zip", e);
 		}
-		logger.debug("Getting zip files at S3 and re-package them.");
+		logger.debug("Re-packaged zip files from S3.");
 	}
 	
 	private void writeEntries(ZipInputStream zis, ZipOutputStream zos) {
@@ -141,10 +141,10 @@ public class PublishPackageZip {
 		}
 	}
 	
-	private PublishExportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
+	private CmsImportJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
 		PublishJobStorage s = storageFactory.getInstance(config.getOptions().getStorage(), cmsItemPublish, configName, profiling);
-		return new PublishExportJob(s, "zip");
+		return PublishExportJobFactory.getImportJobSingle(s, "zip");
 	}
 
 }
