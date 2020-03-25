@@ -16,7 +16,6 @@
 package se.simonsoft.cms.publish.worker;
 
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -69,7 +68,7 @@ public class VersionsResource {
 		}
 		
 		context.put("depVersions", versions);
-		context.put("webappVersion", WorkerApplication.getWebappVersion().toString());
+		context.put("webappVersion", WorkerApplication.getWebappVersionString());
 		
 		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/VersionsTemplate.vm");
 		

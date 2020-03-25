@@ -88,7 +88,7 @@ public class PublishJobService {
 	}
 	
 	public void getCompletedJob(PublishJobOptions jobOptions, PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
-		logger.debug("Getting OutputStream from job with ticket: {}", ticket.toString());
+		logger.debug("Getting OutputStream from job with ticket: {}", ticket);
 		if ( ticket.toString() == "" || ticket == null ) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
@@ -110,7 +110,7 @@ public class PublishJobService {
 		} else {
 			pe.getResultStream(ticket, request, outputStream);
 		}
-		
+		logger.debug("Got OutputStream from job with ticket: {}", ticket);
 	}
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
 		logger.debug("Adding data to the jobs params: [}");

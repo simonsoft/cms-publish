@@ -87,7 +87,7 @@ public class WorkerApplication extends ResourceConfig {
 		logger.info("Worker Webapp starting with context: " + context);
 		
 		setWebappVersion(context);
-		context.setAttribute("buildName", webappVersion.toString());
+		context.setAttribute("buildName", getWebappVersionString());
 		CmsComponents.logAllVersions();
 		
 		register(new AbstractBinder() {
@@ -223,8 +223,11 @@ public class WorkerApplication extends ResourceConfig {
 		}
 	}
 	
-	public static CmsComponentVersion getWebappVersion() {
-		return webappVersion;
+	public static String getWebappVersionString() {
+		if (webappVersion != null) {
+			return webappVersion.toString();
+		}
+		return "dev";
 	}
 
 }
