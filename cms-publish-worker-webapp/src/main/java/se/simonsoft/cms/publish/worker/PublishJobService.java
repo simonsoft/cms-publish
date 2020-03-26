@@ -21,7 +21,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -45,13 +47,13 @@ import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
-import se.simonsoft.cms.item.export.CmsImportJobSingle;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
@@ -146,11 +148,12 @@ public class PublishJobService {
 		if(!isCompleted(ticket)) {
 			throw new PublishException("The specified job with ticketnumber " + ticket.toString() + " is not ready yet");
 		}
+		if (jobOptions.getProgress().getParams().containsKey("temp")) {
+			deleteTemporaryDirectory(jobOptions.getProgress());
+		}
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
-
-
 		if (jobOptions != null && jobOptions.getFormat().equals("web")) {
 			logger.debug("Reuested format is web, creating temp file to be able to add root folder.");
 			String filePath = writeToTmpFile(jobOptions, ticket, request);
@@ -243,6 +246,28 @@ public class PublishJobService {
 		} catch (IOException e) {
 			logger.debug("Error when trying to download new zip entries: {}", e.getMessage());
 			throw new RuntimeException(e);
+		}
+	}
+
+	private void deleteDirectory(Path path) throws IOException {
+		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+				for (Path entry : entries) {
+					deleteDirectory(entry);
+				}
+			}
+		}
+		Files.delete(path);
+	}
+
+	private void deleteTemporaryDirectory(PublishJobProgress progress) {
+		try {
+			String path = progress.getParams().get("temp");
+			logger.debug("Deleting the temporary directory: {}", path);
+			deleteDirectory(Paths.get(path));
+			progress.getParams().remove("temp");
+		} catch (IOException e) {
+			logger.warn("Failed to delete the temporary directory: {}", e.getMessage(), e);
 		}
 	}
 }
