@@ -52,6 +52,7 @@ import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 public class PublishJobService {
@@ -215,14 +216,11 @@ public class PublishJobService {
 	}
 
 	private String retrieveSource(PublishJobOptions jobOptions) {
-		String jobName = jobOptions.getStorage().getPathconfigname();
-		jobName += jobOptions.getStorage().getPathdir();
-		jobName += "/" + jobOptions.getStorage().getPathnamebase();
+		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportPrefix cmsPrefix = new CmsExportPrefix(jobOptions.getStorage().getPathversion());
 		String cloudId = jobOptions.getStorage().getPathcloudid();
 		String bucketName = jobOptions.getStorage().getParams().get("s3bucket");
 		CmsExportProviderAwsSingle exportProvider = new CmsExportProviderAwsSingle(cmsPrefix, cloudId, bucketName, region, credentials);
-		CmsImportJob downloadJob = new CmsImportJobSingle(null, jobName, "preprocess.zip");
 		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
 		InputStream contents = reader.getContents();
