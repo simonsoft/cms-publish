@@ -110,7 +110,11 @@ public class WorkerApplication extends ResourceConfig {
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	cloudId = environment.getParamOptional("CLOUDID");
             	region = RegionUtils.getRegion(new DefaultAwsRegionProviderChain().getRegion());
-            	logger.debug("Region name: {}", region.getName());
+            	if (region == null) {
+            		// fallback to the hard-coded region name for backwards compatibility
+            		region = RegionUtils.getRegion("eu-west-1");
+            	}
+            	logger.info("Region name: {}", region.getName());
             	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
 
