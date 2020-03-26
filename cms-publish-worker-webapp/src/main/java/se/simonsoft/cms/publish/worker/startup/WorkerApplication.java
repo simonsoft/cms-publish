@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
@@ -107,10 +109,8 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	cloudId = environment.getParamOptional("CLOUDID");
-
-            	region = Region.getRegion(Regions.fromName("eu-west-1")); // Currently hardcoded, might need different regions annotated per service.
-            	// Might need to determine which region we are running in for EC2. See SDK 2.0,
-            	// might have a Region Provider Chain.
+            	region = RegionUtils.getRegion(new DefaultAwsRegionProviderChain().getRegion());
+            	logger.debug("Region name: {}", region.getName());
             	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
 
