@@ -61,7 +61,7 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("s3", s.getType());
 		assertEquals("cms-automation", s.getParams().get("s3bucket"));
-		
+		assertEquals("s3://cms-automation/cms4/cloudId/simple-pdf/vvab/xml/documents/900108.xml", s.getParams().get("s3baseurl"));		
 	}
 	
 	@Test
@@ -79,6 +79,7 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("fs", s.getType());
 		assertEquals(null, s.getParams().get("s3bucket"));
+		assertEquals(null, s.getParams().get("s3baseurl"));
 	}
 	
 	@Test
@@ -99,8 +100,6 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("fs", s.getType());
 		assertEquals(null, s.getParams().get("s3bucket"));
-		
-		
 	}
 	
 	@Test
@@ -117,8 +116,7 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("900108_r0000000100", s.getPathnamebase());
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("s3", s.getType());
-		assertEquals("cms-automation", s.getParams().get("s3bucket"));
-		
+		assertEquals("cms-automation", s.getParams().get("s3bucket"));	
 	}
 	
 	@Test
@@ -136,7 +134,6 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("s3", s.getType());
 		assertEquals("cms-automation", s.getParams().get("s3bucket"));
-		
 	}
 	
 	@Test
@@ -155,7 +152,7 @@ public class PublishJobStorageFactoryTest {
 		assertEquals("cms4", s.getPathversion());
 		assertEquals("s3", s.getType());
 		assertEquals("cms-automation", s.getParams().get("s3bucket"));
-		
+		assertEquals("s3://cms-automation/cms4/cloudId/simple-pdf/vvab/xml/documents/900108.xml", s.getParams().get("s3baseurl"));	
 	}
 	
 }
