@@ -111,6 +111,9 @@ public class PublishJobStorageFactory {
         // Defined in cms-publish
         sb.append(s.getPathconfigname());
         sb.append(s.getPathdir());
+        
+        // Should end with / because it is a baseUrl representing a directory.
+        sb.append("/");
 
         return sb.toString();
     }
