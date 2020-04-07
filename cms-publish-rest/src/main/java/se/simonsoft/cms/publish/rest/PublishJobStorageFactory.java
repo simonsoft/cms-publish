@@ -67,8 +67,8 @@ public class PublishJobStorageFactory {
 		}
 		
 		if (s.getType().equals("s3")) {
-			String s3BaseUrl = getBaseUrl(s);
-			s.getParams().put("s3baseurl", s3BaseUrl);
+			String s3BaseUrl = getUrlBase(s);
+			s.getParams().put("s3urlbase", s3BaseUrl);
 		}
 		return s;
 	}
@@ -96,7 +96,7 @@ public class PublishJobStorageFactory {
 	}
 	
     
-    private String getBaseUrl(PublishJobStorage s) {
+    private String getUrlBase(PublishJobStorage s) {
         StringBuilder sb = new StringBuilder();
 
         // Defined in cms-export-aws
