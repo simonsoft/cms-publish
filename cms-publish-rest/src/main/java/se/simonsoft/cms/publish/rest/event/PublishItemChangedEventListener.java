@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItem;
-import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
@@ -149,7 +148,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling, null);
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
@@ -179,13 +178,22 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		// Build the Manifest, modifies the existing manifest object.
 		manifestBuilder.build(item, pj);
 		
+		// Decided that template evaluation of params is NOT the long term solution, at least for now.
+		// Distribution implementations should use the Manifest for template evaluation, similar to external consumers.
 		// Evaluate Velocity for params
 		// Normally we evaluate config fields '...Templates'.
-		// TODO: Decide if this is the long term solution.
-		// Need to refresh the template evaluator to contain the storage object. 
+		
+		// Need to refresh the template evaluator to contain the storage object.
+		// Decided against exposing the storage object. This is internal and should be understood by workflow Tasks.
+		/*
 		templateEvaluator = getTemplateEvaluator(item, profiling, storage);
 		manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
+		*/
+		// Decided that template evaluation of params is NOT the long term solution. At least for now.
+		// The below temporary implementation only evaluates the options.params map, not deeper options.*.params maps. 
+		/*
 		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
+		*/
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
@@ -193,7 +201,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling, PublishJobStorage storage) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		tmplStr.withEntry("aptpath", "$aptpath");
@@ -202,7 +210,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		// Add profiling object, can be null;
 		tmplStr.withEntry("profiling", profiling);
 		// Add storage object to allow configuration of parameters with S3 key etc.
-		tmplStr.withEntry("storage", storage);
+		//tmplStr.withEntry("storage", storage);
 		return tmplStr;
 	}
 }
