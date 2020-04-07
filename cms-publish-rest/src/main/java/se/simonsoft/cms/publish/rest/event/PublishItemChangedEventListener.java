@@ -207,6 +207,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
+		// Important if allowing evaluation of params in the future.
 		tmplStr.withEntry("aptpath", "$aptpath");
 		// Add the cloudid, might be useful for delivery.
 		tmplStr.withEntry("cloudid", this.cloudId);
