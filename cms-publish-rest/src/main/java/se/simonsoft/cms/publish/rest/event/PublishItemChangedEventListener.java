@@ -191,17 +191,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		return pj;
 	}
 	
-	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
-		StringBuilder sb = new StringBuilder();
-		
-		if (profiling == null) {
-			sb.append(itemId.getRelPath().getNameBase());
-		} else {
-			sb.append(profiling.getName());
-		}
-		sb.append(String.format("_r%010d", itemId.getPegRev()));
-		return sb.toString();
-	}
 
 	
 	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling, PublishJobStorage storage) {
