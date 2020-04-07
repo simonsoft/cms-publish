@@ -53,6 +53,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final PublishConfiguration publishConfiguration;
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 	
+	private final String cloudId;
 	private final String type = "publish-job";
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
@@ -62,12 +63,14 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 
 	@Inject
 	public PublishItemChangedEventListener(
+			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			PublishConfiguration publishConfiguration,
 			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
 			ObjectReader reader,
 			PublishJobStorageFactory storageFactory) {
 		
+		this.cloudId = cloudId;
 		this.publishConfiguration = publishConfiguration;
 		this.workflowExecutor = workflowExecutor;
 		this.storageFactory = storageFactory;
@@ -205,6 +208,8 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		tmplStr.withEntry("aptpath", "$aptpath");
+		// Add the cloudid, might be useful for delivery.
+		tmplStr.withEntry("cloudid", this.cloudId);
 		// Add the item
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
