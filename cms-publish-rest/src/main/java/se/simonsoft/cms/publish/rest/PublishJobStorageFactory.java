@@ -66,6 +66,10 @@ public class PublishJobStorageFactory {
 			s.getParams().put("s3bucket", s3bucket);
 		}
 		
+		if (s.getType().equals("s3")) {
+			String s3BaseUrl = getUrlBase(s);
+			s.getParams().put("s3urlbase", s3BaseUrl);
+		}
 		return s;
 	}
 	
@@ -90,4 +94,28 @@ public class PublishJobStorageFactory {
 		}
 		return sb.toString();
 	}
+	
+    
+    private String getUrlBase(PublishJobStorage s) {
+        StringBuilder sb = new StringBuilder();
+
+        // Defined in cms-export-aws
+        sb.append("s3://");
+        sb.append(s.getParams().get("s3bucket"));
+        sb.append("/");
+        sb.append(s.getPathversion());
+        sb.append("/");
+        sb.append(s.getPathcloudid());
+        sb.append("/");
+        
+        // Defined in cms-publish
+        sb.append(s.getPathconfigname());
+        sb.append(s.getPathdir());
+        
+        // Should end with / because it is a baseUrl representing a directory.
+        sb.append("/");
+
+        return sb.toString();
+    }
+    
 }

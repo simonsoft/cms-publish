@@ -110,6 +110,7 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("file.pdf", job.getOptions().getParams().get("pdfconfig"));
 		assertEquals("great", job.getOptions().getParams().get("whatever"));
 		assertEquals("s3", job.getOptions().getStorage().getType());
+		assertNull("s3 storage adds bucket param, in cms-publish-rest", job.getOptions().getStorage().getParams().get("s3bucket"));
 		assertEquals("parameter for future destination types", job.getOptions().getStorage().getParams().get("specific"));
 		assertEquals("future stuff", job.getOptions().getPostprocess().getType());
 		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
@@ -148,6 +149,7 @@ public class TestPublishConfig extends TestCase {
 		reader.close();
 		return out.toString();
 	}
+	
 	private String getPublishConfig2AsString() throws FileNotFoundException, IOException {
 		String jsonPath = "se/simonsoft/cms/publish/config/databinds/config/publish-config2.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
