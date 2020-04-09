@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AbortedException;
-import com.amazonaws.regions.Region;
 import com.amazonaws.services.stepfunctions.AWSStepFunctions;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
 import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
@@ -57,6 +56,7 @@ import se.simonsoft.cms.publish.config.manifest.PublishManifestExportCommandHand
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+import software.amazon.awssdk.regions.Region;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {
@@ -93,7 +93,7 @@ public class AwsStepfunctionPublishWorker {
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
-		this.activityArn = "arn:aws:states:" + region.getName() + ":" + account + ":activity:cms-" + cloudId + "-" + activityName;
+		this.activityArn = "arn:aws:states:" + region.id() + ":" + account + ":activity:cms-" + cloudId + "-" + activityName;
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
 		this.workerStatusReport = workerStatusReport;
