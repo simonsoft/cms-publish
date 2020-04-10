@@ -40,9 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
-
 import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.export.CmsExportReader;
@@ -56,6 +53,8 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 
 public class PublishJobService {
 
@@ -63,7 +62,7 @@ public class PublishJobService {
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
 	private final String aptapplicationPrefix;
-	private final AWSCredentialsProvider credentials;
+	private final AwsCredentialsProvider credentials;
 	private final Region region;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
@@ -79,7 +78,7 @@ public class PublishJobService {
 	@Inject
 	public PublishJobService(PublishServicePe pe,
 			@Named("APTAPPLICATION") String aptapplicationPrefix,
-			AWSCredentialsProvider credentials,
+			AwsCredentialsProvider credentials,
 			Region region) {
 		this.pe = pe;
 		this.aptapplicationPrefix = aptapplicationPrefix;

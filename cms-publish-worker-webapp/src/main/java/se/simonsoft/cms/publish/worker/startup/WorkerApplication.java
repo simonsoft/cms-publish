@@ -34,9 +34,6 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.DefaultAwsRegionProviderChain;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
@@ -60,6 +57,10 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.version.CmsComponentVersion;
 import se.simonsoft.cms.version.CmsComponentVersionManifest;
 import se.simonsoft.cms.version.CmsComponents;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class WorkerApplication extends ResourceConfig {
 
@@ -72,10 +73,11 @@ public class WorkerApplication extends ResourceConfig {
 
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
 
-	private Region region; // The Region class will be in SDK 2.0 (Regions will be removed).
+	private Region region = DefaultAwsRegionProviderChain.builder().build().getRegion();
 	private String cloudId;
 	private String awsAccountId;
-	private AWSCredentialsProvider credentials = DefaultAWSCredentialsProviderChain.getInstance();
+	private AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
+	private AWSCredentialsProvider credentialsLegacy = DefaultAWSCredentialsProviderChain.getInstance();
 	private String bucketName = BUCKET_NAME;
 	private ServletContext context;
 
@@ -109,14 +111,13 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
             	cloudId = environment.getParamOptional("CLOUDID");
-            	region = RegionUtils.getRegion(new DefaultAwsRegionProviderChain().getRegion());
             	if (region == null) {
             		// fallback to the hard-coded region name for backwards compatibility
-            		region = RegionUtils.getRegion("eu-west-1");
+            		region = Region.EU_WEST_1;
             	}
-            	logger.info("Region name: {}", region.getName());
+            	logger.info("Region name: {}", region.id());
             	bind(region).to(Region.class);
-            	awsAccountId = getAwsAccountId(credentials, region);
+            	awsAccountId = getAwsAccountId(credentialsLegacy, region);
 
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	PublishServicePe publishServicePe = new PublishServicePe();
@@ -142,8 +143,8 @@ public class WorkerApplication extends ResourceConfig {
             	ClientConfiguration clientConfiguration = new ClientConfiguration();
         		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
             	AWSStepFunctions client = AWSStepFunctionsClientBuilder.standard()
-        				.withRegion(Regions.EU_WEST_1)
-        				.withCredentials(credentials)
+        				.withRegion(Regions.fromName(region.id()))
+        				.withCredentials(credentialsLegacy)
         				.withClientConfiguration(clientConfiguration)
         				.build();
 
@@ -189,7 +190,7 @@ public class WorkerApplication extends ResourceConfig {
 		try {
 			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard()
 					.withCredentials(credentials)
-					.withRegion(region.getName())
+					.withRegion(region.id())
 					.build();
 			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
 			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
