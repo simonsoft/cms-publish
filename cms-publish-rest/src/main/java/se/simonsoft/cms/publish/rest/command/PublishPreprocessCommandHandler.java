@@ -40,24 +40,17 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 	private final CmsExportProvider exportProvider;
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
-	//private final String bucketName;
-	//private final AmazonS3 s3Client;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishPreprocessCommandHandler.class);
 
 	@Inject
 	public PublishPreprocessCommandHandler(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider, 
-			//@Named("config:se.simonsoft.cms.publish.bucket") String bucketName, 
 			Map<CmsRepository, ReleaseExportService> exportServices
-			//Region region, 
-			//AWSCredentialsProvider credentials
 			) {
 
 		this.exportProvider = exportProvider;
 		this.exportServices = exportServices;
-		//this.bucketName = bucketName;
-		//this.s3Client = AmazonS3Client.builder().withRegion(region.getName()).withCredentials(credentials).build();
 	}
 
 	@Override
@@ -75,7 +68,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 		if (preprocess.getType() == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobPreProcess object with type attribute.");
-		} else if (preprocess.getType().equals("webapp-export")) {
+		} else if (preprocess.getType().startsWith("webapp-export")) {
 			logger.debug("Performing Webapp Export: {}", itemId);
 			doWebappExport(itemId, options);
 		} else {
@@ -103,8 +96,16 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			pathext = "zip";
 		}
 		
-		// Use preprocess options.
-		ReleaseExportOptions exportOptions = new ReleaseExportOptions(preprocess.getParams()); 
+		// Use preprocess options to populate the Export Options.
+		ReleaseExportOptions exportOptions = new ReleaseExportOptions(preprocess.getParams());
+		// Set default values for known export types (unless already defined);
+		String type = preprocess.getType(); // Multiple preprocess types (subtypes) get routed here.
+		if ("webapp-export-abxpe".equals(type)) {
+			setExportOptionsDefaultAbxpe(exportOptions);
+		} else if ("webapp-export-ditaot".equals(type)) {
+			setExportOptionsDefaultDitaot(exportOptions);
+		} 
+		
 		ReleaseExportService exportService = this.exportServices.get(itemId.getRepository());
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
@@ -118,6 +119,41 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		logger.debug("Writer is prepared. Writing job to S3.");
 		exportWriter.write();
 		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
+	}
+
+	private void setExportOptionsDefaultAbxpe(ReleaseExportOptions options) {
+		// Set a name that is unlikely to collide with sections.
+		if (options.getDocumentNameBase() == null) {
+			options.setDocumentNameBase("_document");
+		}
+		// Always use .xml, for both book and ditamap. Avoids logic in worker-webapp.
+		if (options.getDocumentExtension() == null) {
+			options.setDocumentExtension("xml");
+		}
+		// Split ditabase into topics, likely faster to process in PE.
+		if (options.getPreserveDitabase() == null) {
+			options.setPreserveDitabase(false);
+		}
+	}
+	
+	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
+		// DITA-OT container expects site.ditamap, no risk for collision with topics due to different extensions.
+		// Risk for collision with sub-maps / keydef-maps?
+		if (options.getDocumentNameBase() == null) {
+			options.setDocumentNameBase("site");
+		}
+		// Always use .ditamap, for both book and ditamap. Book needs XSL transform into DITA.
+		if (options.getDocumentExtension() == null) {
+			options.setDocumentExtension("ditamap");
+		}
+		// Split ditabase into topics, required by DITA-OT.
+		if (options.getPreserveDitabase() == null) {
+			options.setPreserveDitabase(false);
+		}
+		// Suppress all cms-namespace attributes, not allowed by DITA-OT. Revision metadata must be set in other attributes.
+		if (options.getCmsAttributesSuppressAll() == null) {
+			options.setCmsAttributesSuppressAll(true);
+		}
 	}
 
 }
