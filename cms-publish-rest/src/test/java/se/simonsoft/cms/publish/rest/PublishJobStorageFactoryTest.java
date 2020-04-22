@@ -90,6 +90,7 @@ public class PublishJobStorageFactoryTest {
 		PublishJobStorageFactory factory = new PublishJobStorageFactory("cloudId", bucketName);
 		PublishProfilingRecipe profiling = new PublishProfilingRecipe();
 		profiling.setName("test_name");
+		profiling.setLogicalexpr("mock");
 		
 		PublishJobStorage s = factory.getInstance(cs ,mockItem, configName, profiling);
 	

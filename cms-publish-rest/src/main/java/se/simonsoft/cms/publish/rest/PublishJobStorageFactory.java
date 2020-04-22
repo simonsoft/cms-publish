@@ -19,10 +19,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.ProfilingNaming;
+import se.simonsoft.cms.release.ProfilingRecipe;
 
 public class PublishJobStorageFactory {
 	
@@ -79,20 +82,22 @@ public class PublishJobStorageFactory {
 			throw new IllegalArgumentException("ItemId must have revision.");
 		}
 		
-		StringBuilder sb = new StringBuilder();
-		sb.append(itemId.getRelPath().getNameBase());
-		
-		sb.append(String.format("_r%010d", itemId.getPegRev()));
-		
+		// Workaround for inconsistent type hierarchy.
+		ProfilingRecipe pr = null;
 		if (profiling != null) {
-			if (profiling.getName() == null || profiling.getName().trim().isEmpty()) {
-				throw new IllegalArgumentException("Profiling Name must not be empty.");
+			// For now, the expression must not be empty.
+			// Might change when implementing profiling via DITAVAL.
+			if (profiling.getLogicalexpr() == null || profiling.getLogicalexpr().trim().isEmpty()) {
+				throw new IllegalArgumentException("Profiling expression must not be empty.");
 			}
-			
-			sb.append('_');
-			sb.append(profiling.getName());
+			pr = new ProfilingRecipe(profiling.getName(), profiling.getLogicalexpr());
 		}
-		return sb.toString();
+		
+		// The profiling naming can handle both situations.
+		ProfilingNaming profilingNaming = new ProfilingNaming();
+		CmsItemPath result = profilingNaming.getProfiledPath(itemId.getRelPath(), String.format("r%010d", itemId.getPegRev()), pr);
+		
+		return result.getNameBase();
 	}
 	
     
