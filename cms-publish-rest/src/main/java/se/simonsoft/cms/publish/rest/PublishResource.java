@@ -59,6 +59,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
@@ -70,7 +71,7 @@ public class PublishResource {
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
-	private final PublishPackageZip repackageService;
+	private final PublishPackageZipBuilder repackageService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	private final PublishJobStorageFactory storageFactory;
@@ -82,7 +83,7 @@ public class PublishResource {
 			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
-			PublishPackageZip repackageService,
+			PublishPackageZipBuilder repackageService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
@@ -165,22 +166,12 @@ public class PublishResource {
 		return wr.toString();
 	}
 	
-	@GET
-	@Path("release/download")
-	@Produces("application/zip")
-	public Response getDownload(@QueryParam("item") CmsItemIdArg itemId,
-						@QueryParam("includerelease") boolean includeRelease,
-						@QueryParam("includetranslations") boolean includeTranslations,
-						@QueryParam("profiling") String[] profiling,
-						@QueryParam("publication") final String publication) throws Exception {
-		
-		logger.debug("Download of item: {} requested with master: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
+	
+	public PublishPackage getPublishPackage(CmsItemIdArg itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
 		
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
-		
-		itemId.setHostnameOrValidate(this.hostname);
 		
 		if (!itemId.isPegged()) {
 			throw new IllegalArgumentException("Field 'item': revision is required");
@@ -194,6 +185,7 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
 		}
 		
+		itemId.setHostnameOrValidate(this.hostname);
 		final List<CmsItem> items = new ArrayList<CmsItem>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
@@ -202,7 +194,7 @@ public class PublishResource {
 		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
 		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(releaseItem));
 		final PublishConfig publishConfig = configurationsRelease.get(publication);
-
+		
 		if (includeRelease) {
 			items.add(releaseItem);
 		}
@@ -226,15 +218,6 @@ public class PublishResource {
 			}
 		}
 		
-		
-		if (publishConfig.getOptions().getStorage() != null) {
-			String type = publishConfig.getOptions().getStorage().getType();
-			if (type != null && !type.equals("s3")) {
-				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
-				throw new IllegalStateException(msg);
-			}
-		}
-		
 		// Profiling:
 		// Filtering above takes care of mismatch btw includeFiltering and whether item has Profiling.
 		// The 'profiling' parameter should only be allowed if configuration has includeProfiling = true, required then.
@@ -250,7 +233,6 @@ public class PublishResource {
 			}
 		}
 		
-		
 		final Set<PublishProfilingRecipe> profilingSet;
 		if (profiling.length > 0) {
 			profilingSet = getProfilingSetSelected(new CmsItemPublish(releaseItem), publishConfig, profiling);
@@ -258,12 +240,86 @@ public class PublishResource {
 			profilingSet = null;
 		}
 		
+		ReleaseLabel releaseLabel = new ReleaseLabel(new CmsItemPublish(releaseItem).getReleaseLabel());
+		return new PublishPackage(publication, publishConfig, profilingSet, publishedItems, releaseItem.getId(), releaseLabel);
+	}
+	
+	
+	
+	@GET
+	@Path("release/status")
+	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+	public Set<WorkflowExecution> getStatus(@QueryParam("item") CmsItemIdArg itemId,
+						@QueryParam("includerelease") boolean includeRelease,
+						@QueryParam("includetranslations") boolean includeTranslations,
+						@QueryParam("profiling") String[] profiling,
+						@QueryParam("publication") final String publication) throws Exception {
+		
+		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
+		
+		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		
+		PublishConfig publishConfig = publishPackage.getPublishConfig();
+		if (publishConfig.getOptions().getStorage() != null) {
+			String type = publishConfig.getOptions().getStorage().getType();
+			if (type != null && !type.equals("s3")) {
+				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
+				throw new IllegalStateException(msg);
+			}
+		}
+		
+		/*
+		 * TODO:
+		 *  - Get known Publish Workflows from executionsStatus. Status values are trusted except RUNNING_STALE.
+		 *  - RUNNING_STALE executions: verify against S3 or request refresh from executionsStatus? (low priority). 
+		 *  - Unknown executions must be verified against S3. Prepare an export which gets metadata and verifies existance.
+		 *  - Validations against S3 need to be cached? Even respond with UNKNOWN and check S3 async? We will introduce https://github.com/ben-manes/caffeine in other locations.
+		 *  - Respond with Set<WorkflowExecution> which should become a JSON array if WorkflowExecutionStatusMessageBodyWriterJson has been registered. 
+		 * 
+		 */
+		
+		
+		return null;
+	}
+	
+	
+	@GET
+	@Path("release/download")
+	@Produces("application/zip")
+	public Response getDownload(@QueryParam("item") CmsItemIdArg itemId,
+						@QueryParam("includerelease") boolean includeRelease,
+						@QueryParam("includetranslations") boolean includeTranslations,
+						@QueryParam("profiling") String[] profiling,
+						@QueryParam("publication") final String publication) throws Exception {
+		
+		logger.debug("Download of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
+		
+		
+		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		
+		PublishConfig publishConfig = publishPackage.getPublishConfig();
+		if (publishConfig.getOptions().getStorage() != null) {
+			String type = publishConfig.getOptions().getStorage().getType();
+			if (type != null && !type.equals("s3")) {
+				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
+				throw new IllegalStateException(msg);
+			}
+		}
+		
+		StreamingOutput stream = getDownloadStreamingOutput(publishPackage);
+		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
+				.header("Content-Disposition", "attachment; filename=\"" + getFilenameDownload(publishPackage) + ".zip\"")
+				.build();
+	}
+	
+	
+	private StreamingOutput getDownloadStreamingOutput(final PublishPackage publishPackage) {
 		
 		StreamingOutput stream = new StreamingOutput() {
 			@Override
 			public void write(OutputStream os) throws IOException, WebApplicationException {
 				try {
-					repackageService.getZip(publishedItems, publication, publishConfig, profilingSet, os);
+					repackageService.getZip(publishPackage, os);
 				} catch (CmsExportJobNotFoundException e) {
 					String message = MessageFormatter.format("Published job does not exist: {}", e.getExportJob().getJobPath().toString()).getMessage();
 					throw new IllegalStateException(message, e);
@@ -274,41 +330,28 @@ public class PublishResource {
 				}
 			}
 		};
-		
-		return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM)
-				.header("Content-Disposition", "attachment; filename=\"" + getFilenameDownload(items, publication, releaseItem) + ".zip\"")
-				.build();
+		return stream;
 	}
 	
-	private String getFilenameDownload(List<CmsItem> items, String publication, CmsItem releaseItem) {
+	
+	private String getFilenameDownload(PublishPackage publishPackage) {
 		
-		String releaseLabel = new CmsItemPublish(releaseItem).getReleaseLabel();
+		ReleaseLabel releaseLabel = publishPackage.getReleaseLabel();
 		
 		if (releaseLabel == null) {
 			throw new IllegalStateException("The Release does not have a Release Label property.");
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		sb.append(releaseItem.getId().getRelPath().getNameBase());
-		sb.append("_" + releaseLabel);
-		sb.append("_" + publication);
-		long revLatest = getRevLatest(items);
+		sb.append(publishPackage.getReleaseItemId().getRelPath().getNameBase());
+		sb.append("_" + releaseLabel.getLabel());
+		sb.append("_" + publishPackage.getPublication());
+		long revLatest = publishPackage.getRevisionLatest();
 		sb.append(String.format("_r%010d", revLatest));
 		
 		return sb.toString();
 	}
 	
-	private long getRevLatest(List<CmsItem> items) {
-		
-		long rev = 0;
-		for (CmsItem item: items) {
-			long number = item.getId().getPegRev();
-			if (rev < number) {
-				rev = number;
-			}
-		}
-		return rev;
-	}
 	
 	
 	// Order will not be preserved, should not matter for packaging the publications.
