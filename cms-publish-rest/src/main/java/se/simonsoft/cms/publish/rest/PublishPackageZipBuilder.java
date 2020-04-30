@@ -43,15 +43,15 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecip
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
-public class PublishPackageZip {
+public class PublishPackageZipBuilder {
 	
 	private final CmsExportProvider exportProvider;
 	private final PublishJobStorageFactory storageFactory;
 
-	private static final Logger logger = LoggerFactory.getLogger(PublishPackageZip.class);
+	private static final Logger logger = LoggerFactory.getLogger(PublishPackageZipBuilder.class);
 	
 	@Inject
-	public PublishPackageZip(
+	public PublishPackageZipBuilder(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
 			PublishJobStorageFactory storageFactory) {
 		
