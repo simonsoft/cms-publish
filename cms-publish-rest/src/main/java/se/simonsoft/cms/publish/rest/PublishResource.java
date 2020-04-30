@@ -70,7 +70,7 @@ public class PublishResource {
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
-	private final PublishPackageZip repackageService;
+	private final PublishPackageZipBuilder repackageService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	private final PublishJobStorageFactory storageFactory;
@@ -82,7 +82,7 @@ public class PublishResource {
 			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
-			PublishPackageZip repackageService,
+			PublishPackageZipBuilder repackageService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
