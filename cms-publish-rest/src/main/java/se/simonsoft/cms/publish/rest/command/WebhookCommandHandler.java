@@ -198,12 +198,6 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
        return url;
 	}
 
-	private Date getExpiryDate() {
-		Calendar date = Calendar.getInstance();
-		long t = date.getTimeInMillis();
-		long millis = TimeUnit.MINUTES.toMillis(expiry);
-		return new Date(t + millis);
-	}
 
 	private String getS3Key(PublishJobStorage storage, String extension) {
 		
