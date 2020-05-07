@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -60,21 +59,21 @@ public class PublishPackageZipBuilder {
 	}
 	
 	// Note: All aspects of PublishConfig does not necessarily apply to all items.
-	public void getZip(Set<CmsItem> items, String configName, PublishConfig config, Set<PublishProfilingRecipe> profilingSet, OutputStream os) {
+	public void getZip(PublishPackage publishPackage, OutputStream os) {
 		
 		final List<CmsImportJob> downloadJobs = new ArrayList<CmsImportJob>();
 		final List<CmsExportReader> readers = new ArrayList<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
-		logger.debug("Creating PublishExportJobs from: {} items", items.size());
-		for (CmsItem item: items) {
-			if (profilingSet == null) {
+		logger.debug("Creating PublishExportJobs from: {} items", publishPackage.getPublishedItems().size());
+		for (CmsItem item: publishPackage.getPublishedItems()) {
+			if (publishPackage.getProfilingSet() == null) {
 				// No profiling, one publication per item.
-				downloadJobs.add(getPublishDownloadJob(item, config, configName, null));
+				downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), null));
 			} else {
 				// Profiling, zero or more publications per item.
-				for (PublishProfilingRecipe profilingRecipe: profilingSet) {
-					downloadJobs.add(getPublishDownloadJob(item, config, configName, profilingRecipe));
+				for (PublishProfilingRecipe profilingRecipe: publishPackage.getProfilingSet()) {
+					downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), profilingRecipe));
 				}
 			}
 		}
