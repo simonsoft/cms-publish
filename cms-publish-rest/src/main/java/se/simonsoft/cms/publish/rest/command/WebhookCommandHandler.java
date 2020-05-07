@@ -37,13 +37,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.HttpMethod;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
@@ -51,6 +44,11 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
@@ -58,7 +56,8 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private final Long expiry;
 	private final String bucketName;
 	private final HttpClient client;
-	private final AmazonS3 s3Client;
+	private final S3Client s3Client;
+	private final S3Utilities s3Utils;
 
 	private final String archiveExt = "zip";
 	private final String manifestExt = "json";
@@ -71,14 +70,17 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 						@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 						HttpClient client,
 						Region region,
-						AWSCredentialsProvider credentials) {
+						AwsCredentialsProvider credentials) {
 		
 		this.expiry = expiryMinutes;
 		this.bucketName = bucketName;
 		this.client = client;
-		this.s3Client = AmazonS3Client.builder()
-				.withRegion(region.getName())
-				.withCredentials(credentials)
+		this.s3Client = S3Client.builder()
+				.region(region)
+				.credentialsProvider(credentials)
+				.build();
+		this.s3Utils = S3Utilities.builder()
+				.region(region)
 				.build();
 	}
 
@@ -172,14 +174,25 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private URL getS3Url(String path, Boolean presign) {
 		
 		URL url = null;
-		if (presign != null && presign) { 
+		
+		GetUrlRequest getRequest = GetUrlRequest.builder()
+				.bucket(bucketName)
+				.key(path)
+				.build();
+		
+		if (presign != null && presign) {
+			/*
 			GeneratePresignedUrlRequest request =
 					new GeneratePresignedUrlRequest(bucketName, path);
 			request.setMethod(HttpMethod.GET);
 			request.setExpiration(getExpiryDate());
 			url = s3Client.generatePresignedUrl(request);
+			*/
+			//GetObjectPresignRequest
+			// TODO: Add presign request.
+			url = s3Utils.getUrl(getRequest);
 		} else {
-			url = s3Client.getUrl(bucketName, path);
+			url = s3Utils.getUrl(getRequest);
 		}
 		
        return url;
