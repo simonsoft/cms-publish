@@ -18,12 +18,10 @@ package se.simonsoft.cms.publish.rest.command;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,13 +35,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.HttpMethod;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
@@ -51,14 +42,23 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
-	private final Long expiry;
+	private final Long expiryMinutes;
 	private final String bucketName;
 	private final HttpClient client;
-	private final AmazonS3 s3Client;
+	private final S3Utilities s3Utils;
+	private final S3Presigner presigner;
 
 	private final String archiveExt = "zip";
 	private final String manifestExt = "json";
@@ -71,14 +71,17 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 						@Named("config:se.simonsoft.cms.publish.bucket") String bucketName,
 						HttpClient client,
 						Region region,
-						AWSCredentialsProvider credentials) {
+						AwsCredentialsProvider credentials) {
 		
-		this.expiry = expiryMinutes;
+		this.expiryMinutes = expiryMinutes;
 		this.bucketName = bucketName;
 		this.client = client;
-		this.s3Client = AmazonS3Client.builder()
-				.withRegion(region.getName())
-				.withCredentials(credentials)
+		this.s3Utils = S3Utilities.builder()
+				.region(region)
+				.build();
+		this.presigner = S3Presigner.builder()
+				.region(region)
+				.credentialsProvider(credentials)
 				.build();
 	}
 
@@ -172,25 +175,36 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private URL getS3Url(String path, Boolean presign) {
 		
 		URL url = null;
-		if (presign != null && presign) { 
-			GeneratePresignedUrlRequest request =
-					new GeneratePresignedUrlRequest(bucketName, path);
-			request.setMethod(HttpMethod.GET);
-			request.setExpiration(getExpiryDate());
-			url = s3Client.generatePresignedUrl(request);
+		
+		GetUrlRequest getUrlRequest = GetUrlRequest.builder()
+				.bucket(bucketName)
+				.key(path)
+				.build();
+		
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(path)
+				.build();
+		
+		if (presign != null && presign) {
+			GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+					.signatureDuration(Duration.ofMinutes(this.expiryMinutes))
+					.getObjectRequest(getObjectRequest)
+					.build();
+			
+			PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
+			
+			if (!presignedGetObjectRequest.isBrowserExecutable()) {
+				throw new IllegalStateException("Presigned S3 GET request is not Browser Compatible: " + path);
+			}
+			url = presignedGetObjectRequest.url();
 		} else {
-			url = s3Client.getUrl(bucketName, path);
+			url = s3Utils.getUrl(getUrlRequest);
 		}
 		
        return url;
 	}
 
-	private Date getExpiryDate() {
-		Calendar date = Calendar.getInstance();
-		long t = date.getTimeInMillis();
-		long millis = TimeUnit.MINUTES.toMillis(expiry);
-		return new Date(t + millis);
-	}
 
 	private String getS3Key(PublishJobStorage storage, String extension) {
 		

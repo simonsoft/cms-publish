@@ -15,8 +15,6 @@
  */
 package se.simonsoft.cms.publish.worker.export;
 
-import com.amazonaws.services.kms.model.UnsupportedOperationException;
-
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsExportWriter;
