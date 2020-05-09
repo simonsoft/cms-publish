@@ -15,23 +15,25 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
-import se.simonsoft.cms.item.workflow.WorkflowItemInput;
+import se.simonsoft.cms.item.workflow.WorkflowItemInputUserId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PublishJob extends PublishConfig implements WorkflowItemInput{
+public class PublishJob extends PublishConfig implements WorkflowItemInputUserId {
 
 	private String configname;
 	private String type;
 	private String action;
 	private PublishConfigArea area;
 	private String itemid;
+	private String userId;
 	private PublishJobOptions options;
 
 	public PublishJob(PublishJob pj) {
@@ -114,5 +116,16 @@ public class PublishJob extends PublishConfig implements WorkflowItemInput{
 	@JsonIgnore
 	public CmsItemId getItemId() {
 		return new CmsItemIdArg(this.itemid);
+	}
+
+	@Override
+	@JsonGetter("userid") // Defined by the interface if the writer configure forType(WorkflowItemInputUserId.class). 
+	public String getUserId() {
+		return this.userId;
+	}
+
+	@Override
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 }
