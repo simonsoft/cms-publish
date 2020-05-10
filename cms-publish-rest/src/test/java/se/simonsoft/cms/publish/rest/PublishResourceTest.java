@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -103,26 +104,26 @@ public class PublishResourceTest {
 		
 		PublishJob publishJob1 = new PublishJob();
 		publishJob1.setConfigname("pdf");
-		executions1.add(new WorkflowExecution("1", "RUNNING", new Date(), null, publishJob1));
+		executions1.add(new WorkflowExecution("1", "RUNNING", Instant.now(), null, publishJob1));
 		
 		PublishJob publishJob2 = new PublishJob();
 		publishJob2.setConfigname("html");
-		executions1.add(new WorkflowExecution("2", "RUNNING", new Date(), null, publishJob2));
+		executions1.add(new WorkflowExecution("2", "RUNNING", Instant.now(), null, publishJob2));
 		
 		
 		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
 		
 		PublishJob publishJob3 = new PublishJob();
 		publishJob3.setConfigname("html");
-		executions2.add(new WorkflowExecution("3", "RUNNING", new Date(), null, publishJob3));
+		executions2.add(new WorkflowExecution("3", "RUNNING", Instant.now(), null, publishJob3));
 		
 		PublishJob publishJob4 = new PublishJob();
 		publishJob4.setConfigname("pdf");
-		executions2.add(new WorkflowExecution("4", "FAILED", new Date(), null, publishJob4));
+		executions2.add(new WorkflowExecution("4", "FAILED", Instant.now(), null, publishJob4));
 		
 		PublishJob publishJob5 = new PublishJob();
 		publishJob5.setConfigname("pdf");
-		executions2.add(new WorkflowExecution("5", "FAILED", new Date(), null, publishJob5));
+		executions2.add(new WorkflowExecution("5", "FAILED", Instant.now(), null, publishJob5));
 		
 		
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
