@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import se.repos.web.PageInfo;
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
@@ -70,6 +71,8 @@ public class PublishResourceTest {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
+		
+		when(htmlHelperMock.getHeadTags(any(PageInfo.class))).thenReturn("");
 	}
 	
 	@SuppressWarnings("unchecked")
