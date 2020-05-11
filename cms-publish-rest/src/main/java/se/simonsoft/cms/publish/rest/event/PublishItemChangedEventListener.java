@@ -151,7 +151,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, profiling);
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
@@ -204,13 +204,15 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		// Important if allowing evaluation of params in the future.
 		tmplStr.withEntry("aptpath", "$aptpath");
 		// Add the cloudid, might be useful for delivery.
 		tmplStr.withEntry("cloudid", this.cloudId);
+		// Add config name, might be useful for delivery.
+		tmplStr.withEntry("configname", configName);
 		// Add the item
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
