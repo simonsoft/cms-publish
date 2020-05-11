@@ -73,6 +73,9 @@ public class PublishJobManifestBuilder {
 			logger.debug("Manifest built with {} Custom and {} Meta keys.", manifest.getCustomTemplates().size(), manifest.getMetaTemplates().size());
 		} else {
 			// Prevent incomplete manifest when docno has not been configured.
+			manifest.setPathext(null);
+			manifest.setJob(null);
+			
 			manifest.setDocument(null);
 			manifest.setMaster(null);
 			manifest.setCustom(null);
