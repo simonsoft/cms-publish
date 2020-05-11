@@ -570,7 +570,15 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals(manifestValidated.getJob(), manifest.getJob());
 		assertEquals(manifestValidated.getDocument(), manifest.getDocument());
 		assertEquals(manifestValidated.getMeta(), manifest.getMeta());
-		assertEquals(manifestValidated.getCustom(), manifest.getCustom());	
+		assertEquals(manifestValidated.getCustom(), manifest.getCustom());
+		
+		assertEquals("specific asserts on custom map", "OPERATOR", manifest.getCustom().get("type"));
+		assertEquals("specific asserts on custom map", "value", manifest.getCustom().get("static"));
+		
+		String publishJobJson = mapper.writer().forType(PublishJob.class).writeValueAsString(publishJob);
+		assertTrue("regression related to meta map", publishJobJson.contains("operator"));
+		assertTrue("regression related to custom map", publishJobJson.contains("OPERATOR"));
+		//assertEquals("", publishJobJson);
 	}
 	
 	@Test
