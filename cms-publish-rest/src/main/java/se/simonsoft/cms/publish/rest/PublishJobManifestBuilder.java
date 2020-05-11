@@ -70,12 +70,14 @@ public class PublishJobManifestBuilder {
 			}
 			manifest.setCustom(buildMap(item, manifest.getCustomTemplates()));
 			manifest.setMeta(buildMap(item, manifest.getMetaTemplates()));
+			logger.debug("Manifest built with {} Custom and {} Meta keys.", manifest.getCustomTemplates().size(), manifest.getMetaTemplates().size());
 		} else {
 			// Prevent incomplete manifest when docno has not been configured.
 			manifest.setDocument(null);
 			manifest.setMaster(null);
 			manifest.setCustom(null);
 			manifest.setMeta(null);
+			logger.debug("Manifest suppressed, 'docnoTemplate' is not defined.");
 		}
 	}
 	
