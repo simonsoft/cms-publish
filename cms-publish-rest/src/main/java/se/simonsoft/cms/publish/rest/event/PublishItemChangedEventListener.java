@@ -204,7 +204,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItem item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		// Important if allowing evaluation of params in the future.
