@@ -29,15 +29,6 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.AbortedException;
-import com.amazonaws.services.stepfunctions.AWSStepFunctions;
-import com.amazonaws.services.stepfunctions.model.GetActivityTaskRequest;
-import com.amazonaws.services.stepfunctions.model.GetActivityTaskResult;
-import com.amazonaws.services.stepfunctions.model.SendTaskFailureRequest;
-import com.amazonaws.services.stepfunctions.model.SendTaskHeartbeatRequest;
-import com.amazonaws.services.stepfunctions.model.SendTaskSuccessRequest;
-import com.amazonaws.services.stepfunctions.model.SendTaskSuccessResult;
-import com.amazonaws.services.stepfunctions.model.TaskTimedOutException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -56,12 +47,15 @@ import se.simonsoft.cms.publish.config.manifest.PublishManifestExportCommandHand
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sfn.SfnClient;
+import software.amazon.awssdk.services.sfn.model.*;
 
 @Singleton
 public class AwsStepfunctionPublishWorker {
 
-	private final AWSStepFunctions client;
+	private final SfnClient client;
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
 	private final PublishJobService publishJobService;
@@ -80,7 +74,7 @@ public class AwsStepfunctionPublishWorker {
 			Map<String, CmsExportProvider> exportProviders,
 			ObjectReader reader,
 			ObjectWriter writer,
-			AWSStepFunctions client,
+			SfnClient client,
 			Region region,
 			String account,
 			String cloudId,
@@ -112,11 +106,11 @@ public class AwsStepfunctionPublishWorker {
 				final String startupTimeFormatted = df.format(startUpTime);
 
 				while(true) {
-					GetActivityTaskResult taskResult = null;
-
+					GetActivityTaskResponse taskResponse = null;
 					try {
 						updateWorkerLoop("", new Date(), "AWS worker checking for activity");
-						taskResult = client.getActivityTask(new GetActivityTaskRequest().withActivityArn(activityArn).withWorkerName(startupTimeFormatted));
+						GetActivityTaskRequest taskRequest = GetActivityTaskRequest.builder().activityArn(activityArn).workerName(startupTimeFormatted).build();
+						taskResponse = client.getActivityTask(taskRequest);
 						// Can we get the workflow execution UUID?
 						//updateStatusReport("AWS worker task", new Date(), taskResult.getTaskToken());
 					} catch (AbortedException e) {
@@ -133,14 +127,14 @@ public class AwsStepfunctionPublishWorker {
 							logger.warn("Failed to sleep: {}", e.getMessage(), e);
 						}
 					}
-					if (hasTaskToken(taskResult)) {
+					if (hasTaskToken(taskResponse)) {
 						PublishTicket publishTicket = null;
 						String progressAsJson = null;
-						logger.debug("tasktoken: {}", taskResult.getTaskToken());
+						logger.debug("tasktoken: {}", taskResponse.taskToken());
 						PublishJobOptions options = null;
 
 						try {
-							String taskInput = taskResult.getInput();
+							String taskInput = taskResponse.input();
 							logger.debug("Got a task from workflow. {}", taskInput);
 							options = deserializeInputToOptions(taskInput);
 
@@ -152,11 +146,11 @@ public class AwsStepfunctionPublishWorker {
 									manifestExport.handleExternalCommand(new CmsItemIdArg(options.getManifest().getJob().get("itemid")), options);
 
 									updateStatusReport("Completed manifest export", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
-									sendTaskResult(taskResult, getProgressAsJson(options.getProgress()));
+									sendTaskResult(taskResponse, getProgressAsJson(options.getProgress()));
 								} else {
 									updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
 									progressAsJson = exportJob(options);
-									sendTaskResult(taskResult, progressAsJson);
+									sendTaskResult(taskResponse, progressAsJson);
 								}
 							} else {
 								// Request publish and wait for completion.
@@ -165,24 +159,24 @@ public class AwsStepfunctionPublishWorker {
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(options);
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
-								waitForJob(taskResult, publishTicket);
+								waitForJob(taskResponse, publishTicket);
 								updateStatusReport("Retrieving", new Date(), "Ticket: " + publishTicket.toString());
 
 								String exportPath = exportCompletedJob(publishTicket, options);
 								progress.getParams().put("ticket", publishTicket.toString());
 								progress.getParams().put("completed", "true");
 								progress.getParams().put("pathResult", exportPath);
-								sendTaskResult(taskResult, getProgressAsJson(progress));
+								sendTaskResult(taskResponse, getProgressAsJson(progress));
 							}
 
 						} catch (IOException | InterruptedException | PublishException e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Exception: " + e.getMessage(), e);
-							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
+							sendTaskResultBestEffort(taskResponse, new CommandRuntimeException("JobFailed", e));
 						} catch (CommandRuntimeException e) {
 							updateStatusReport("Command failed: " + e.getErrorName(), new Date(), e.getMessage());
 							logger.warn("CommandRuntimeException: " + e.getErrorName(), e);
-							sendTaskResultBestEffort(taskResult, e);
+							sendTaskResultBestEffort(taskResponse, e);
 						} catch (TaskTimedOutException e) {
 							String errorMessage = "AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).";
 							updateStatusReport("Task timeout", new Date(), errorMessage);
@@ -190,11 +184,11 @@ public class AwsStepfunctionPublishWorker {
 						} catch (Exception e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected exception: " + e.getMessage(), e);
-							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
+							sendTaskResultBestEffort(taskResponse, new CommandRuntimeException("JobFailed", e));
 						} catch (Throwable e) {
 							updateWorkerError(new Date(), e);
 							logger.error("Unexpected error: {}", e.getMessage(), e);
-							sendTaskResultBestEffort(taskResult, new CommandRuntimeException("JobFailed", e));
+							sendTaskResultBestEffort(taskResponse, new CommandRuntimeException("JobFailed", e));
 						}
 					} else {
 
@@ -235,7 +229,7 @@ public class AwsStepfunctionPublishWorker {
 		return progressAsJson;
 	}
 
-	private void waitForJob(GetActivityTaskResult taskResult, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
+	private void waitForJob(GetActivityTaskResponse taskResponse, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 
 		final int interval = 10;
 		final Long MAX_WAIT = 7200L; // TODO: Configurable
@@ -251,26 +245,23 @@ public class AwsStepfunctionPublishWorker {
 						updateStatusReport("Waiting...", new Date(), "Ticket: " + ticket.toString());
 					}
 					Thread.sleep(interval * 1000);
-
-					sendTaskHeartbeat(taskResult);
+					sendTaskHeartbeat(taskResponse);
 				}
 			} catch (PublishException e) {
 				throw e;
 			} catch (InterruptedException e) {
 				logger.error("Thread sleep interrupted: {}", e.getMessage(), e);
 				throw new CommandRuntimeException("JobInterrupted");
-
 			} catch (Exception e) {
 				throw new RuntimeException("Failed while waiting for job: " + e.getMessage(), e);
-
 			}
 		}
 		throw new CommandRuntimeException("JobStuck");
 	}
 
 
-	private boolean hasTaskToken(GetActivityTaskResult taskResult) {
-		return taskResult != null && taskResult.getTaskToken() != null && !taskResult.getTaskToken().isEmpty();
+	private boolean hasTaskToken(GetActivityTaskResponse taskResponse) {
+		return taskResponse != null && taskResponse.taskToken() != null && !taskResponse.taskToken().isEmpty();
 	}
 
 	private PublishTicket requestPublish(PublishJobOptions options) throws InterruptedException, PublishException {
@@ -348,33 +339,37 @@ public class AwsStepfunctionPublishWorker {
 	}
 
 
-	private void sendTaskHeartbeat(GetActivityTaskResult taskResult) {
+	private void sendTaskHeartbeat(GetActivityTaskResponse taskResponse) {
 		logger.debug("Sending heartbeat...");
-		SendTaskHeartbeatRequest req = new SendTaskHeartbeatRequest();
-		req.setTaskToken(taskResult.getTaskToken());
-		client.sendTaskHeartbeat(req);
+		SendTaskHeartbeatRequest request = SendTaskHeartbeatRequest.builder()
+				.taskToken(taskResponse.taskToken())
+				.build();
+		client.sendTaskHeartbeat(request);
 	}
 
-	private void sendTaskResult(GetActivityTaskResult taskResult, String resultJson) {
-		SendTaskSuccessRequest succesReq = new SendTaskSuccessRequest();
-		succesReq.setTaskToken(taskResult.getTaskToken());
-		succesReq.setOutput(resultJson);
-		SendTaskSuccessResult sendTaskSuccess = client.sendTaskSuccess(succesReq);
-		logger.debug("Task succesfully executed with request id: {}", sendTaskSuccess.getSdkResponseMetadata().getRequestId());
+	private void sendTaskResult(GetActivityTaskResponse taskResponse, String resultJson) {
+		SendTaskSuccessRequest request = SendTaskSuccessRequest.builder()
+				.taskToken(taskResponse.taskToken())
+				.output(resultJson)
+				.build();
+		SendTaskSuccessResponse response = client.sendTaskSuccess(request);
+		logger.debug("Task successfully executed with request id: {}", response.responseMetadata().requestId());
 	}
 
 
-	private void sendTaskResult(GetActivityTaskResult taskResult, CommandRuntimeException e) {
-
-		SendTaskFailureRequest failReq = new SendTaskFailureRequest();
-		failReq.setTaskToken(taskResult.getTaskToken());
-		failReq.setError(e.getErrorName());
+	private void sendTaskResult(GetActivityTaskResponse taskResponse, CommandRuntimeException e) {
+		String cause = null;
 		if (e.getMessage() != null && !e.getMessage().isEmpty()) {
-			failReq.setCause(e.getMessage());
+			cause = e.getMessage();
 		} else if (e.getCause() != null) {
-			failReq.setCause(e.getCause().getMessage());
+			cause = e.getCause().getMessage();
 		}
-		client.sendTaskFailure(failReq);
+		SendTaskFailureRequest request = SendTaskFailureRequest.builder()
+				.taskToken(taskResponse.taskToken())
+				.error(e.getErrorName())
+				.cause(cause)
+				.build();
+		client.sendTaskFailure(request);
 	}
 
 	private String getProgressAsJson(PublishJobProgress progress) {
@@ -391,9 +386,9 @@ public class AwsStepfunctionPublishWorker {
 		return progressJson;
 	}
 
-	private void sendTaskResultBestEffort(GetActivityTaskResult taskResult, CommandRuntimeException cre) {
+	private void sendTaskResultBestEffort(GetActivityTaskResponse taskResponse, CommandRuntimeException cre) {
 		try {
-			sendTaskResult(taskResult, cre);
+			sendTaskResult(taskResponse, cre);
 		} catch (TaskTimedOutException timedOutEx) {
 			String errorMessage = "AWS Task has timed out while processed by the Worker (heartbeats too sparse or total time exceeded).";
 			updateStatusReport("Task timeout", new Date(), errorMessage);

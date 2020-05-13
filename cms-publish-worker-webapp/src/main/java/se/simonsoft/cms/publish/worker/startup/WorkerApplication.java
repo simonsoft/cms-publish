@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.worker.startup;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -31,16 +32,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.amazonaws.services.stepfunctions.AWSStepFunctions;
-import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -57,10 +48,14 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.version.CmsComponentVersion;
 import se.simonsoft.cms.version.CmsComponentVersionManifest;
 import se.simonsoft.cms.version.CmsComponents;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.sfn.SfnClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 public class WorkerApplication extends ResourceConfig {
 
@@ -77,7 +72,6 @@ public class WorkerApplication extends ResourceConfig {
 	private String cloudId;
 	private String awsAccountId;
 	private AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
-	private AWSCredentialsProvider credentialsLegacy = DefaultAWSCredentialsProviderChain.getInstance();
 	private String bucketName = BUCKET_NAME;
 	private ServletContext context;
 
@@ -117,7 +111,7 @@ public class WorkerApplication extends ResourceConfig {
             	}
             	logger.info("Region name: {}", region.id());
             	bind(region).to(Region.class);
-            	awsAccountId = getAwsAccountId(credentialsLegacy, region);
+            	awsAccountId = getAwsAccountId(credentials, region);
 
             	bind(new PublishServicePe()).to(PublishServicePe.class);
             	PublishServicePe publishServicePe = new PublishServicePe();
@@ -140,15 +134,16 @@ public class WorkerApplication extends ResourceConfig {
             	bind(exportProviders).to(Map.class);
 
             	//Bind AWS client
-            	ClientConfiguration clientConfiguration = new ClientConfiguration();
-        		clientConfiguration.setSocketTimeout((int)TimeUnit.SECONDS.toMillis(70));
-            	AWSStepFunctions client = AWSStepFunctionsClientBuilder.standard()
-        				.withRegion(Regions.fromName(region.id()))
-        				.withCredentials(credentialsLegacy)
-        				.withClientConfiguration(clientConfiguration)
-        				.build();
+				Duration timeout = Duration.ofSeconds(70);
+				ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder()
+						.socketTimeout(timeout);
+				SfnClient client = SfnClient.builder()
+						.region(region)
+						.credentialsProvider(credentials)
+						.httpClientBuilder(httpClientBuilder)
+						.build();
 
-            	bind(client).to(AWSStepFunctions.class);
+            	bind(client).to(SfnClient.class);
 
             	//Jackson binding reader for future usage.
         		ObjectMapper mapper = new ObjectMapper();
@@ -182,24 +177,23 @@ public class WorkerApplication extends ResourceConfig {
 
 	}
 
-	private String getAwsAccountId(AWSCredentialsProvider credentials, Region region) {
+	private String getAwsAccountId(AwsCredentialsProvider credentials, Region region) {
 
 		logger.debug("Requesting aws to get a account Id");
 
 		String accountId = null;
 		try {
-			AWSSecurityTokenService securityClient = AWSSecurityTokenServiceClientBuilder.standard()
-					.withCredentials(credentials)
-					.withRegion(region.id())
+			StsClient stsClient = StsClient.builder()
+					.region(region)
+					.credentialsProvider(credentials)
 					.build();
-			GetCallerIdentityRequest request = new GetCallerIdentityRequest();
-			GetCallerIdentityResult response = securityClient.getCallerIdentity(request);
-			accountId = response.getAccount();
+			GetCallerIdentityResponse response = stsClient.getCallerIdentity();
+			accountId = response.account();
 		} catch (Exception e) {
 			logger.error("Could not get a AWS account id: {}", e.getMessage());
 		}
 
-		logger.debug("Requested aws account id: {}", accountId);
+		logger.debug("Determined AWS account id: {}", accountId);
 		return accountId;
 	}
 
