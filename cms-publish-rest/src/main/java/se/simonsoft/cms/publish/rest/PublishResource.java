@@ -192,8 +192,12 @@ public class PublishResource {
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
 		
 		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
-		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(releaseItem));
+		Map<String, PublishConfig> configurationsRelease = publishConfiguration.getConfiguration(releaseItem.getId());
 		final PublishConfig publishConfig = configurationsRelease.get(publication);
+		
+		if (publishConfig == null) {
+			throw new IllegalArgumentException("Publish Configuration must be defined for the Release: " + publication);
+		}
 		
 		if (includeRelease) {
 			items.add(releaseItem);
