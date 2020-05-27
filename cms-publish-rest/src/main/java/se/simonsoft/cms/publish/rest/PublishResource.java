@@ -38,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -46,23 +47,31 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import se.repos.web.ReposHtmlHelper;
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
-import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
+import se.simonsoft.cms.item.export.*;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 @Path("/publish4")
 public class PublishResource {
@@ -260,18 +269,11 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-		
-		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
-		
-		PublishConfig publishConfig = publishPackage.getPublishConfig();
-		if (publishConfig.getOptions().getStorage() != null) {
-			String type = publishConfig.getOptions().getStorage().getType();
-			if (type != null && !type.equals("s3")) {
-				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
-				throw new IllegalStateException(msg);
-			}
+
+		if (profiling != null && profiling.length != 0) {
+			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
 		}
-		
+
 		/*
 		 * TODO:
 		 *  - Get known Publish Workflows from executionsStatus. Status values are trusted except RUNNING_STALE.
@@ -281,9 +283,10 @@ public class PublishResource {
 		 *  - Respond with Set<WorkflowExecution> which should become a JSON array if WorkflowExecutionStatusMessageBodyWriterJson has been registered. 
 		 * 
 		 */
-		
-		
-		return null;
+
+		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		PublishPackageStatus publishPackageStatus = new PublishPackageStatus(executionsStatus, storageFactory);
+		return publishPackageStatus.getStatus(publishPackage);
 	}
 	
 	
