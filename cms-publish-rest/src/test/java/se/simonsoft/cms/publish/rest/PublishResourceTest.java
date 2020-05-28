@@ -34,12 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.repos.web.PageInfo;
 import se.repos.web.ReposHtmlHelper;
-import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
-import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
@@ -54,10 +52,6 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class PublishResourceTest {
 	
@@ -168,11 +162,6 @@ public class PublishResourceTest {
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
-
-		AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
-		Region region = DefaultAwsRegionProviderChain.builder().build().getRegion();
-		CmsExportPrefix exportPrefix = new CmsExportPrefix(storage.getPathversion());
-		when(exportProviderMock.getReader()).thenReturn(new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials).getReader());
 
 		PublishResource resource = new PublishResource("demo.simonsoftcms.se",
 														executionStatusMock,

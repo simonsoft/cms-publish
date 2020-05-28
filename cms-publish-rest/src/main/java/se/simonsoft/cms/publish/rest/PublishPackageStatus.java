@@ -10,7 +10,6 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
-import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.export.*;
@@ -18,15 +17,9 @@ import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatusInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class PublishPackageStatus {
 
