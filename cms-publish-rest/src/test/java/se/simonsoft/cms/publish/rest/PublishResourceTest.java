@@ -36,10 +36,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.repos.web.PageInfo;
 import se.repos.web.ReposHtmlHelper;
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.export.CmsExportPrefix;
+import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
 import se.simonsoft.cms.item.properties.SvnPropertyMap;
@@ -56,6 +59,10 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class PublishResourceTest {
 	
@@ -69,6 +76,7 @@ public class PublishResourceTest {
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
+	@Mock CmsExportProvider exportProviderMock;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
 
@@ -106,12 +114,6 @@ public class PublishResourceTest {
 		
 		when(translationTrackingMock.getTranslations(any(CmsItemId.class))).thenReturn(translations);
 
-		CmsItemIdArg emptyItemId = new CmsItemIdArg("x-svn:///svn/demo2^/dita/release/A/xml/bookmap/Introduction%20to%20DITA%20and%20Arbortext%20Editor%20(bookmap).dita?p=213");
-		CmsItem itemEmptyMock = mock(CmsItem.class);
-		when(itemEmptyMock.getId()).thenReturn(emptyItemId);
-		when(lookupMapMock.get(emptyItemId.getRepository())).thenReturn(lookupReportingMock);
-		when(lookupReportingMock.getItem(emptyItemId)).thenReturn(itemEmptyMock);
-
 		HashSet<WorkflowExecution> executions1 = new HashSet<WorkflowExecution>();
 		
 		PublishJob publishJob1 = new PublishJob();
@@ -121,8 +123,7 @@ public class PublishResourceTest {
 		PublishJob publishJob2 = new PublishJob();
 		publishJob2.setConfigname("html");
 		executions1.add(new WorkflowExecution("2", "RUNNING", Instant.now(), null, publishJob2));
-		
-		
+
 		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
 		
 		PublishJob publishJob3 = new PublishJob();
@@ -137,23 +138,23 @@ public class PublishResourceTest {
 		publishJob5.setConfigname("pdf");
 		executions2.add(new WorkflowExecution("5", "FAILED", Instant.now(), null, publishJob5));
 
-		HashSet<WorkflowExecution> executions3 = new HashSet<WorkflowExecution>();
-
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
 		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
-		when(executionStatusMock.getWorkflowExecutions(emptyItemId, true)).thenReturn(executions3);
 
 		//Storage setup
+		String cloudId = "demo-dev";
+		String bucketName = "cms-automation-cheftest";
+		String s3UrlBase = "s3://cms-automation-cheftest/cms4/demo-dev/dita-web/dita/release/A/xml/bookmap/Introduction to DITA and Arbortext Editor (bookmap).dita/";
 		PublishJobStorage storage = new PublishJobStorage();
-		storage.setPathcloudid("demo-dev");
+		storage.setPathcloudid(cloudId);
 		storage.setPathconfigname("dita-abxpe");
 		storage.setPathdir("/dita/release/A/xml/bookmap/Introduction to DITA and Arbortext Editor (bookmap).dita");
 		storage.setPathnamebase("Introduction to DITA and Arbortext Editor (bookmap)_r0000000186");
 		storage.setPathversion("cms4");
 		storage.setType("s3");
 		HashMap<String, String> storageParams = new HashMap<String, String>();
-		storageParams.put("s3bucket", "cms-automation-cheftest");
-		storageParams.put("s3urlbase", "s3://cms-automation-cheftest/cms4/demo-dev/dita-web/dita/release/A/xml/bookmap/Introduction to DITA and Arbortext Editor (bookmap).dita/");
+		storageParams.put("s3bucket", bucketName);
+		storageParams.put("s3urlbase", s3UrlBase);
 		storage.setParams(storageParams);
 
 		//Config setup
@@ -175,14 +176,14 @@ public class PublishResourceTest {
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 
-		//Properties mock setup
-		SvnPropertyMap properties = new SvnPropertyMap();
-		properties.putProperty("abx:ReleaseLabel", "C");
-		when(itemMock.getProperties()).thenReturn(properties);
-		when(itemEmptyMock.getProperties()).thenReturn(properties);
+		AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
+		Region region = DefaultAwsRegionProviderChain.builder().build().getRegion();
+		CmsExportPrefix exportPrefix = new CmsExportPrefix(storage.getPathversion());
+		when(exportProviderMock.getReader()).thenReturn(new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials).getReader());
 
 		PublishResource resource = new PublishResource("demo.simonsoftcms.se",
 														executionStatusMock,
+														exportProviderMock,
 														lookupMapMock,
 														publishConfigurationMock,
 														packageZipMock,
@@ -202,13 +203,6 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("Publish of the Release with config html is running."));
 		assertTrue(releaseForm.contains("Publish of the Translations with config html is running."));
 		assertTrue(releaseForm.contains("Publish of the Translations with config pdf is failed."));
-
-		Set<WorkflowExecution> status = resource.getStatus(itemId, true,  true, new String[]{}, "print");
-		ObjectWriter objectWriter = new ObjectMapper().writer();
-		logger.debug(objectWriter.writeValueAsString(status));
-
-		status = resource.getStatus(emptyItemId, true,  true, new String[]{}, "print");
-		logger.debug(objectWriter.writeValueAsString(status));
 	}
 	
 	
