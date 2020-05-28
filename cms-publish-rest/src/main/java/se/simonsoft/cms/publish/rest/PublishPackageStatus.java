@@ -15,8 +15,8 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.export.*;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
-import se.simonsoft.cms.item.workflow.WorkflowExecutionStatusInput;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -53,7 +53,7 @@ public class PublishPackageStatus {
         // FIXME: We currently ignore the RUNNING_STALE executions. It remains to be seen if this needs to be handled properly.
         executions.removeIf(execution -> execution.getStatus() == "RUNNING_STALE");
         // Filter out the executions not related to the current publication
-        executions.removeIf(execution -> ((WorkflowExecutionStatusInput) execution.getInput()).getConfigname() != publication);
+        executions.removeIf(execution -> ((PublishJob) execution.getInput()).getConfigname() != publication);
         logger.debug("Found {} relevant workflow executions.", executions.size());
 
         for (CmsItem item: publishedItems) {
@@ -91,7 +91,7 @@ public class PublishPackageStatus {
         WorkflowExecution execution = null;
         CmsExportReader reader = exportProvider.getReader();
         CmsImportJob importJob = PublishExportJobFactory.getImportJobSingle(storage, "zip");
-        WorkflowExecutionStatusInput input = new WorkflowExecutionStatusInput(itemId.getLogicalIdFull(), null, publication);
+        PublishStatusItemInput input = new PublishStatusItemInput(itemId.getLogicalIdFull(), null);
         try {
             reader.prepare(importJob);
             execution = new WorkflowExecution(null, "SUCCEEDED", null, null, input);
