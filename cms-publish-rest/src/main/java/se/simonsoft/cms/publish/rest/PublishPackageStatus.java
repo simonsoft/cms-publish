@@ -96,8 +96,6 @@ public class PublishPackageStatus {
         }
 
         WorkflowExecution execution = null;
-        String cloudId = storage.getPathcloudid();
-        String bucketName = storage.getParams().get("s3bucket");
         CmsExportReader reader = exportProvider.getReader();
         CmsImportJob importJob = PublishExportJobFactory.getImportJobSingle(storage, "zip");
         WorkflowExecutionStatusInput input = new WorkflowExecutionStatusInput(itemId.getLogicalIdFull(), null, publication);
