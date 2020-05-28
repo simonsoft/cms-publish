@@ -130,22 +130,6 @@ public class PublishResourceTest {
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
 		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
 
-		//Storage setup
-		String cloudId = "demo-dev";
-		String bucketName = "cms-automation-cheftest";
-		String s3UrlBase = "s3://cms-automation-cheftest/cms4/demo-dev/dita-web/dita/release/A/xml/bookmap/Introduction to DITA and Arbortext Editor (bookmap).dita/";
-		PublishJobStorage storage = new PublishJobStorage();
-		storage.setPathcloudid(cloudId);
-		storage.setPathconfigname("dita-abxpe");
-		storage.setPathdir("/dita/release/A/xml/bookmap/Introduction to DITA and Arbortext Editor (bookmap).dita");
-		storage.setPathnamebase("Introduction to DITA and Arbortext Editor (bookmap)_r0000000186");
-		storage.setPathversion("cms4");
-		storage.setType("s3");
-		HashMap<String, String> storageParams = new HashMap<String, String>();
-		storageParams.put("s3bucket", bucketName);
-		storageParams.put("s3urlbase", s3UrlBase);
-		storage.setParams(storageParams);
-
 		//Config setup
 		PublishConfig config = new PublishConfig();
 		config.setVisible(true);
@@ -163,7 +147,7 @@ public class PublishResourceTest {
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 
-		PublishResource resource = new PublishResource("demo.simonsoftcms.se",
+		PublishResource resource = new PublishResource("localhost",
 														executionStatusMock,
 														exportProviderMock,
 														lookupMapMock,
