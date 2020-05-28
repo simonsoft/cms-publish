@@ -84,12 +84,14 @@ public class PublishResource {
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	private final PublishJobStorageFactory storageFactory;
+	private final CmsExportProvider exportProvider;
 	
 	private VelocityEngine templateEngine;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
 			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
+			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
@@ -108,6 +110,7 @@ public class PublishResource {
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
 		this.templateEngine = templateEngine;
+		this.exportProvider = exportProvider;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -285,7 +288,7 @@ public class PublishResource {
 		 */
 
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
-		PublishPackageStatus publishPackageStatus = new PublishPackageStatus(executionsStatus, storageFactory);
+		PublishPackageStatus publishPackageStatus = new PublishPackageStatus(executionsStatus, exportProvider, storageFactory);
 		return publishPackageStatus.getStatus(publishPackage);
 	}
 	
