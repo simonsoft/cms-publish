@@ -49,8 +49,7 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
-import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
+import se.simonsoft.cms.item.export.*;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
@@ -72,10 +71,11 @@ public class PublishResource {
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
+	private final PublishPackageStatus statusService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	private final PublishJobStorageFactory storageFactory;
-	
+
 	private VelocityEngine templateEngine;
 
 	@Inject
@@ -84,6 +84,7 @@ public class PublishResource {
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
+			PublishPackageStatus statusService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
@@ -95,6 +96,7 @@ public class PublishResource {
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
+		this.statusService = statusService;
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
@@ -260,30 +262,13 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-		
-		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
-		
-		PublishConfig publishConfig = publishPackage.getPublishConfig();
-		if (publishConfig.getOptions().getStorage() != null) {
-			String type = publishConfig.getOptions().getStorage().getType();
-			if (type != null && !type.equals("s3")) {
-				String msg = MessageFormatter.format("Field 'publication': publication name '{}' can not be exported (configured for non-default storage).", publication).getMessage();
-				throw new IllegalStateException(msg);
-			}
+
+		if (profiling != null && profiling.length != 0) {
+			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
 		}
-		
-		/*
-		 * TODO:
-		 *  - Get known Publish Workflows from executionsStatus. Status values are trusted except RUNNING_STALE.
-		 *  - RUNNING_STALE executions: verify against S3 or request refresh from executionsStatus? (low priority). 
-		 *  - Unknown executions must be verified against S3. Prepare an export which gets metadata and verifies existance.
-		 *  - Validations against S3 need to be cached? Even respond with UNKNOWN and check S3 async? We will introduce https://github.com/ben-manes/caffeine in other locations.
-		 *  - Respond with Set<WorkflowExecution> which should become a JSON array if WorkflowExecutionStatusMessageBodyWriterJson has been registered. 
-		 * 
-		 */
-		
-		
-		return null;
+
+		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		return statusService.getStatus(publishPackage);
 	}
 	
 	

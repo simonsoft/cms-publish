@@ -21,13 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -36,12 +30,15 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.repos.web.PageInfo;
 import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
+import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
@@ -61,13 +58,16 @@ public class PublishResourceTest {
 	@Mock PublishConfigurationDefault publishConfigurationMock;
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
+	@Mock PublishPackageStatus packageStatusMock;
 	@Mock CmsItem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
-	
+
+	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
+
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
@@ -101,8 +101,7 @@ public class PublishResourceTest {
 		when(lookupReportingMock.getItem(translationItemId)).thenReturn(itemTranslationMock);
 		
 		when(translationTrackingMock.getTranslations(any(CmsItemId.class))).thenReturn(translations);
-		
-		
+
 		HashSet<WorkflowExecution> executions1 = new HashSet<WorkflowExecution>();
 		
 		PublishJob publishJob1 = new PublishJob();
@@ -112,8 +111,7 @@ public class PublishResourceTest {
 		PublishJob publishJob2 = new PublishJob();
 		publishJob2.setConfigname("html");
 		executions1.add(new WorkflowExecution("2", "RUNNING", Instant.now(), null, publishJob2));
-		
-		
+
 		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
 		
 		PublishJob publishJob3 = new PublishJob();
@@ -127,11 +125,10 @@ public class PublishResourceTest {
 		PublishJob publishJob5 = new PublishJob();
 		publishJob5.setConfigname("pdf");
 		executions2.add(new WorkflowExecution("5", "FAILED", Instant.now(), null, publishJob5));
-		
-		
+
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
 		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
-		
+
 		//Config setup
 		PublishConfig config = new PublishConfig();
 		config.setVisible(true);
@@ -148,12 +145,13 @@ public class PublishResourceTest {
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
-		
+
 		PublishResource resource = new PublishResource("localhost",
 														executionStatusMock,
 														lookupMapMock,
 														publishConfigurationMock,
 														packageZipMock,
+														packageStatusMock,
 														trackingMapMock,
 														htmlHelperMock,
 														storageFactoryMock,
