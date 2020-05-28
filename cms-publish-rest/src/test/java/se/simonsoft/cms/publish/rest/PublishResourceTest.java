@@ -160,9 +160,7 @@ public class PublishResourceTest {
 		//Config setup
 		PublishConfig config = new PublishConfig();
 		config.setVisible(true);
-		PublishConfigOptions configOptions = new PublishConfigOptions();
-		configOptions.setStorage(storage);
-		config.setOptions(configOptions);
+		config.setOptions(new PublishConfigOptions());
 		config.getOptions().setFormat("pdf");
 		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
 		configMap.put("print", config);
