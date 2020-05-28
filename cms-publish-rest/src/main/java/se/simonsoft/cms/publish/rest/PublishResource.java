@@ -71,20 +71,20 @@ public class PublishResource {
 	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
+	private final PublishPackageStatus statusService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	private final PublishJobStorageFactory storageFactory;
-	private final CmsExportProvider exportProvider;
-	
+
 	private VelocityEngine templateEngine;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
 			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
-			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
 			Map<CmsRepository, CmsItemLookupReporting> lookup,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
+			PublishPackageStatus statusService,
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
@@ -96,11 +96,11 @@ public class PublishResource {
 		this.lookup = lookup;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
+		this.statusService = statusService;
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
 		this.templateEngine = templateEngine;
-		this.exportProvider = exportProvider;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -267,19 +267,8 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
 		}
 
-		/*
-		 * TODO:
-		 *  - Get known Publish Workflows from executionsStatus. Status values are trusted except RUNNING_STALE.
-		 *  - RUNNING_STALE executions: verify against S3 or request refresh from executionsStatus? (low priority). 
-		 *  - Unknown executions must be verified against S3. Prepare an export which gets metadata and verifies existance.
-		 *  - Validations against S3 need to be cached? Even respond with UNKNOWN and check S3 async? We will introduce https://github.com/ben-manes/caffeine in other locations.
-		 *  - Respond with Set<WorkflowExecution> which should become a JSON array if WorkflowExecutionStatusMessageBodyWriterJson has been registered. 
-		 * 
-		 */
-
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
-		PublishPackageStatus publishPackageStatus = new PublishPackageStatus(executionsStatus, exportProvider, storageFactory);
-		return publishPackageStatus.getStatus(publishPackage);
+		return statusService.getStatus(publishPackage);
 	}
 	
 	

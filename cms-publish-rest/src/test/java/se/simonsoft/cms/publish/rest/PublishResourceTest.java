@@ -58,13 +58,13 @@ public class PublishResourceTest {
 	@Mock PublishConfigurationDefault publishConfigurationMock;
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
+	@Mock PublishPackageStatus packageStatusMock;
 	@Mock CmsItem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
-	@Mock CmsExportProvider exportProviderMock;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
 
@@ -148,10 +148,10 @@ public class PublishResourceTest {
 
 		PublishResource resource = new PublishResource("localhost",
 														executionStatusMock,
-														exportProviderMock,
 														lookupMapMock,
 														publishConfigurationMock,
 														packageZipMock,
+														packageStatusMock,
 														trackingMapMock,
 														htmlHelperMock,
 														storageFactoryMock,
