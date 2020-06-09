@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.jar.Manifest;
 
 import javax.servlet.ServletContext;
@@ -48,13 +47,15 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.version.CmsComponentVersion;
 import se.simonsoft.cms.version.CmsComponentVersionManifest;
 import se.simonsoft.cms.version.CmsComponents;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.sfn.SfnClient;
-import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.sfn.SfnClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 public class WorkerApplication extends ResourceConfig {
@@ -64,7 +65,7 @@ public class WorkerApplication extends ResourceConfig {
 	private static final String AWS_ACTIVITY_NAME = "abxpe";
 	private static final String PUBLISH_FS_PATH_ENV = "PUBLISH_FS_PATH";
 	private static final String PUBLISH_S3_BUCKET_ENV = "PUBLISH_S3_BUCKET";
-	private static final String BUCKET_NAME = "cms-automation";
+	private static final String BUCKET_NAME_DEFAULT = "cms-automation";
 
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
 
@@ -72,8 +73,7 @@ public class WorkerApplication extends ResourceConfig {
 	private String cloudId;
 	private String awsAccountId;
 	private AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
-	private String bucketName = BUCKET_NAME;
-	private ServletContext context;
+	private String bucketName = BUCKET_NAME_DEFAULT;
 
 	private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
 
@@ -81,7 +81,6 @@ public class WorkerApplication extends ResourceConfig {
 
 	public WorkerApplication(@Context ServletContext context)  {
 
-		this.context = context;
 		logger.info("Worker Webapp starting with context: " + context);
 
 		setWebappVersion(context);
@@ -98,13 +97,32 @@ public class WorkerApplication extends ResourceConfig {
             	WorkerStatusReport workerStatusReport = new WorkerStatusReport();
             	bind(workerStatusReport).to(WorkerStatusReport.class);
 
+            	// configure bucket
             	String envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
             	if (envBucket != null) {
             		logger.debug("Will use bucket: {} specified in environment", envBucket);
             		bucketName = envBucket;
             	}
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
-            	cloudId = environment.getParamOptional("CLOUDID");
+            	
+            	// configure cloudid
+            	cloudId = context.getInitParameter("cloudId");
+           		// context parameter overrides environment variable, enables multiple workers. 
+            	if (cloudId == null) {
+            		cloudId = environment.getParamOptional("CLOUDID");
+            	}
+            	
+            	// configure AWS credentials
+            	final String awsId = context.getInitParameter("aws.accessKeyId");
+                final String awsSecret = context.getInitParameter("aws.secretKey");
+                // override the DefaultCredentialsProvider if set in context parameters
+        		if (isAwsSecretAndId(awsId, awsSecret)) {
+        			credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(awsId, awsSecret));
+        		}
+            	
+        		// configure AWS region
+        		// currently no reason to override the location of the EC2 VM
+        		// on-prem uses the fallback EU_WEST_1.
             	if (region == null) {
             		// fallback to the hard-coded region name for backwards compatibility
             		region = Region.EU_WEST_1;
@@ -228,5 +246,9 @@ public class WorkerApplication extends ResourceConfig {
 		}
 		return "dev";
 	}
+	
+	private static boolean isAwsSecretAndId(String awsId, String awsSecret) {
+        return (awsId != null && !awsId.isEmpty() && awsSecret != null && !awsSecret.isEmpty());
+    }
 
 }
