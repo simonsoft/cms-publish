@@ -98,9 +98,12 @@ public class WorkerApplication extends ResourceConfig {
             	bind(workerStatusReport).to(WorkerStatusReport.class);
 
             	// configure bucket
-            	String envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
+            	String envBucket = context.getInitParameter("bucket");
+            	if (envBucket == null) {
+            		envBucket = environment.getParamOptional(PUBLISH_S3_BUCKET_ENV);
+            	}
             	if (envBucket != null) {
-            		logger.debug("Will use bucket: {} specified in environment", envBucket);
+            		logger.debug("Bucket specified in environment / context: {}", envBucket);
             		bucketName = envBucket;
             	}
             	bind(bucketName).named("config:se.simonsoft.cms.publish.bucket").to(String.class);
