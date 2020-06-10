@@ -67,6 +67,7 @@ public class PublishServicePe implements PublishService {
 	public PublishServicePe(){
 		this.publishFormats = new HashSet<PublishFormat>();
 		this.publishFormats.add(new PublishFormatPDF());
+		this.publishFormats.add(new PublishFormatPostscript());
 		this.publishFormats.add(new PublishFormatWeb());
 		this.publishFormats.add(new PublishFormatHTML());
 		this.publishFormats.add(new PublishFormatXML());
@@ -93,31 +94,15 @@ public class PublishServicePe implements PublishService {
 		 *  web			application/zip
 		 *  xml			text/xml
 		 */
-		int count = 0;
-		
-		for(PublishFormat pFormat: this.publishFormats)
-		{
-			if(pFormat.getFormat().equals(format)){
+
+		for (PublishFormat pFormat : this.publishFormats) {
+			if (pFormat.getFormat().equals(format)) {
 				return pFormat;
-			}else{
-				count++;
 			}
 		}
 		
-		// TODO  Refactor: a nicer/better looking way of getting format
-		try { 
-			// If we did not find any matching formats.
-			if(count == this.publishFormats.size()){
-				throw new PublishException(format + " is not supported by the Publish Service");
-			}
-			} catch (PublishException e) {
-				logger.info(e.getMessage());
-				e.printStackTrace();
-			}
-		
-		return null;
-		
-		
+		logger.info("Publish format fallback: {}", format);
+		return new PublishFormatFallback(format);
 	}
 
 	@Override
