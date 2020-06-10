@@ -73,7 +73,11 @@
 						<tr>
 							<td>$workerEvent.getTimeStamp()</td>
 							<td>$workerEvent.getAction()</td>
+							#if ($workerEvent.getDescription())
 							<td>$workerEvent.getDescription()</td>
+							#else
+							<td></td>
+							#end
 						</tr>
 					#end
 			</table>
