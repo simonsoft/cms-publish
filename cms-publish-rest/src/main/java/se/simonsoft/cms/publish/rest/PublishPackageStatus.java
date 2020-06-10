@@ -86,7 +86,7 @@ public class PublishPackageStatus {
                 releaseExecutions.add(execution);
             } else {
                 PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, null);
-                execution = getUnknownWorkflowExecution(storage, itemId, publication);
+                execution = getUnknownWorkflowExecution(storage, item.getId(), publication);
                 if (execution != null) {
                     releaseExecutions.add(execution);
                 }
