@@ -241,7 +241,7 @@ public class PublishJobService {
 				zis.closeEntry();
 				zipEntry = zis.getNextEntry();
 			}
-			return temp.toString() + "/document.ditamap";
+			return temp.toString() + "/_document.xml";
 		} catch (IOException e) {
 			logger.debug("Error when trying to download new zip entries: {}", e.getMessage());
 			throw new RuntimeException(e);
