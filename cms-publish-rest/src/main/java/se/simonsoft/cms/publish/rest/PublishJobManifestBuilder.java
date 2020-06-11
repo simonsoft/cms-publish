@@ -35,14 +35,13 @@ public class PublishJobManifestBuilder {
 
 	private final PublishConfigTemplateString templateEvaluator;
 	
-	private static final String DEFAULT_TYPE = "default";
+	private static final String DEFAULT_TYPE = "none";
 	private static final String DEFAULT_PATHEXT = "json";
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobManifestBuilder.class);
 	
 	
 	public PublishJobManifestBuilder(PublishConfigTemplateString templateEvaluator) {
-	
 		this.templateEvaluator = templateEvaluator;
 	}
 
@@ -55,13 +54,18 @@ public class PublishJobManifestBuilder {
 			manifest.setType(DEFAULT_TYPE);
 		}
 		
-		if (manifest.getPathext() == null) {
-			manifest.setPathext(DEFAULT_PATHEXT);
-		}
-		
-		manifest.setJob(buildJob(item, job));
-		
-		if (hasDocnoTemplate(job)) {
+		if ("none".equals(manifest.getType())) {
+			manifest.setPathext(null);
+			manifest.setJob(null);
+			manifest.setDocument(null);
+			manifest.setMaster(null);
+			manifest.setCustom(null);
+			manifest.setMeta(null);
+		} else if (hasDocnoTemplate(job)) {
+			if (manifest.getPathext() == null) {
+				manifest.setPathext(DEFAULT_PATHEXT);
+			}
+			manifest.setJob(buildJob(item, job));
 			manifest.setDocument(buildDocument(item, job));
 			if (hasDocnoMasterTemplate(job) && isTranslation(item)) {
 				manifest.setMaster(buildMaster(item, job));
