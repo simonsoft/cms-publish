@@ -155,7 +155,7 @@ public class AwsStepfunctionPublishWorker {
 							} else {
 								// Request publish and wait for completion.
 								PublishJobProgress progress = options.getProgress();
-								updateStatusReport("Enqueueing", new Date(), options.getSource());
+								updateStatusReport("Enqueueing", new Date(), getStatusItemDescription(options));
 								logger.debug("Job has no ticket, requesting publish.");
 								publishTicket = requestPublish(options);
 								updateStatusReport("Enqueued", new Date(), "Ticket: " + publishTicket.toString());
@@ -274,7 +274,7 @@ public class AwsStepfunctionPublishWorker {
 	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
 		logger.debug("Preparing publishJob {} for export to {}", options.getPathname(), options.getStorage().getType());
 
-		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
+		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + getStatusItemDescription(options));
 
 		// The file is already zipped, performing "Single" export.
 		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), this.jobExtension);
@@ -296,7 +296,7 @@ public class AwsStepfunctionPublishWorker {
 		}
 
 		logger.debug("Job has been exported.");
-		updateStatusReport("Exported PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + options.getSource());
+		updateStatusReport("Exported PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + getStatusItemDescription(options));
 
 		return job.getJobPath();
 	}
@@ -411,5 +411,13 @@ public class AwsStepfunctionPublishWorker {
 	private void updateWorkerLoop(String action, Date timeStamp, String description) {
 		WorkerEvent event = new WorkerEvent("", timeStamp, description);
 		workerStatusReport.setLastWorkerLoop(event);
+	}
+	
+	private static String getStatusItemDescription(PublishJobOptions options) {
+		String result = options.getSource();
+		if (result == null && options.getStorage() != null) {
+			result = options.getStorage().getPathdir() + "/" + options.getStorage().getPathnamebase();
+		}
+		return result;
 	}
 }
