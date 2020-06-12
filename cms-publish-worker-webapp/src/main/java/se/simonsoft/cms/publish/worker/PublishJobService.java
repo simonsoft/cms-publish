@@ -178,6 +178,7 @@ public class PublishJobService {
 			if (profiling.getLogicalexpr() == null || profiling.getLogicalexpr().trim().isEmpty()) {
 				throw new IllegalArgumentException("Profiling logicalexpr must not be empty: " + profiling.getName());
 			}
+			logger.debug("Profiling expr: {}", profiling.getLogicalexpr());
 			request.addParam("profile", "logicalexpression=".concat(profiling.getLogicalexpr()));
 		}
 
