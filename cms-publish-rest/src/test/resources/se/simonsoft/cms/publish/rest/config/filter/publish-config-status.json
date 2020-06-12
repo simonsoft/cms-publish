@@ -31,6 +31,7 @@
             "pdfconfig": "smallfile.pdfcf"
         },
         "manifest": {
+            "type": "default",
             "customTemplates": {
                 "type": "${item.getMeta().get(\"embd_xml_a_type\").toString().toUpperCase()}",
                 "static": "value"

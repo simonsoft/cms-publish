@@ -68,7 +68,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		}
 		
 		if (manifest.getPathext() == null) {
-			throw new IllegalArgumentException("Requires a valid PublishJobManifest object with 'pathext' field (likely pre-release job).");
+			throw new IllegalArgumentException("Requires a valid PublishJobManifest object with 'pathext' field. Indicates missing 'docno...' config.");
 		}
 		
 		if (!isPublishResultExists(itemId, options)) {
