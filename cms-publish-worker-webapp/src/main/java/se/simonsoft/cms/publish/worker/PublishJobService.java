@@ -50,6 +50,7 @@ import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
@@ -171,6 +172,14 @@ public class PublishJobService {
 		request.addParam("zip-root", options.getPathname());
 		request.addParam("type", options.getFormat());
 		request.addParam("file-type", "xml");
+		
+		PublishJobProfiling profiling = options.getProfiling();
+		if (profiling != null) {
+			if (profiling.getLogicalexpr() == null || profiling.getLogicalexpr().trim().isEmpty()) {
+				throw new IllegalArgumentException("Profiling logicalexpr must not be empty: " + profiling.getName());
+			}
+			request.addParam("profile", "logicalexpression=".concat(profiling.getLogicalexpr()));
+		}
 
 		if ( options.getParams() != null ) {
 			Set<Entry<String,String>> entrySet = options.getParams().entrySet();
