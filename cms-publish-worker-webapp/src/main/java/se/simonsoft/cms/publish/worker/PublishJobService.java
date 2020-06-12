@@ -54,6 +54,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import se.simonsoft.cms.publish.worker.startup.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 
@@ -65,6 +66,7 @@ public class PublishJobService {
 	private final String aptapplicationPrefix;
 	private final AwsCredentialsProvider credentials;
 	private final Region region;
+	private boolean rootFolderEnable = Boolean.valueOf(new Environment().getParamOptional("APTROOTFOLDERWEBENABLE"));
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 
@@ -154,7 +156,9 @@ public class PublishJobService {
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
-		if (jobOptions != null && jobOptions.getFormat().equals("web")) {
+		// #1293: No longer adding the root folder for web output. 
+		// Done by CMS Webapp during repackaging instead.
+		if (this.rootFolderEnable  && jobOptions != null && jobOptions.getFormat().equals("web")) {
 			logger.debug("Reuested format is web, creating temp file to be able to add root folder.");
 			String filePath = writeToTmpFile(jobOptions, ticket, request);
 
