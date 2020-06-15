@@ -127,9 +127,6 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 				} catch (JsonProcessingException e) {
 					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
 					throw new RuntimeException(e);
-				} catch (IOException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
-					throw new RuntimeException(e);
 				}
 			}
 		}
