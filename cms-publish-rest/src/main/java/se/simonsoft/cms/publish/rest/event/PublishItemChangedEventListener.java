@@ -34,18 +34,12 @@ import se.simonsoft.cms.item.events.ItemChangedEventListener;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
 import se.simonsoft.cms.item.workflow.WorkflowExecutor;
 import se.simonsoft.cms.item.workflow.WorkflowItemInput;
-import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.PublishConfiguration;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
-import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
+import se.simonsoft.cms.publish.rest.PublishJobFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
@@ -53,27 +47,22 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	private final PublishConfiguration publishConfiguration;
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
 	
-	private final String cloudId;
-	private final String type = "publish-job";
-	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
-	private final PublishJobStorageFactory storageFactory;
+	private final PublishJobFactory jobFactory;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishItemChangedEventListener.class);
 
 	@Inject
 	public PublishItemChangedEventListener(
-			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
 			PublishConfiguration publishConfiguration,
 			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
 			List<PublishConfigFilter> filters,
 			ObjectReader reader,
-			PublishJobStorageFactory storageFactory) {
+			PublishJobFactory jobFactory) {
 		
-		this.cloudId = cloudId;
 		this.publishConfiguration = publishConfiguration;
 		this.workflowExecutor = workflowExecutor;
-		this.storageFactory = storageFactory;
+		this.jobFactory = jobFactory;
 	}
 
 	
@@ -112,10 +101,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
 				// One or many jobs with profiling.
 				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
-				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName));
+				PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
+				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = getPublishJob(itemPublish, config, configName, null);
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null);
 				jobs.add(pj);
 			}
 		}
@@ -131,95 +121,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			}
 		}
 	}
-	
-	private List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName) {
-		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
-		
-		PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
-		
-		for (PublishProfilingRecipe profilesRecipe: profilingSet) {
-			
-			List<String> profilingNames = config.getProfilingNameInclude();
-			// Filter on profilesNameInclude if set.
-			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
-			}
-		}
-		
-		return profiledJobs;
-	}
-	
 
-	private PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling);
-		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
-		
-		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
-		PublishJob pj = new PublishJob(c);
-		pj.setArea(area); 
-		pj.setItemid(item.getId().getLogicalIdFull()); // Event workflow has itemid hostname so publish workflow should as well.
-		pj.setAction(this.action); 
-		pj.setType(this.type);
-		pj.setConfigname(configName);
-		
-		// The source attribute is used by publishing engines with the ability to directly fetch data from the CMS.
-		// When Preprocess is configured, the source attribute should be null because the preprocessed / exported data should be used instead.
-		if (pj.getOptions().getPreprocess().getType() == null || pj.getOptions().getPreprocess().getType().equals("none")) {
-			pj.getOptions().setSource(item.getId().getLogicalId());			
-		}
-		if (profiling != null) {
-			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
-		}
-		
-		PublishConfigStorage configStorage = pj.getOptions().getStorage();
-		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
-		pj.getOptions().setStorage(storage);
-		
-		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
-		pj.getOptions().setPathname(pathname);
-		
-		// Build the Manifest, modifies the existing manifest object.
-		manifestBuilder.build(item, pj);
-		
-		// Decided that template evaluation of params is NOT the long term solution, at least for now.
-		// Distribution implementations should use the Manifest for template evaluation, similar to external consumers.
-		// Evaluate Velocity for params
-		// Normally we evaluate config fields '...Templates'.
-		
-		// Need to refresh the template evaluator to contain the storage object.
-		// Decided against exposing the storage object. This is internal and should be understood by workflow Tasks.
-		/*
-		templateEvaluator = getTemplateEvaluator(item, profiling, storage);
-		manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
-		*/
-		// Decided that template evaluation of params is NOT the long term solution. At least for now.
-		// The below temporary implementation only evaluates the options.params map, not deeper options.*.params maps. 
-		/*
-		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
-		*/
-		
-		logger.debug("Created PublishJob from config: {}", configName);
-		return pj;
-	}
-	
-
-	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
-		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
-		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
-		// Important if allowing evaluation of params in the future.
-		tmplStr.withEntry("aptpath", "$aptpath");
-		// Add the cloudid, might be useful for delivery.
-		tmplStr.withEntry("cloudid", this.cloudId);
-		// Add config name, might be useful for delivery.
-		tmplStr.withEntry("configname", configName);
-		// Add the item
-		tmplStr.withEntry("item", item);
-		// Add profiling object, can be null;
-		tmplStr.withEntry("profiling", profiling);
-		// Add storage object to allow configuration of parameters with S3 key etc.
-		//tmplStr.withEntry("storage", storage);
-		return tmplStr;
-	}
 }
 
