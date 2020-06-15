@@ -100,7 +100,7 @@ public class PublishPackageZipBuilder {
 
 			try {
 				// AWS warns about "Not all bytes were read from the S3ObjectInputStream" draining the stream.
-				int trailing = IOUtils.copy(contents, new NullOutputStream());
+				int trailing = IOUtils.copy(contents, NullOutputStream.NULL_OUTPUT_STREAM);
 				logger.debug("S3 zip file trailing size: {}", trailing);
 				
 				zis.close();
