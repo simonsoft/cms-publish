@@ -63,14 +63,12 @@
 			<version>2.0</version>
 		</dependency>
 		
+		<!-- Used by Webhook for Presigner.  -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
-			<version>${aws-java-sdk2-version}</version>
 		</dependency>
-		
-		
-		
+
 	</dependencies>
 	
 </project>
