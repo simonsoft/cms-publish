@@ -72,10 +72,12 @@ public class PublishPackageStatus {
         logger.debug("Found {} relevant workflow executions.", executions.size());
 
         for (CmsItem item: publishedItems) {
+            logger.debug("For published item: {}", itemId.getLogicalId());
             WorkflowExecution execution = null;
             Iterator<WorkflowExecution> iterator = executions.iterator();
             while (iterator.hasNext()) {
                 execution = iterator.next();
+                logger.debug("Found relevant workflow execution: {}", execution.getInput().getItemId().getLogicalId());
                 if (execution.getInput().getItemId().getLogicalId().equals(itemId.getLogicalId())) {
                     break;
                 }
