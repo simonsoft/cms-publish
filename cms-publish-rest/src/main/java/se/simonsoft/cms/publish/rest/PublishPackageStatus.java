@@ -66,9 +66,9 @@ public class PublishPackageStatus {
         Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(itemId, true);
 
         // FIXME: We currently ignore the RUNNING_STALE executions. It remains to be seen if this needs to be handled properly.
-        executions.removeIf(execution -> execution.getStatus() == "RUNNING_STALE");
+        executions.removeIf(execution -> execution.getStatus().equals("RUNNING_STALE"));
         // Filter out the executions not related to the current publication
-        executions.removeIf(execution -> ((PublishJob) execution.getInput()).getConfigname() != publication);
+        executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
         logger.debug("Found {} relevant workflow executions.", executions.size());
 
         for (CmsItem item: publishedItems) {
