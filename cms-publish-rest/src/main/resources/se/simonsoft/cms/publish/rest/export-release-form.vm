@@ -49,7 +49,6 @@ $reposHeadTags
 
 <div id="intro">
 <h1>Export Publications</h1>
-<p>NOTE: This service is <b>no longer</b> intended for sending translations to the TSP, see <b>Export Translations</b> on the translation details page.</p>
 </div>
 
 <form id="export-publications-form" method="get" action="./download/">
