@@ -18,15 +18,18 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
@@ -40,9 +43,6 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.release.ReleaseProperties;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishConfigurationDefault implements PublishConfiguration {
 	
@@ -115,7 +115,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
 		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
-		Map<String, PublishConfig> configs = new LinkedHashMap<>();
+		Map<String, PublishConfig> configs = new TreeMap<>();
 		Iterator<CmsConfigOption> iterator = context.iterator();
 		while (iterator.hasNext()) {
 			CmsConfigOption configOption = iterator.next();
@@ -138,7 +138,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	private Map<String, PublishConfig> filterConfigs(CmsItemPublish item, Map<String, PublishConfig> configs) {
 		
-		Map<String, PublishConfig> filteredConfigs = new LinkedHashMap<String, PublishConfig>();
+		Map<String, PublishConfig> filteredConfigs = new TreeMap<String, PublishConfig>();
 		for (Entry<String, PublishConfig> config: configs.entrySet()) {
 			List<String> filtered = new ArrayList<String>(filters.size());
 			for (PublishConfigFilter f: filters) {
