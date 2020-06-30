@@ -101,6 +101,7 @@ public class PublishPackageZipBuilder {
 		}
 		
 		boolean addZipPrefix = !isZipFolderDisabled(publishPackage.getPublishConfig());
+		logger.debug("Export zip package '{}' with ZIP prefix: {}", publishPackage.getPublication(), addZipPrefix);
 		
 		for (PublishJob pj: readers.keySet()) {
 			CmsExportReader r = readers.get(pj);
