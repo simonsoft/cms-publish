@@ -33,14 +33,6 @@
 
 	<build>
 		<finalName>cms-publish-worker-webapp</finalName>
-		<resources>
-			<resource>
-				<directory>src/config</directory>
-				<includes>
-					<include>*.xml</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
@@ -53,10 +45,6 @@
 						<contextPath>/worker</contextPath>
 					</webApp>
 					<systemProperties>
-						<systemProperty>
-							<name>logback.configurationFile</name>
-							<value>./src/config/logback.xml</value>
-						</systemProperty>
 					</systemProperties>
 				</configuration>
 			</plugin>
