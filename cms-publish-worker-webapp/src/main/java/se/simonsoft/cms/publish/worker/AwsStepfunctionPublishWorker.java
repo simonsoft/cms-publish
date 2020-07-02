@@ -55,6 +55,7 @@ import software.amazon.awssdk.services.sfn.model.*;
 @Singleton
 public class AwsStepfunctionPublishWorker {
 
+	private final String cloudId;
 	private final SfnClient client;
 	private final String activityArn;
 	private final ExecutorService awsClientExecutor;
@@ -87,6 +88,7 @@ public class AwsStepfunctionPublishWorker {
 		this.reader = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
+		this.cloudId = cloudId;
 		this.activityArn = "arn:aws:states:" + region.id() + ":" + account + ":activity:cms-" + cloudId + "-" + activityName;
 		this.awsClientExecutor = Executors.newSingleThreadExecutor();
 		this.publishJobService = publishJobService;
@@ -193,7 +195,7 @@ public class AwsStepfunctionPublishWorker {
 					} else {
 
 						try {
-							logger.debug("No task to process. Will continue to listen...");
+							logger.debug("No task to process for '{}'. Listening...", cloudId);
 							Thread.sleep(1000); //From aws example code, will keep it even if the client will long poll.
 						} catch (InterruptedException e) {
 							updateWorkerError(new Date(), e);
