@@ -62,8 +62,8 @@ public class PublishPackageZipBuilder {
 		this.jobFactory = jobFactory;
 		
 		// TODO: Consider supporting deduplication of graphics and the ability to avoid ZIP folder for some formats, e.g. HTML, RTF.
-		String formats = "pdf, postscript, epub, htmlhelp"; // TODO: Enable inject of config. 
-		this.zipFolderDisabledFormats = Arrays.asList(formats.split(","));
+		String formats = "pdf|postscript|epub|htmlhelp"; // TODO: Enable inject of config. 
+		this.zipFolderDisabledFormats = Arrays.asList(formats.split("\\|"));
 	}
 	
 	// Note: All aspects of PublishConfig does not necessarily apply to all items.
