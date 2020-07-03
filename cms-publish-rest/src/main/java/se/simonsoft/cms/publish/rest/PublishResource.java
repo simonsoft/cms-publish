@@ -34,6 +34,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -62,6 +63,7 @@ import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.simonsoft.cms.reporting.annotation.ResponseHeader;
 
 @Path("/publish4")
 public class PublishResource {
@@ -254,6 +256,7 @@ public class PublishResource {
 	
 	@GET
 	@Path("release/status")
+	@ResponseHeader(name = HttpHeaders.VARY, value = HttpHeaders.ACCEPT)
 	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 	public Set<WorkflowExecution> getStatus(@QueryParam("item") CmsItemIdArg itemId,
 						@QueryParam("includerelease") boolean includeRelease,
