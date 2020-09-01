@@ -57,6 +57,7 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.databinds.release.PublishRelease;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
@@ -104,7 +105,24 @@ public class PublishResource {
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
-	
+
+	public PublishRelease getPublishRelease(CmsItemIdArg itemId) throws Exception {
+
+		CmsItemLookupReporting cmsItemLookupReporting = lookup.get(itemId.getRepository());
+		CmsItem item = cmsItemLookupReporting.getItem(itemId);
+		CmsItemPublish itemPublish = new CmsItemPublish(item);
+
+		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
+		Map<String, PublishProfilingRecipe> itemProfilings = new HashMap<>(); // Initialize the map to prevent NPE in Velocity.
+		if (itemProfilingSet != null) {
+			itemProfilings = itemProfilingSet.getMap();
+		}
+
+		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+
+		return new PublishRelease(item, configuration, itemProfilings);
+	}
+
 	@GET
 	@Path("release")
 	@Produces(MediaType.TEXT_HTML)
@@ -113,23 +131,19 @@ public class PublishResource {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
-		
-		logger.debug("Getting form for item: {}", itemId);
-		
-		CmsItemLookupReporting cmsItemLookupReporting = lookup.get(itemId.getRepository());
-		CmsItem item = cmsItemLookupReporting.getItem(itemId);
-		CmsItemPublish itemPublish = new CmsItemPublish(item);
-		
 
-		PublishProfilingSet itemProfilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
-		Map<String, PublishProfilingRecipe> itemProfilings = new HashMap<>(); //Initialize the map to prevent NPE in Velocity.
-		if (itemProfilingSet != null) {
-			itemProfilings = itemProfilingSet.getMap();
+		logger.debug("Getting form for item: {}", itemId);
+
+		PublishRelease publishRelease = getPublishRelease(itemId);
+
+		CmsItem item = publishRelease.getItem();
+		Map<String, PublishProfilingRecipe> itemProfilings = publishRelease.getProfiling();
+		Map<String, PublishConfig> configuration = publishRelease.getConfig();
+
+		if (!itemProfilings.isEmpty()) {
 			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
 		}
-		
-		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
-		
+
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
 		if (configuration.isEmpty()) {
 			throw new IllegalStateException("No publications are configured.");
@@ -167,8 +181,29 @@ public class PublishResource {
 
 		return wr.toString();
 	}
-	
-	
+
+	@GET
+	@Path("release")
+	@Produces(MediaType.APPLICATION_JSON)
+	public PublishRelease getReleaseFormInfo(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
+
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+
+		logger.debug("Getting release form info for item: {}", itemId);
+
+		PublishRelease publishRelease = getPublishRelease(itemId);
+
+		Map<String, PublishProfilingRecipe> itemProfilings = publishRelease.getProfiling();
+
+		if (!itemProfilings.isEmpty()) {
+			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
+		}
+
+		return publishRelease;
+	}
+
 	public PublishPackage getPublishPackage(CmsItemIdArg itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
 		
 		if (itemId == null) {
