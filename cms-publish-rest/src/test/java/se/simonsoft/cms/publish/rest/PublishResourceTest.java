@@ -20,9 +20,13 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.junit.Before;
@@ -30,6 +34,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.repos.web.PageInfo;
@@ -38,7 +43,6 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
-import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
@@ -47,7 +51,10 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
+import se.simonsoft.cms.publish.config.databinds.release.PublishRelease;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.rest.writers.PublishReleaseMessageBodyWriterHtml;
+import se.simonsoft.cms.publish.rest.writers.PublishReleaseMessageBodyWriterJson;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
@@ -66,29 +73,28 @@ public class PublishResourceTest {
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
 
+	private final RepoRevision revision = new RepoRevision(203, new Date());
+	private final CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
+
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
 
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		
+
 		when(htmlHelperMock.getHeadTags(any(PageInfo.class))).thenReturn("");
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void publishResourceTest() throws Exception {
-		
-		//Mock item set up
-		RepoRevision revision = new RepoRevision(203, new Date());
-		CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
-		
+
 		when(lookupMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
 		when(trackingMapMock.get(any(CmsRepository.class))).thenReturn(translationTrackingMock);
-		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPublishResourceReleaseHtml() throws Exception {
+
 		List<CmsItemTranslation> translations = new ArrayList<CmsItemTranslation>();
 		CmsItemTranslation translationMock1 = mock(CmsItemTranslation.class);
 		translations.add(translationMock1);
@@ -129,7 +135,7 @@ public class PublishResourceTest {
 		when(executionStatusMock.getWorkflowExecutions(itemId, true)).thenReturn(executions1);
 		when(executionStatusMock.getWorkflowExecutions(translationItemId, false)).thenReturn(executions2);
 
-		//Config setup
+		// Config setup
 		PublishConfig config = new PublishConfig();
 		config.setVisible(true);
 		config.setOptions(new PublishConfigOptions());
@@ -139,7 +145,7 @@ public class PublishResourceTest {
 		
 		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
 		
-		//Profiling mock setup.
+		// Profiling mock setup.
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe();
 		recipe.setName("Active");
 		PublishProfilingSet ppSet = new PublishProfilingSet();
@@ -156,8 +162,13 @@ public class PublishResourceTest {
 														htmlHelperMock,
 														storageFactoryMock,
 														getVelocityEngine());
-		
-		String releaseForm = resource.getReleaseForm(itemId);
+
+		PublishRelease publishRelease = resource.getRelease(itemId);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		PublishReleaseMessageBodyWriterHtml writer = new PublishReleaseMessageBodyWriterHtml(htmlHelperMock, getVelocityEngine());
+		writer.writeTo(publishRelease, null, null, null, null, null, outputStream);
+		String releaseForm = outputStream.toString();
+
 		assertTrue(releaseForm.contains("http://demo.simonsoftcms.se/svn/demo1"));
 		assertTrue(releaseForm.contains("Sa s.xml"));
 		assertTrue(releaseForm.contains("203"));
@@ -169,9 +180,8 @@ public class PublishResourceTest {
 		assertTrue(releaseForm.contains("Publish of the Translations with config html is running."));
 		assertTrue(releaseForm.contains("Publish of the Translations with config pdf is failed."));
 	}
-	
-	
-	//TODO: Maybe we should inject a velocity engine in testSetup. 
+
+	// TODO: Maybe we should inject a velocity engine in testSetup.
 	private VelocityEngine getVelocityEngine() {
 
 		VelocityEngine engine = new VelocityEngine();
