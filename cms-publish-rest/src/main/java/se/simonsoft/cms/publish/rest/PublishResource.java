@@ -38,6 +38,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -120,78 +122,27 @@ public class PublishResource {
 
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
 
-		return new PublishRelease(item, configuration, itemProfilings);
-	}
-
-	@GET
-	@Path("release")
-	@Produces(MediaType.TEXT_HTML)
-	public String getReleaseForm(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
-		
-		if (itemId == null) {
-			throw new IllegalArgumentException("Field 'item': required");
-		}
-
-		logger.debug("Getting form for item: {}", itemId);
-
-		PublishRelease publishRelease = getPublishRelease(itemId);
-
-		CmsItem item = publishRelease.getItem();
-		Map<String, PublishProfilingRecipe> itemProfilings = publishRelease.getProfiling();
-		Map<String, PublishConfig> configuration = publishRelease.getConfig();
-
-		if (!itemProfilings.isEmpty()) {
-			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
-		}
-
-		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
-		if (configuration.isEmpty()) {
-			throw new IllegalStateException("No publications are configured.");
-		} else {
-			int visible = 0;
-			for (Entry<String, PublishConfig> config: configuration.entrySet()) {
-				if (config.getValue().isVisible()) {
-					visible++;
-				}
-			}
-			if (visible == 0) {
-				throw new IllegalStateException("No publications are configured to be visible.");
-			}
-		}
-		
-		VelocityContext context = new VelocityContext();
-		Template template = templateEngine.getTemplate("se/simonsoft/cms/publish/rest/export-release-form.vm");
-		context.put("item", item);
-		context.put("itemProfiling", itemProfilings);
-		context.put("configuration", configuration);
-		context.put("reposHeadTags", htmlHelper.getHeadTags(null));
-		
-		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
-		//Key: Execution status, Value set<configNames> 
-		Map<String, Set<String>> configStatusRelease = getExecutionConfigs(releaseExecutions);
-		context.put("releaseExecutions", configStatusRelease);
-		
 		Set<WorkflowExecution> translationExecutions = getExecutionStatusForTranslations(itemId);
-		//Key: Execution status, Value set<configNames> 
+		// Key: Execution status, Value set<configNames>
 		Map<String, Set<String>> configStatusTrans = getExecutionConfigs(translationExecutions);
-		context.put("translationExecutions", configStatusTrans);
-		
-		StringWriter wr = new StringWriter();
-		template.merge(context, wr);
 
-		return wr.toString();
+		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
+		// Key: Execution status, Value set<configNames>
+		Map<String, Set<String>> configStatusRelease = getExecutionConfigs(releaseExecutions);
+
+		return new PublishRelease(item, configuration, itemProfilings, configStatusTrans, configStatusRelease);
 	}
 
 	@GET
 	@Path("release")
-	@Produces(MediaType.APPLICATION_JSON)
-	public PublishRelease getReleaseFormInfo(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
+	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+	public PublishRelease getRelease(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
 
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
 
-		logger.debug("Getting release form info for item: {}", itemId);
+		logger.debug("Getting release form for item: {}", itemId);
 
 		PublishRelease publishRelease = getPublishRelease(itemId);
 
@@ -404,12 +355,12 @@ public class PublishResource {
 		}
 		return profilingSet;
 	}
-	
-	
+
+
 	private Map<String, Set<String>> getExecutionConfigs(Set<WorkflowExecution> executions) {
-		// Key: Execution status, Value set<configNames> 
+		// Key: Execution status, Value set<configNames>
 		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
-		
+
 		for (WorkflowExecution we: executions) {
 			PublishJob input = (PublishJob) we.getInput();
 			Set<String> set = configStatuses.get(we.getStatus());
@@ -419,12 +370,12 @@ public class PublishResource {
 			set.add(input.getConfigname());
 			configStatuses.put(we.getStatus(), set);
 		}
-		
+
 		return configStatuses;
 	}
-	
+
 	private Set<WorkflowExecution> getExecutionStatusForTranslations(CmsItemId release) {
-		
+
 		List<CmsItem> translationItems = getTranslationItems(release, null);
 		Set<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
 		for (CmsItem i: translationItems) {
@@ -450,7 +401,7 @@ public class PublishResource {
 		if (statusInclude != null && statusInclude.isEmpty()) {
 			statusInclude = null;
 		}
-		
+
 		List<CmsItem> items = new ArrayList<CmsItem>();
 		for (CmsItemTranslation t: translations) {
 			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
@@ -463,7 +414,7 @@ public class PublishResource {
 				logger.debug("Publish excluding Translation (status = {}): {}", tItem.getStatus(), tItem.getId());
 			}
 		}
-		
+
 		return items;
 	}
 }
