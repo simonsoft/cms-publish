@@ -18,7 +18,7 @@ package se.simonsoft.cms.publish.rest.writers;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.simonsoft.cms.publish.config.databinds.release.PublishRelease;
+import se.simonsoft.cms.publish.rest.PublishRelease;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.databinds.release;
+package se.simonsoft.cms.publish.rest;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -38,9 +38,9 @@ public class PublishRelease {
     }
 
     public PublishRelease(
-            CmsItem item, Map<String,
-            PublishConfig> config, Map<String,
-            PublishProfilingRecipe> profiling,
+            CmsItem item,
+            Map<String, PublishConfig> config,
+            Map<String, PublishProfilingRecipe> profiling,
             Map<String, Set<String>> translationExecutions,
             Map<String, Set<String>> releaseExecutions) {
 
