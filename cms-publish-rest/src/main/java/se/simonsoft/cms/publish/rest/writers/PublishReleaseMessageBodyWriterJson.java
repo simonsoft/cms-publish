@@ -15,11 +15,12 @@
  */
 package se.simonsoft.cms.publish.rest.writers;
 
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.simonsoft.cms.publish.rest.PublishRelease;
 
+import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -34,7 +35,13 @@ import java.lang.reflect.Type;
 @Produces(MediaType.APPLICATION_JSON)
 public class PublishReleaseMessageBodyWriterJson implements MessageBodyWriter<PublishRelease> {
 
+	private final ObjectWriter writer;
 	private static final Logger logger = LoggerFactory.getLogger(PublishReleaseMessageBodyWriterJson.class);
+
+	@Inject
+	public PublishReleaseMessageBodyWriterJson(ObjectWriter writer) {
+		this.writer = writer.forType(PublishRelease.class);
+	}
 
 	@Override
 	public long getSize(PublishRelease publishRelease, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
@@ -49,6 +56,7 @@ public class PublishReleaseMessageBodyWriterJson implements MessageBodyWriter<Pu
 	@Override
 	public void writeTo(PublishRelease publishRelease, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> multivaluedMap, OutputStream outputStream) throws IOException {
 		logger.debug("Serializing publish release information to json");
-		outputStream.write(new GsonBuilder().setPrettyPrinting().create().toJson(publishRelease).getBytes());
+		writer.writeValue(outputStream, publishRelease);
+		outputStream.flush();
 	}
 }

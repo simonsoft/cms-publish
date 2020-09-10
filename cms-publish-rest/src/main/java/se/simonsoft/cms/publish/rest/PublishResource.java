@@ -58,6 +58,7 @@ import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 @Path("/publish4")
 public class PublishResource {
@@ -123,7 +124,7 @@ public class PublishResource {
 		// Key: Execution status, Value set<configNames>
 		Map<String, Set<String>> configStatusRelease = getExecutionConfigs(releaseExecutions);
 
-		return new PublishRelease(item, configuration, itemProfilings, configStatusTrans, configStatusRelease);
+		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings, configStatusTrans, configStatusRelease);
 	}
 
 	@GET
