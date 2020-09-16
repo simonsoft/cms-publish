@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import se.simonsoft.cms.publish.config.databinds.job.item.PublishJobItem;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Deprecated
 public class PublishJobReport3 {
 	private Map<String, String> meta = new HashMap<>();
 	private List<PublishJobItem> items = new ArrayList<>();

@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.config.databinds.job;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+@Deprecated
 public class PublishJobReport3Json extends PublishJobReport3 {
 	
 	private String items;
