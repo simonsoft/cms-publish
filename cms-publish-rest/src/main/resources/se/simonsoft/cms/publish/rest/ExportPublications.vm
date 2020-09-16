@@ -1,0 +1,46 @@
+#*
+ * Copyright (C) 2009-2017 Simonsoft Nordic AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Export Publications</title>
+$reposHeadTags
+<link rel="shortcut icon" href="/favicon.ico"/>
+<link href="/cms-react-exportpublications/bundle.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<noscript>You need to enable JavaScript to view this page.</noscript>
+<div id="commandbar">
+<a class="repository" href="$item.getId().getRepositoryUrl()">return to repository</a>
+<a class="details" href="$item.getId().getUrl()?rweb=details">details</a>
+<a class="publishstatus" id="publish-status" href="/cms/rest/workflow/publish?repo=$item.getId().getRepository().getName()" target="_blank">publish status</a>
+
+</div>
+
+<div id="intro">
+	<h1>Export Publications</h1>
+
+	<!-- React Component -->
+	<div id="export-publications-view">
+	</div>
+
+</div>
+
+<div id="footer"></div>
+<script src="/cms-react-exportpublications/bundle.js"></script>
+</body>
+</html>

@@ -68,12 +68,11 @@ public class PublishReleaseMessageBodyWriterHtml implements MessageBodyWriter<Pu
 	public void writeTo(PublishRelease publishRelease, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> multivaluedMap, OutputStream outputStream) throws IOException {
 		logger.debug("Serializing publish release information to html");
 
-		CmsItemId itemId = publishRelease.getItem().getId();
 		VelocityContext context = new VelocityContext();
 		Template template = null;
 
 		try {
-			template = templateEngine.getTemplate("se/simonsoft/cms/publish/rest/export-release-form.vm");
+			template = templateEngine.getTemplate("se/simonsoft/cms/publish/rest/ExportPublications.vm");
 		} catch (ResourceNotFoundException e) {
 			throw new IllegalStateException("Requested html template do not exist.", e);
 		} catch (ParseErrorException e) {
@@ -83,10 +82,6 @@ public class PublishReleaseMessageBodyWriterHtml implements MessageBodyWriter<Pu
 		}
 
 		context.put("item", publishRelease.getItem());
-		context.put("itemProfiling", publishRelease.getProfiling());
-		context.put("configuration", publishRelease.getConfig());
-		context.put("releaseExecutions", publishRelease.getReleaseExecutions());
-		context.put("translationExecutions", publishRelease.getTranslationExecutions());
 		context.put("reposHeadTags", reposHtmlHelper.getHeadTags(null));
 
 		VelocityWriter writer = new VelocityWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));

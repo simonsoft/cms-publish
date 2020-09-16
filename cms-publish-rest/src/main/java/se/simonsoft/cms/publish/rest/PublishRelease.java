@@ -31,8 +31,6 @@ public class PublishRelease {
     private CmsItemRepositem item;
     private Map<String, PublishConfig> config;
     private Map<String, PublishProfilingRecipe> profiling;
-    private Map<String, Set<String>> translationExecutions;
-    private Map<String, Set<String>> releaseExecutions;
 
     public PublishRelease() {
         // Default constructor for Jackson.
@@ -41,15 +39,11 @@ public class PublishRelease {
     public PublishRelease(
             CmsItemRepositem item,
             Map<String, PublishConfig> config,
-            Map<String, PublishProfilingRecipe> profiling,
-            Map<String, Set<String>> translationExecutions,
-            Map<String, Set<String>> releaseExecutions) {
+            Map<String, PublishProfilingRecipe> profiling) {
 
         this.item = item;
         this.config = config;
         this.profiling = profiling;
-        this.translationExecutions = translationExecutions;
-        this.releaseExecutions = releaseExecutions;
     }
 
     @JsonProperty
@@ -63,12 +57,4 @@ public class PublishRelease {
     @JsonProperty
     public Map<String, PublishProfilingRecipe> getProfiling() { return this.profiling; }
     public void setProfiling(Map<String, PublishProfilingRecipe> profiling) { this.profiling = profiling; }
-
-    @JsonIgnore
-    public Map<String, Set<String>> getTranslationExecutions() { return this.translationExecutions; }
-    public void setTranslationExecutions(Map<String, Set<String>> translationExecutions) { this.translationExecutions = translationExecutions; }
-
-    @JsonIgnore
-    public Map<String, Set<String>> getReleaseExecutions() { return this.releaseExecutions; }
-    public void setReleaseExecutions(Map<String, Set<String>> releaseExecutions) { this.releaseExecutions = releaseExecutions; }
 }

@@ -116,15 +116,7 @@ public class PublishResource {
 
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
 
-		Set<WorkflowExecution> translationExecutions = getExecutionStatusForTranslations(itemId);
-		// Key: Execution status, Value set<configNames>
-		Map<String, Set<String>> configStatusTrans = getExecutionConfigs(translationExecutions);
-
-		Set<WorkflowExecution> releaseExecutions = executionsStatus.getWorkflowExecutions(itemId, true);
-		// Key: Execution status, Value set<configNames>
-		Map<String, Set<String>> configStatusRelease = getExecutionConfigs(releaseExecutions);
-
-		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings, configStatusTrans, configStatusRelease);
+		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}
 
 	@GET
