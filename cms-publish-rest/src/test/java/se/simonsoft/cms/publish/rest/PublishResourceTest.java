@@ -24,17 +24,14 @@ import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.util.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.repos.web.PageInfo;
@@ -51,13 +48,12 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
-import se.simonsoft.cms.publish.config.databinds.release.PublishRelease;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.writers.PublishReleaseMessageBodyWriterHtml;
-import se.simonsoft.cms.publish.rest.writers.PublishReleaseMessageBodyWriterJson;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 public class PublishResourceTest {
 	
@@ -66,12 +62,14 @@ public class PublishResourceTest {
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
 	@Mock PublishPackageStatus packageStatusMock;
-	@Mock CmsItem itemMock;
+	@Mock CmsItemRepositem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
+
+	private PublishResource publishResource;
 
 	private final RepoRevision revision = new RepoRevision(203, new Date());
 	private final CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
@@ -89,45 +87,40 @@ public class PublishResourceTest {
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
 		when(trackingMapMock.get(any(CmsRepository.class))).thenReturn(translationTrackingMock);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testPublishResourceReleaseHtml() throws Exception {
 
 		List<CmsItemTranslation> translations = new ArrayList<CmsItemTranslation>();
 		CmsItemTranslation translationMock1 = mock(CmsItemTranslation.class);
 		translations.add(translationMock1);
 		CmsItemId translationItemId = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml");
-		
+
 		CmsItem itemTranslationMock = mock(CmsItem.class);
 		when(itemTranslationMock.getId()).thenReturn(translationItemId);
-		
+
 		when(translationMock1.getTranslation()).thenReturn(translationItemId);
 		when(lookupReportingMock.getItem(translationItemId)).thenReturn(itemTranslationMock);
-		
+
 		when(translationTrackingMock.getTranslations(any(CmsItemId.class))).thenReturn(translations);
 
 		HashSet<WorkflowExecution> executions1 = new HashSet<WorkflowExecution>();
-		
+
 		PublishJob publishJob1 = new PublishJob();
 		publishJob1.setConfigname("pdf");
 		executions1.add(new WorkflowExecution("1", "RUNNING", Instant.now(), null, publishJob1));
-		
+
 		PublishJob publishJob2 = new PublishJob();
 		publishJob2.setConfigname("html");
 		executions1.add(new WorkflowExecution("2", "RUNNING", Instant.now(), null, publishJob2));
 
 		HashSet<WorkflowExecution> executions2 = new HashSet<WorkflowExecution>();
-		
+
 		PublishJob publishJob3 = new PublishJob();
 		publishJob3.setConfigname("html");
 		executions2.add(new WorkflowExecution("3", "RUNNING", Instant.now(), null, publishJob3));
-		
+
 		PublishJob publishJob4 = new PublishJob();
 		publishJob4.setConfigname("pdf");
 		executions2.add(new WorkflowExecution("4", "FAILED", Instant.now(), null, publishJob4));
-		
+
 		PublishJob publishJob5 = new PublishJob();
 		publishJob5.setConfigname("pdf");
 		executions2.add(new WorkflowExecution("5", "FAILED", Instant.now(), null, publishJob5));
@@ -142,44 +135,49 @@ public class PublishResourceTest {
 		config.getOptions().setFormat("pdf");
 		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
 		configMap.put("print", config);
-		
+
 		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
-		
+
 		// Profiling mock setup.
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe();
-		recipe.setName("Active");
+		recipe.setName("active");
+		recipe.setLogicalexpr("profiling-logicalexpression");
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 
-		PublishResource resource = new PublishResource("localhost",
-														executionStatusMock,
-														lookupMapMock,
-														publishConfigurationMock,
-														packageZipMock,
-														packageStatusMock,
-														trackingMapMock,
-														htmlHelperMock,
-														storageFactoryMock,
-														getVelocityEngine());
+		publishResource = new PublishResource("localhost",
+				executionStatusMock,
+				lookupMapMock,
+				publishConfigurationMock,
+				packageZipMock,
+				packageStatusMock,
+				trackingMapMock,
+				htmlHelperMock,
+				storageFactoryMock,
+				getVelocityEngine());
+	}
 
-		PublishRelease publishRelease = resource.getRelease(itemId);
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPublishResourceReleaseHtml() throws Exception {
+
+		PublishRelease publishRelease = publishResource.getRelease(itemId);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PublishReleaseMessageBodyWriterHtml writer = new PublishReleaseMessageBodyWriterHtml(htmlHelperMock, getVelocityEngine());
 		writer.writeTo(publishRelease, null, null, null, null, null, outputStream);
 		String releaseForm = outputStream.toString();
 
+		assertTrue(releaseForm.contains("Export Publications"));
 		assertTrue(releaseForm.contains("http://demo.simonsoftcms.se/svn/demo1"));
-		assertTrue(releaseForm.contains("Sa s.xml"));
-		assertTrue(releaseForm.contains("203"));
-		assertTrue(releaseForm.contains("/vvab/xml/Docs/Sa s.xml"));
-		assertTrue(releaseForm.contains("print"));
-		assertTrue(releaseForm.contains("Active"));
-		assertTrue(releaseForm.contains("Publish of the Release with config pdf is running."));
-		assertTrue(releaseForm.contains("Publish of the Release with config html is running."));
-		assertTrue(releaseForm.contains("Publish of the Translations with config html is running."));
-		assertTrue(releaseForm.contains("Publish of the Translations with config pdf is failed."));
+		assertTrue(releaseForm.contains("cms-react-exportpublications/bundle.css"));
+		assertTrue(releaseForm.contains("cms-react-exportpublications/bundle.js"));
+		assertTrue(releaseForm.contains("export-publications-view"));
 	}
+
+	@Test
+	@Ignore("This output is tested in se.simonsoft.cms.scenario.Demo1PublishTest.")
+	public void testPublishResourceReleaseJson() throws Exception { }
 
 	// TODO: Maybe we should inject a velocity engine in testSetup.
 	private VelocityEngine getVelocityEngine() {

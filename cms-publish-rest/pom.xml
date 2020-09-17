@@ -62,19 +62,11 @@
 			<artifactId>velocity-engine-core</artifactId>
 			<version>2.0</version>
 		</dependency>
-		
+
 		<!-- Used by Webhook for Presigner.  -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
-		</dependency>
-
-		<!-- Used by the tests -->
-		<dependency>
-			<groupId>org.skyscreamer</groupId>
-			<artifactId>jsonassert</artifactId>
-			<version>1.5.0</version>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
