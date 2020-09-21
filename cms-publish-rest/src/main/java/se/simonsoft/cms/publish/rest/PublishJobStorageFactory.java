@@ -79,7 +79,7 @@ public class PublishJobStorageFactory {
 	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
 		
 		if (itemId.getPegRev() == null) {
-			throw new IllegalArgumentException("ItemId must have revision.");
+			throw new IllegalArgumentException("ItemId must have revision: " + itemId);
 		}
 		
 		// Workaround for inconsistent type hierarchy.

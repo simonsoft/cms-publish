@@ -74,6 +74,7 @@ public class PublishResource {
 	private final PublishPackageStatus statusService;
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
+	@SuppressWarnings("unused")
 	private final PublishJobStorageFactory storageFactory;
 
 	private VelocityEngine templateEngine;
@@ -418,6 +419,9 @@ public class PublishResource {
 		
 		List<CmsItem> items = new ArrayList<CmsItem>();
 		for (CmsItemTranslation t: translations) {
+			// The CmsItemTranslation is now backed by a full CmsItem. 
+			// However, it is a head item and the PublishPackage should contain revision items.
+			// The getTranslation() method returns a CmsItemId with peg rev, as it has always done. 
 			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
 			// Filter Translations with status not included by the PublishConfiguration.
 			// Currently not filtering on other aspects, would likely indicate configuration mismatch (user should get a failure).
