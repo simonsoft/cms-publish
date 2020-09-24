@@ -51,6 +51,7 @@ public class PublishProfilingRecipe {
 	public PublishJobProfiling getPublishJobProfiling() {
 		PublishJobProfiling result = new PublishJobProfiling();
 		result.setName(getName());
+		// The logicalexpr field in a PublishJob contains the decoded logical expression (encoded when stored as property in CMS).
 		result.setLogicalexpr(getLogicalExprDecoded());
 		return result;
 	}

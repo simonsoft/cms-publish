@@ -15,6 +15,14 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
+
+/**
+ * Minimal representation of ProfilingRecipe when serialized in a PublishJob.
+ * Created from {@link PublishProfilingRecipe#getPublishJobProfiling()}.
+ * 
+ * NOTE: Logical expression is decoded in this representation.
+ */
 public class PublishJobProfiling {
 
 	private String name;
