@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -115,6 +116,21 @@ public class PublishResource {
 		}
 
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+
+		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
+		if (configuration.isEmpty()) {
+			throw new IllegalStateException("No publications are configured.");
+		} else {
+			int visible = 0;
+			for (Entry<String, PublishConfig> config : configuration.entrySet()) {
+				if (config.getValue().isVisible()) {
+					visible++;
+				}
+			}
+			if (visible == 0) {
+				throw new IllegalStateException("No publications are configured to be visible.");
+			}
+		}
 
 		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}
