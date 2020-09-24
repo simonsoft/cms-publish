@@ -37,7 +37,7 @@ public class TestPublishProfilingSet {
 	@BeforeClass
 	public static void setUp() {
 		ObjectMapper mapper = new ObjectMapper();
-		reader = mapper.reader(PublishProfilingSet.class);
+		reader = mapper.readerFor(PublishProfilingSet.class);
 	}
 	
 	

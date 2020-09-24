@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.config.databinds.profiling;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -25,8 +26,13 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
 	private LinkedHashMap<String, PublishProfilingRecipe> map = new LinkedHashMap<String, PublishProfilingRecipe>();
 
-	public PublishProfilingRecipe get(String index) {
-		return map.get(index);
+	public PublishProfilingRecipe get(String key) {
+		return map.get(key);
+	}
+	
+	public PublishProfilingRecipe get(int index) {
+		String key = new ArrayList<String>(map.keySet()).get(index);
+		return map.get(key);
 	}
 	
 	public Map<String, PublishProfilingRecipe> getMap() {
@@ -35,6 +41,24 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 	
 	public PublishProfilingSet() {
 	}
+	
+	
+	public boolean isProfiling() {
+		return size() > 0;
+	}
+	
+	public boolean isNoProfiling() {
+		return size() == 0;
+	}
+	
+	public boolean isSingle() {
+		return size() == 1;
+	}
+	
+	public boolean isMultiple() {
+		return size() > 1;
+	}
+	
 	
 	@Override
 	public int size() {
