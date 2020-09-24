@@ -62,7 +62,7 @@
 			<artifactId>velocity-engine-core</artifactId>
 			<version>2.0</version>
 		</dependency>
-		
+
 		<!-- Used by Webhook for Presigner.  -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
