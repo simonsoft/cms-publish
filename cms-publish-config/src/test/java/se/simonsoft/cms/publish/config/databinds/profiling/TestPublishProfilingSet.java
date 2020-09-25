@@ -16,7 +16,10 @@
 package se.simonsoft.cms.publish.config.databinds.profiling;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -46,12 +49,36 @@ public class TestPublishProfilingSet {
 		PublishProfilingSet ppSet = reader.readValue(getJsonOs());
 
 		assertEquals("osx", ppSet.get("osx").getName());
-		assertEquals("%20", ppSet.get("osx").getLogicalexpr());
+		assertEquals("%20", ppSet.get("osx").getLogicalExpr());
 		assertEquals(" ", ppSet.get("osx").getLogicalExprDecoded());
 
 		assertEquals("linux", ppSet.get("linux").getName());
-		assertEquals("%3A", ppSet.get("linux").getLogicalexpr());
+		assertEquals("%3A", ppSet.get("linux").getLogicalExpr());
 		assertEquals(":", ppSet.get("linux").getLogicalExprDecoded());
+	}
+	
+	@Test
+	public void testDeserializeOsPrepareRelease() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonOsPrepareRelease());
+
+		assertEquals("osx", ppSet.get("osx").getName());
+		assertEquals("%20", ppSet.get("osx").getLogicalExpr());
+		assertNull("underscore attributes should not be in attributes map", ppSet.get("osx").getAttributesFilter().get("_stage"));
+		assertTrue(ppSet.get("osx").isStageRelease());
+		assertFalse(ppSet.get("osx").isStagePublish());
+
+		assertEquals("linux", ppSet.get("linux").getName());
+		assertEquals("%3A", ppSet.get("linux").getLogicalExpr());
+		assertNull(ppSet.get("linux").getAttributesFilter().get("_whatever"));
+		assertTrue(ppSet.get("linux").isStagePublish());
+		assertFalse(ppSet.get("linux").isStageRelease());
+		
+		PublishProfilingSet ppRelease = ppSet.getProfilingSetRelease();
+		assertTrue(ppRelease.isSingle());
+		
+		PublishProfilingSet ppPublish = ppSet.getProfilingSetPublish();
+		assertTrue(ppPublish.isSingle());
+		assertNotNull(ppPublish.get("linux"));
 	}
 	
 	
@@ -60,7 +87,7 @@ public class TestPublishProfilingSet {
 		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		assertEquals("internal", ppSet.get("internal").getName());
-		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSet.get("internal").getLogicalexpr());
+		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSet.get("internal").getLogicalExpr());
 		assertEquals("<ProfileRef alias=\"Profiling\" value=\"internal\"/>", ppSet.get("internal").getLogicalExprDecoded());
 	}
 	
@@ -84,12 +111,9 @@ public class TestPublishProfilingSet {
 	@Test
 	public void testOrder() {
 		
-		PublishProfilingRecipe p1 = new PublishProfilingRecipe();
-		p1.setName("A");
-		PublishProfilingRecipe p2 = new PublishProfilingRecipe();
-		p2.setName("B");
-		PublishProfilingRecipe p3 = new PublishProfilingRecipe();
-		p3.setName("C");
+		PublishProfilingRecipe p1 = new PublishProfilingRecipe("A", "", null);
+		PublishProfilingRecipe p2 = new PublishProfilingRecipe("B", "", null);
+		PublishProfilingRecipe p3 = new PublishProfilingRecipe("C", "", null);
 		
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(p2);
@@ -124,8 +148,7 @@ public class TestPublishProfilingSet {
 		assertNotNull(ppSetArray);
 
 		//Testing PublishProfilingSet.add(PublishProfilingRecipe e) (only Jackson should be using this method)
-		PublishProfilingRecipe recipe = new PublishProfilingRecipe();
-		recipe.setName("testData");
+		PublishProfilingRecipe recipe = new PublishProfilingRecipe("testData", "", null);
 		ppSet.add(recipe);
 		assertEquals(recipe, ppSet.get("testData"));
 
@@ -206,11 +229,9 @@ public class TestPublishProfilingSet {
 		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		try {
-			PublishProfilingRecipe ppRecipe = new PublishProfilingRecipe();
-			ppRecipe.setName("Nicke");
+			PublishProfilingRecipe ppRecipe = new PublishProfilingRecipe("Nicke", "", null);
 			ppSet.add(ppRecipe);
-			PublishProfilingRecipe ppRecipe2 = new PublishProfilingRecipe();
-			ppRecipe2.setName("Nicke");
+			PublishProfilingRecipe ppRecipe2 = new PublishProfilingRecipe("Nicke", "", null);
 			ppSet.add(ppRecipe2);
 			
 			fail("Should throw IllegalArgumentException, duplicate names are not allowed in PublishProfilingSet");
@@ -221,6 +242,9 @@ public class TestPublishProfilingSet {
 	}
 	private String getJsonOs() {
 		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";
+	}
+	private String getJsonOsPrepareRelease() {
+		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\",\"_stage\":\"release\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";
 	}
 	private String getJsonInternal() {
 		return "[{\"logicalexpr\":\"%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E\",\"name\":\"internal\",\"profiling\":\"internal\"}]";

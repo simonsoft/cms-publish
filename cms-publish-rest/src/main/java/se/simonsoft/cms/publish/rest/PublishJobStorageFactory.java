@@ -82,20 +82,9 @@ public class PublishJobStorageFactory {
 			throw new IllegalArgumentException("ItemId must have revision: " + itemId);
 		}
 		
-		// Workaround for inconsistent type hierarchy.
-		ProfilingRecipe pr = null;
-		if (profiling != null) {
-			// For now, the expression must not be empty.
-			// Might change when implementing profiling via DITAVAL.
-			if (profiling.getLogicalexpr() == null || profiling.getLogicalexpr().trim().isEmpty()) {
-				throw new IllegalArgumentException("Profiling expression must not be empty.");
-			}
-			pr = new ProfilingRecipe(profiling.getName(), profiling.getLogicalexpr());
-		}
-		
 		// The profiling naming can handle both situations.
 		ProfilingNaming profilingNaming = new ProfilingNaming();
-		CmsItemPath result = profilingNaming.getProfiledPath(itemId.getRelPath(), String.format("r%010d", itemId.getPegRev()), pr);
+		CmsItemPath result = profilingNaming.getProfiledPath(itemId.getRelPath(), String.format("r%010d", itemId.getPegRev()), profiling);
 		
 		return result.getNameBase();
 	}

@@ -139,9 +139,7 @@ public class PublishResourceTest {
 		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
 
 		// Profiling mock setup.
-		PublishProfilingRecipe recipe = new PublishProfilingRecipe();
-		recipe.setName("active");
-		recipe.setLogicalexpr("profiling-logicalexpression");
+		PublishProfilingRecipe recipe = new PublishProfilingRecipe("active", "profiling-logicalexpression", null);
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);

@@ -20,12 +20,37 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
 	private LinkedHashMap<String, PublishProfilingRecipe> map = new LinkedHashMap<String, PublishProfilingRecipe>();
 
+	public PublishProfilingSet() {
+	}
+
+	
+	public PublishProfilingSet getProfilingSetPublish() {
+		PublishProfilingSet result = new PublishProfilingSet();
+		for (Entry<String, PublishProfilingRecipe> e: map.entrySet()) {
+			if (e.getValue().isStagePublish()) {
+				result.add(e.getValue());
+			}
+		}
+		return result;
+	}
+	
+	public PublishProfilingSet getProfilingSetRelease() {
+		PublishProfilingSet result = new PublishProfilingSet();
+		for (Entry<String, PublishProfilingRecipe> e: map.entrySet()) {
+			if (e.getValue().isStageRelease()) {
+				result.add(e.getValue());
+			}
+		}
+		return result;
+	}
+	
 	public PublishProfilingRecipe get(String key) {
 		return map.get(key);
 	}
@@ -39,8 +64,6 @@ public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 		return this.map;
 	}
 	
-	public PublishProfilingSet() {
-	}
 	
 	
 	public boolean isProfiling() {
