@@ -15,26 +15,73 @@
  */
 package se.simonsoft.cms.publish.config.databinds.profiling;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class PublishProfilingSet implements Set<PublishProfilingRecipe>  {
 
 	private LinkedHashMap<String, PublishProfilingRecipe> map = new LinkedHashMap<String, PublishProfilingRecipe>();
 
-	public PublishProfilingRecipe get(String index) {
-		return map.get(index);
+	public PublishProfilingSet() {
+	}
+
+	
+	public PublishProfilingSet getProfilingSetPublish() {
+		PublishProfilingSet result = new PublishProfilingSet();
+		for (Entry<String, PublishProfilingRecipe> e: map.entrySet()) {
+			if (e.getValue().isStagePublish()) {
+				result.add(e.getValue());
+			}
+		}
+		return result;
+	}
+	
+	public PublishProfilingSet getProfilingSetRelease() {
+		PublishProfilingSet result = new PublishProfilingSet();
+		for (Entry<String, PublishProfilingRecipe> e: map.entrySet()) {
+			if (e.getValue().isStageRelease()) {
+				result.add(e.getValue());
+			}
+		}
+		return result;
+	}
+	
+	public PublishProfilingRecipe get(String key) {
+		return map.get(key);
+	}
+	
+	public PublishProfilingRecipe get(int index) {
+		String key = new ArrayList<String>(map.keySet()).get(index);
+		return map.get(key);
 	}
 	
 	public Map<String, PublishProfilingRecipe> getMap() {
 		return this.map;
 	}
 	
-	public PublishProfilingSet() {
+	
+	
+	public boolean isProfiling() {
+		return size() > 0;
 	}
+	
+	public boolean isNoProfiling() {
+		return size() == 0;
+	}
+	
+	public boolean isSingle() {
+		return size() == 1;
+	}
+	
+	public boolean isMultiple() {
+		return size() > 1;
+	}
+	
 	
 	@Override
 	public int size() {
