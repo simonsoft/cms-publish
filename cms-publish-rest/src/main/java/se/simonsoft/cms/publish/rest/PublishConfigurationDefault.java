@@ -94,7 +94,9 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		
 		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
 		try {
-			return this.readerProfiling.readValue(profilesProp);
+			PublishProfilingSet set = this.readerProfiling.readValue(profilesProp);
+			// #1305: Filter recipes not intended for Publish.
+			return set.getProfilingSetPublish();
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
 		}
