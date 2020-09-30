@@ -130,13 +130,14 @@ public class PublishResourceTest {
 
 		// Config setup
 		PublishConfig config = new PublishConfig();
+		config.setActive(true);
 		config.setVisible(true);
 		config.setOptions(new PublishConfigOptions());
 		config.getOptions().setFormat("pdf");
 		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
 		configMap.put("print", config);
 
-		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
+		when(publishConfigurationMock.getConfigurationVisible(any(CmsItemPublish.class))).thenReturn(configMap);
 
 		// Profiling mock setup.
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe("active", "profiling-logicalexpression", null);

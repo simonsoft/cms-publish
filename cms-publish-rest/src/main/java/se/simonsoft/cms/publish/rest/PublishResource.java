@@ -116,7 +116,8 @@ public class PublishResource {
 			itemProfilings = itemProfilingSet.getMap();
 		}
 
-		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+		// Configs filtered for the Release item. Showing only Visible configs in the UI.
+		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationVisible(itemPublish);
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
 		if (configuration.isEmpty()) {

@@ -16,9 +16,11 @@
 package se.simonsoft.cms.publish.rest.event;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -85,10 +87,11 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
-		Map<String, PublishConfig> publishConfigs = this.publishConfiguration.getConfigurationFiltered(itemPublish);
+		// Configs filtered for the item. Starting only Active configs based on event.
+		Map<String, PublishConfig> publishConfigs = this.publishConfiguration.getConfigurationActive(itemPublish);
 		
 		
-		List<PublishJob> jobs = new ArrayList<PublishJob>();
+		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
 		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {
 			String configName = configEntry.getKey();
 			PublishConfig config = configEntry.getValue();
