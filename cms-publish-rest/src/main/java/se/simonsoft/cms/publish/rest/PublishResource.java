@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,7 +29,9 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -46,10 +49,12 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.export.*;
+import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
+import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -74,6 +79,8 @@ public class PublishResource {
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	@SuppressWarnings("unused")
 	private final PublishJobStorageFactory storageFactory;
+	private final PublishJobFactory jobFactory;
+	private final PublishExecutor publishExecutor;
 
 	private VelocityEngine templateEngine;
 
@@ -87,6 +94,8 @@ public class PublishResource {
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
+			PublishJobFactory jobFactory,
+			PublishExecutor publishExecutor,
 			VelocityEngine templateEngine
 			) {
 		
@@ -99,6 +108,8 @@ public class PublishResource {
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
+		this.jobFactory = jobFactory;
+		this.publishExecutor = publishExecutor;
 		this.templateEngine = templateEngine;
 	}
 	
@@ -133,10 +144,10 @@ public class PublishResource {
 				throw new IllegalStateException("No publications are configured to be visible.");
 			}
 		}
-
 		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}
 
+	
 	@GET
 	@Path("release")
 	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
@@ -147,15 +158,7 @@ public class PublishResource {
 		}
 
 		logger.debug("Getting release form for item: {}", itemId);
-
 		PublishRelease publishRelease = getPublishRelease(itemId);
-
-		Map<String, PublishProfilingRecipe> itemProfilings = publishRelease.getProfiling();
-
-		if (!itemProfilings.isEmpty()) {
-			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
-		}
-
 		return publishRelease;
 	}
 
@@ -240,6 +243,40 @@ public class PublishResource {
 		return new PublishPackage(publication, publishConfig, profilingSet, publishedItems, releaseItem.getId(), releaseLabel);
 	}
 	
+	
+	@POST
+	@Path("release/start")
+	@Produces({MediaType.APPLICATION_JSON})
+	public Set<String> doStart(@FormParam("item") CmsItemIdArg itemId,
+			@QueryParam("profiling") String[] profiling,
+			@QueryParam("publication") final String publication) throws Exception {
+		
+		logger.debug("Start publication '{}' requested with item: {} and profiles: {}", publication, itemId, Arrays.toString(profiling));
+		itemId.setHostnameOrValidate(this.hostname);
+		
+		if (profiling != null && profiling.length > 1) {
+			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
+		}
+		
+		List<String> allowed = Arrays.asList("FAILED", "UNKNOWN");
+		PublishPackage publishPackage = getPublishPackage(itemId, true, true, profiling, publication);
+		Set<PublishJob> jobs = getPublishJobsForPackage(publishPackage);
+		
+		// Must avoid starting multiple executions for the same Job.
+		// Verify with the status service.
+		// Inactive configs have a special situation, will often be reported as UNKNOWN.
+		// TODO: Consider adding support in the status service to report other status, e.g. INACTIVE.
+		Set<WorkflowExecution> status = statusService.getStatus(publishPackage);
+		// There should only be one for each itemId (single profiling in each call)
+		Map<CmsItemId, WorkflowExecution> statusMap = new HashMap<>(status.size());
+		status.forEach(wf -> statusMap.put(wf.getInput().getItemId(), wf));
+		status.forEach(wf -> logger.debug("Start publish, current status: {} - {}", wf.getStatus(), wf.getInput().getItemId()));
+		// Suppress start for items that does not have an allowed execution status.
+		jobs.removeIf(job -> !allowed.contains(statusMap.get(job.getItemId()).getStatus()));
+		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
+		Set<String> result = publishExecutor.startPublishJobs(jobs);
+		return result;
+	}
 	
 	
 	@GET
@@ -425,4 +462,34 @@ public class PublishResource {
 
 		return items;
 	}
+	
+	
+	private Set<PublishJob> getPublishJobsForPackage(PublishPackage publishPackage) {
+		
+		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
+		for (CmsItem item: publishPackage.getPublishedItems()) {
+			CmsItemPublish itemPublish = (CmsItemPublish) item;
+			String configName = publishPackage.getPublication();
+			PublishConfig config = publishPackage.getPublishConfig();
+			
+			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
+			// Copied from PublishItemChangedEventListener, needed here?
+			if (itemPublish.hasProfiles() && config.getProfilingInclude() != null && Boolean.FALSE.equals(config.getProfilingInclude())) {
+				throw new IllegalArgumentException("Item should not have profiling, filtering incorrect.");
+			}
+			
+			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
+				// One or many jobs with profiling.
+				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
+				PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
+				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet));
+			} else {
+				// Normal, non-profiling job.
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null);
+				jobs.add(pj);
+			}
+		}
+		return jobs;
+	}
+	
 }
