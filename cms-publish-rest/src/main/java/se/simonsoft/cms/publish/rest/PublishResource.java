@@ -159,13 +159,14 @@ public class PublishResource {
 		return publishRelease;
 	}
 
-	public PublishPackage getPublishPackage(CmsItemIdArg itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
+	
+	public PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
 		
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
 		
-		if (!itemId.isPegged()) {
+		if (itemId.getPegRev() == null) {
 			throw new IllegalArgumentException("Field 'item': revision is required");
 		}
 		
@@ -177,7 +178,6 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
 		}
 		
-		itemId.setHostnameOrValidate(this.hostname);
 		final List<CmsItem> items = new ArrayList<CmsItem>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
@@ -252,7 +252,8 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-
+		itemId.setHostnameOrValidate(this.hostname);
+		
 		if (profiling != null && profiling.length != 0) {
 			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
 		}
@@ -272,7 +273,7 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Download of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-		
+		itemId.setHostnameOrValidate(this.hostname);
 		
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		
