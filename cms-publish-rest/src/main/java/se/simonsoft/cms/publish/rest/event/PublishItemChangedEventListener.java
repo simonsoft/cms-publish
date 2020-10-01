@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.rest.event;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +31,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.events.ItemChangedEventListener;
-import se.simonsoft.cms.item.workflow.WorkflowExecutionException;
-import se.simonsoft.cms.item.workflow.WorkflowExecutor;
-import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.PublishConfiguration;
+import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
@@ -47,7 +43,7 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
 	private final PublishConfiguration publishConfiguration;
-	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;
+	private final PublishExecutor publishExecutor;
 	
 	private final PublishJobFactory jobFactory;
 	
@@ -57,13 +53,13 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	@Inject
 	public PublishItemChangedEventListener(
 			PublishConfiguration publishConfiguration,
-			@Named("config:se.simonsoft.cms.aws.publish.workflow") WorkflowExecutor<WorkflowItemInput> workflowExecutor,
+			PublishExecutor publishExecutor,
 			List<PublishConfigFilter> filters,
 			ObjectReader reader,
 			PublishJobFactory jobFactory) {
 		
 		this.publishConfiguration = publishConfiguration;
-		this.workflowExecutor = workflowExecutor;
+		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
 	}
 
@@ -113,16 +109,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			}
 		}
 		
-		
-		logger.debug("Starting executions for {} number of PublishJobs", jobs.size());
-		for (PublishJob job: jobs) {
-			try {
-				workflowExecutor.startExecution(job);
-			} catch (WorkflowExecutionException e) {
-				logger.error("Failed to start execution for itemId '{}': {}", job.getItemId(), e.getMessage());
-				throw new RuntimeException("Publish execution failed: " + e.getMessage(), e);
-			}
-		}
+		publishExecutor.startPublishJobs(jobs);
 	}
 
 }
