@@ -57,51 +57,81 @@ public class PublishPackageStatus {
 
     public Set<WorkflowExecution> getStatus(PublishPackage publishPackage) {
 
+    	if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 1) {
+    		throw new IllegalArgumentException("publish status can be requested for a single profiling recipe");
+    	}
+    	
+    	// Request executions with refresh once.
+    	executionsStatus.getWorkflowExecutions(publishPackage.getPublishedItems().iterator().next().getId(), true);
+        
+    	Set<WorkflowExecution> releaseExecutions = new HashSet<WorkflowExecution>();
+    	for (CmsItem item: publishPackage.getPublishedItems()) {
+    		// No refresh on subsequent calls.
+    		Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(item.getId(), false);
+    		releaseExecutions.add(getStatus(publishPackage, item, executions));
+    	}
+        return releaseExecutions;
+    }
+    
+    
+    public WorkflowExecution getStatus(PublishPackage publishPackage, CmsItem item) {
+
+    	if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 1) {
+    		throw new IllegalArgumentException("publish status can be requested for a single profiling recipe");
+    	}
+    	
+    	Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(item.getId(), true);
+    	return getStatus(publishPackage, item, executions);
+    }
+    
+    private WorkflowExecution getStatus(PublishPackage publishPackage, CmsItem item, Set<WorkflowExecution> executions) {
+
         String publication = publishPackage.getPublication();
         PublishConfig publishConfig = publishPackage.getPublishConfig();
-        Set<CmsItem> publishedItems = publishPackage.getPublishedItems();
-        Set<WorkflowExecution> releaseExecutions = new HashSet<WorkflowExecution>();
 
-        CmsItemId itemId = publishPackage.getReleaseItemId();
-        Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(itemId, true);
-
+        logger.debug("Found {} workflow executions for item: {}", executions.size(), item.getId());
+        
         // FIXME: We currently ignore the RUNNING_STALE executions. It remains to be seen if this needs to be handled properly.
         executions.removeIf(execution -> execution.getStatus().equals("RUNNING_STALE"));
         // Filter out the executions not related to the current publication
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
-        logger.debug("Found {} relevant workflow executions.", executions.size());
-
-        for (CmsItem item: publishedItems) {
-            logger.debug("For published item: {}", itemId.getLogicalId());
-            WorkflowExecution execution = null;
-            Iterator<WorkflowExecution> iterator = executions.iterator();
+        // Filter out profiling name.
+        if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 0) {
+        	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(publication)));
+        }
+        logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
+        
+        // Can there be multiple at this point? Only if manual start has accidentally started another?
+        WorkflowExecution execution = null;
+        if (!executions.isEmpty()) {
+        	execution = executions.iterator().next();
+        }
+        if (executions.size() > 1) {
+        	logger.warn("Expected 1 workflow, found {} workflow executions for item: {}", executions.size(), item.getId());
+        	// TODO: Figure out how to handle.
+        	// For now, we prefer "SUCCEEDED" to prevent starting more executions. Likely not ideal if we want to support re-publish of recent publications.
+        	Iterator<WorkflowExecution> iterator = executions.iterator();
             while (iterator.hasNext()) {
-                execution = iterator.next();
-                logger.debug("Found relevant workflow execution: {}", execution.getInput().getItemId().getLogicalId());
-                if (execution.getInput().getItemId().getLogicalId().equals(itemId.getLogicalId())) {
-                    break;
-                }
-                execution = null;
-            }
-
-            if (execution != null) {
-                releaseExecutions.add(execution);
-            } else {
-                PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, null);
-                execution = getUnknownWorkflowExecution(storage, item.getId(), publication);
-                if (execution != null) {
-                    releaseExecutions.add(execution);
+            	WorkflowExecution executionNext = iterator.next();
+                if (!"SUCCEEDED".equals(execution.getStatus()) && "SUCCEEDED".equals(executionNext.getStatus())) {
+                	execution = executionNext;
                 }
             }
         }
 
-        return releaseExecutions;
+        if (execution == null) {
+        	PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, null);
+            execution = getUnknownWorkflowExecution(storage, item.getId(), publication);
+        }
+        // TODO: Consider special handling of inactive configs, e.g. return INACTIVE instead of UNKNOWN.
+        return execution;
     }
 
     WorkflowExecution getUnknownWorkflowExecution(PublishJobStorage storage, CmsItemId itemId, String publication) {
 
         if (storage == null || !storage.getType().equals("s3")) {
-            String msg = MessageFormatter.format("Publication '{}' is not configured with S3 storage parameters or any for that matter.", publication).getMessage();
+            String msg = MessageFormatter.format("Publication '{}' is not configured with S3 storage.", publication).getMessage();
+            // TODO: Log or exception?
             throw new IllegalArgumentException(msg);
         }
 
