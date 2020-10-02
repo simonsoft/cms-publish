@@ -17,7 +17,6 @@ package se.simonsoft.cms.publish.rest;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,7 +89,7 @@ public class PublishPackageStatus {
     	// Request executions with refresh once.
     	executionsStatus.getWorkflowExecutions(publishPackage.getPublishedItems().iterator().next().getId(), true);
         
-    	Set<WorkflowExecution> releaseExecutions = new HashSet<WorkflowExecution>();
+    	Set<WorkflowExecution> releaseExecutions = new LinkedHashSet<WorkflowExecution>();
     	for (CmsItem item: publishPackage.getPublishedItems()) {
     		// No refresh on subsequent calls.
     		Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(item.getId(), false);
