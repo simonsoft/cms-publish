@@ -15,12 +15,14 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ReleaseLabel;
 
 public class PublishPackage {
@@ -28,14 +30,14 @@ public class PublishPackage {
 	private final String publication;
 	private final PublishConfig publishConfig;
 	private final Set<PublishProfilingRecipe> profilingSet;
-	private final Set<CmsItem> publishedItems;
+	private final LinkedHashSet<CmsItemPublish> publishedItems;
 	
 	// Additional information when describing a Release.
 	private final CmsItemId releaseItemId;
 	private final ReleaseLabel releaseLabel;
 
 	
-	public PublishPackage(String publication, PublishConfig publishConfig, Set<PublishProfilingRecipe> profilingSet, Set<CmsItem> publishedItems, CmsItemId releaseItemId, ReleaseLabel releaseLabel) {
+	public PublishPackage(String publication, PublishConfig publishConfig, Set<PublishProfilingRecipe> profilingSet, LinkedHashSet<CmsItemPublish> publishedItems, CmsItemId releaseItemId, ReleaseLabel releaseLabel) {
 		this.publication = publication;
 		this.publishConfig = publishConfig;
 		this.profilingSet = profilingSet;
@@ -61,7 +63,7 @@ public class PublishPackage {
 	}
 
 
-	public Set<CmsItem> getPublishedItems() {
+	public Set<CmsItemPublish> getPublishedItems() {
 		return this.publishedItems;
 	}
 

@@ -181,7 +181,7 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
 		}
 		
-		final List<CmsItem> items = new ArrayList<CmsItem>();
+		final List<CmsItemPublish> items = new ArrayList<CmsItemPublish>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
@@ -195,7 +195,7 @@ public class PublishResource {
 		}
 		
 		if (includeRelease) {
-			items.add(releaseItem);
+			items.add(new CmsItemPublish(releaseItem));
 		}
 		
 		if (includeTranslations) {
@@ -203,11 +203,11 @@ public class PublishResource {
 			if (translationItems.isEmpty()) {
 				throw new IllegalArgumentException("Translations requested, no translations found.");
 			}
-			items.addAll(translationItems);
+			translationItems.forEach(translationItem -> items.add(new CmsItemPublish(translationItem)));
 		}
 		
-		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
-		for (CmsItem item: items) {
+		final LinkedHashSet<CmsItemPublish> publishedItems = new LinkedHashSet<>();
+		for (CmsItemPublish item: items) {
 			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 			if (configurationFiltered.containsKey(publication)) {
 				publishedItems.add(item);
@@ -248,6 +248,7 @@ public class PublishResource {
 	@Path("release/start")
 	@Produces({MediaType.APPLICATION_JSON})
 	public Set<String> doStart(@FormParam("item") CmsItemIdArg itemId,
+			// TODO: Need the release / translation booleans to support restart of TSP PDFs.
 			@QueryParam("profiling") String[] profiling,
 			@QueryParam("publication") final String publication) throws Exception {
 		
