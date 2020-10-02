@@ -15,8 +15,13 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -54,6 +59,27 @@ public class PublishPackageStatus {
         this.exportProvider = exportProvider;
         this.storageFactory = storageFactory;
     }
+
+    
+	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll) {
+
+		List<String> allowed = Arrays.asList("FAILED", "UNKNOWN");
+		Set<PublishJob> jobs = new LinkedHashSet<>(jobsAll);
+
+		// Must avoid starting multiple executions for the same Job.
+		// Verify with the status service.
+		// Inactive configs have a special situation, will often be reported as UNKNOWN.
+		// TODO: Consider adding support in the status service to report other status, e.g. INACTIVE.
+		Set<WorkflowExecution> status = getStatus(publishPackage);
+		// There should only be one for each itemId (single profiling in each call)
+		Map<CmsItemId, WorkflowExecution> statusMap = new HashMap<>(status.size());
+		status.forEach(wf -> statusMap.put(wf.getInput().getItemId(), wf));
+		status.forEach(wf -> logger.debug("Start publish, current status: {} - {}", wf.getStatus(), wf.getInput().getItemId()));
+		// Suppress start for items that does not have an allowed execution status.
+		jobs.removeIf(job -> !allowed.contains(statusMap.get(job.getItemId()).getStatus()));
+
+		return jobs;
+	}
 
     public Set<WorkflowExecution> getStatus(PublishPackage publishPackage) {
 

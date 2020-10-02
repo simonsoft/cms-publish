@@ -259,21 +259,10 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
 		
-		List<String> allowed = Arrays.asList("FAILED", "UNKNOWN");
 		PublishPackage publishPackage = getPublishPackage(itemId, true, true, profiling, publication);
 		Set<PublishJob> jobs = getPublishJobsForPackage(publishPackage);
 		
-		// Must avoid starting multiple executions for the same Job.
-		// Verify with the status service.
-		// Inactive configs have a special situation, will often be reported as UNKNOWN.
-		// TODO: Consider adding support in the status service to report other status, e.g. INACTIVE.
-		Set<WorkflowExecution> status = statusService.getStatus(publishPackage);
-		// There should only be one for each itemId (single profiling in each call)
-		Map<CmsItemId, WorkflowExecution> statusMap = new HashMap<>(status.size());
-		status.forEach(wf -> statusMap.put(wf.getInput().getItemId(), wf));
-		status.forEach(wf -> logger.debug("Start publish, current status: {} - {}", wf.getStatus(), wf.getInput().getItemId()));
-		// Suppress start for items that does not have an allowed execution status.
-		jobs.removeIf(job -> !allowed.contains(statusMap.get(job.getItemId()).getStatus()));
+		jobs = statusService.getJobsStartAllowed(publishPackage, jobs);
 		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
 		Set<String> result = publishExecutor.startPublishJobs(jobs);
 		return result;
@@ -465,7 +454,7 @@ public class PublishResource {
 	}
 	
 	
-	private Set<PublishJob> getPublishJobsForPackage(PublishPackage publishPackage) {
+	public Set<PublishJob> getPublishJobsForPackage(PublishPackage publishPackage) {
 		
 		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
 		for (CmsItem item: publishPackage.getPublishedItems()) {
