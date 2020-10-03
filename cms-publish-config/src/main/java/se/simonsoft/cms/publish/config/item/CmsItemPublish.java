@@ -55,6 +55,14 @@ public class CmsItemPublish implements CmsItem {
 		if (rl != null && rl.trim().isEmpty()) {
 			throw new IllegalStateException("Property 'ReleaseLocale' must not be an empty string");
 		}
+		// Release prepared before CMS 4.3 will not have the ReleaseLocale property.
+		if (isRelease() && rl == null) {
+			// Fallback to lang attr, only on a Release.
+			rl = item.getProperties().getString("abx:lang");
+			if (rl != null && rl.trim().isEmpty()) {
+				throw new IllegalStateException("Property 'abx:lang' must not be an empty string");
+			}
+		}
 		return rl;
 	}
 	

@@ -43,6 +43,7 @@ import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
@@ -65,6 +66,8 @@ public class PublishResourceTest {
 	@Mock CmsItemRepositem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
+	@Mock PublishJobFactory jobFactoryMock;
+	@Mock PublishExecutor publishExecutorMock;
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
@@ -130,13 +133,14 @@ public class PublishResourceTest {
 
 		// Config setup
 		PublishConfig config = new PublishConfig();
+		config.setActive(true);
 		config.setVisible(true);
 		config.setOptions(new PublishConfigOptions());
 		config.getOptions().setFormat("pdf");
 		Map<String, PublishConfig> configMap = new HashMap<String, PublishConfig>();
 		configMap.put("print", config);
 
-		when(publishConfigurationMock.getConfigurationFiltered(any(CmsItemPublish.class))).thenReturn(configMap);
+		when(publishConfigurationMock.getConfigurationVisible(any(CmsItemPublish.class))).thenReturn(configMap);
 
 		// Profiling mock setup.
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe("active", "profiling-logicalexpression", null);
@@ -153,6 +157,8 @@ public class PublishResourceTest {
 				trackingMapMock,
 				htmlHelperMock,
 				storageFactoryMock,
+				jobFactoryMock,
+				publishExecutorMock,
 				getVelocityEngine());
 	}
 

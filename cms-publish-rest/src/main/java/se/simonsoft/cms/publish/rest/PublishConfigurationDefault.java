@@ -18,9 +18,11 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.inject.Inject;
@@ -42,12 +44,16 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterVisible;
 import se.simonsoft.cms.release.ReleaseProperties;
 
 public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	private final CmsRepositoryLookup repositoryLookup;
 	private final List<PublishConfigFilter> filters;
+	private final PublishConfigFilter filterActive = new PublishConfigFilterActive();
+	private final PublishConfigFilter filterVisible = new PublishConfigFilterVisible();
 	private final ObjectReader readerConfig;
 	private final ObjectReader readerProfiling;
 
@@ -77,15 +83,32 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		return deserializeConfig(context);
 	}
 	
-	
+	@Override
 	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item) {
 		
 		CmsResourceContext context = getConfigurationParentFolder(item.getId());
 		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
-		return filterConfigs(item, allConfigs);
+		return filterConfigs(item, allConfigs, null);
+	}
+
+	@Override
+	public Map<String, PublishConfig> getConfigurationActive(CmsItemPublish item) {
+		
+		CmsResourceContext context = getConfigurationParentFolder(item.getId());
+		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
+		return filterConfigs(item, allConfigs, this.filterActive);
+	}
+	
+	@Override
+	public Map<String, PublishConfig> getConfigurationVisible(CmsItemPublish item) {
+		
+		CmsResourceContext context = getConfigurationParentFolder(item.getId());
+		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
+		return filterConfigs(item, allConfigs, this.filterVisible);
 	}
 	
 	
+	@Override
 	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish) {
 		
 		if (!itemPublish.hasProfiles()) {
@@ -138,10 +161,16 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		return configs;
 	}
 	
-	private Map<String, PublishConfig> filterConfigs(CmsItemPublish item, Map<String, PublishConfig> configs) {
+	
+	private Map<String, PublishConfig> filterConfigs(CmsItemPublish item, Map<String, PublishConfig> configs, PublishConfigFilter additional) {
 		
 		Map<String, PublishConfig> filteredConfigs = new TreeMap<String, PublishConfig>();
 		for (Entry<String, PublishConfig> config: configs.entrySet()) {
+			Set<PublishConfigFilter> filters = new LinkedHashSet<>(this.filters.size() + 1);
+			filters.addAll(this.filters);
+			if (additional != null) {
+				filters.add(additional);
+			}
 			List<String> filtered = new ArrayList<String>(filters.size());
 			for (PublishConfigFilter f: filters) {
 				if (!f.accept(config.getValue(), item)) {

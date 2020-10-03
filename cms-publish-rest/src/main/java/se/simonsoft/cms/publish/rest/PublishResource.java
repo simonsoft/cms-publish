@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,7 +29,9 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -46,10 +49,12 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
-import se.simonsoft.cms.item.export.*;
+import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
+import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
+import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -74,6 +79,8 @@ public class PublishResource {
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	@SuppressWarnings("unused")
 	private final PublishJobStorageFactory storageFactory;
+	private final PublishJobFactory jobFactory;
+	private final PublishExecutor publishExecutor;
 
 	private VelocityEngine templateEngine;
 
@@ -87,6 +94,8 @@ public class PublishResource {
 			Map<CmsRepository, TranslationTracking> trackingMap,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
+			PublishJobFactory jobFactory,
+			PublishExecutor publishExecutor,
 			VelocityEngine templateEngine
 			) {
 		
@@ -99,6 +108,8 @@ public class PublishResource {
 		this.trackingMap = trackingMap;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
+		this.jobFactory = jobFactory;
+		this.publishExecutor = publishExecutor;
 		this.templateEngine = templateEngine;
 	}
 	
@@ -116,7 +127,8 @@ public class PublishResource {
 			itemProfilings = itemProfilingSet.getMap();
 		}
 
-		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+		// Configs filtered for the Release item. Showing only Visible configs in the UI.
+		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationVisible(itemPublish);
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
 		if (configuration.isEmpty()) {
@@ -132,10 +144,10 @@ public class PublishResource {
 				throw new IllegalStateException("No publications are configured to be visible.");
 			}
 		}
-
 		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}
 
+	
 	@GET
 	@Path("release")
 	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
@@ -146,25 +158,18 @@ public class PublishResource {
 		}
 
 		logger.debug("Getting release form for item: {}", itemId);
-
 		PublishRelease publishRelease = getPublishRelease(itemId);
-
-		Map<String, PublishProfilingRecipe> itemProfilings = publishRelease.getProfiling();
-
-		if (!itemProfilings.isEmpty()) {
-			logger.debug("ItemId: {} has: {} configured profiles", itemId, itemProfilings.size());
-		}
-
 		return publishRelease;
 	}
 
-	public PublishPackage getPublishPackage(CmsItemIdArg itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
+	
+	public PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
 		
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
 		
-		if (!itemId.isPegged()) {
+		if (itemId.getPegRev() == null) {
 			throw new IllegalArgumentException("Field 'item': revision is required");
 		}
 		
@@ -176,8 +181,7 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
 		}
 		
-		itemId.setHostnameOrValidate(this.hostname);
-		final List<CmsItem> items = new ArrayList<CmsItem>();
+		final List<CmsItemPublish> items = new ArrayList<CmsItemPublish>();
 		
 		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
@@ -191,7 +195,7 @@ public class PublishResource {
 		}
 		
 		if (includeRelease) {
-			items.add(releaseItem);
+			items.add(new CmsItemPublish(releaseItem));
 		}
 		
 		if (includeTranslations) {
@@ -199,11 +203,11 @@ public class PublishResource {
 			if (translationItems.isEmpty()) {
 				throw new IllegalArgumentException("Translations requested, no translations found.");
 			}
-			items.addAll(translationItems);
+			translationItems.forEach(translationItem -> items.add(new CmsItemPublish(translationItem)));
 		}
 		
-		final Set<CmsItem> publishedItems = new HashSet<CmsItem>();
-		for (CmsItem item: items) {
+		final LinkedHashSet<CmsItemPublish> publishedItems = new LinkedHashSet<>();
+		for (CmsItemPublish item: items) {
 			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
 			if (configurationFiltered.containsKey(publication)) {
 				publishedItems.add(item);
@@ -240,6 +244,30 @@ public class PublishResource {
 	}
 	
 	
+	@POST
+	@Path("release/start")
+	@Produces({MediaType.APPLICATION_JSON})
+	public Set<String> doStart(@FormParam("item") CmsItemIdArg itemId,
+			// TODO: Need the release / translation booleans to support restart of TSP PDFs.
+			@QueryParam("profiling") String[] profiling,
+			@QueryParam("publication") final String publication) throws Exception {
+		
+		logger.debug("Start publication '{}' requested with item: {} and profiles: {}", publication, itemId, Arrays.toString(profiling));
+		itemId.setHostnameOrValidate(this.hostname);
+		
+		if (profiling != null && profiling.length > 1) {
+			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
+		}
+		
+		PublishPackage publishPackage = getPublishPackage(itemId, true, true, profiling, publication);
+		Set<PublishJob> jobs = getPublishJobsForPackage(publishPackage);
+		
+		jobs = statusService.getJobsStartAllowed(publishPackage, jobs);
+		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
+		Set<String> result = publishExecutor.startPublishJobs(jobs);
+		return result;
+	}
+	
 	
 	@GET
 	@Path("release/status")
@@ -251,7 +279,8 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-
+		itemId.setHostnameOrValidate(this.hostname);
+		
 		if (profiling != null && profiling.length != 0) {
 			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
 		}
@@ -271,7 +300,7 @@ public class PublishResource {
 						@QueryParam("publication") final String publication) throws Exception {
 		
 		logger.debug("Download of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
-		
+		itemId.setHostnameOrValidate(this.hostname);
 		
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		
@@ -423,4 +452,34 @@ public class PublishResource {
 
 		return items;
 	}
+	
+	
+	public Set<PublishJob> getPublishJobsForPackage(PublishPackage publishPackage) {
+		
+		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
+		for (CmsItem item: publishPackage.getPublishedItems()) {
+			CmsItemPublish itemPublish = (CmsItemPublish) item;
+			String configName = publishPackage.getPublication();
+			PublishConfig config = publishPackage.getPublishConfig();
+			
+			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
+			// Copied from PublishItemChangedEventListener, needed here?
+			if (itemPublish.hasProfiles() && config.getProfilingInclude() != null && Boolean.FALSE.equals(config.getProfilingInclude())) {
+				throw new IllegalArgumentException("Item should not have profiling, filtering incorrect.");
+			}
+			
+			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
+				// One or many jobs with profiling.
+				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
+				PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
+				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet));
+			} else {
+				// Normal, non-profiling job.
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null);
+				jobs.add(pj);
+			}
+		}
+		return jobs;
+	}
+	
 }

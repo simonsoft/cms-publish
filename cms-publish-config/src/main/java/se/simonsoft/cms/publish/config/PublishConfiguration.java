@@ -24,9 +24,33 @@ import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public interface PublishConfiguration {
 
+	/**
+	 * @param itemId
+	 * @return all publish configurations on the parent folder of itemId
+	 */
 	public Map<String, PublishConfig> getConfiguration(CmsItemId itemId);
 	
+	/**
+	 * @param item
+	 * @return the publish configurations applicable to item
+	 */
 	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item);
+
+	/**
+	 * @param item
+	 * @return the active publish configurations applicable to item
+	 */
+	public Map<String, PublishConfig> getConfigurationActive(CmsItemPublish item);
 	
+	/**
+	 * @param item
+	 * @return the visible publish configurations applicable to item
+	 */
+	public Map<String, PublishConfig> getConfigurationVisible(CmsItemPublish item);
+
+	/**
+	 * @param itemPublish
+	 * @return profiling recipes defined on the item and intended for publish
+	 */
 	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish);
 }
