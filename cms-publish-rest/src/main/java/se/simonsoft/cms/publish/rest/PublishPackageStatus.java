@@ -110,8 +110,10 @@ public class PublishPackageStatus {
     }
     
     private WorkflowExecution getStatus(PublishPackage publishPackage, CmsItem item, Set<WorkflowExecution> executions) {
-
+    	
         String publication = publishPackage.getPublication();
+        // Empty profiling set is not possible, disallowed by PublishPackage.
+        final String profiling = publishPackage.getProfilingSet() == null ? null : publishPackage.getProfilingSet().iterator().next().getName();
         PublishConfig publishConfig = publishPackage.getPublishConfig();
 
         logger.debug("Found {} workflow executions for item: {}", executions.size(), item.getId());
@@ -122,7 +124,7 @@ public class PublishPackageStatus {
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
         // Filter out profiling name.
         if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 0) {
-        	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(publication)));
+        	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(profiling)));
         }
         logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
         

@@ -281,8 +281,8 @@ public class PublishResource {
 		logger.debug("Status of Release: {} requested with release: {}, translations: {} and profiles: {}", itemId, includeRelease, includeTranslations, Arrays.toString(profiling));
 		itemId.setHostnameOrValidate(this.hostname);
 		
-		if (profiling != null && profiling.length != 0) {
-			throw new IllegalArgumentException("Field 'profiling': profiling is currently not supported");
+		if (profiling != null && profiling.length > 1) {
+			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
 
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
