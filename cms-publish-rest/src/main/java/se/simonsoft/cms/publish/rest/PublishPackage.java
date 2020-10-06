@@ -45,6 +45,10 @@ public class PublishPackage {
 		
 		this.releaseItemId = releaseItemId;
 		this.releaseLabel = releaseLabel;
+		
+		if (profilingSet != null && profilingSet.isEmpty()) {
+			throw new IllegalArgumentException("Profiling Set should be null or non-empty.");
+		}
 	}
 
 
