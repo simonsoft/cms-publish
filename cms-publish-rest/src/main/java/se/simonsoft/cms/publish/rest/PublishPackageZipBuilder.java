@@ -90,6 +90,7 @@ public class PublishPackageZipBuilder {
 		logger.debug("PublishExportJobs created.");
 		
 		if (downloadJobs.isEmpty()) {
+			// Might not happen in practice, no validation above that the profiling recipe(s) is defined on the item(s). Will fail during download.
 			throw new IllegalArgumentException("No publications to export with this combination of items and profiling.");
 		}
 		
