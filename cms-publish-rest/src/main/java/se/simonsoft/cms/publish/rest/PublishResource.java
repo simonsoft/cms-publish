@@ -285,6 +285,8 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
 
+		// The Publish Package requires itemId/masterId with pegrev.
+		// This service will get relatively high load so it is better to avoid an additional indexing request, i.e. require pegrev.
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		return statusService.getStatus(publishPackage);
 	}
