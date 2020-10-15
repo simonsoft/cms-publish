@@ -201,7 +201,8 @@ public class PublishResource {
 		if (includeTranslations) {
 			List<CmsItem> translationItems = getTranslationItems(itemId, publishConfig);
 			if (translationItems.isEmpty()) {
-				throw new IllegalArgumentException("Translations requested, no translations found.");
+				// NOTE: Adjust message if the filtering in getTranslationItems does additional aspects in the future, could add "etc" after "status". 
+				throw new IllegalArgumentException("Translations requested, no translations found matching the configured status.");
 			}
 			translationItems.forEach(translationItem -> items.add(new CmsItemPublish(translationItem)));
 		}
