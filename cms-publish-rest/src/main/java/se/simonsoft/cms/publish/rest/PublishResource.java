@@ -249,7 +249,8 @@ public class PublishResource {
 	@Path("release/start")
 	@Produces({MediaType.APPLICATION_JSON})
 	public Set<String> doStart(@FormParam("item") CmsItemIdArg itemId,
-			// TODO: Need the release / translation booleans to support restart of TSP PDFs.
+			@QueryParam("includerelease") boolean includeRelease,
+			@QueryParam("includetranslations") boolean includeTranslations,
 			@QueryParam("profiling") String[] profiling,
 			@QueryParam("publication") final String publication) throws Exception {
 		
@@ -260,7 +261,7 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
 		
-		PublishPackage publishPackage = getPublishPackage(itemId, true, true, profiling, publication);
+		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		Set<PublishJob> jobs = getPublishJobsForPackage(publishPackage);
 		
 		jobs = statusService.getJobsStartAllowed(publishPackage, jobs);
