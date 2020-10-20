@@ -60,18 +60,19 @@ public class PublishPackageStatus {
     }
 
     
+    // Filter the jobs to be started, prevents restarting RUNNING and COMPLETED.
 	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll) {
 
-		List<String> allowed = Arrays.asList("FAILED", "UNKNOWN");
+		List<String> allowed = Arrays.asList("FAILED", "UNKNOWN", "INACTIVE");
 		Set<PublishJob> jobs = new LinkedHashSet<>(jobsAll);
 
 		// Must avoid starting multiple executions for the same Job.
 		// Verify with the status service.
 		// Inactive configs have a special situation, will often be reported as UNKNOWN.
-		// TODO: Consider adding support in the status service to report other status, e.g. INACTIVE.
 		Set<WorkflowExecution> status = getStatus(publishPackage);
 		// There should only be one for each itemId (single profiling in each call)
 		Map<CmsItemId, WorkflowExecution> statusMap = new HashMap<>(status.size());
+		// Build map: CmsItemId -> status
 		status.forEach(wf -> statusMap.put(wf.getInput().getItemId(), wf));
 		status.forEach(wf -> logger.debug("Start publish, current status: {} - {}", wf.getStatus(), wf.getInput().getItemId()));
 		// Suppress start for items that does not have an allowed execution status.
@@ -148,13 +149,17 @@ public class PublishPackageStatus {
 
         if (execution == null) {
         	PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, null);
-            execution = getUnknownWorkflowExecution(storage, item.getId(), publication);
+        	// Special handling of inactive config, return INACTIVE instead of UNKNOWN.
+            String fallbackStatus = "UNKNOWN";
+            if (!publishConfig.isActive()) {
+            	fallbackStatus = "INACTIVE";
+            }
+        	execution = getUnknownWorkflowExecution(storage, item.getId(), publication, fallbackStatus);
         }
-        // TODO: Consider special handling of inactive configs, e.g. return INACTIVE instead of UNKNOWN.
         return execution;
     }
 
-    WorkflowExecution getUnknownWorkflowExecution(PublishJobStorage storage, CmsItemId itemId, String publication) {
+    WorkflowExecution getUnknownWorkflowExecution(PublishJobStorage storage, CmsItemId itemId, String publication, String fallbackStatus) {
 
         if (storage == null || !storage.getType().equals("s3")) {
             String msg = MessageFormatter.format("Publication '{}' is not configured with S3 storage.", publication).getMessage();
@@ -171,7 +176,7 @@ public class PublishPackageStatus {
             execution = new WorkflowExecution(null, "SUCCEEDED", null, null, input);
         } catch (CmsExportJobNotFoundException | CmsExportAccessDeniedException e) {
             logger.debug("Unknown publication {} did not exist on S3 at {}.", importJob.getJobName(), importJob.getJobPath());
-            execution = new WorkflowExecution(null, "UNKNOWN", null, null, input);
+            execution = new WorkflowExecution(null, fallbackStatus, null, null, input);
         }
 
         return execution;
