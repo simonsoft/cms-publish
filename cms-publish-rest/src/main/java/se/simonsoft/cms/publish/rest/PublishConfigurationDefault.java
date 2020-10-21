@@ -29,6 +29,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -38,6 +39,7 @@ import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.config.CmsConfigOption;
 import se.simonsoft.cms.item.config.CmsResourceContext;
+import se.simonsoft.cms.item.export.CmsExportPrefix;
 import se.simonsoft.cms.item.info.CmsRepositoryLookup;
 import se.simonsoft.cms.publish.config.PublishConfiguration;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
@@ -80,30 +82,31 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	public Map<String, PublishConfig> getConfiguration(CmsItemId itemId) {
 		
 		CmsResourceContext context = getConfigurationParentFolder(itemId);
-		return deserializeConfig(context);
+		return deserializeConfig(context, true);
 	}
 	
 	@Override
 	public Map<String, PublishConfig> getConfigurationFiltered(CmsItemPublish item) {
 		
 		CmsResourceContext context = getConfigurationParentFolder(item.getId());
-		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
+		Map<String, PublishConfig> allConfigs = deserializeConfig(context, true);
 		return filterConfigs(item, allConfigs, null);
 	}
 
 	@Override
 	public Map<String, PublishConfig> getConfigurationActive(CmsItemPublish item) {
-		
+		// Relaxed validation to ensure that valid configs are started by event.
+		// TODO: Consider introducing a separate method / view specifically for validating the configs.
 		CmsResourceContext context = getConfigurationParentFolder(item.getId());
-		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
+		Map<String, PublishConfig> allConfigs = deserializeConfig(context, false);
 		return filterConfigs(item, allConfigs, this.filterActive);
 	}
 	
 	@Override
 	public Map<String, PublishConfig> getConfigurationVisible(CmsItemPublish item) {
-		
+		// Strict validation to ensure that invalid configs are reported in UI.
 		CmsResourceContext context = getConfigurationParentFolder(item.getId());
-		Map<String, PublishConfig> allConfigs = deserializeConfig(context);
+		Map<String, PublishConfig> allConfigs = deserializeConfig(context, true);
 		return filterConfigs(item, allConfigs, this.filterVisible);
 	}
 	
@@ -138,20 +141,34 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	}
 	
 	
-	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context) {
+	// When strict=false, configs that pass validation/parsing will be returned instead of exception.
+	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context, boolean strict) {
 		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
 		Map<String, PublishConfig> configs = new TreeMap<>();
 		Iterator<CmsConfigOption> iterator = context.iterator();
 		while (iterator.hasNext()) {
 			CmsConfigOption configOption = iterator.next();
-			String configOptionName = configOption.getNamespace();
-			if (configOptionName.startsWith(PUBLISH_CONFIG_KEY)) {
+			String configOptionNamespace = configOption.getNamespace();
+			if (configOptionNamespace.startsWith(PUBLISH_CONFIG_KEY)) {
 				try {
+					// Export framework will validate the prefix when publishing / Export Publications.
+					// Also validating early, to avoid starting incorrectly named configs.
+					CmsExportPrefix key = new CmsExportPrefix(configOption.getKey());
 					PublishConfig publishConfig = readerConfig.readValue(configOption.getValueString());
-					configs.put(configOption.getKey(), publishConfig);
+					configs.put(key.toString(), publishConfig);
+				} catch (IllegalArgumentException e) {
+					String msg = MessageFormatter.format("Illegal publish configuration name: '{}'", configOptionNamespace.concat(":" + configOption.getKey())).getMessage();
+					logger.error(msg, e);
+					if (strict) {
+						throw new RuntimeException(msg);
+					}
 				} catch (JsonProcessingException e) {
-					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionName.concat(":" + configOption.getKey()));
-					throw new RuntimeException(e);
+					logger.error("Could not deserialize config: {} to new PublishConfig", configOptionNamespace.concat(":" + configOption.getKey()));
+					String msg = MessageFormatter.format("Illegal publish configuration '{}':\n{}", configOptionNamespace.concat(":" + configOption.getKey()), e.getMessage()).getMessage();
+					logger.error(msg, e);
+					if (strict) {
+						throw new RuntimeException(msg);
+					}
 				}
 			}
 		}
