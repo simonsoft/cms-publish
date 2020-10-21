@@ -51,8 +51,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.sfn.SfnClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -69,7 +71,7 @@ public class WorkerApplication extends ResourceConfig {
 
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
 
-	private Region region = DefaultAwsRegionProviderChain.builder().build().getRegion();
+	private AwsRegionProvider regionProvider = DefaultAwsRegionProviderChain.builder().build();
 	private String cloudId;
 	private String awsAccountId;
 	private AwsCredentialsProvider credentials = DefaultCredentialsProvider.create();
@@ -126,11 +128,14 @@ public class WorkerApplication extends ResourceConfig {
         		// configure AWS region
         		// currently no reason to override the location of the EC2 VM
         		// on-prem uses the fallback EU_WEST_1.
-            	if (region == null) {
-            		// fallback to the hard-coded region name for backwards compatibility
-            		region = Region.EU_WEST_1;
-            	}
-            	logger.info("Region name: {}", region.id());
+        		// fallback to the hard-coded region name for backwards compatibility
+        		Region region = Region.EU_WEST_1;
+        		try {
+        			region = regionProvider.getRegion();
+        		} catch (SdkClientException e) {
+					logger.info("No AWS Region configured, using fallback EU_WEST_1: " + e.getMessage());
+				}
+        		logger.info("Region name: {}", region.id());
             	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
 
