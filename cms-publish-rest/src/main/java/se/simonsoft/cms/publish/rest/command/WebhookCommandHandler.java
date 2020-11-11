@@ -92,6 +92,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		// This could prevent out-of-order webhooks.
 		// Might need PublishJob, especially if we want to evaluate if this publishconfig is supposed to execute for the subsequent iterations. 
 		
+		// #1344: When executing in cms-webapp (code should be separate service)
+		// - Use CmsItemLookup towards svn to get head revision (actually preferable to get svn log after this revision).
+		// - If later revision exists with identical cms:status value, check if manifest has been written, then suppress this webhook.
+		
 		if (options.getDelivery() == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobDelivery object with param url.");
 		}
