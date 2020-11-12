@@ -156,7 +156,10 @@ public class PublishResource {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
-
+		
+		// For html it is not really necessary to construct the full PublishRelease object.
+		// However, it is very important to properly display any error message thrown when failing to deserialize the publish configs.
+		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
 		logger.debug("Getting release form for item: {}", itemId);
 		PublishRelease publishRelease = getPublishRelease(itemId);
 		return publishRelease;
