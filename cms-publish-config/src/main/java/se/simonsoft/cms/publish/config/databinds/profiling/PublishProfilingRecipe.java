@@ -146,6 +146,17 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 		return result;
 	}
 	
+	/**
+	 * Validate that the filter is not empty.
+	 */
+	@JsonIgnore
+	public void validateFilter() {
+		if (getAttributesFilter().isEmpty()) {
+			throw new IllegalArgumentException("Profiling filter must not be empty for '" + getName() + "'.");
+		}
+		
+	}
+	
 	private static String decodeString(String encoded) {
 
 		try {
