@@ -162,11 +162,10 @@ public class PublishResourceTest {
 				getVelocityEngine());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testPublishResourceReleaseHtml() throws Exception {
 
-		PublishRelease publishRelease = publishResource.getRelease(itemId);
+		PublishRelease publishRelease = publishResource.getPublishRelease(itemId);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PublishReleaseMessageBodyWriterHtml writer = new PublishReleaseMessageBodyWriterHtml(htmlHelperMock, getVelocityEngine());
 		writer.writeTo(publishRelease, null, null, null, null, null, outputStream);
