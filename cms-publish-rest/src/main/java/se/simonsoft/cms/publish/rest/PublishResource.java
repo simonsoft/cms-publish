@@ -151,7 +151,7 @@ public class PublishResource {
 	@GET
 	@Path("release")
 	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
-	public PublishRelease getRelease(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
+	public Response getRelease(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
 
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
@@ -162,7 +162,10 @@ public class PublishResource {
 		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
 		logger.debug("Getting release form for item: {}", itemId);
 		PublishRelease publishRelease = getPublishRelease(itemId);
-		return publishRelease;
+		Response response = Response.ok(publishRelease)
+				.header("Vary", "Accept")
+				.build();
+		return response;
 	}
 
 	
