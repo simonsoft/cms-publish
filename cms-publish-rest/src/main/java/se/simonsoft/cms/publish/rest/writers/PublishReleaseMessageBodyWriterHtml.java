@@ -24,7 +24,6 @@ import org.apache.velocity.io.VelocityWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.repos.web.ReposHtmlHelper;
-import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.rest.PublishRelease;
 
 import javax.inject.Inject;
