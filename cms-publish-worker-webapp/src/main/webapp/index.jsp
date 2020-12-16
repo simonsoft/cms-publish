@@ -30,10 +30,10 @@
 	</head>
 	<body>
     	<h2>SimonsoftCMS Publish Worker</h2>
-    	<p class="webappVersion"><a href="rest/info/version">${buildName}</a></p>
-    	<p><a href="rest/status">Status</a></p>
-    	<p><a href="rest/test/form">Publish Document</a></p>
-    	<p><a href="rest/test/publish/job">Publish Job</a></p>
-    	<p><a href="rest/test/ticket">Get Ticket</a></p>
+    	<p class="webappVersion"><a href="rest/info/version/">${buildName}</a></p>
+    	<p><a href="rest/status/">Status</a></p>
+    	<p><a href="rest/test/publish/document/">Publish Document</a></p>
+    	<p><a href="rest/test/publish/job/">Publish Job</a></p>
+    	<p><a href="rest/test/ticket/">Get Ticket</a></p>
 	</body>
 </html>

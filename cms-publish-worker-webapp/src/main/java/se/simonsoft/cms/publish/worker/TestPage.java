@@ -100,7 +100,7 @@ public class TestPage {
 	}
 
 	@GET
-	@Path("form")
+	@Path("publish/document")
 	@Produces(MediaType.TEXT_HTML)
 	public String getForm() throws Exception {
 		VelocityEngine engine = new VelocityEngine();
