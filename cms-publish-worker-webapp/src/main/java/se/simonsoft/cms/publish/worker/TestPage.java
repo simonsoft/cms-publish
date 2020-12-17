@@ -62,7 +62,7 @@ public class TestPage {
 	@Produces(MediaType.TEXT_HTML)
 	@Path("publish/document")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String urlCall(@FormParam("itemId") final String itemId, @FormParam("format") String format) throws Exception {
+	public String doPublishDocument(@FormParam("itemId") final String itemId, @FormParam("format") String format) throws Exception {
 		if(itemId == "" || itemId == null) {
 			throw new IllegalArgumentException("The given itemID was either empty or null");
 		}
@@ -102,7 +102,7 @@ public class TestPage {
 	@GET
 	@Path("publish/document")
 	@Produces(MediaType.TEXT_HTML)
-	public String getForm() throws Exception {
+	public String getPublishDocumentForm() throws Exception {
 		VelocityEngine engine = new VelocityEngine();
 		Properties p = new Properties();
 		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
@@ -141,7 +141,7 @@ public class TestPage {
 	@Path("ticket/result")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response getResult(@QueryParam("ticketnumber") String ticketNumber, @QueryParam("options") String  optionsJson) throws IOException, PublishException {
+	public Response getTicketResult(@QueryParam("ticketnumber") String ticketNumber, @QueryParam("options") String  optionsJson) throws IOException, PublishException {
 		
 		if ( ticketNumber == null || ticketNumber.trim().isEmpty()) {
 			throw new IllegalArgumentException("The given ticketnumber was either empty or null");
@@ -192,7 +192,7 @@ public class TestPage {
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Path("publish/job")
-	public String PublishJob(@FormParam("jsonString") String jsonstring) throws Exception {
+	public String doPublishJob(@FormParam("jsonString") String jsonstring) throws Exception {
 		if(jsonstring == "" || jsonstring == null) {
 			throw new IllegalArgumentException("The given json String was either empty or null");
 		}
