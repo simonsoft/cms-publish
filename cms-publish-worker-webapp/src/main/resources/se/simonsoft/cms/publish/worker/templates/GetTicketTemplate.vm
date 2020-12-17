@@ -26,9 +26,9 @@
 		</head>
 	<body>
 		#if( $options )
-			<p id="getJob">Get your published: <a href="result?ticketnumber=$ticketNumber&options=$options">job</a></p>
+			<p id="getJob">Get your published: <a href="../../ticket/result?ticketnumber=$ticketNumber&options=$options">job</a></p>
 		#else
-			<p id="getJob">Get your published: <a href="result?ticketnumber=$ticketNumber&options=">job</a></p>	
+			<p id="getJob">Get your published: <a href="../../ticket/result?ticketnumber=$ticketNumber&options=">job</a></p>	
 		#end
 		
 	</body>
