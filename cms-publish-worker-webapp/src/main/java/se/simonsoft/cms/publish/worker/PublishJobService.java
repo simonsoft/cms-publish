@@ -150,7 +150,7 @@ public class PublishJobService {
 		if(!isCompleted(ticket)) {
 			throw new PublishException("The specified job with ticketnumber " + ticket.toString() + " is not ready yet");
 		}
-		if (jobOptions.getProgress().getParams().containsKey("temp")) {
+		if (jobOptions != null && jobOptions.getProgress().getParams().containsKey("temp")) {
 			deleteTemporaryDirectory(jobOptions.getProgress());
 		}
 		PublishRequestDefault request = new PublishRequestDefault();
@@ -170,6 +170,8 @@ public class PublishJobService {
 		}
 		logger.debug("Got OutputStream from job with ticket: {}", ticket);
 	}
+	
+	
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
 		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");

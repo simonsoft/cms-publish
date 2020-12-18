@@ -43,7 +43,7 @@
 		</style>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/test/publish/document" method="post" id="documentForm">
+		<form method="post" id="documentForm">
 			<h3>Itemid or PE test document:</h3>
 			<input id"itemIdInput" type="text" name="itemId">
 			<h3>Format</h3>

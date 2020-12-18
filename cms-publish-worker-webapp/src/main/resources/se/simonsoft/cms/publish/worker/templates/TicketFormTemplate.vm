@@ -25,7 +25,7 @@
 		</style>
 		</head>
 	<body>
-		<form action="http://localhost:8080/worker/rest/test/ticket/result" method="get">
+		<form action="result" method="get">
 			<h3>Ticket Number:</h3>
 			<input type="text" name="ticketnumber">
 			<input id="submitButton" type="submit" value="Submit">

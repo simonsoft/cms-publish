@@ -45,7 +45,7 @@
 			
 		</style>
 	<body>
-		<form action="http://localhost:8080/worker/rest/test/publish/job" id="jobForm" method="post">
+		<form id="jobForm" method="post">
 			<h3>PublishJob Options data in Json format:</h3>
 			<textarea name="jsonString" form="jobForm"></textarea><br>
 			<input id="submitButton" type="submit" value="Submit">
