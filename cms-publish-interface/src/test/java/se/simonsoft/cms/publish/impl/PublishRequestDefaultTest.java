@@ -34,9 +34,9 @@ public class PublishRequestDefaultTest {
 	public void testGetFile(){
 		// Might be overkill to test.
 		PublishRequestDefault pubreq = new PublishRequestDefault();
-		CmsItemId id = new CmsItemIdArg("x-svn:///svn/repo1^/demo/Documents/Introduction.xml");
+		CmsItemId id = new CmsItemIdArg("x-svn:///svn/repo1/demo/Documents/Introduction.xml");
 		pubreq.setFile(new PublishSourceCmsItemId(id));
 		
-		assertEquals("x-svn:///svn/repo1^/demo/Documents/Introduction.xml", pubreq.getFile().getURI());
+		assertEquals("x-svn:///svn/repo1/demo/Documents/Introduction.xml", pubreq.getFile().getURI());
 	}
 }

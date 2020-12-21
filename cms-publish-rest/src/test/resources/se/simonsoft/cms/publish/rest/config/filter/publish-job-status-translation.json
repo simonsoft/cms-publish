@@ -14,11 +14,11 @@
             "docnoDocumentTemplate": "DOC_${item.getId().getRelPath().getNameBase()}_${item.getProperties().getString(\"abx:TranslationLocale\")}",
             "docnoMasterTemplate": "DOC_${item.getId().getRelPath().getNameBase()}"
     },
-    "itemid": "x-svn://ubuntu-cheftest1.pdsvision.net/svn/demo1^/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145",
+    "itemid": "x-svn://ubuntu-cheftest1.pdsvision.net/svn/demo1/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145",
     "options": {
         "pathname": "DOC_900108_en-GB_Released",
         "type": "abxpe",
-        "source": "x-svn:///svn/demo1^/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145",
+        "source": "x-svn:///svn/demo1/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145",
         "format": "pdf",
         "params": {
             "stylesheet": "$aptpath/application/se.simonsoft.vvab/doctypes/VVAB/vvab.style",
@@ -29,7 +29,7 @@
             "job": {
                 "configname": "simple-pdf",
                 "format": "pdf",
-                "itemid": "x-svn:///svn/demo1^/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145"
+                "itemid": "x-svn:///svn/demo1/vvab/lang/en-GB/release/B/xml/documents/900108.xml?p=145"
             },
             "document": {
                 "docno": "DOC_900108_en-GB",
