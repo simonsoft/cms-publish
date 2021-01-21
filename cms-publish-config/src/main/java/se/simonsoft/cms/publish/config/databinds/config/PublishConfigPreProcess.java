@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties (ignoreUnknown=false)
 public class PublishConfigPreProcess {
 	private String type;
-	private Map <String, String> params = new HashMap<>();
+	private Map <String, Object> params = new HashMap<>();
 	
 	public String getType() {
 		return type;
@@ -31,10 +31,10 @@ public class PublishConfigPreProcess {
 	public void setType(String type) {
 		this.type = type;
 	}
-	public Map<String, String> getParams() {
+	public Map<String, Object> getParams() {
 		return params;
 	}
-	public void setParams(Map<String, String> params) {
+	public void setParams(Map<String, Object> params) {
 		this.params = params;
 	}
 }
