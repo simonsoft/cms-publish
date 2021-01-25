@@ -131,9 +131,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			options.setDocumentExtension("xml");
 		}
 		// Split ditabase into topics, likely faster to process in PE.
-		if (options.getPreserveDitabase() == null) {
-			options.setPreserveDitabase(false);
-		}
+		// The XSL default is now to split, can be overridden here if faster to process in PE (including export, unzip and clean-up).
+		// Split ditabase is likely better from a support-perspective if sending data to PTC.
 	}
 	
 	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
@@ -147,9 +146,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			options.setDocumentExtension("ditamap");
 		}
 		// Split ditabase into topics, required by DITA-OT.
-		if (options.getPreserveDitabase() == null) {
-			options.setPreserveDitabase(false);
-		}
+		// The XSL default is now to split.
+		
 		// Suppress all cms-namespace attributes, not allowed by DITA-OT. Revision metadata must be set in other attributes.
 		if (options.getCmsAttributesSuppressAll() == null) {
 			options.setCmsAttributesSuppressAll(true);
