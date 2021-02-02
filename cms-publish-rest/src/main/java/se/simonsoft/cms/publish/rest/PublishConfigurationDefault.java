@@ -33,6 +33,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
+import javax.inject.Named;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
@@ -65,7 +66,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 
 	@Inject
 	public PublishConfigurationDefault(
-			CmsRepositoryLookup repositoryLookup,
+			@Named("global") CmsRepositoryLookup repositoryLookup,
 			List<PublishConfigFilter> filters,
 			ObjectReader reader
 			) {
