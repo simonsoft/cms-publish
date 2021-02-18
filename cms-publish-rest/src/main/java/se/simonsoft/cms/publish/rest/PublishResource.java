@@ -52,6 +52,7 @@ import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.PublishExecutor;
@@ -71,7 +72,8 @@ public class PublishResource {
 	
 	private final WorkflowExecutionStatus executionsStatus;
 	private final String hostname;
-	private final Map<CmsRepository, CmsItemLookupReporting> lookup;
+	private final Map<CmsRepository, CmsItemLookup> lookupMap;
+	private final Map<CmsRepository, CmsItemLookupReporting> lookupReportingMap;
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
 	private final PublishPackageStatus statusService;
@@ -87,7 +89,8 @@ public class PublishResource {
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
 			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
-			Map<CmsRepository, CmsItemLookupReporting> lookup,
+			Map<CmsRepository, CmsItemLookup> lookup,
+			Map<CmsRepository, CmsItemLookupReporting> lookupReporting,
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
 			PublishPackageStatus statusService,
@@ -101,7 +104,8 @@ public class PublishResource {
 		
 		this.hostname = hostname;
 		this.executionsStatus = executionStatus;
-		this.lookup = lookup;
+		this.lookupMap = lookup;
+		this.lookupReportingMap = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
 		this.statusService = statusService;
@@ -117,7 +121,7 @@ public class PublishResource {
 
 	public PublishRelease getPublishRelease(CmsItemIdArg itemId) throws Exception {
 
-		CmsItemLookupReporting cmsItemLookupReporting = lookup.get(itemId.getRepository());
+		CmsItemLookupReporting cmsItemLookupReporting = lookupReportingMap.get(itemId.getRepository());
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 
@@ -189,7 +193,7 @@ public class PublishResource {
 		
 		final List<CmsItemPublish> items = new ArrayList<CmsItemPublish>();
 		
-		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
+		final CmsItemLookupReporting lookupReporting = lookupReportingMap.get(itemId.getRepository());
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
 		
 		// The Release config will be guiding regardless if the Release is included or not. The Translation config must be equivalent if separately specified.
@@ -293,9 +297,21 @@ public class PublishResource {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
 
+		
+		
 		// The Publish Package requires itemId/masterId with pegrev.
 		// This service will get relatively high load so it is better to avoid an additional indexing request, i.e. require pegrev.
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		
+		// Avoid displaying publish status for a previous revision of the item, refuse if non-latest revision requested.
+		CmsItemLookup itemLookup = this.lookupMap.get(itemId.getRepository());
+		CmsItem itemHead = itemLookup.getItem(itemId.withPegRev(null));
+		if (itemHead.getRevisionChanged().getNumber() != itemId.getPegRev().longValue()) {
+			String msg = MessageFormatter.format("Publish Status requested for non-latest revision of Release: {}", itemId).getMessage();
+			logger.warn(msg);
+			throw new IllegalArgumentException(msg);
+		}
+		
 		return statusService.getStatus(publishPackage);
 	}
 	
@@ -428,7 +444,7 @@ public class PublishResource {
 	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, PublishConfig publishConfig) {
-		final CmsItemLookupReporting lookupReporting = lookup.get(itemId.getRepository());
+		final CmsItemLookupReporting lookupReporting = lookupReportingMap.get(itemId.getRepository());
 		final TranslationTracking translationTracking = trackingMap.get(itemId.getRepository());
 		final List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
 

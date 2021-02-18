@@ -15,16 +15,13 @@
  */
 package se.simonsoft.cms.publish.rest;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.reporting.response.CmsItemRepositem;
-
-import java.util.Map;
-import java.util.Set;
 
 public class PublishRelease {
 
