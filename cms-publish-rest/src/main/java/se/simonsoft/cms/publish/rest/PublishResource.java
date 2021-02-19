@@ -296,7 +296,6 @@ public class PublishResource {
 		if (profiling != null && profiling.length > 1) {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
-
 		
 		
 		// The Publish Package requires itemId/masterId with pegrev.
@@ -307,7 +306,7 @@ public class PublishResource {
 		CmsItemLookup itemLookup = this.lookupMap.get(itemId.getRepository());
 		CmsItem itemHead = itemLookup.getItem(itemId.withPegRev(null));
 		if (itemHead.getRevisionChanged().getNumber() != itemId.getPegRev().longValue()) {
-			String msg = MessageFormatter.format("Publish Status requested for non-latest revision of Release: {}", itemId).getMessage();
+			String msg = MessageFormatter.format("Publish status requested for non-latest revision of Release document, try reloading the page. The latest revision is {}.", itemHead.getRevisionChanged().getNumber()).getMessage();
 			logger.warn(msg);
 			throw new IllegalArgumentException(msg);
 		}
