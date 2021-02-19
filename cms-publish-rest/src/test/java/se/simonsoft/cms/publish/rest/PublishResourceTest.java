@@ -87,7 +87,7 @@ public class PublishResourceTest {
 
 		when(htmlHelperMock.getHeadTags(any(PageInfo.class))).thenReturn("");
 
-		when(lookupMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
+		when(lookupReportingMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
