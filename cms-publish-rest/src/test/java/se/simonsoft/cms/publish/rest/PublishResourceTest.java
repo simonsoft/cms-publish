@@ -41,6 +41,7 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.PublishExecutor;
@@ -58,7 +59,8 @@ import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 public class PublishResourceTest {
 	
-	@Mock Map<CmsRepository, CmsItemLookupReporting> lookupMapMock;
+	@Mock Map<CmsRepository, CmsItemLookup> lookupMapMock;
+	@Mock Map<CmsRepository, CmsItemLookupReporting> lookupReportingMapMock;
 	@Mock PublishConfigurationDefault publishConfigurationMock;
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
@@ -151,6 +153,7 @@ public class PublishResourceTest {
 		publishResource = new PublishResource("localhost",
 				executionStatusMock,
 				lookupMapMock,
+				lookupReportingMapMock,
 				publishConfigurationMock,
 				packageZipMock,
 				packageStatusMock,
