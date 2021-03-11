@@ -57,7 +57,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 
 		final PublishJobPreProcess preprocess = options.getPreprocess();
-		if (options.getDelivery() == null) {
+		if (preprocess == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobPreProcess object.");
 		}
 
@@ -78,8 +78,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		return null;
 	}
 
-	
-	void doWebappExport(CmsItemId itemId, PublishJobOptions options) {
+	// Test coverage: public and returning CmsExportWriter enables integration testing.
+	public CmsExportWriter doWebappExport(CmsItemId itemId, PublishJobOptions options) {
 		final PublishJobPreProcess preprocess = options.getPreprocess();
 		final PublishJobStorage storage = options.getStorage();
 
@@ -119,6 +119,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		logger.debug("Writer is prepared. Writing job to S3.");
 		exportWriter.write();
 		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
+		return exportWriter;
 	}
 
 	private void setExportOptionsDefaultAbxpe(ReleaseExportOptions options) {
