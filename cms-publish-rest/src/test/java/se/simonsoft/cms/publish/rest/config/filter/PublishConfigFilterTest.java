@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 public class PublishConfigFilterTest {
 	
-	private final ObjectReader reader = new ObjectMapper().reader(PublishConfig.class);
+	private final ObjectReader reader = new ObjectMapper().readerFor(PublishConfig.class);
 	
 	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";
 	private final String pathConfigStatus = "se/simonsoft/cms/publish/rest/config/filter/publish-config-status.json";

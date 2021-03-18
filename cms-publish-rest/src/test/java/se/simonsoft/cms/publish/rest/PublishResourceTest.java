@@ -79,6 +79,7 @@ public class PublishResourceTest {
 	private final RepoRevision revision = new RepoRevision(203, new Date());
 	private final CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
 
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
 
 	@Before
@@ -151,7 +152,6 @@ public class PublishResourceTest {
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 
 		publishResource = new PublishResource("localhost",
-				executionStatusMock,
 				lookupMapMock,
 				lookupReportingMapMock,
 				publishConfigurationMock,

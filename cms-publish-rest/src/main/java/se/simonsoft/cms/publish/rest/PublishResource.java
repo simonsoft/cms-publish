@@ -55,7 +55,6 @@ import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecution;
-import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
@@ -71,13 +70,13 @@ import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 @Path("/publish4")
 public class PublishResource {
 	
-	private final WorkflowExecutionStatus executionsStatus;
 	private final String hostname;
 	private final Map<CmsRepository, CmsItemLookup> lookupMap;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookupReportingMap;
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
 	private final PublishPackageStatus statusService;
+	@SuppressWarnings("unused")
 	private final ReposHtmlHelper htmlHelper;
 	private final Map<CmsRepository, TranslationTracking> trackingMap;
 	@SuppressWarnings("unused")
@@ -85,11 +84,11 @@ public class PublishResource {
 	private final PublishJobFactory jobFactory;
 	private final PublishExecutor publishExecutor;
 
+	@SuppressWarnings("unused")
 	private VelocityEngine templateEngine;
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
-			@Named("config:se.simonsoft.cms.aws.workflow.publish.executions") WorkflowExecutionStatus executionStatus,
 			Map<CmsRepository, CmsItemLookup> lookup,
 			Map<CmsRepository, CmsItemLookupReporting> lookupReporting,
 			PublishConfigurationDefault publishConfiguration,
@@ -104,7 +103,6 @@ public class PublishResource {
 			) {
 		
 		this.hostname = hostname;
-		this.executionsStatus = executionStatus;
 		this.lookupMap = lookup;
 		this.lookupReportingMap = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
@@ -430,34 +428,6 @@ public class PublishResource {
 		return profilingSet;
 	}
 
-
-	private Map<String, Set<String>> getExecutionConfigs(Set<WorkflowExecution> executions) {
-		// Key: Execution status, Value set<configNames>
-		Map<String, Set<String>> configStatuses = new HashMap<String, Set<String>>();
-
-		for (WorkflowExecution we: executions) {
-			PublishJob input = (PublishJob) we.getInput();
-			Set<String> set = configStatuses.get(we.getStatus());
-			if (set == null) {
-				set = new HashSet<String>();
-			}
-			set.add(input.getConfigname());
-			configStatuses.put(we.getStatus(), set);
-		}
-
-		return configStatuses;
-	}
-
-	private Set<WorkflowExecution> getExecutionStatusForTranslations(CmsItemId release) {
-
-		List<CmsItem> translationItems = getTranslationItems(release, null);
-		Set<WorkflowExecution> executions = new HashSet<WorkflowExecution>();
-		for (CmsItem i: translationItems) {
-			Set<WorkflowExecution> workflowExecutions = executionsStatus.getWorkflowExecutions(i.getId(), false);
-			executions.addAll(workflowExecutions);
-		}
-		return executions;
-	}
 
 	private List<CmsItem> getTranslationItems(CmsItemId itemId, PublishConfig publishConfig) {
 		final CmsItemLookupReporting lookupReporting = lookupReportingMap.get(itemId.getRepository());

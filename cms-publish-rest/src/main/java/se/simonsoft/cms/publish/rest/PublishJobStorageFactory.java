@@ -25,7 +25,6 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ProfilingNaming;
-import se.simonsoft.cms.release.ProfilingRecipe;
 
 public class PublishJobStorageFactory {
 	
