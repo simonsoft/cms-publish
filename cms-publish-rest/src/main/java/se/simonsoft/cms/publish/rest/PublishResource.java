@@ -36,6 +36,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -255,10 +256,19 @@ public class PublishResource {
 	}
 	
 	
+	/**
+	 * @param itemId
+	 * @param includeRelease
+	 * @param includeTranslations
+	 * @param profiling
+	 * @param publication
+	 * @return Set<String> containing started execution IDs
+	 * @throws Exception
+	 */
 	@POST
 	@Path("release/start")
 	@Produces({MediaType.APPLICATION_JSON})
-	public Set<String> doStart(@FormParam("item") CmsItemIdArg itemId,
+	public Response doStart(@FormParam("item") CmsItemIdArg itemId,
 			@QueryParam("includerelease") boolean includeRelease,
 			@QueryParam("includetranslations") boolean includeTranslations,
 			@QueryParam("profiling") String[] profiling,
@@ -277,7 +287,14 @@ public class PublishResource {
 		jobs = statusService.getJobsStartAllowed(publishPackage, jobs);
 		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
 		Set<String> result = publishExecutor.startPublishJobs(jobs);
-		return result;
+		
+		// Requiring GenericEntity for Iterable<?>.
+		GenericEntity<Iterable<String>> ge = new GenericEntity<Iterable<String>>(result) {};
+		logger.debug("Publish start returning GenericEntity type: {}", ge.getType());
+		Response response = Response.ok(ge)
+				.header("Vary", "Accept")
+				.build();
+		return response;
 	}
 	
 	
