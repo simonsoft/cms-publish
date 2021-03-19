@@ -113,6 +113,12 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 
 
 	@Override
+	@JsonIgnore // Suppress description from PublishJob JSON, not needed.
+	public String getDescription() {
+		return null;
+	}
+
+	@Override
 	@JsonIgnore
 	public CmsItemId getItemId() {
 		return new CmsItemIdArg(this.itemid);

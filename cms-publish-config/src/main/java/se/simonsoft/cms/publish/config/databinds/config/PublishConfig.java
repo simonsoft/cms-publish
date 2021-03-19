@@ -24,6 +24,7 @@ public class PublishConfig {
 
 	protected boolean active;
 	protected boolean visible;
+	protected String description; // Display in dialog, suppress in PublishJob.
 	protected List<String> statusInclude;
 	protected List<String> elementNameInclude;
 	protected List<String> typeInclude;
@@ -55,6 +56,13 @@ public class PublishConfig {
 	}
 	public void setVisible(boolean visible) {
 		this.visible = visible;
+	}
+	/**
+	 * Description is available on the PublishConfig and suppressed for PublishJob.
+	 * @return description intended for user (null on PublishJob)
+	 */
+	public String getDescription() {
+		return this.description;
 	}
 	public List<String> getStatusInclude() {
 		return statusInclude;
