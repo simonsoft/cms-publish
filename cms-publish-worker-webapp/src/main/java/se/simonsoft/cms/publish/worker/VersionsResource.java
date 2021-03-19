@@ -42,7 +42,7 @@ import se.simonsoft.cms.version.CmsComponents;
 @Path("info/version")
 public class VersionsResource {
 	
-	
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(VersionsResource.class);
 
 	@GET

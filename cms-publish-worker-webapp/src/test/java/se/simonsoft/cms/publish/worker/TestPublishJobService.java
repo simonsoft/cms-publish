@@ -48,7 +48,7 @@ public class TestPublishJobService {
 	private static final String aptapplicationPrefix = "bogus";
 	
 	ObjectMapper mapper = new ObjectMapper();
-	ObjectReader reader = mapper.reader(PublishJobOptions.class);
+	ObjectReader reader = mapper.readerFor(PublishJobOptions.class);
 	PublishServicePe pe;
 	
 	@Test
