@@ -1,6 +1,7 @@
 {
   "active": true,
   "visible": true,
+  "description": "Info in dialogs.",
   "statusInclude": ["Review", "Released"],
   "profilingInclude": true,
   "profilingNameInclude": ["*"],

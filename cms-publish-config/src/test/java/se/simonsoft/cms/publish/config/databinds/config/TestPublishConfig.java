@@ -56,6 +56,7 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("Released", jsonPc.getStatusInclude().get(1));
 		assertEquals(true, jsonPc.isActive());
 		assertEquals(true, jsonPc.isVisible());
+		assertEquals("Info in dialogs.", jsonPc.getDescription());
 		assertEquals("abxpe", jsonPc.getOptions().getType());
 		assertEquals("pdf", jsonPc.getOptions().getFormat());
 		assertEquals("file.css", jsonPc.getOptions().getParams().get("stylesheet"));
@@ -104,6 +105,7 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("Released", job.getStatusInclude().get(1));
 		assertEquals(true, job.isActive());
 		assertEquals(true, job.isVisible());
+		assertNull(job.getDescription());
 		assertEquals("abxpe", job.getOptions().getType());
 		assertEquals("pdf", job.getOptions().getFormat());
 		assertEquals("file.css", job.getOptions().getParams().get("stylesheet"));
