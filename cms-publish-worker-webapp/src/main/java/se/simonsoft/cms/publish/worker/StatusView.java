@@ -16,7 +16,6 @@
 package se.simonsoft.cms.publish.worker;
 
 import java.io.StringWriter;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -37,22 +36,19 @@ import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEv
 @Path("status")
 public class StatusView {
 	
-	private WorkerStatusReport statusReport;
+	private final WorkerStatusReport statusReport;
+	private final VelocityEngine engine;
 	
 	@Inject
-	public void getWorkerStatusReport(WorkerStatusReport statusReport) {
+	public StatusView(WorkerStatusReport statusReport) {
 		this.statusReport = statusReport;
+		this.engine = getVelocityEngine();
 	}
 	
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public String getStatus() throws Exception {
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("runtime.references.strict", "true");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
+		
 		
 		List<WorkerEvent> workerEvents = statusReport.getWorkerEvents();
 		WorkerEvent workerLoop = statusReport.getLastWorkerLoop();
@@ -66,5 +62,16 @@ public class StatusView {
 		StringWriter wr = new StringWriter();
 		template.merge(context, wr);
 		return wr.toString();
+	}
+	
+	
+	private VelocityEngine getVelocityEngine() {
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("runtime.references.strict", "true");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
+		return engine;
 	}
 }
