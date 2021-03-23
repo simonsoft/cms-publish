@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>se.simonsoft</groupId>
 		<artifactId>cms-maven-parent</artifactId>
-		<version>8.0.0</version>
+		<version>8.0.2</version>
 		<relativePath />
 	</parent>
 
@@ -117,25 +117,21 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
-			<version>${aws-java-sdk2-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>apache-client</artifactId>
-			<version>${aws-java-sdk2-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>sfn</artifactId>
-			<version>${aws-java-sdk2-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>sts</artifactId>
-			<version>${aws-java-sdk2-version}</version>
 		</dependency>
 
 		<dependency>
