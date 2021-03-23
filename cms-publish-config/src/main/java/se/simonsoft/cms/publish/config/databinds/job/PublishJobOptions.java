@@ -18,12 +18,13 @@ package se.simonsoft.cms.publish.config.databinds.job;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PublishJobOptions extends PublishConfigOptions {
 	private String pathname;
 	private String source;
-	private PublishJobProfiling profiling;
+	private PublishProfilingRecipe profiling;
 	private PublishJobManifest manifest;
 	private PublishJobStorage storage;
 	private PublishJobPreProcess preprocess;
@@ -69,10 +70,10 @@ public class PublishJobOptions extends PublishConfigOptions {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	public PublishJobProfiling getProfiling() {
+	public PublishProfilingRecipe getProfiling() {
 		return profiling;
 	}
-	public void setProfiling(PublishJobProfiling profiling) {
+	public void setProfiling(PublishProfilingRecipe profiling) {
 		this.profiling = profiling;
 	}
 	public PublishJobManifest getManifest() {

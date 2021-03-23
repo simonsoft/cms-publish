@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.item.CmsProfilingRecipe;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 
 /** Contains the name and logical expression for a single profiling setup. 
  * Corresponds to one profiles element in an XML document.
@@ -137,14 +136,6 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
    		this.attributes.put(name, value);
     }
 	
-	@JsonIgnore
-	public PublishJobProfiling getPublishJobProfiling() {
-		PublishJobProfiling result = new PublishJobProfiling();
-		result.setName(getName());
-		// The logicalexpr field in a PublishJob contains the decoded logical expression (encoded when stored as property in CMS).
-		result.setLogicalexpr(getLogicalExprDecoded());
-		return result;
-	}
 	
 	/**
 	 * Validate that the filter is not empty.

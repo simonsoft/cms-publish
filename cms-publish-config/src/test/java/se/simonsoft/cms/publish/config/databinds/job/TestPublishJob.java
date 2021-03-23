@@ -34,8 +34,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobPostProcess;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 
 public class TestPublishJob {
 	private static ObjectReader reader;
@@ -83,9 +83,9 @@ public class TestPublishJob {
 		assertEquals("great", params.get("whatever"));
 
 		//Asserts for PublishJobProfiling
-		PublishJobProfiling profiling = jsonPj.getOptions().getProfiling();
+		PublishProfilingRecipe profiling = jsonPj.getOptions().getProfiling();
 		assertEquals("profilingName", profiling.getName());
-		assertEquals("logical.expr", profiling.getLogicalexpr());
+		assertEquals("logical.expr", profiling.getLogicalExpr());
 
 		//Asserts for PublishJobStorage
 		PublishJobStorage storage = jsonPj.getOptions().getStorage();

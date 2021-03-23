@@ -50,8 +50,8 @@ import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.worker.startup.Environment;
@@ -179,13 +179,14 @@ public class PublishJobService {
 		request.addParam("type", options.getFormat());
 		request.addParam("file-type", "xml");
 		
-		PublishJobProfiling profiling = options.getProfiling();
+		PublishProfilingRecipe profiling = options.getProfiling();
 		if (profiling != null) {
-			if (profiling.getLogicalexpr() == null || profiling.getLogicalexpr().trim().isEmpty()) {
+			String profileExpr = profiling.getLogicalExprDecoded();
+			if (profileExpr == null || profileExpr.trim().isEmpty()) {
 				throw new IllegalArgumentException("Profiling logicalexpr must not be empty: " + profiling.getName());
 			}
-			logger.debug("Profiling expr: {}", profiling.getLogicalexpr());
-			request.addParam("profile", "logicalexpression=".concat(profiling.getLogicalexpr()));
+			logger.debug("Profiling expr: {}", profileExpr);
+			request.addParam("profile", "logicalexpression=".concat(profileExpr));
 		}
 
 		if ( options.getParams() != null ) {

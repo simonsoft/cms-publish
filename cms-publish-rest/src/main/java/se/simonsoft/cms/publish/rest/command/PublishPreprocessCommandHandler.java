@@ -104,7 +104,13 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			setExportOptionsDefaultAbxpe(exportOptions);
 		} else if ("webapp-export-ditaot".equals(type)) {
 			setExportOptionsDefaultDitaot(exportOptions);
-		} 
+		}
+		
+		// Support profiling
+		if (exportOptions.getProfilingEnable() && options.getProfiling() != null) {
+			options.getProfiling().validateFilter(); // Ensure that filters have not been lost in serialization.
+			exportOptions.setProfile(options.getProfiling());
+		}
 		
 		ReleaseExportService exportService = this.exportServices.get(itemId.getRepository());
 
@@ -134,6 +140,9 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		// Split ditabase into topics, likely faster to process in PE.
 		// The XSL default is now to split, can be overridden here if faster to process in PE (including export, unzip and clean-up).
 		// Split ditabase is likely better from a support-perspective if sending data to PTC.
+		
+		// Profiling is enabled by default because it is often more efficient (excludes filtered graphics).
+		// Can disable profiling with "ProfilingEnable": false in order to filter on PE (as with adapter).
 	}
 	
 	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
