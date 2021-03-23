@@ -88,7 +88,7 @@ public class PublishJobFactory {
 			pj.getOptions().setSource(item.getId().getLogicalId());			
 		}
 		if (profiling != null) {
-			pj.getOptions().setProfiling(profiling.getPublishJobProfiling());
+			pj.getOptions().setProfiling(profiling);
 		}
 		
 		PublishConfigStorage configStorage = pj.getOptions().getStorage();

@@ -60,8 +60,8 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobProfiling;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.rest.PublishConfigurationDefault;
 import se.simonsoft.cms.publish.rest.PublishExecutorDefault;
 import se.simonsoft.cms.publish.rest.PublishJobFactory;
@@ -314,7 +314,7 @@ public class PublishItemChangedEventListenerTest {
 		PublishJob publishJob = argCaptor.getValue();
 
 		// Profiling
-		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		PublishProfilingRecipe profiling = publishJob.getOptions().getProfiling();
 		assertNull(profiling); // No profilingInclude on config means publish the full document.	
 	}
 
@@ -361,10 +361,11 @@ public class PublishItemChangedEventListenerTest {
 		PublishJob publishJob = jobs.get(0);
 
 		// Profiling
-		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		PublishProfilingRecipe profiling = publishJob.getOptions().getProfiling();
 		assertNotNull(profiling);
 		assertEquals("osx", profiling.getName());
-		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("%20", profiling.getLogicalExpr());
+		assertEquals(" ", profiling.getLogicalExprDecoded());
 		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
 		
 		//Storage
@@ -419,10 +420,11 @@ public class PublishItemChangedEventListenerTest {
 		PublishJob publishJob = jobs.get(0);
 
 		// Profiling
-		PublishJobProfiling profiling = publishJob.getOptions().getProfiling();
+		PublishProfilingRecipe profiling = publishJob.getOptions().getProfiling();
 		assertNotNull(profiling);
 		assertEquals("osx", profiling.getName());
-		assertEquals(" ", profiling.getLogicalexpr());
+		assertEquals("%20", profiling.getLogicalExpr());
+		assertEquals(" ", profiling.getLogicalExprDecoded());
 		assertEquals("DOC_900276_osx.pdf", publishJob.getOptions().getPathname());
 		
 		//Storage
