@@ -53,6 +53,8 @@ public class PublishJobManifestBuilder {
 		if (manifest.getType() == null) {
 			manifest.setType(DEFAULT_TYPE);
 		}
+		// #1344 Keep the requirement to execute webapp manifest in order to get info in JSON.
+		// #1344 TODO: Implement out-of-order protection in webapp manifest (and webhook) handlers.
 		
 		if ("none".equals(manifest.getType())) {
 			manifest.setPathext(null);
