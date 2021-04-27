@@ -35,7 +35,8 @@
                 "versionrelease": "B",
                 "versioniteration": "0000000145",
                 "status": "Released",
-                "lang": "sv-SE"
+                "lang": "sv-SE",
+                "langrfc": "sv-SE"
             },
             "custom": {
                 "type": "OPERATOR",

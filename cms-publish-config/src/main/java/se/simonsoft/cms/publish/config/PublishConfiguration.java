@@ -53,4 +53,12 @@ public interface PublishConfiguration {
 	 * @return profiling recipes defined on the item and intended for publish
 	 */
 	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish);
+	
+	
+	/**
+	 * @param itemid
+	 * @return TranslationLocalesMapping for RFC locale / lang labels
+	 */
+	// TODO: consider implementing CmsLabel and CmsLabelMapping interface / abstract class in cms-item.
+	public Object getTranslationLocalesMapping(CmsItemId itemid);
 }

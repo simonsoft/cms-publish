@@ -43,11 +43,13 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishPackageZipBuilder {
 	
 	private final CmsExportProvider exportProvider;
 	private final PublishJobFactory jobFactory;
+	private final PublishConfigurationDefault publishConfiguration;
 	
 	private final List<String> zipFolderDisabledFormats;
 
@@ -56,10 +58,12 @@ public class PublishPackageZipBuilder {
 	@Inject
 	public PublishPackageZipBuilder(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider,
-			PublishJobFactory jobFactory) {
+			PublishJobFactory jobFactory,
+			PublishConfigurationDefault publishConfiguration) {
 		
 		this.exportProvider = exportProvider;
 		this.jobFactory = jobFactory;
+		this.publishConfiguration = publishConfiguration;
 		
 		// TODO: Consider supporting deduplication of graphics and the ability to avoid ZIP folder for some formats, e.g. HTML, RTF.
 		String formats = "pdf|postscript|epub|htmlhelp"; // TODO: Enable inject of config. 
@@ -77,13 +81,14 @@ public class PublishPackageZipBuilder {
 		
 		logger.debug("Creating PublishExportJobs from: {} items", publishPackage.getPublishedItems().size());
 		for (CmsItem item: publishPackage.getPublishedItems()) {
+			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(item.getId());
 			if (publishPackage.getProfilingSet() == null) {
 				// No profiling, one publication per item.
-				downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), null));
+				downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), null, localesRfc));
 			} else {
 				// Profiling, zero or more publications per item.
 				for (PublishProfilingRecipe profilingRecipe: publishPackage.getProfilingSet()) {
-					downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), profilingRecipe));
+					downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), profilingRecipe, localesRfc));
 				}
 			}
 		}
@@ -169,9 +174,9 @@ public class PublishPackageZipBuilder {
 		}
 	}
 	
-	private PublishJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling) {
+	private PublishJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
-		PublishJob pj = this.jobFactory.getPublishJob(cmsItemPublish, config, configName, profiling);
+		PublishJob pj = this.jobFactory.getPublishJob(cmsItemPublish, config, configName, profiling, localesRfc);
 		return pj;
 	}
 	

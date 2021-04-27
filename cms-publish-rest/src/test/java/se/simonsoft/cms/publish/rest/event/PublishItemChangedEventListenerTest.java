@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.inject.Provider;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -71,22 +73,24 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterProfiling;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishItemChangedEventListenerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
+	
 	//Declaring all mocked objects. @Before will init them as clean mocks before each test and each individual test has to specify the mocks own behaviors. 
 	@Mock CmsResourceContext mockContext;
 	@Mock CmsItem mockItem;
 	@Mock CmsRepositoryLookup mockLookup;
 	@Mock Iterator<CmsConfigOption> mockOptionIterator;
-	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
+	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec;
 	
 	private final String cloudId = "demo1";
 	private final String bucketName = "cms-automation";
 	private final PublishJobStorageFactory storageFactory = new PublishJobStorageFactory(cloudId, bucketName);
 	private final PublishJobFactory jobFactory = new PublishJobFactory(cloudId, storageFactory);
-	
+			
 	@SuppressWarnings("unused")
 	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";
 	private final String pathConfigStatus = "se/simonsoft/cms/publish/rest/config/filter/publish-config-status.json";
@@ -128,6 +132,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
@@ -221,6 +226,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
@@ -508,6 +514,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
@@ -613,6 +620,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, false); //First time answer true, second time answer false.
 		
 		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
@@ -726,6 +734,7 @@ public class PublishItemChangedEventListenerTest {
 
 		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
 
 	}

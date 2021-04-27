@@ -30,10 +30,12 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishJobManifestBuilder {
 
 	private final PublishConfigTemplateString templateEvaluator;
+	private final TranslationLocalesMapping localesRfc;
 	
 	private static final String DEFAULT_TYPE = "none";
 	private static final String DEFAULT_PATHEXT = "json";
@@ -41,8 +43,9 @@ public class PublishJobManifestBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobManifestBuilder.class);
 	
 	
-	public PublishJobManifestBuilder(PublishConfigTemplateString templateEvaluator) {
+	public PublishJobManifestBuilder(PublishConfigTemplateString templateEvaluator, TranslationLocalesMapping localesRfc) {
 		this.templateEvaluator = templateEvaluator;
+		this.localesRfc = localesRfc;
 	}
 
 	
@@ -118,14 +121,12 @@ public class PublishJobManifestBuilder {
 		
 		result.put("status", item.getStatus());
 		if (item.isRelease()) {
-			String releaseLocale = item.getReleaseLocale(); // Available on Release since CMS 4.3 only.
-			if (releaseLocale == null) {
-				logger.warn("Fallback to abx:lang property for item: {}", item.getId());
-				releaseLocale = item.getProperties().getString("abx:lang");
-			}
-			result.put("lang", releaseLocale);
+			// Since CMS 5.0 the fallback to property abx:lang is implemented in CmsItemPublish.
+			result.put("lang", item.getReleaseLocale()); // Available on Release since CMS 4.3 only.
+			result.put("langrfc", localesRfc.getLocaleExternal(item.getReleaseLocale()).getLabel());
 		} else if (item.isTranslation()) {
 			result.put("lang", item.getTranslationLocale());
+			result.put("langrfc", localesRfc.getLocaleExternal(item.getTranslationLocale()).getLabel());
 		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
 		
 		return result;
@@ -142,6 +143,7 @@ public class PublishJobManifestBuilder {
 		result.put("docno", docno);
 		result.put("versionrelease", item.getReleaseLabel());
 		result.put("lang", item.getReleaseLocale()); // Available on Translations since CMS 3.0.2
+		result.put("langrfc", localesRfc.getLocaleExternal(item.getReleaseLocale()).getLabel());
 		
 		return result;
 	}

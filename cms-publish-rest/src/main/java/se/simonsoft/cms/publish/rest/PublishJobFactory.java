@@ -33,6 +33,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishJobFactory {
 
@@ -56,23 +57,23 @@ public class PublishJobFactory {
 	
 	
 	
-	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, PublishProfilingSet profilingSet) {
+	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, PublishProfilingSet profilingSet, TranslationLocalesMapping localesRfc) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 				
 		for (PublishProfilingRecipe profilesRecipe: profilingSet) {
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.
 			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc));
 			}
 		}
 		return profiledJobs;
 	}
 	
 
-	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling);
-		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
+	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
+		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
@@ -124,7 +125,7 @@ public class PublishJobFactory {
 	
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		// Important if allowing evaluation of params in the future.
@@ -137,6 +138,8 @@ public class PublishJobFactory {
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
 		tmplStr.withEntry("profiling", profiling);
+		// Add access to the Locales mapping instance.
+		tmplStr.withEntry("localesRfc", localesRfc);
 		// Add storage object to allow configuration of parameters with S3 key etc.
 		//tmplStr.withEntry("storage", storage);
 		return tmplStr;
