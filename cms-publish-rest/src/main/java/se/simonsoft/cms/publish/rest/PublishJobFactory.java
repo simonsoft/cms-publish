@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +42,6 @@ public class PublishJobFactory {
 	private final String type = "publish-job";
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
-	private final Provider<TranslationLocalesMapping> localesMappingProvider;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobFactory.class);
@@ -51,32 +49,29 @@ public class PublishJobFactory {
 	@Inject
 	public PublishJobFactory(
 			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-			PublishJobStorageFactory storageFactory,
-			Provider<TranslationLocalesMapping> localesMappingProvider) {
+			PublishJobStorageFactory storageFactory) {
 		
 		this.cloudId = cloudId;
 		this.storageFactory = storageFactory;
-		this.localesMappingProvider = localesMappingProvider;
 	}
 	
 	
 	
-	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, PublishProfilingSet profilingSet) {
+	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, PublishProfilingSet profilingSet, TranslationLocalesMapping localesRfc) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 				
 		for (PublishProfilingRecipe profilesRecipe: profilingSet) {
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.
 			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe));
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc));
 			}
 		}
 		return profiledJobs;
 	}
 	
 
-	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		TranslationLocalesMapping localesRfc = localesMappingProvider.get();
+	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		

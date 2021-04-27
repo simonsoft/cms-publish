@@ -50,6 +50,8 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterVisible;
 import se.simonsoft.cms.release.ReleaseProperties;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
+import se.simonsoft.cms.release.translation.TranslationLocalesMappingProvider;
 
 public class PublishConfigurationDefault implements PublishConfiguration {
 	
@@ -127,6 +129,12 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
 		}
+	}
+	
+	@Override
+	public TranslationLocalesMapping getTranslationLocalesMapping(CmsItemId itemId) {
+		CmsResourceContext context = getConfigurationParentFolder(itemId);
+		return TranslationLocalesMappingProvider.getTranslationLocalesMapping(itemId.getRepository(), context);
 	}
 	
 	

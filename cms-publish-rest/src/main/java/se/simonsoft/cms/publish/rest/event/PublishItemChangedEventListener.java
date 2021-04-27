@@ -39,6 +39,7 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.publish.rest.PublishJobFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishItemChangedEventListener implements ItemChangedEventListener {
 
@@ -85,7 +86,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		// Configs filtered for the item. Starting only Active configs based on event.
 		Map<String, PublishConfig> publishConfigs = this.publishConfiguration.getConfigurationActive(itemPublish);
-		
+		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(item.getId());
 		
 		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
 		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {
@@ -101,10 +102,10 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 				// One or many jobs with profiling.
 				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
 				PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
-				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet));
+				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null);
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc);
 				jobs.add(pj);
 			}
 		}

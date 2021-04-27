@@ -63,6 +63,7 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 import se.simonsoft.cms.reporting.response.CmsItemRepositem;
@@ -473,6 +474,7 @@ public class PublishResource {
 			CmsItemPublish itemPublish = (CmsItemPublish) item;
 			String configName = publishPackage.getPublication();
 			PublishConfig config = publishPackage.getPublishConfig();
+			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(item.getId());
 			
 			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
 			// Copied from PublishItemChangedEventListener, needed here?
@@ -484,10 +486,10 @@ public class PublishResource {
 				// One or many jobs with profiling.
 				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
 				PublishProfilingSet profilingSet = this.publishConfiguration.getItemProfilingSet(itemPublish);
-				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet));
+				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null);
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc);
 				jobs.add(pj);
 			}
 		}
