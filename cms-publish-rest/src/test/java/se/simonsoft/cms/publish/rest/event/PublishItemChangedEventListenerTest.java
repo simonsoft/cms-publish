@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.inject.Provider;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -71,21 +73,29 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterProfiling;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishItemChangedEventListenerTest {
 
 	private ObjectMapper mapper = new ObjectMapper();
+	private TranslationLocalesMapping localesRfc = new TranslationLocalesMapping("en-GB | sv-SE", "en-GB | sv-SE");
+	
 	//Declaring all mocked objects. @Before will init them as clean mocks before each test and each individual test has to specify the mocks own behaviors. 
 	@Mock CmsResourceContext mockContext;
 	@Mock CmsItem mockItem;
 	@Mock CmsRepositoryLookup mockLookup;
 	@Mock Iterator<CmsConfigOption> mockOptionIterator;
-	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec; 
+	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec;
 	
 	private final String cloudId = "demo1";
 	private final String bucketName = "cms-automation";
 	private final PublishJobStorageFactory storageFactory = new PublishJobStorageFactory(cloudId, bucketName);
-	private final PublishJobFactory jobFactory = new PublishJobFactory(cloudId, storageFactory);
+	private final PublishJobFactory jobFactory = new PublishJobFactory(cloudId, storageFactory, new Provider<TranslationLocalesMapping>() {
+		@Override
+		public TranslationLocalesMapping get() {
+			return localesRfc;
+		}
+	});
 	
 	@SuppressWarnings("unused")
 	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";

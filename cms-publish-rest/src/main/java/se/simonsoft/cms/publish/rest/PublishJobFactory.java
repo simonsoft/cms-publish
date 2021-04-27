@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishJobFactory {
 
@@ -41,6 +43,7 @@ public class PublishJobFactory {
 	private final String type = "publish-job";
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
+	private final Provider<TranslationLocalesMapping> localesMappingProvider;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobFactory.class);
@@ -48,10 +51,12 @@ public class PublishJobFactory {
 	@Inject
 	public PublishJobFactory(
 			@Named("config:se.simonsoft.cms.cloudid") String cloudId,
-			PublishJobStorageFactory storageFactory) {
+			PublishJobStorageFactory storageFactory,
+			Provider<TranslationLocalesMapping> localesMappingProvider) {
 		
 		this.cloudId = cloudId;
 		this.storageFactory = storageFactory;
+		this.localesMappingProvider = localesMappingProvider;
 	}
 	
 	
@@ -71,8 +76,9 @@ public class PublishJobFactory {
 	
 
 	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling);
-		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator);
+		TranslationLocalesMapping localesRfc = localesMappingProvider.get();
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
+		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
@@ -124,7 +130,7 @@ public class PublishJobFactory {
 	
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling/*, PublishJobStorage storage*/) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		// Important if allowing evaluation of params in the future.
@@ -137,6 +143,8 @@ public class PublishJobFactory {
 		tmplStr.withEntry("item", item);
 		// Add profiling object, can be null;
 		tmplStr.withEntry("profiling", profiling);
+		// Add access to the Locales mapping instance.
+		tmplStr.withEntry("localesRfc", localesRfc);
 		// Add storage object to allow configuration of parameters with S3 key etc.
 		//tmplStr.withEntry("storage", storage);
 		return tmplStr;

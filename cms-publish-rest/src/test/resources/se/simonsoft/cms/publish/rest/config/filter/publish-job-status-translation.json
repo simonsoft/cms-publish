@@ -36,12 +36,14 @@
                 "versionrelease": "B",
                 "versioniteration": "0000000145",
                 "status": "Released",
-                "lang": "en-GB"
+                "lang": "en-GB",
+                "langrfc": "en-GB"
             },
             "master": {
                 "docno": "DOC_900108",
                 "versionrelease": "B",
-                "lang": "sv-SE"
+                "lang": "sv-SE",
+                "langrfc": "sv-SE"
             },
             "custom": {
                 "type": "OPERATOR",
