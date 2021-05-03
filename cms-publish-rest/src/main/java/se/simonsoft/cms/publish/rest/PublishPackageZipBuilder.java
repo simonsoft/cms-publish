@@ -81,7 +81,8 @@ public class PublishPackageZipBuilder {
 		
 		logger.debug("Creating PublishExportJobs from: {} items", publishPackage.getPublishedItems().size());
 		for (CmsItem item: publishPackage.getPublishedItems()) {
-			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(item.getId());
+			CmsItemPublish itemPublish = (CmsItemPublish) item;
+			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 			if (publishPackage.getProfilingSet() == null) {
 				// No profiling, one publication per item.
 				downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), null, localesRfc));

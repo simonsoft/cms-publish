@@ -86,7 +86,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		
 		// Configs filtered for the item. Starting only Active configs based on event.
 		Map<String, PublishConfig> publishConfigs = this.publishConfiguration.getConfigurationActive(itemPublish);
-		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(item.getId());
+		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 		
 		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
 		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {

@@ -60,5 +60,5 @@ public interface PublishConfiguration {
 	 * @return TranslationLocalesMapping for RFC locale / lang labels
 	 */
 	// TODO: consider implementing CmsLabel and CmsLabelMapping interface / abstract class in cms-item.
-	public Object getTranslationLocalesMapping(CmsItemId itemid);
+	public Object getTranslationLocalesMapping(CmsItemPublish item);
 }

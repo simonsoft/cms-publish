@@ -132,9 +132,20 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	}
 	
 	@Override
-	public TranslationLocalesMapping getTranslationLocalesMapping(CmsItemId itemId) {
+	public TranslationLocalesMapping getTranslationLocalesMapping(CmsItemPublish item) {
+		CmsItemId itemId = item.getId();
+		String itemLocale = item.getReleaseLocale(); // Typically called with a Release which enables the fallback.
 		CmsResourceContext context = getConfigurationParentFolder(itemId);
-		return TranslationLocalesMappingProvider.getTranslationLocalesMapping(itemId.getRepository(), context);
+		TranslationLocalesMapping m;
+		try {
+			m = TranslationLocalesMappingProvider.getTranslationLocalesMapping(itemId.getRepository(), context);
+		} catch (IllegalStateException e) {
+			logger.warn("Export Publications requires config TranslationLocales for mapping of RFC locales.");
+			// TranslationLocales config might be missing when only processing Release items. 
+			// Assuming the use of RFC locale for the release, otherwise configure the Release Locale in TranslationLocales*.
+			m = new TranslationLocalesMapping(itemLocale, itemLocale);
+		}
+		return m;
 	}
 	
 	

@@ -474,7 +474,7 @@ public class PublishResource {
 			CmsItemPublish itemPublish = (CmsItemPublish) item;
 			String configName = publishPackage.getPublication();
 			PublishConfig config = publishPackage.getPublishConfig();
-			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(item.getId());
+			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 			
 			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
 			// Copied from PublishItemChangedEventListener, needed here?
