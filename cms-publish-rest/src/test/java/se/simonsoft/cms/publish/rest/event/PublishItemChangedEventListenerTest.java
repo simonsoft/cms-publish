@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.inject.Provider;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -73,7 +71,6 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterProfiling;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterStatus;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterType;
-import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishItemChangedEventListenerTest {
 
