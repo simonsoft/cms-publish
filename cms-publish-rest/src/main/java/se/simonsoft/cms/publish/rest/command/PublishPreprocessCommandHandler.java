@@ -166,10 +166,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	}
 	
 	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
-		// DITA-OT container expects site.ditamap, no risk for collision with topics due to different extensions.
+		// DITA-OT container now expects _document.ditamap (initially site.ditamap).
+		// No risk for collision with topics due to different extensions.
 		// Risk for collision with sub-maps / keydef-maps?
 		if (options.getDocumentNameBase() == null) {
-			options.setDocumentNameBase("site");
+			options.setDocumentNameBase("_document");
 		}
 		// Always use .ditamap, for both book and ditamap. Book needs XSL transform into DITA.
 		if (options.getDocumentExtension() == null) {
