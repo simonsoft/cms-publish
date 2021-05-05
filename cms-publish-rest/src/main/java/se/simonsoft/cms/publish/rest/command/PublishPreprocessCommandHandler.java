@@ -22,6 +22,10 @@ import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
@@ -29,6 +33,7 @@ import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
@@ -40,17 +45,20 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 	private final CmsExportProvider exportProvider;
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
+	private final ObjectWriter writerPublishManifest;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishPreprocessCommandHandler.class);
 
 	@Inject
 	public PublishPreprocessCommandHandler(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider, 
-			Map<CmsRepository, ReleaseExportService> exportServices
+			Map<CmsRepository, ReleaseExportService> exportServices,
+			ObjectWriter objectWriter
 			) {
 
 		this.exportProvider = exportProvider;
 		this.exportServices = exportServices;
+		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
 	}
 
 	@Override
@@ -104,6 +112,18 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			setExportOptionsDefaultAbxpe(exportOptions);
 		} else if ("webapp-export-ditaot".equals(type)) {
 			setExportOptionsDefaultDitaot(exportOptions);
+		}
+		
+		// Manifest available to XSL transforms.
+		if (options.getManifest() != null) {
+			try {
+				exportOptions.setManifest(this.writerPublishManifest.writeValueAsString(options.getManifest()));
+			} catch (JsonProcessingException e) {
+				String msg = MessageFormatter.format("Failed to serialize manifest during export: {}", e.getMessage(), e).getMessage();
+				logger.error(msg);
+				// Consider throwing exception specific to Command Handlers.
+				throw new IllegalArgumentException(msg);
+			}
 		}
 		
 		// Support profiling
