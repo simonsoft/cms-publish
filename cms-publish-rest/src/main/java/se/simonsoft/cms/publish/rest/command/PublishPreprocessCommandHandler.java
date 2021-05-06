@@ -179,6 +179,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		// Split ditabase into topics, required by DITA-OT.
 		// The XSL default is now to split.
 		
+		// Suppress keyref attributes for resolved keywords.
+		if (options.getKeyrefKeywordOutput() == null) {
+			options.setKeyrefKeywordOutput("resolve");
+		}
+		
 		// Suppress all cms-namespace attributes, not allowed by DITA-OT. Revision metadata must be set in other attributes.
 		if (options.getCmsAttributesSuppressAll() == null) {
 			options.setCmsAttributesSuppressAll(true);
