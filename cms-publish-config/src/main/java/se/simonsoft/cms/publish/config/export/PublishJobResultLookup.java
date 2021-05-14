@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.config.export;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.slf4j.Logger;
@@ -31,11 +32,13 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 public class PublishJobResultLookup {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobResultLookup.class);
-	
+
 	private final CmsExportProvider exportProvider;
 
 	private final String extensionPublishResult = "zip";
+
 	
+	@Inject
 	public PublishJobResultLookup(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider
 			) {
