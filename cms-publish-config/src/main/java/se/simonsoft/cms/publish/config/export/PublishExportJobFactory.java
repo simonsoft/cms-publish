@@ -38,12 +38,6 @@ public class PublishExportJobFactory { //extends CmsExportJobSingle implements C
 		return new CmsImportJobSingle(createJobPrefix(storage), getJobName(storage), jobExtension);
 	}
 
-
-	/*
-	public PublishExportJobFactory(PublishJobStorage storage, String jobExtension) {
-		super(createJobPrefix(storage), getJobName(storage), jobExtension);
-	}
-	*/
 	
 	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathconfigname());

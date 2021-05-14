@@ -25,17 +25,14 @@ import org.slf4j.LoggerFactory;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
-import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportItem;
-import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
-import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsExportWriter;
-import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
+import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -45,8 +42,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
-	private final String extensionPublishResult = "zip";
-
+	private final PublishJobResultLookup resultLookup; // TODO: Inject in a future major release.
+	
 
 	@Inject
 	public PublishManifestExportCommandHandler(
@@ -56,6 +53,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		this.exportProvider = exportProvider;
 		this.writerPublishManifest = objectWriter;
+		
+		this.resultLookup = new PublishJobResultLookup(exportProvider);
 	}
 
 	@Override
@@ -71,12 +70,12 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object with 'pathext' field. Indicates missing 'docno...' config.");
 		}
 		
-		if (!isPublishResultExists(itemId, options)) {
+		if (!resultLookup.isPublishResultExists(itemId, options)) {
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
 		}
 		
-		logger.debug("Preparing publishJob manifest for export to S3: {}", manifest); // TODO: Remove?
+		logger.trace("Preparing publishJob manifest for export to S3: {}", manifest);
 
 		CmsExportItem exportItem; 
 		if (manifest.getTemplate() != null) {
@@ -103,29 +102,5 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		return null;
 	}
-	
-	
-	private boolean isPublishResultExists(CmsItemId itemId, PublishJobOptions options) {
-		
-		boolean result = false;
-		
-		CmsImportJob job = PublishExportJobFactory.getImportJobSingle(options.getStorage(), this.extensionPublishResult);
-		// No items, no prepare for CmsImportJob.
-
-		logger.debug("Preparing reader in order to verify that Publish result exists...");
-		CmsExportReader exportReader = this.exportProvider.getReader();
-		try {
-			exportReader.prepare(job);
-			// TODO: Can we get the size to verify that the file is not empty?
-			result = true;
-		} catch (CmsExportAccessDeniedException | CmsExportJobNotFoundException e) {
-			logger.info("Publish result missing: {}", itemId);
-		} catch (Exception e) {
-			logger.warn("Exception when reading Publish bucket: {}", e.getMessage(), e);
-		}
-		
-		return result;
-	}
-
 	
 }
