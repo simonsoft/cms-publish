@@ -15,7 +15,11 @@
  */
 package se.simonsoft.cms.publish.rest.command;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,6 +51,9 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
 	private final ObjectWriter writerPublishManifest;
 
+	// Consider injecting list of potential secondary artifacts.
+	private final Set<String> secondaryExportArtifacts = new HashSet<String>(Arrays.asList("algolia", "graphics"));
+	
 	private static final Logger logger = LoggerFactory.getLogger(PublishPreprocessCommandHandler.class);
 
 	@Inject
@@ -135,19 +142,45 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		ReleaseExportService exportService = this.exportServices.get(itemId.getRepository());
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
-		exportService.exportRelease(itemId, exportOptions, job);
+		HashMap<String, CmsExportJob> secondaryJobs = new HashMap<>();
+		for (String artifact: this.secondaryExportArtifacts) {
+			secondaryJobs.put(artifact, PublishExportJobFactory.getExportJobZip(storage, artifact + ".zip"));
+		}
 		
+		// Export service
+		exportService.exportRelease(itemId, exportOptions, job, secondaryJobs);
+		
+		// Export secondary jobs first, ensures the export is not considered success unless all jobs succeed.
+		// Secondary exports cannot be accessed easily by caller (not part of return value). Intended for automation. 
+		doExportSecondaryJobs(secondaryJobs);
+		
+		// Export primary job.
 		job.prepare();
-
 		logger.debug("Preparing writer for export...");
 		CmsExportWriter exportWriter = this.exportProvider.getWriter();
 		exportWriter.prepare(job);
-		logger.debug("Writer is prepared. Writing job to S3.");
+		logger.debug("Uploading export to S3 at path: {}", job.getJobPath());
 		exportWriter.write();
-		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
+		logger.debug("Uploaded export to S3 at path: {}", job.getJobPath());
 		return exportWriter;
 	}
 
+	
+	private void doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs) {
+		for (String artifact: secondaryJobs.keySet()) {
+			CmsExportJob job = secondaryJobs.get(artifact);
+			if (!job.isEmpty()) {
+				logger.debug("Preparing export of secondary: {}", artifact);
+				job.prepare();
+				CmsExportWriter exportWriter = this.exportProvider.getWriter();
+				exportWriter.prepare(job);
+				exportWriter.write();
+				logger.debug("Exported secondary: {}", artifact);
+			}
+		}
+	}
+
+	
 	private void setExportOptionsDefaultAbxpe(ReleaseExportOptions options) {
 		// Set a name that is unlikely to collide with sections.
 		if (options.getDocumentNameBase() == null) {
@@ -178,6 +211,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		}
 		// Split ditabase into topics, required by DITA-OT.
 		// The XSL default is now to split.
+		
+		// Export graphics to secondary artifact.
+		if (options.getGraphicsSecondary() == null) {
+			options.setGraphicsSecondary(true);
+		}
 		
 		// Suppress keyref attributes for resolved keywords.
 		if (options.getKeyrefKeywordOutput() == null) {
