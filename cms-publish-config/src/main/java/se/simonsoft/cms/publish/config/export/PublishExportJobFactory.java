@@ -39,11 +39,11 @@ public class PublishExportJobFactory { //extends CmsExportJobSingle implements C
 	}
 
 	
-	private static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
+	public static CmsExportPrefix createJobPrefix(PublishJobStorage storage) {
 		return new CmsExportPrefix(storage.getPathconfigname());
 	}
 
-	private static String getJobName(PublishJobStorage storage) {
+	public static String getJobName(PublishJobStorage storage) {
 		//Path dir is preceded by slash, this will cause double slashes in the exportJob. Therefore we will remove it. 
 		String pathdir = storage.getPathdir();
 		

@@ -152,7 +152,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		// Export secondary jobs first, ensures the export is not considered success unless all jobs succeed.
 		// Secondary exports cannot be accessed easily by caller (not part of return value). Intended for automation. 
-		doExportSecondaryJobs(secondaryJobs);
+		doExportSecondaryJobs(secondaryJobs, this.exportProvider);
 		
 		// Export primary job.
 		job.prepare();
@@ -166,13 +166,13 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	}
 
 	
-	private void doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs) {
+	public static void doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs, CmsExportProvider exportProvider) {
 		for (String artifact: secondaryJobs.keySet()) {
 			CmsExportJob job = secondaryJobs.get(artifact);
 			if (!job.isEmpty()) {
 				logger.debug("Preparing export of secondary: {}", artifact);
 				job.prepare();
-				CmsExportWriter exportWriter = this.exportProvider.getWriter();
+				CmsExportWriter exportWriter = exportProvider.getWriter();
 				exportWriter.prepare(job);
 				exportWriter.write();
 				logger.debug("Exported secondary: {}", artifact);
