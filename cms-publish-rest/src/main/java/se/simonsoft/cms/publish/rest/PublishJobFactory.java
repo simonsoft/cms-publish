@@ -104,7 +104,8 @@ public class PublishJobFactory {
 		return profiledJobs;
 	}
 	
-
+	// TODO: Consider API diffentiating btw full PublishJob (start job) and light PublishJob (download/status/...).
+	// Such differentiation might also be confusing.
 	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);

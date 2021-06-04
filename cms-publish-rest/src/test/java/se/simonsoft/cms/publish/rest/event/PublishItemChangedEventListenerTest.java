@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,6 +66,7 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecip
 import se.simonsoft.cms.publish.rest.PublishConfigurationDefault;
 import se.simonsoft.cms.publish.rest.PublishExecutorDefault;
 import se.simonsoft.cms.publish.rest.PublishJobFactory;
+import se.simonsoft.cms.publish.rest.PublishJobManifestBuilder;
 import se.simonsoft.cms.publish.rest.PublishJobStorageFactory;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilter;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
@@ -106,6 +108,7 @@ public class PublishItemChangedEventListenerTest {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
+		PublishJobManifestBuilder.startInstantForTesting = Instant.parse("2020-01-01T22:50:00Z");
 	}
 	
 	@Test

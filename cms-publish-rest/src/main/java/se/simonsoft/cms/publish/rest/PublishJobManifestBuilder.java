@@ -15,6 +15,9 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,8 +40,11 @@ public class PublishJobManifestBuilder {
 	private final PublishConfigTemplateString templateEvaluator;
 	private final TranslationLocalesMapping localesRfc;
 	
-	private static final String DEFAULT_TYPE = "none";
+	// #1469: Default to manifest (full / job-only) in order to capture metrics.
+	private static final String DEFAULT_TYPE = "default";
 	private static final String DEFAULT_PATHEXT = "json";
+	
+	public static Instant startInstantForTesting = null;
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobManifestBuilder.class);
 	
@@ -48,6 +54,12 @@ public class PublishJobManifestBuilder {
 		this.localesRfc = localesRfc;
 	}
 
+	private Instant getStartInstant() {
+		if (startInstantForTesting != null) {
+			return startInstantForTesting;
+		}
+		return Instant.now();
+	}
 	
 	public void build(CmsItemPublish item, PublishJob job) {
 		
@@ -82,14 +94,12 @@ public class PublishJobManifestBuilder {
 			logger.debug("Manifest built with {} Custom and {} Meta keys.", manifest.getCustomTemplates().size(), manifest.getMetaTemplates().size());
 		} else {
 			// Prevent incomplete manifest when docno has not been configured.
-			manifest.setPathext(null);
-			manifest.setJob(null);
-			
+			// #1469: Always generate Job-section in order to capture metrics.
 			manifest.setDocument(null);
 			manifest.setMaster(null);
 			manifest.setCustom(null);
 			manifest.setMeta(null);
-			logger.debug("Manifest suppressed, 'docnoTemplate' is not defined.");
+			logger.debug("Manifest minimal, 'docnoTemplate' is not defined.");
 		}
 	}
 	
@@ -101,6 +111,20 @@ public class PublishJobManifestBuilder {
 		result.put("configname", job.getConfigname());
 		result.put("format", job.getOptions().getFormat());
 		result.put("itemid", job.getItemId().getLogicalId());
+		result.put("start", DateTimeFormatter.ISO_INSTANT.format(getStartInstant().truncatedTo(ChronoUnit.SECONDS)));
+		
+		try {
+			// #1469: Attempt to include topic count.
+			Map<String, Object> meta = item.getMeta();
+			Long topics = (Long) meta.get("count_elements_topic");
+			result.put("topics", topics.toString());
+			// TODO: topics-normalized / topics-metric
+			
+		} catch (Exception e) {
+			logger.info("CmsItemPublish unable to provide metadata for manifest: {}", e.getMessage());
+			logger.trace("CmsItemPublish unable to provide metadata for manifest: {}", e.getMessage(), e);
+		}
+		
 		
 		return result;
 	}
