@@ -18,10 +18,10 @@ package se.simonsoft.cms.publish.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -34,16 +34,12 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
-import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
 public class PublishPackageZipBuilder {
 	
@@ -75,24 +71,11 @@ public class PublishPackageZipBuilder {
 	// Assuming that naming Template applies across all items.
 	public void getZip(PublishPackage publishPackage, OutputStream os) {
 		
-		final List<PublishJob> downloadJobs = new ArrayList<>();
 		final LinkedHashMap<PublishJob, CmsExportReader> readers = new LinkedHashMap<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
 		
 		logger.debug("Creating PublishExportJobs from: {} items", publishPackage.getPublishedItems().size());
-		for (CmsItem item: publishPackage.getPublishedItems()) {
-			CmsItemPublish itemPublish = (CmsItemPublish) item;
-			TranslationLocalesMapping localesRfc = this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
-			if (publishPackage.getProfilingSet() == null) {
-				// No profiling, one publication per item.
-				downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), null, localesRfc));
-			} else {
-				// Profiling, zero or more publications per item.
-				for (PublishProfilingRecipe profilingRecipe: publishPackage.getProfilingSet()) {
-					downloadJobs.add(getPublishDownloadJob(item, publishPackage.getPublishConfig(), publishPackage.getPublication(), profilingRecipe, localesRfc));
-				}
-			}
-		}
+		final Set<PublishJob> downloadJobs = jobFactory.getPublishJobsForPackage(publishPackage, publishConfiguration);
 		logger.debug("PublishExportJobs created.");
 		
 		if (downloadJobs.isEmpty()) {
@@ -174,12 +157,7 @@ public class PublishPackageZipBuilder {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	private PublishJob getPublishDownloadJob(CmsItem item, PublishConfig config, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
-		CmsItemPublish cmsItemPublish = new CmsItemPublish(item);
-		PublishJob pj = this.jobFactory.getPublishJob(cmsItemPublish, config, configName, profiling, localesRfc);
-		return pj;
-	}
+
 	
 	private CmsImportJob getImportJob(PublishJob pj) {
 		return PublishExportJobFactory.getImportJobSingle(pj.getOptions().getStorage(), "zip");

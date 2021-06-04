@@ -16,7 +16,9 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,6 +26,7 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
@@ -31,7 +34,6 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
@@ -56,8 +58,40 @@ public class PublishJobFactory {
 	}
 	
 	
+	public Set<PublishJob> getPublishJobsForPackage(PublishPackage publishPackage, PublishConfigurationDefault publishConfiguration) {
+		
+		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
+		// Single config, looping over items.
+		for (CmsItem item: publishPackage.getPublishedItems()) {
+			CmsItemPublish itemPublish = (CmsItemPublish) item;
+			String configName = publishPackage.getPublication();
+			PublishConfig config = publishPackage.getPublishConfig();
+			TranslationLocalesMapping localesRfc = publishConfiguration.getTranslationLocalesMapping(itemPublish);
+			Set<PublishProfilingRecipe> profilingSet = publishPackage.getProfilingSet();
+			
+			// Verify filtering for condition not handled below: profilingInclude == false && hasProfiles == true
+			// Copied from PublishItemChangedEventListener, needed here?
+			if (itemPublish.hasProfiles() && config.getProfilingInclude() != null && Boolean.FALSE.equals(config.getProfilingInclude())) {
+				throw new IllegalArgumentException("Item should not have profiling, filtering incorrect.");
+			}
+			
+			if (Boolean.TRUE.equals(config.getProfilingInclude())) {
+				// Profiling, zero or more publications per item.
+				// Will return empty List<PublishJob> if item has no profiles or filtered by 'profilingNameInclude'.
+				//PublishProfilingSet profilingSet = publishConfiguration.getItemProfilingSet(itemPublish);
+				// Trusting the PublishPackage profilingSet, this method will filter on ProfilingNameInclude.
+				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
+			} else {
+				// Normal, non-profiling job.
+				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc);
+				jobs.add(pj);
+			}
+		}
+		return jobs;
+	}
 	
-	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, PublishProfilingSet profilingSet, TranslationLocalesMapping localesRfc) {
+	
+	public List<PublishJob> getPublishJobsProfiling(CmsItemPublish itemPublish, PublishConfig config, String configName, Iterable<PublishProfilingRecipe> profilingSet, TranslationLocalesMapping localesRfc) {
 		List<PublishJob> profiledJobs = new ArrayList<PublishJob>();
 				
 		for (PublishProfilingRecipe profilesRecipe: profilingSet) {

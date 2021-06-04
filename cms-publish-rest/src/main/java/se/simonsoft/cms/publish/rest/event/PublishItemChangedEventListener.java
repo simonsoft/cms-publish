@@ -89,6 +89,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 		
 		Set<PublishJob> jobs = new LinkedHashSet<PublishJob>();
+		// Single item, looping over configs.
 		for (Entry<String, PublishConfig> configEntry: publishConfigs.entrySet()) {
 			String configName = configEntry.getKey();
 			PublishConfig config = configEntry.getValue();
