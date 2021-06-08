@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>cms-publish-rest</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 	
 	<name>Simonsoft CMS publish rest</name>
@@ -42,13 +42,13 @@
 		<dependency>
 		    <groupId>se.simonsoft</groupId>
 		    <artifactId>cms-publish-config</artifactId>
-		    <version>1.0.1-SNAPSHOT</version>
+		    <version>1.0.1</version>
 		</dependency>
 		
 		<dependency>
 		    <groupId>se.simonsoft</groupId>
 		    <artifactId>cms-release</artifactId>
-		    <version>3.0.3-SNAPSHOT</version>
+		    <version>3.0.3</version>
 		</dependency>
 		
 		<dependency>
