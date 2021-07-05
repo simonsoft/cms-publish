@@ -143,7 +143,12 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 			logger.warn("Export Publications requires config TranslationLocales for mapping of RFC locales.");
 			// TranslationLocales config might be missing when only processing Release items. 
 			// Assuming the use of RFC locale for the release, otherwise configure the Release Locale in TranslationLocales*.
-			m = new TranslationLocalesMapping(itemLocale, itemLocale);
+			if (itemLocale != null) {
+				m = new TranslationLocalesMapping(itemLocale, itemLocale);
+			} else {
+				// Fallback, should not request mapping for Author Area items.
+				m = new TranslationLocalesMapping("en-US", "en-US"); 
+			}
 		}
 		return m;
 	}

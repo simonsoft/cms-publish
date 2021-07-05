@@ -66,6 +66,7 @@ public class PublishJobFactory {
 			CmsItemPublish itemPublish = (CmsItemPublish) item;
 			String configName = publishPackage.getPublication();
 			PublishConfig config = publishPackage.getPublishConfig();
+			// A PublishPackage is currently not relevant on Author Area, so getReleaseLocale() should work as fallback.
 			TranslationLocalesMapping localesRfc = publishConfiguration.getTranslationLocalesMapping(itemPublish);
 			Set<PublishProfilingRecipe> profilingSet = publishPackage.getProfilingSet();
 			
