@@ -60,10 +60,13 @@ public class PublishPackageStatus {
     }
 
     
-    // Filter the jobs to be started, prevents restarting RUNNING and COMPLETED.
-	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll) {
+    // Filter the jobs to be started, prevents restarting RUNNING and SUCCEEDED.
+	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll, boolean allowSucceeded) {
 
 		List<String> allowed = Arrays.asList("ABORTED", "FAILED", "UNKNOWN", "INACTIVE");
+		if (allowSucceeded) {
+			allowed.add("SUCCEEDED");
+		}
 		Set<PublishJob> jobs = new LinkedHashSet<>(jobsAll);
 
 		// Must avoid starting multiple executions for the same Job.

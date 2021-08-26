@@ -270,9 +270,12 @@ public class PublishResource {
 			@QueryParam("includerelease") boolean includeRelease,
 			@QueryParam("includetranslations") boolean includeTranslations,
 			@QueryParam("profiling") String[] profiling,
-			@QueryParam("publication") final String publication) throws Exception {
+			@QueryParam("publication") final String publication,
+			@QueryParam("advanced") String advanced) throws Exception {
 		
 		logger.debug("Start publication '{}' requested with item: {} and profiles: {}", publication, itemId, Arrays.toString(profiling));
+		logger.debug("Start publication '{}' requested with item: {} and advanced: {}", publication, itemId, advanced);
+		boolean allowStartSucceeded = (advanced != null);
 		itemId.setHostnameOrValidate(this.hostname);
 		
 		if (profiling != null && profiling.length > 1) {
@@ -282,7 +285,7 @@ public class PublishResource {
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		Set<PublishJob> jobs = this.jobFactory.getPublishJobsForPackage(publishPackage, this.publishConfiguration);
 		
-		jobs = statusService.getJobsStartAllowed(publishPackage, jobs);
+		jobs = statusService.getJobsStartAllowed(publishPackage, jobs, allowStartSucceeded);
 		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
 		Set<String> result = publishExecutor.startPublishJobs(jobs);
 		
