@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -63,7 +64,7 @@ public class PublishPackageStatus {
     // Filter the jobs to be started, prevents restarting RUNNING and SUCCEEDED.
 	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll, boolean allowSucceeded) {
 
-		List<String> allowed = Arrays.asList("ABORTED", "FAILED", "UNKNOWN", "INACTIVE");
+		final List<String> allowed = new ArrayList<>(Arrays.asList("ABORTED", "FAILED", "UNKNOWN", "INACTIVE"));
 		if (allowSucceeded) {
 			allowed.add("SUCCEEDED");
 		}

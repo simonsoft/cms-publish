@@ -273,8 +273,8 @@ public class PublishResource {
 			@QueryParam("publication") final String publication,
 			@QueryParam("advanced") String advanced) throws Exception {
 		
-		logger.debug("Start publication '{}' requested with item: {} and profiles: {}", publication, itemId, Arrays.toString(profiling));
-		logger.debug("Start publication '{}' requested with item: {} and advanced: {}", publication, itemId, advanced);
+		logger.debug("Start publication '{}' requested with item: {} and profiles: '{}'", publication, itemId, Arrays.toString(profiling));
+		logger.debug("Start publication '{}' requested with item: {} and advanced: '{}'", publication, itemId, advanced);
 		boolean allowStartSucceeded = (advanced != null);
 		itemId.setHostnameOrValidate(this.hostname);
 		
