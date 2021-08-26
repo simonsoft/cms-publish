@@ -133,18 +133,21 @@ public class PublishPackageStatus {
         logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
         
         // Can there be multiple at this point? Only if manual start has accidentally started another?
+        // - Aborted and then restarted.
+        // - Restarted using the advanced param.
         WorkflowExecution execution = null;
         if (!executions.isEmpty()) {
         	execution = executions.iterator().next();
         }
         if (executions.size() > 1) {
-        	logger.warn("Expected 1 workflow, found {} workflow executions for item: {}", executions.size(), item.getId());
+        	logger.info("Found {} workflow executions (selecting latest started) for item: {}", executions.size(), item.getId());
         	// TODO: Figure out how to handle.
-        	// For now, we prefer "SUCCEEDED" to prevent starting more executions. Likely not ideal if we want to support re-publish of recent publications.
+        	// 5.0.3 and below: For now, we prefer "SUCCEEDED" to prevent starting more executions. Likely not ideal if we want to support re-publish of recent publications.
+        	// Prefer the latest based on start time.
         	Iterator<WorkflowExecution> iterator = executions.iterator();
             while (iterator.hasNext()) {
             	WorkflowExecution executionNext = iterator.next();
-                if (!"SUCCEEDED".equals(execution.getStatus()) && "SUCCEEDED".equals(executionNext.getStatus())) {
+                if (execution.getStartDate() == null || (executionNext.getStartDate() != null && executionNext.getStartDate().isAfter(execution.getStartDate()))) {
                 	execution = executionNext;
                 }
             }
