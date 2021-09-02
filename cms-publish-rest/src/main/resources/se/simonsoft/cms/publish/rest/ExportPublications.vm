@@ -30,6 +30,7 @@ $reposHeadTags
 -->
 <a class="details" href="$item.getId().getUrl()?rweb=details">release details</a>
 <a class="publishstatus" id="publish-status" href="/cms/rest/workflow/publish?repo=$item.getId().getRepository().getName()" target="_blank">publish status</a>
+<a class="advanced" href="?advanced&item=$item.getId()">advanced</a>
 
 </div>
 
