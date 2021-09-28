@@ -200,6 +200,7 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("DOC_$", publishJob.getArea().getDocnoDocumentTemplate().substring(0, 5));
 		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
 		assertEquals("default", manifest.getType());
+		assertEquals("json", manifest.getPathext());
 		assertEquals("DOC_900276", manifest.getDocument().get("docno"));
 		assertEquals("demo1", storage.getPathcloudid());
 	}
@@ -440,6 +441,17 @@ public class PublishItemChangedEventListenerTest {
 		assertEquals("900276_r0000000443_osx", storage.getPathnamebase());
 		assertEquals("cms4", storage.getPathversion());
 		assertEquals("osxonly", storage.getPathconfigname());
+		
+		// Manifest - minimal
+		assertNull("No docno, so minimal manifest with 'job'.", publishJob.getArea().getDocnoDocumentTemplate());
+		PublishJobManifest manifest =  publishJob.getOptions().getManifest();
+		assertEquals("default", manifest.getType());
+		assertEquals("json", manifest.getPathext());
+		assertNull(manifest.getDocument());
+		assertNotNull(manifest.getJob());
+		assertEquals("pdf", manifest.getJob().get("format"));
+		//assertEquals("", manifest.getJob().get("topics")); // No indexing data mocked.
+		assertEquals("demo1", storage.getPathcloudid());
 	}
 	
 	
