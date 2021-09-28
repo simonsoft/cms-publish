@@ -68,6 +68,9 @@ public class PublishJobManifestBuilder {
 		if (manifest.getType() == null) {
 			manifest.setType(DEFAULT_TYPE);
 		}
+		if (manifest.getPathext() == null) {
+			manifest.setPathext(DEFAULT_PATHEXT);
+		}
 		// #1344 Keep the requirement to execute webapp manifest in order to get info in JSON.
 		// #1344 TODO: Implement out-of-order protection in webapp manifest (and webhook) handlers.
 		
@@ -79,9 +82,6 @@ public class PublishJobManifestBuilder {
 			manifest.setCustom(null);
 			manifest.setMeta(null);
 		} else if (hasDocnoTemplate(job)) {
-			if (manifest.getPathext() == null) {
-				manifest.setPathext(DEFAULT_PATHEXT);
-			}
 			manifest.setJob(buildJob(item, job));
 			manifest.setDocument(buildDocument(item, job));
 			if (hasDocnoMasterTemplate(job) && isTranslation(item)) {
@@ -95,6 +95,7 @@ public class PublishJobManifestBuilder {
 		} else {
 			// Prevent incomplete manifest when docno has not been configured.
 			// #1469: Always generate Job-section in order to capture metrics.
+			manifest.setJob(buildJob(item, job));
 			manifest.setDocument(null);
 			manifest.setMaster(null);
 			manifest.setCustom(null);
