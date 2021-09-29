@@ -166,6 +166,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	}
 
 	
+	/** Export secondary artifacts / zip files (graphics, search indexing, ...).
+	 * @param secondaryJobs
+	 * @param exportProvider
+	 */
 	public static void doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs, CmsExportProvider exportProvider) {
 		for (String artifact: secondaryJobs.keySet()) {
 			CmsExportJob job = secondaryJobs.get(artifact);
