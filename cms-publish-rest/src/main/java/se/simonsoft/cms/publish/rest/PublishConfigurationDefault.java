@@ -168,7 +168,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	// When strict=false, configs that pass validation/parsing will be returned instead of exception.
 	private Map<String, PublishConfig> deserializeConfig(CmsResourceContext context, boolean strict) {
-		logger.debug("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
+		logger.trace("Starting deserialization of configs with namespace {}...", PUBLISH_CONFIG_KEY);
 		Map<String, PublishConfig> configs = new TreeMap<>();
 		Iterator<CmsConfigOption> iterator = context.iterator();
 		while (iterator.hasNext()) {
@@ -198,7 +198,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 			}
 		}
 		
-		logger.debug("Context had {} number of valid cmsconfig-publish objects", configs.size());
+		logger.trace("Context had {} valid cmsconfig-publish objects", configs.size());
 		
 		return configs;
 	}
@@ -220,10 +220,10 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 				}
 			}
 			if (filtered.isEmpty()) {
-				logger.debug("Config '{}' was accepted.", config.getKey());
+				logger.trace("Config '{}' was accepted.", config.getKey());
 				filteredConfigs.put(config.getKey(), config.getValue());
 			} else {
-				logger.debug("Config '{}' was filtered: {}", config.getKey(), filtered);
+				logger.trace("Config '{}' was filtered: {}", config.getKey(), filtered);
 			}
 		}
 		return filteredConfigs;
