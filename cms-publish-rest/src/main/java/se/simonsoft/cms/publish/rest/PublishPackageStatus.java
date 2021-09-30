@@ -61,9 +61,19 @@ public class PublishPackageStatus {
     }
 
     
-    // Filter the jobs to be started, prevents restarting RUNNING and SUCCEEDED.
+	/**
+     * Filter the jobs to be started, prevents restarting RUNNING and SUCCEEDED.
+     * 
+     * Note: Important to filter SUCCEEDED by default because inactive config can often have mix of SUCCEEDED and INACTIVE (e.g. recently changed status).
+     * 
+	 * @param publishPackage
+	 * @param jobsAll set of jobs to filter
+	 * @param allowSucceeded advanced mode allowing restart of SUCCEEDED
+	 * @return
+	 */
 	public Set<PublishJob> getJobsStartAllowed(PublishPackage publishPackage, Set<PublishJob> jobsAll, boolean allowSucceeded) {
 
+		// Important to filter SUCCEEDED by default, see Javadoc.
 		final List<String> allowed = new ArrayList<>(Arrays.asList("ABORTED", "FAILED", "UNKNOWN", "INACTIVE"));
 		if (allowSucceeded) {
 			allowed.add("SUCCEEDED");
