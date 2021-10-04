@@ -121,6 +121,7 @@ public class PublishResource {
 	public PublishRelease getPublishRelease(CmsItemIdArg itemId, boolean includeVisibleFalse) throws Exception {
 
 		CmsItemLookupReporting cmsItemLookupReporting = lookupReportingMap.get(itemId.getRepository());
+		// Would be preferable to suppress large meta fields like the Ditamap.
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 
@@ -145,7 +146,7 @@ public class PublishResource {
 			throw new IllegalStateException("No publications are configured.");
 		} else {
 			// TODO: This code makes no sense since refactoring 2020-09-30 (962b60713d8a8db3253a5e4499e0c4cbed344a1c)
-			// Consider how to 
+			// Consider how to improve warning message when none are visible.
 			int visible = 0;
 			for (Entry<String, PublishConfig> config : configuration.entrySet()) {
 				if (config.getValue().isVisible()) {
