@@ -118,7 +118,7 @@ public class PublishResource {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
 
-	public PublishRelease getPublishRelease(CmsItemIdArg itemId) throws Exception {
+	public PublishRelease getPublishRelease(CmsItemIdArg itemId, boolean includeVisibleFalse) throws Exception {
 
 		CmsItemLookupReporting cmsItemLookupReporting = lookupReportingMap.get(itemId.getRepository());
 		CmsItem item = cmsItemLookupReporting.getItem(itemId);
@@ -130,13 +130,22 @@ public class PublishResource {
 			itemProfilings = itemProfilingSet.getMap();
 		}
 
-		// Configs filtered for the Release item. Showing only Visible configs in the UI.
+		// Configs filtered for the Release item. 
 		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationVisible(itemPublish);
+		if (includeVisibleFalse) {
+			// Showing also visible: false configs when advanced flag is set. 
+			configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
+		} else {
+			// Showing only Visible configs in the UI.
+			configuration = publishConfiguration.getConfigurationVisible(itemPublish);
+		}
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
 		if (configuration.isEmpty()) {
 			throw new IllegalStateException("No publications are configured.");
 		} else {
+			// TODO: This code makes no sense since refactoring 2020-09-30 (962b60713d8a8db3253a5e4499e0c4cbed344a1c)
+			// Consider how to 
 			int visible = 0;
 			for (Entry<String, PublishConfig> config : configuration.entrySet()) {
 				if (config.getValue().isVisible()) {
@@ -154,17 +163,19 @@ public class PublishResource {
 	@GET
 	@Path("release")
 	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
-	public Response getRelease(@QueryParam("item") CmsItemIdArg itemId) throws Exception {
+	public Response getRelease(@QueryParam("item") CmsItemIdArg itemId,
+			@QueryParam("advanced") String advanced) throws Exception {
 
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
+		boolean includeVisibleFalse = (advanced != null);
 		
 		// For html it is not really necessary to construct the full PublishRelease object.
 		// However, it is very important to properly display any error message thrown when failing to deserialize the publish configs.
 		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
 		logger.debug("Getting release form for item: {}", itemId);
-		PublishRelease publishRelease = getPublishRelease(itemId);
+		PublishRelease publishRelease = getPublishRelease(itemId, includeVisibleFalse);
 		Response response = Response.ok(publishRelease)
 				.header("Vary", "Accept")
 				.build();

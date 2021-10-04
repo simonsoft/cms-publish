@@ -168,7 +168,7 @@ public class PublishResourceTest {
 	@Test
 	public void testPublishResourceReleaseHtml() throws Exception {
 
-		PublishRelease publishRelease = publishResource.getPublishRelease(itemId);
+		PublishRelease publishRelease = publishResource.getPublishRelease(itemId, false);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PublishReleaseMessageBodyWriterHtml writer = new PublishReleaseMessageBodyWriterHtml(htmlHelperMock, getVelocityEngine());
 		writer.writeTo(publishRelease, null, null, null, null, null, outputStream);
