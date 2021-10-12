@@ -135,8 +135,12 @@ public class PublishJobManifestBuilder {
 	
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
-		String docnoTemplate = job.getArea().getDocnoDocumentTemplate();
+		// #1409 Include pathname in manifest.
+		String pathnameTemplate = job.getArea().getPathnameTemplate();
+		String pathname = templateEvaluator.evaluate(pathnameTemplate);
+		result.put("pathname", pathname);
 		
+		String docnoTemplate = job.getArea().getDocnoDocumentTemplate();
 		String docno = templateEvaluator.evaluate(docnoTemplate);
 		result.put("docno", docno);
 		if (item.isRelease() || item.isTranslation()) {

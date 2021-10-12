@@ -33,6 +33,7 @@
                 "start": "2020-01-01T22:50:00Z"
             },
             "document": {
+                "pathname": "DOC_900108_en-GB_Released",
                 "docno": "DOC_900108_en-GB",
                 "versionrelease": "B",
                 "versioniteration": "0000000145",

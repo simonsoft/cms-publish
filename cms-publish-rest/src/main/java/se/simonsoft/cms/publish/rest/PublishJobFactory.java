@@ -132,6 +132,7 @@ public class PublishJobFactory {
 		PublishJobStorage storage = storageFactory.getInstance(configStorage, item, configName, profiling);
 		pj.getOptions().setStorage(storage);
 		
+		// #1409 Evaluating PathnameTemplate both here and in manifest (no problem, same templateEvaluator).
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
 		
