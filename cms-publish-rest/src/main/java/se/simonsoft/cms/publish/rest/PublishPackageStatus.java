@@ -38,6 +38,7 @@ import se.simonsoft.cms.item.workflow.WorkflowExecutionStatus;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
@@ -128,7 +129,7 @@ public class PublishPackageStatus {
     	
         String publication = publishPackage.getPublication();
         // Empty profiling set is not possible, disallowed by PublishPackage.
-        final String profiling = publishPackage.getProfilingSet() == null ? null : publishPackage.getProfilingSet().iterator().next().getName();
+        final PublishProfilingRecipe profiling = publishPackage.getProfilingSet() == null ? null : publishPackage.getProfilingSet().iterator().next();
         PublishConfig publishConfig = publishPackage.getPublishConfig();
 
         logger.debug("Found {} workflow executions for item: {}", executions.size(), item.getId());
@@ -139,7 +140,7 @@ public class PublishPackageStatus {
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
         // Filter out profiling name.
         if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 0) {
-        	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(profiling)));
+        	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(profiling.getName())));
         }
         logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
         
@@ -165,7 +166,7 @@ public class PublishPackageStatus {
         }
 
         if (execution == null) {
-        	PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, null);
+        	PublishJobStorage storage = storageFactory.getInstance(publishConfig.getOptions().getStorage(), new CmsItemPublish(item), publication, profiling);
         	// Special handling of inactive config, return INACTIVE instead of UNKNOWN.
             String fallbackStatus = "UNKNOWN";
             if (!publishConfig.isActive()) {
