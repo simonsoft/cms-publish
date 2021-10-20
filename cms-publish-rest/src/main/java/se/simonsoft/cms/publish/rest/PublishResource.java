@@ -132,7 +132,7 @@ public class PublishResource {
 		}
 
 		// Configs filtered for the Release item. 
-		Map<String, PublishConfig> configuration = publishConfiguration.getConfigurationVisible(itemPublish);
+		Map<String, PublishConfig> configuration;
 		if (includeVisibleFalse) {
 			// Showing also visible: false configs when advanced flag is set. 
 			configuration = publishConfiguration.getConfigurationFiltered(itemPublish);
@@ -143,19 +143,11 @@ public class PublishResource {
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
 		if (configuration.isEmpty()) {
-			throw new IllegalStateException("No publications are configured.");
-		} else {
-			// TODO: This code makes no sense since refactoring 2020-09-30 (962b60713d8a8db3253a5e4499e0c4cbed344a1c)
-			// Consider how to improve warning message when none are visible.
-			int visible = 0;
-			for (Entry<String, PublishConfig> config : configuration.entrySet()) {
-				if (config.getValue().isVisible()) {
-					visible++;
-				}
-			}
-			if (visible == 0) {
+			logger.debug("No publications are configured/visible (includeVisibleFalse: {}).", includeVisibleFalse);
+			if (!includeVisibleFalse && !publishConfiguration.getConfigurationFiltered(itemPublish).isEmpty()) {
 				throw new IllegalStateException("No publications are configured to be visible.");
 			}
+			throw new IllegalStateException("No publications are configured.");
 		}
 		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}

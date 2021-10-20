@@ -23,6 +23,10 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
+/**
+ * Publish configuration and item information for a Release document. 
+ *
+ */
 public class PublishRelease {
 
     private CmsItemRepositem item;
