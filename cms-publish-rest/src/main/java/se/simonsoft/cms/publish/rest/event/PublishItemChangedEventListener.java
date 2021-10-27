@@ -68,6 +68,14 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 	@Override
 	public void onItemChange(CmsItem item) {
 		logger.debug("Item change event with id: {}", item.getId());
+		if (item.getKind() != CmsItemKind.File) {
+			return;
+		}
+		Set<PublishJob> jobs = getPublishJobs(item);
+		publishExecutor.startPublishJobs(jobs);
+	}
+	
+	public Set<PublishJob> getPublishJobs(CmsItem item) {
 		if (item.getId().getPegRev() == null) {
 			logger.error("Item requires a revision to be published: {}", item.getId().getLogicalId());
 			throw new IllegalArgumentException("Item requires a revision to be published.");
@@ -76,10 +84,6 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 		if (!item.getId().getRepository().isHostKnown()) {
 			logger.error("Item requires a known hostname to be published: {}", item.getId().getLogicalIdFull());
 			throw new IllegalArgumentException("Item requires a known hostname to be published: " + item.getId().getLogicalIdFull());
-		}
-		
-		if (item.getKind() != CmsItemKind.File) {
-			return;
 		}
 		
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
@@ -111,7 +115,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			}
 		}
 		
-		publishExecutor.startPublishJobs(jobs);
+		return jobs;
 	}
 
 }

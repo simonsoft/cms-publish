@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.rest.command;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -94,7 +95,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	}
 
 	// Test coverage: public and returning CmsExportWriter enables integration testing.
-	public CmsExportWriter doWebappExport(CmsItemId itemId, PublishJobOptions options) {
+	public LinkedList<CmsExportWriter> doWebappExport(CmsItemId itemId, PublishJobOptions options) {
 		final PublishJobPreProcess preprocess = options.getPreprocess();
 		final PublishJobStorage storage = options.getStorage();
 
@@ -140,6 +141,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		}
 		
 		ReleaseExportService exportService = this.exportServices.get(itemId.getRepository());
+		LinkedList<CmsExportWriter> result = new LinkedList<CmsExportWriter>();
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
 		HashMap<String, CmsExportJob> secondaryJobs = new HashMap<>();
@@ -152,7 +154,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		// Export secondary jobs first, ensures the export is not considered success unless all jobs succeed.
 		// Secondary exports cannot be accessed easily by caller (not part of return value). Intended for automation. 
-		doExportSecondaryJobs(secondaryJobs, this.exportProvider);
+		result.addAll(doExportSecondaryJobs(secondaryJobs, this.exportProvider));
 		
 		// Export primary job.
 		job.prepare();
@@ -162,7 +164,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		logger.debug("Uploading export to S3 at path: {}", job.getJobPath());
 		exportWriter.write();
 		logger.debug("Uploaded export to S3 at path: {}", job.getJobPath());
-		return exportWriter;
+		result.add(0, exportWriter); // Primary job writer is always first in the list.
+		return result;
 	}
 
 	
@@ -170,7 +173,8 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	 * @param secondaryJobs
 	 * @param exportProvider
 	 */
-	public static void doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs, CmsExportProvider exportProvider) {
+	public static LinkedList<CmsExportWriter> doExportSecondaryJobs(HashMap<String, CmsExportJob> secondaryJobs, CmsExportProvider exportProvider) {
+		LinkedList<CmsExportWriter> result = new LinkedList<CmsExportWriter>();
 		for (String artifact: secondaryJobs.keySet()) {
 			CmsExportJob job = secondaryJobs.get(artifact);
 			if (!job.isEmpty()) {
@@ -180,8 +184,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 				exportWriter.prepare(job);
 				exportWriter.write();
 				logger.debug("Exported secondary: {}", artifact);
+				result.add(exportWriter);
 			}
 		}
+		return result;
 	}
 
 	
