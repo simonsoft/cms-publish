@@ -82,6 +82,9 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
 		String[] query = url.getQuery().split("&");
 		assertEquals(3, query.length);
+		assertEquals("Expires=16", query[0].substring(0, 10));
+		assertEquals("Signature=", query[1].substring(0, 10));
+		assertEquals("Key-Pair-Id=K1KPJ6JE57LGCO", query[2]);
 		
 		//assertEquals("", urlSigned);
 	}
