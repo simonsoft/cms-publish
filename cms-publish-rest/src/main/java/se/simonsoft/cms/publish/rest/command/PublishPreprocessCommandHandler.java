@@ -181,7 +181,9 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 				logger.debug("Preparing export of secondary: {}", artifact);
 				job.prepare();
 				CmsExportWriter exportWriter = exportProvider.getWriter();
+				logger.debug("Preparing writer of secondary: {}", artifact);
 				exportWriter.prepare(job);
+				logger.debug("Writing export of secondary: {}", artifact);
 				exportWriter.write();
 				logger.debug("Exported secondary: {}", artifact);
 				result.add(exportWriter);
