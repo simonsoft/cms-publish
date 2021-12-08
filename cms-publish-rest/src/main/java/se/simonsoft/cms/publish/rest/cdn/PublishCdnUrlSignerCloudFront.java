@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.rest.cdn;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -24,7 +23,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.util.Date;
+import java.time.Instant;
 
 import software.amazon.awssdk.core.exception.SdkException;
 
@@ -39,13 +38,9 @@ public class PublishCdnUrlSignerCloudFront {
 	}
 	
 
-	public String getSignedUrlDocument(String cdn, String path) {
+	public String getSignedUrlDocument(String cdn, String path, Instant expires) {
 		
-		
-		Date dateLessThan = new Date();
-		dateLessThan.setHours(23); // TODO: Replace with sending an Instant or no of minutes.
-		
-		String result = getSignedUrlWithCannedPolicy("https://" + cdnConfig.getHostname(cdn) + path, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), dateLessThan);
+		String result = getSignedUrlWithCannedPolicy("https://" + cdnConfig.getHostname(cdn) + path, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), expires);
 		return result;
 	}
 	
@@ -63,14 +58,14 @@ public class PublishCdnUrlSignerCloudFront {
 	  public static String getSignedUrlWithCannedPolicy(String resourceUrlOrPath,
 	                                                    String keyPairId,
 	                                                    PrivateKey privateKey,
-	                                                    Date dateLessThan) {
+	                                                    Instant expires) {
 	    try {
-	      String cannedPolicy = buildCannedPolicy(resourceUrlOrPath, dateLessThan);
+	      String cannedPolicy = buildCannedPolicy(resourceUrlOrPath, expires);
 	      byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
 	      String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
 	      return resourceUrlOrPath
 	          + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?")
-	          + "Expires=" + MILLISECONDS.toSeconds(dateLessThan.getTime())
+	          + "Expires=" + expires.getEpochSecond()
 	          + "&Signature=" + urlSafeSignature
 	          + "&Key-Pair-Id=" + keyPairId;
 	    } catch (InvalidKeyException e) {
@@ -87,12 +82,11 @@ public class PublishCdnUrlSignerCloudFront {
 	   * @param dateLessThan The expiration time.
 	   * @return the aws policy as a string.
 	   */
-	  public static String buildCannedPolicy(String resourceUrlOrPath,
-	                                         Date dateLessThan) {
+	  public static String buildCannedPolicy(String resourceUrlOrPath, Instant expires) {
 	    return "{\"Statement\":[{\"Resource\":\""
 	        + resourceUrlOrPath
 	        + "\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":"
-	        + MILLISECONDS.toSeconds(dateLessThan.getTime())
+	        + expires.getEpochSecond()
 	        + "}}}]}";
 	  }
 
@@ -104,8 +98,7 @@ public class PublishCdnUrlSignerCloudFront {
 	   * @return A signature.
 	   * @throws InvalidKeyException if an invalid key was provided.
 	   */
-	  public static byte[] signWithSha1Rsa(byte[] dataToSign,
-	                                       PrivateKey privateKey) throws InvalidKeyException {
+	  public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
 	    Signature signature;
 	    try {
 	      signature = Signature.getInstance("SHA1withRSA");

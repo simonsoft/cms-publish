@@ -16,11 +16,12 @@
 package se.simonsoft.cms.publish.rest.cdn;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PrivateKey;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -58,6 +59,7 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	
 	
 	private static PublishCdnUrlSignerCloudFront signer;
+	private static Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -91,13 +93,14 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	@Test
 	public void testGetSignedUrlDocument() throws MalformedURLException {
 		
-		String urlSigned = signer.getSignedUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		String urlSigned = signer.getSignedUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", expires);
 		URL url = new URL(urlSigned);
 		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
 		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
 		String[] query = url.getQuery().split("&");
 		assertEquals(3, query.length);
-		assertEquals("Expires=16", query[0].substring(0, 10));
+		assertEquals("Expires=163", query[0].substring(0, 11));
+		assertEquals("should end with zero if truncated to DAY/HOUR", "0", query[0].substring(query[0].length()-1));
 		assertEquals("Signature=", query[1].substring(0, 10));
 		assertEquals("Key-Pair-Id=K1KPJ6JE57LGCO", query[2]);
 		
