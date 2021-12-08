@@ -44,97 +44,88 @@ public class PublishCdnUrlSignerCloudFront {
 		return result;
 	}
 	
-	
-	
-	  /**
-	   * Generates a signed url that expires after given date.
-	   * @param resourceUrlOrPath The url.
-	   * @param keyPairId The keypair id used to sign.
-	   * @param privateKey The private key.
-	   * @param dateLessThan The expire date/time.
-	   * @return A valid cloudwatch url.
-	   * @throws SdkException If any errors occur during the signing process.
-	   */
-	  public static String getSignedUrlWithCannedPolicy(String resourceUrlOrPath,
-	                                                    String keyPairId,
-	                                                    PrivateKey privateKey,
-	                                                    Instant expires) {
-	    try {
-	      String cannedPolicy = buildCannedPolicy(resourceUrlOrPath, expires);
-	      byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
-	      String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-	      return resourceUrlOrPath
-	          + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?")
-	          + "Expires=" + expires.getEpochSecond()
-	          + "&Signature=" + urlSafeSignature
-	          + "&Key-Pair-Id=" + keyPairId;
-	    } catch (InvalidKeyException e) {
-	      throw new RuntimeException("Couldn't sign url", e);
-	    }
-	  }
+	/**
+	 * Generates a signed url that expires after given date.
+	 * 
+	 * @param resourceUrlOrPath The url.
+	 * @param keyPairId         The keypair id used to sign.
+	 * @param privateKey        The private key.
+	 * @param dateLessThan      The expire date/time.
+	 * @return A valid cloudwatch url.
+	 * @throws SdkException If any errors occur during the signing process.
+	 */
+	public static String getSignedUrlWithCannedPolicy(String resourceUrlOrPath, String keyPairId, PrivateKey privateKey, Instant expires) {
+		try {
+			String cannedPolicy = buildCannedPolicy(resourceUrlOrPath, expires);
+			byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
+			String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
+			return resourceUrlOrPath + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?") + "Expires=" + expires.getEpochSecond() + "&Signature=" + urlSafeSignature + "&Key-Pair-Id=" + keyPairId;
+		} catch (InvalidKeyException e) {
+			throw new RuntimeException("Couldn't sign url", e);
+		}
+	}
 
-	  /**
-	   * Returns a "canned" policy for the given parameters.
-	   * For more information, see <a href=
-	   * "http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls-overview.html"
-	   * >Overview of Signed URLs</a>.
-	   * @param resourceUrlOrPath The resource to grant access.
-	   * @param dateLessThan The expiration time.
-	   * @return the aws policy as a string.
-	   */
-	  public static String buildCannedPolicy(String resourceUrlOrPath, Instant expires) {
-	    return "{\"Statement\":[{\"Resource\":\""
-	        + resourceUrlOrPath
-	        + "\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":"
-	        + expires.getEpochSecond()
-	        + "}}}]}";
-	  }
+	/**
+	 * Returns a "canned" policy for the given parameters.
+	 * For more information, see <a href=
+	 * "http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls-overview.html"
+	 * >Overview of Signed URLs</a>.
+	 * 
+	 * @param resourceUrlOrPath The resource to grant access.
+	 * @param dateLessThan      The expiration time.
+	 * @return the aws policy as a string.
+	 */
+	public static String buildCannedPolicy(String resourceUrlOrPath, Instant expires) {
+		return "{\"Statement\":[{\"Resource\":\"" + resourceUrlOrPath + "\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":" + expires.getEpochSecond() + "}}}]}";
+	}
 
-	  /**
-	   * Signs the data given with the private key given, using the SHA1withRSA
-	   * algorithm provided by bouncy castle.
-	   * @param dataToSign The data to sign.
-	   * @param privateKey The private key.
-	   * @return A signature.
-	   * @throws InvalidKeyException if an invalid key was provided.
-	   */
-	  public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
-	    Signature signature;
-	    try {
-	      signature = Signature.getInstance("SHA1withRSA");
-	      signature.initSign(privateKey, srand);
-	      signature.update(dataToSign);
-	      return signature.sign();
-	    } catch (NoSuchAlgorithmException | SignatureException e) {
-	      throw new IllegalStateException(e);
-	    }
-	  }
+	/**
+	 * Signs the data given with the private key given, using the SHA1withRSA
+	 * algorithm provided by bouncy castle.
+	 * 
+	 * @param dataToSign The data to sign.
+	 * @param privateKey The private key.
+	 * @return A signature.
+	 * @throws InvalidKeyException if an invalid key was provided.
+	 */
+	public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
+		Signature signature;
+		try {
+			signature = Signature.getInstance("SHA1withRSA");
+			signature.initSign(privateKey, srand);
+			signature.update(dataToSign);
+			return signature.sign();
+		} catch (NoSuchAlgorithmException | SignatureException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-	  /**
-	   * Converts the given data to be safe for use in signed URLs for a private
-	   * distribution by using specialized Base64 encoding.
-	   * @param bytes The bytes
-	   */
-	  public static String makeBytesUrlSafe(byte[] bytes) {
-	    byte[] encoded = java.util.Base64.getEncoder().encode(bytes);
+	/**
+	 * Converts the given data to be safe for use in signed URLs for a private
+	 * distribution by using specialized Base64 encoding.
+	 * 
+	 * @param bytes The bytes
+	 */
+	public static String makeBytesUrlSafe(byte[] bytes) {
+		byte[] encoded = java.util.Base64.getEncoder().encode(bytes);
 
-	    for (int i = 0; i < encoded.length; i++) {
-	      switch (encoded[i]) {
-	        case '+':
-	          encoded[i] = '-';
-	          continue;
-	        case '=':
-	          encoded[i] = '_';
-	          continue;
-	        case '/':
-	          encoded[i] = '~';
-	          continue;
-	        default:
-	          continue;
-	      }
-	    }
-	    return new String(encoded, StandardCharsets.UTF_8);
-	  }
+		for (int i = 0; i < encoded.length; i++) {
+			switch (encoded[i]) {
+			case '+':
+				encoded[i] = '-';
+				continue;
+			case '=':
+				encoded[i] = '_';
+				continue;
+			case '/':
+				encoded[i] = '~';
+				continue;
+			default:
+				continue;
+			}
+		}
+		return new String(encoded, StandardCharsets.UTF_8);
+	}
 	
 	/*
 	// Signed URLs for a private distribution
