@@ -23,6 +23,8 @@ import java.security.PrivateKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -98,12 +100,17 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
 		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
 		String[] query = url.getQuery().split("&");
-		assertEquals(3, query.length);
+		assertEquals(4, query.length);
 		assertEquals("Expires=163", query[0].substring(0, 11));
 		assertEquals("should end with zero if truncated to DAY/HOUR", "0", query[0].substring(query[0].length()-1));
 		assertEquals("Signature=", query[1].substring(0, 10));
 		assertEquals("Key-Pair-Id=K1KPJ6JE57LGCO", query[2]);
 		
+		assertEquals("Policy=", query[3].substring(0, 7));
+		String policy = new String(DatatypeConverter.parseBase64Binary(query[3].substring(7)));
+		//assertEquals("", policy);
+		assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
+
 		//assertEquals("", urlSigned);
 	}
 

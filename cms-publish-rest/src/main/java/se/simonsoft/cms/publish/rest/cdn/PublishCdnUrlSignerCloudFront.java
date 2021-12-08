@@ -24,7 +24,12 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.xml.bind.DatatypeConverter;
+
+import se.simonsoft.cms.item.CmsItemPath;
 import software.amazon.awssdk.core.exception.SdkException;
 
 public class PublishCdnUrlSignerCloudFront {
@@ -40,9 +45,48 @@ public class PublishCdnUrlSignerCloudFront {
 
 	public String getSignedUrlDocument(String cdn, String path, Instant expires) {
 		
-		String result = getSignedUrlWithCannedPolicy("https://" + cdnConfig.getHostname(cdn) + path, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), expires);
+		// Using CmsItemPath for convenience. Prohibits a minumum och chars, currently * and \.
+		CmsItemPath docPath = new CmsItemPath(path).getParent();
+		List<String> docPathSegments = new ArrayList<String>(docPath.getPathSegments());
+		docPathSegments.add("*"); // End with wildcard.
+		
+		String result = getSignedUrlWithCustomPolicy(cdnConfig.getHostname(cdn), path, docPathSegments, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), expires);
 		return result;
 	}
+	
+	
+	public static String getSignedUrlWithCustomPolicy(String hostname, String path, List<String> docPathSegments, String keyPairId, PrivateKey privateKey, Instant expires) {
+		StringBuilder resource = new StringBuilder();
+		resource.append("https://");
+		resource.append(hostname);
+		resource.append(path);
+		String resourceUrlOrPath = resource.toString();
+		
+		try {
+			String customPolicy = buildCustomPolicy(hostname, docPathSegments, expires);
+			String customPolicyBase64 = DatatypeConverter.printBase64Binary(customPolicy.getBytes(StandardCharsets.UTF_8));
+			byte[] signatureBytes = signWithSha1Rsa(customPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
+			String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
+			return resourceUrlOrPath + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?") + "Expires=" + expires.getEpochSecond() + "&Signature=" + urlSafeSignature + "&Key-Pair-Id=" + keyPairId + "&Policy=" + customPolicyBase64;
+		} catch (InvalidKeyException e) {
+			throw new RuntimeException("Couldn't sign url", e);
+		}
+	}
+	
+	private static String buildCustomPolicy(String hostname, List<String> docPathSegments, Instant expires) {
+		StringBuilder resource = new StringBuilder();
+		resource.append("https://");
+		resource.append(hostname);
+		for (String s: docPathSegments) {
+			resource.append('/');
+			resource.append(s);
+		}
+		
+		// Since we not adding additional conditions, just resource wildcards, possible to reuse the canned string.
+		String policy = buildCannedPolicy(resource.toString(), expires);
+		return policy;
+	}
+
 	
 	/**
 	 * Generates a signed url that expires after given date.
