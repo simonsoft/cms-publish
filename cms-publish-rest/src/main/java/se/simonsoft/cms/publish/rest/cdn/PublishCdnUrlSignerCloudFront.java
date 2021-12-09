@@ -49,6 +49,11 @@ public class PublishCdnUrlSignerCloudFront {
 		CmsItemPath docPath = new CmsItemPath(path).getParent();
 		List<String> docPathSegments = new ArrayList<String>(docPath.getPathSegments());
 		docPathSegments.add("*"); // End with wildcard.
+		/*
+		// Cloudfront accepts multiple wildcards. 
+		// Slash are not treated in any special way, ok when '/{docno}/' is in the path.
+		docPathSegments.set(0, "*"); // TODO: Consider wildcard for locale. Not sure how that will work with Preview.
+		*/
 		
 		String result = getSignedUrlWithCustomPolicy(cdnConfig.getHostname(cdn), path, docPathSegments, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), expires);
 		return result;

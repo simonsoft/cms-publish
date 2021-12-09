@@ -110,6 +110,7 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		String policy = new String(DatatypeConverter.parseBase64Binary(query[3].substring(7)));
 		//assertEquals("", policy);
 		assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
+		//assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/*/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
 
 		//assertEquals("", urlSigned);
 	}
