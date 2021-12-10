@@ -89,13 +89,22 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		});
 	}
 
+	
+	@Test
+	public void testGetUrlDocument() throws MalformedURLException {
+		
+		String urlWithFilename = signer.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		assertEquals("preserve file name if included", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlWithFilename);
 
+		String urlNoFilename = signer.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/");
+		assertEquals("TBD: currently not adding index.html", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/", urlNoFilename);
+	}
 	
 	
 	@Test
-	public void testGetSignedUrlDocument() throws MalformedURLException {
+	public void testGetUrlDocumentSigned() throws MalformedURLException {
 		
-		String urlSigned = signer.getSignedUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", expires);
+		String urlSigned = signer.getUrlDocumentSigned("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", expires);
 		URL url = new URL(urlSigned);
 		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
 		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
