@@ -20,6 +20,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -51,7 +52,9 @@ public class PublishCdnResource {
 	@GET
 	@Path("execution/url")
 	@Produces("application/json")
-	public Response getUrl(@QueryParam("uuid") String uuid) {
+	public Response getUrl(@QueryParam("uuid") String id) {
+		
+		UUID uuid = getUuid(id);
 		
 		// TODO: Get information from index, type = publish
 		String cdn = "preview";
@@ -80,5 +83,13 @@ public class PublishCdnResource {
 		return response;
 	}
 	
+	
+	static UUID getUuid(String id) {
+		String uuid = id;
+		if (id.contains(":")) {
+			uuid = id.substring(1 + id.lastIndexOf(':'));
+		}
+		return UUID.fromString(uuid);
+	}
 	
 }
