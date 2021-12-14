@@ -47,6 +47,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 		
 		this.active = pj.isActive();
 		this.visible = pj.isVisible();
+		this.exportable = pj.isExportable();
 		this.statusInclude = pj.getStatusInclude();
 		this.elementNameInclude = pj.getElementNameInclude();
 		this.typeInclude = pj.getTypeInclude();
@@ -61,6 +62,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 		
 		this.active = pc.isActive();
 		this.visible = pc.isVisible();
+		this.exportable = pc.isExportable();
 		this.statusInclude = pc.getStatusInclude();
 		this.elementNameInclude = pc.getElementNameInclude();
 		this.typeInclude = pc.getTypeInclude();
