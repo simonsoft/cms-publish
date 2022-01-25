@@ -20,7 +20,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.inject.Inject;
@@ -99,21 +101,21 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		if (options.getDelivery() == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobDelivery object with param url.");
 		}
-		
+		final Map<String, String> params = options.getDelivery().getParams();
 		final PublishJobStorage storage = options.getStorage();
 		
 		if (storage == null) {
 			throw new IllegalArgumentException("Need a valid PublishJobStorage object with params archive and manifest.");
 		}
 		
-		logger.debug("WebhookCommandHandler will try to send request to: {}", options.getDelivery().getParams().get("url"));
+		logger.debug("WebhookCommandHandler endpoint: {}", params.get("url"));
 		
 		
 		String manifest = null;
 		String archive = null;
 
 		if (storage.getType() == null || storage.getType().equals("s3")) {
-			Boolean presign = new Boolean(options.getDelivery().getParams().get("presign"));
+			Boolean presign = Boolean.parseBoolean(params.get("presign"));
 			
 			String archiveKey = getS3Key(storage, archiveExt);
 			archive = getS3Url(archiveKey, presign).toString();
@@ -127,10 +129,23 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 				throw new IllegalArgumentException("Illegal paths to archive and or manifest.");
 			}
 		}
+
+		LinkedHashMap<String, String> postParams = new LinkedHashMap<String, String>();
+		if (params.containsKey("form-archive-name")) {
+			postParams.put(params.get("form-archive-name"), archive);
+		} else {
+			postParams.put("archive", archive);
+		}
+		if (params.containsKey("form-manifest-name")) {
+			postParams.put(params.get("form-manifest-name"), manifest);
+		} else {
+			postParams.put("manifest", manifest);
+		}
+		
 		
 		HttpResponse response;
 		try {
-			response = makeRequest(options.getDelivery(), getPostBody(archive, manifest));
+			response = makeRequest(options.getDelivery(), getPostBody(postParams));
 		} catch (Exception e) {
 			throw new CommandRuntimeException("WebhookFailed", e);
 		}
@@ -156,7 +171,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		
 		try {
 			request.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
-			logger.debug("Making request...");
+			logger.debug("Webhook HTTP request...");
 			HttpResponse resp = client.execute(request);
 			return resp;
 			
@@ -167,12 +182,12 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		}
 	}
 	
-	private List<NameValuePair> getPostBody(String archive, String manifest) {
+	private List<NameValuePair> getPostBody(Map<String, String> postParams) {
 
 		List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-		pairs.add(new BasicNameValuePair("archive", archive));
-		pairs.add(new BasicNameValuePair("manifest", manifest));
-		
+		for (Entry<String, String> entry: postParams.entrySet()) {
+			pairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+		}
 	    return pairs;
 	}
 
