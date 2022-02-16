@@ -29,8 +29,10 @@ import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
 
@@ -61,6 +63,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		logger.debug("Requesting export of PublishJob manifest.");
 		
+		PublishJobProgress progress = options.getProgress();
+		if (progress == null) {
+			throw new IllegalArgumentException("Requires a valid PublishJobProgress object.");
+		}
+		
 		PublishJobManifest manifest = options.getManifest();
 		if (manifest == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object.");
@@ -74,6 +81,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
 		}
+		// Augment the manifest with UUID of the workflow execution, not available before starting the workflow.
+		doInsertJobId(manifest, progress);
 		
 		logger.trace("Preparing publishJob manifest for export to S3: {}", manifest);
 
@@ -101,6 +110,25 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Insert the Execution UUID as manifest.job.id before writing the manifest to file.
+	 * @param manifest
+	 * @param progress
+	 */
+	private void doInsertJobId(PublishJobManifest manifest, PublishJobProgress progress) {
+		
+		String executionId = progress.getParams().get("executionid");
+		if (executionId == null || executionId.isBlank()) {
+			throw new CommandRuntimeException("PublishExecutionIdMissing");
+		}
+		
+		WorkflowExecutionId id = new WorkflowExecutionId(executionId);
+		if (!id.hasUuid()) {
+			throw new CommandRuntimeException("PublishExecutionIdMalformed", "no UUID detected");
+		}
+		manifest.getJob().put("id", id.getUuid());
 	}
 	
 }
