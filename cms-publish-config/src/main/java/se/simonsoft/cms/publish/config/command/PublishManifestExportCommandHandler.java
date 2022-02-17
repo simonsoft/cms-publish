@@ -22,6 +22,9 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
@@ -29,7 +32,6 @@ import se.simonsoft.cms.item.export.CmsExportItem;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
-import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
@@ -38,14 +40,13 @@ import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifestVelocity;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 public class PublishManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
+	private final ObjectWriter writerJobProgress;
 	private final PublishJobResultLookup resultLookup; // TODO: Inject in a future major release.
 	
 
@@ -56,7 +57,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			) {
 		
 		this.exportProvider = exportProvider;
-		this.writerPublishManifest = objectWriter;
+		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class);
+		this.writerJobProgress = objectWriter.forType(PublishJobProgress.class);
 		
 		this.resultLookup = new PublishJobResultLookup(exportProvider);
 	}
@@ -83,8 +85,6 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
 		}
-		// Augment the manifest with UUID of the workflow execution, not available before starting the workflow.
-		doInsertJobId(manifest, progress);
 		
 		logger.trace("Preparing publishJob manifest for export to S3: {}", manifest);
 
@@ -111,26 +111,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
 		}
 		
-		return null;
-	}
-	
-	/**
-	 * Insert the Execution UUID as manifest.job.id before writing the manifest to file.
-	 * @param manifest
-	 * @param progress
-	 */
-	private void doInsertJobId(PublishJobManifest manifest, PublishJobProgress progress) {
-		
-		String executionId = progress.getParams().get("executionid");
-		if (executionId == null || executionId.isBlank()) {
-			throw new CommandRuntimeException("PublishExecutionIdMissing");
+		try {
+			return writerJobProgress.writeValueAsString(progress);
+		} catch (JsonProcessingException e) {
+			throw new CommandRuntimeException("JsonProcessingException", e);
 		}
-		
-		WorkflowExecutionId id = new WorkflowExecutionId(executionId);
-		if (!id.hasUuid()) {
-			throw new CommandRuntimeException("PublishExecutionIdMalformed", "no UUID detected");
-		}
-		manifest.getJob().put("id", id.getUuid());
 	}
 	
 }
