@@ -54,10 +54,10 @@ public class PublishJobManifestTest {
 		assertEquals(1, job.getMetaTemplates().size());
 		
 		String jobS = writer.writeValueAsString(job);
-		assertEquals("{\"type\":\"test\",\"job\":{},\"document\":{},\"meta\":{\"static\":\"value\"}}", jobS);
+		assertEquals("{\"type\":\"test\",\"job\":{},\"meta\":{\"static\":\"value\"}}", jobS);
 		
 		PublishJobManifest jobP = job.forPublish();
-		assertEquals("{\"job\":{},\"document\":{},\"meta\":{\"static\":\"value\"}}", writer.writeValueAsString(jobP));
+		assertEquals("{\"job\":{},\"meta\":{\"static\":\"value\"}}", writer.writeValueAsString(jobP));
 		
 		assertEquals(1, jobP.getMeta().size());
 		jobP.getMeta().put("one", "more");
