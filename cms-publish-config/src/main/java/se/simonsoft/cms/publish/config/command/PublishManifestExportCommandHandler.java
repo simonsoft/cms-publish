@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.manifest;
+package se.simonsoft.cms.publish.config.command;
 
 
 import javax.inject.Inject;
@@ -35,6 +35,8 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
+import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
+import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifestVelocity;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
