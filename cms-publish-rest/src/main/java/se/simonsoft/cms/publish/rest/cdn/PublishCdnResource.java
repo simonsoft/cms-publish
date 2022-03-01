@@ -152,7 +152,7 @@ public class PublishCdnResource {
 		}
 		
 		if (!m.containsKey("embd_publish-cdn_progress_pathformat")) {
-			throw new RuntimeException("Publish CDN found no document path in index: " + id);
+			throw new RuntimeException("Publish CDN found no CDN document path in index: " + id);
 		}
 		
 		CmsRepository repository = new CmsRepository("https", m.get("repohost"), m.get("repoparent"), m.get("repo"));
@@ -166,7 +166,8 @@ public class PublishCdnResource {
 		} else {
 			p.setCdn("preview");
 		}
-		p.setPathformat(m.get("embd_publish-cdn_progress_pathformat\""));
+		// Existence verified above.
+		p.setPathformat(m.get("embd_publish-cdn_progress_pathformat"));
 		
 		return p;
 	}
