@@ -118,13 +118,13 @@ public class PublishCdnResource {
 		String queryString;
 		SolrDocumentList docs;
 		
-		queryString = "embd_publish-cdn_uuid:" + executionId.getUuid();
+		queryString = "embd_publish-cdn_job_id:" + executionId.getUuid();
 		query = new SolrQuery(queryString);
 		// No need to filter on repo since we search based on UUID and follow up with access control.
 		//query.addFilterQuery("repo:" + repo);
 
 		//query.setSort("rev", ORDER.desc);
-		query.setFields("repo", "repoparent", "repohost", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "text_error");
+		query.setFields("repo", "repoparent", "repohost", "rev", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "text_error");
 		query.setRows(3);
 		
 		try {
