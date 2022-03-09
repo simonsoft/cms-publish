@@ -42,6 +42,7 @@ public class PublishJobFactory {
 
 	private final String cloudId;
 	private final String type = "publish-job";
+	// TODO: Remove initial action hack, resolved in workflows for CMS 5.1.
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
