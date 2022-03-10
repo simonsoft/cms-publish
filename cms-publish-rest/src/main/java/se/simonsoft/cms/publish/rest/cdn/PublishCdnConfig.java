@@ -19,10 +19,31 @@ import java.security.PrivateKey;
 
 public interface PublishCdnConfig {
 
+	/**
+	 * Host name for the CDN, required
+	 * @param cdn
+	 * @return host name
+	 * @throws IllegalStateException if not defined
+	 */
 	String getHostname(String cdn);
 	
+	/**
+	 * Key ID if the CDN is not public.
+	 * 
+	 * @param cdn
+	 * @return keyId or null
+	 */
 	String getPrivateKeyId(String cdn);
 	
+	/**
+	 * Private Key if the CDN is not public. Should not be called if {@link #getPrivateKeyId(String)} returns null.
+	 * @param cdn
+	 * @return
+	 */
 	PrivateKey getPrivateKey(String cdn);
+
+	// Consider adding:
+	// - expiry time
+	// - wildcard location, how many path segments before wildcard
 	
 }
