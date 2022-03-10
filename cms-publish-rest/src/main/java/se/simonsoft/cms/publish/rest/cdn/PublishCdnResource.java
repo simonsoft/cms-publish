@@ -85,13 +85,8 @@ public class PublishCdnResource {
 		// Throws exception is user does not have access.
 		lookup.getItem(p.getItemId());
 		
-		// Sign the path (unless cdn = public)
-		String url;
-		if ("public".equals(cdn)) {
-			url = cdnUrlSigner.getUrlDocument(cdn, path);
-		} else {
-			url = cdnUrlSigner.getUrlDocumentSigned(cdn, path, expires);
-		}
+		// Sign the path, if needed.
+		String url = cdnUrlSigner.getUrlDocumentSigned(cdn, path, expires);
 		
 		Set<String> result = new LinkedHashSet<String>(3);
 		result.add(url);

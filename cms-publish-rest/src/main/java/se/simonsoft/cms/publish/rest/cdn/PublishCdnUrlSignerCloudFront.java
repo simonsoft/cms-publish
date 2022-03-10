@@ -52,19 +52,36 @@ public class PublishCdnUrlSignerCloudFront {
 		return resource.toString();
 	}
 	
+	
+	/**
+	 * Provides a complete URL, signed if the CDN requires signature.
+	 * 
+	 * @param cdn
+	 * @param path
+	 * @param expires
+	 * @return
+	 */
 	public String getUrlDocumentSigned(String cdn, String path, Instant expires) {
-		
 		// Using CmsItemPath for convenience. Prohibits a minumum och chars, currently * and \.
 		CmsItemPath docPath = new CmsItemPath(path).getParent();
 		List<String> docPathSegments = new ArrayList<String>(docPath.getPathSegments());
 		docPathSegments.add("*"); // End with wildcard.
-		/*
 		// Cloudfront accepts multiple wildcards. 
 		// Slash are not treated in any special way, ok when '/{docno}/' is in the path.
-		docPathSegments.set(0, "*"); // TODO: Consider wildcard for locale. Not sure how that will work with Preview.
-		*/
+		// Rearranged CDN path in CMS 5.1 placing '/{docno}/' first, allowing lang-dropdown to work.
+		// TODO: Extend the api with ability to wildcard earlier (could be a config from PublishCdnConfig).
 		
-		String result = getSignedUrlWithCustomPolicy(cdnConfig.getHostname(cdn), path, docPathSegments, cdnConfig.getPrivateKeyId(cdn), cdnConfig.getPrivateKey(cdn), expires);
+		String hostname = cdnConfig.getHostname(cdn);
+		String keyId = cdnConfig.getPrivateKeyId(cdn);
+		
+		// TODO: Consider adding "index.html" for Public CDNs (gettor in cdnConfig, perhaps from SSM);
+		
+		String result;
+		if (keyId != null) {
+			result = getSignedUrlWithCustomPolicy(hostname, path, docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
+		} else {
+			result = getUrlDocument(cdn, path);
+		}
 		return result;
 	}
 	
