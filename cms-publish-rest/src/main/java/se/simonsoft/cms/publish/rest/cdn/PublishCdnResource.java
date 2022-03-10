@@ -162,7 +162,7 @@ public class PublishCdnResource {
 		PublishCdnItem p = new PublishCdnItem();
 		p.setItemId(repository.getItemId(path, null));
 		if (m.containsKey("embd_publish-cdn_custom_cdn")) {
-			p.setCdn(m.get(m.get("embd_publish-cdn_custom_cdn")));
+			p.setCdn(m.get("embd_publish-cdn_custom_cdn"));
 		} else {
 			p.setCdn("preview");
 		}
