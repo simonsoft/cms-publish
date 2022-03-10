@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.config.manifest;
+package se.simonsoft.cms.publish.config.command;
 
 
 import javax.inject.Inject;
@@ -21,6 +21,9 @@ import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
@@ -31,10 +34,11 @@ import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
-
-import com.fasterxml.jackson.databind.ObjectWriter;
+import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
+import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifestVelocity;
 
 public class PublishManifestExportCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
 
@@ -42,6 +46,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	private static final Logger logger = LoggerFactory.getLogger(PublishManifestExportCommandHandler.class);
 	private final CmsExportProvider exportProvider;
 	private final ObjectWriter writerPublishManifest;
+	private final ObjectWriter writerJobProgress;
 	private final PublishJobResultLookup resultLookup; // TODO: Inject in a future major release.
 	
 
@@ -52,7 +57,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			) {
 		
 		this.exportProvider = exportProvider;
-		this.writerPublishManifest = objectWriter;
+		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class);
+		this.writerJobProgress = objectWriter.forType(PublishJobProgress.class);
 		
 		this.resultLookup = new PublishJobResultLookup(exportProvider);
 	}
@@ -60,6 +66,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		logger.debug("Requesting export of PublishJob manifest.");
+		
+		PublishJobProgress progress = options.getProgress();
+		if (progress == null) {
+			throw new IllegalArgumentException("Requires a valid PublishJobProgress object.");
+		}
 		
 		PublishJobManifest manifest = options.getManifest();
 		if (manifest == null) {
@@ -100,7 +111,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
 		}
 		
-		return null;
+		try {
+			return writerJobProgress.writeValueAsString(progress);
+		} catch (JsonProcessingException e) {
+			throw new CommandRuntimeException("JsonProcessingException", e);
+		}
 	}
 	
 }

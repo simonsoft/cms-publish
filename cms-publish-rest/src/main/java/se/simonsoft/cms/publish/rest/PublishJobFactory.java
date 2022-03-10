@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,7 @@ public class PublishJobFactory {
 
 	private final String cloudId;
 	private final String type = "publish-job";
+	// TODO: Remove initial action hack, resolved in workflows for CMS 5.1.
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
@@ -156,10 +158,30 @@ public class PublishJobFactory {
 		pj.getOptions().setParams(manifestBuilder.buildMap(item, pj.getOptions().getParams()));
 		*/
 		
+		// #1539 Preparing for special handling of Preview such that all/most Configs can be instantiated as Preview or Full job.
+		doPreviewTransformations(pj);
+		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
 	}
 	
+	
+	// #1539 For now, just ensure that manifest.custom.cdn is defined if delivery.type = 'cdn'.
+	private void doPreviewTransformations(PublishJob pj) {
+		
+		if (pj.getOptions().getDelivery() != null && "cdn".equals(pj.getOptions().getDelivery().getType())) {
+			LinkedHashMap<String, String> custom = pj.getOptions().getManifest().getCustom();
+			if (custom == null) {
+				String msg = "Publish Job with CDN delivery must have a full manifest (incl docno definition).";
+				logger.error(msg);
+				throw new IllegalArgumentException(msg);
+			}
+			// Default to "preview" CDN when not explicitly defined in PublishConfig.
+			if (custom.get("cdn") == null) {
+				custom.put("cdn", "preview");
+			}
+		}
+	}
 
 	
 	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {

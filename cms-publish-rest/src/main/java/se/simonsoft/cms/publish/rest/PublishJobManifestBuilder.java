@@ -32,6 +32,7 @@ import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 
@@ -112,6 +113,13 @@ public class PublishJobManifestBuilder {
 		result.put("configname", job.getConfigname());
 		result.put("format", job.getOptions().getFormat());
 		result.put("itemid", job.getItemId().getLogicalId());
+		
+		// #1468 Ensure manifest stores which profiling was used for the publish.
+		PublishProfilingRecipe profiling = job.getOptions().getProfiling();
+		if (profiling != null) {
+			result.put("profiling", profiling.getName());
+		}
+		
 		result.put("start", DateTimeFormatter.ISO_INSTANT.format(getStartInstant().truncatedTo(ChronoUnit.SECONDS)));
 		
 		try {

@@ -120,10 +120,10 @@ public class TestPublishConfig extends TestCase {
 		
 		String jobJson = writer.writeValueAsString(job);
 		
-		String expectedJobJson = "{\"active\":true,\"visible\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[]," + 
+		String expectedJobJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[]," + 
 				"\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\"," +
 				"\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"}," +
-				"\"manifest\":{\"job\":{},\"document\":{}}," + 
+				"\"manifest\":{\"job\":{}}," + 
 				"\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"},\"pathversion\":null,\"pathcloudid\":null,\"pathconfigname\":null,\"pathdir\":null,\"pathnamebase\":null}," + 
 				"\"preprocess\":{\"type\":null,\"params\":{}},\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}}," +
 				"\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}}," +

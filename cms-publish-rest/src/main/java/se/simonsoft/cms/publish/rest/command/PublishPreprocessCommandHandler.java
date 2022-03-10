@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.item.export.CmsExportJob;
 import se.simonsoft.cms.item.export.CmsExportProvider;
@@ -41,6 +42,7 @@ import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.release.export.ReleaseExportOptions;
@@ -51,6 +53,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	private final CmsExportProvider exportProvider;
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
 	private final ObjectWriter writerPublishManifest;
+	private final ObjectWriter writerJobProgress;
 
 	// Consider injecting list of potential secondary artifacts.
 	private final Set<String> secondaryExportArtifacts = new HashSet<String>(Arrays.asList("algolia", "graphics"));
@@ -67,6 +70,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		this.exportProvider = exportProvider;
 		this.exportServices = exportServices;
 		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
+		this.writerJobProgress = objectWriter.forType(PublishJobProgress.class);
 	}
 
 	@Override
@@ -91,7 +95,13 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			throw new IllegalArgumentException("Unsupported Preprocess type: " + preprocess.getType());
 		}
 
-		return null;
+		final PublishJobProgress progress = options.getProgress();
+		
+		try {
+			return writerJobProgress.writeValueAsString(progress);
+		} catch (JsonProcessingException e) {
+			throw new CommandRuntimeException("JsonProcessingException", e);
+		}
 	}
 
 	// Test coverage: public and returning CmsExportWriter enables integration testing.

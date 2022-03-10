@@ -40,10 +40,11 @@ import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishTicket;
+import se.simonsoft.cms.publish.config.command.PublishManifestExportCommandHandler;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
-import se.simonsoft.cms.publish.config.manifest.PublishManifestExportCommandHandler;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
@@ -65,7 +66,8 @@ public class AwsStepfunctionPublishWorker {
 	private final Map<String, CmsExportProvider> exportProviders;
 
 	private Date startUpTime;
-	private ObjectReader reader;
+	private ObjectReader readerJob;
+	private ObjectReader readerOptions;
 	private ObjectWriter writer;
 
 	private static final Logger logger = LoggerFactory.getLogger(AwsStepfunctionPublishWorker.class);
@@ -85,7 +87,8 @@ public class AwsStepfunctionPublishWorker {
 			) {
 
 		this.exportProviders = exportProviders;
-		this.reader = reader.forType(PublishJobOptions.class);
+		this.readerJob = reader.forType(PublishJob.class);
+		this.readerOptions = reader.forType(PublishJobOptions.class);
 		this.writer = writer;
 		this.client = client;
 		this.cloudId = cloudId;
@@ -323,19 +326,32 @@ public class AwsStepfunctionPublishWorker {
         return hasCompleted;
 	}
 
+	
 	private PublishJobOptions deserializeInputToOptions(String input) {
 		PublishJobOptions options = null;
+		
+		// Forward compatibility where input is a PublishJob, like cms-webapp worker.
 		try {
-			options = reader.readValue(input);
+			PublishJob job = readerJob.readValue(input);
+			if (job.getOptions() != null) {
+				return job.getOptions();
+			}
 		} catch (IOException e) {
-
-			logger.error("Could not deserialize options recieved.", e);
+			logger.info("Could not deserialize input as job (CMS 5.1+)");
+		}
+		
+		// Backwards compatibility (CMS 4.3 / CMS 5.0)
+		try {
+			options = readerOptions.readValue(input);
+		} catch (IOException e) {
+			logger.error("Could not deserialize options / job received.", e);
+			logger.debug("Could not deserialize options / job received: {}", input);
 			throw new IllegalArgumentException(e.getMessage());
 		}
-
 		return options;
 	}
 
+	
 	private boolean isJobCompleted(PublishTicket ticket) throws PublishException {
 		return publishJobService.isCompleted(ticket);
 	}

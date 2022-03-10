@@ -24,6 +24,7 @@ public class PublishConfig {
 
 	protected boolean active;
 	protected boolean visible;
+	protected boolean exportable = true;
 	protected String description; // Display in dialog, suppress in PublishJob.
 	protected List<String> statusInclude;
 	protected List<String> elementNameInclude;
@@ -56,6 +57,12 @@ public class PublishConfig {
 	}
 	public void setVisible(boolean visible) {
 		this.visible = visible;
+	}
+	public boolean isExportable() {
+		return exportable;
+	}
+	public void setExportable(boolean exportable) {
+		this.exportable = exportable;
 	}
 	/**
 	 * Description is available on the PublishConfig and suppressed for PublishJob.
