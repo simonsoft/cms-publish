@@ -86,10 +86,14 @@ public class PublishCdnResource {
 		lookup.getItem(p.getItemId());
 		
 		// Sign the path, if needed.
-		String url = cdnUrlSigner.getUrlDocumentSigned(cdn, path, expires);
-		
 		Set<String> result = new LinkedHashSet<String>(3);
-		result.add(url);
+		try {
+			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, path, expires);
+			result.add(url);
+		} catch (Exception e) {
+			logger.error("Publish CDN failed to sign CDN url.", e);
+			throw new IllegalStateException("Failed to provide URL on Delivery.");
+		}
 		
 		// Requiring GenericEntity for Iterable<?>.
 		GenericEntity<Iterable<String>> ge = new GenericEntity<Iterable<String>>(result) {};
@@ -139,6 +143,7 @@ public class PublishCdnResource {
 		}
 		
 		LinkedHashMap<String, String> m = new LinkedHashMap<String, String>();
+		logger.debug("Publish CDN document has {} fields.", docs.get(0).size());
 		docs.get(0).forEach(e -> m.put(e.getKey(), e.getValue().toString()));
 		docs.get(0).forEach(e -> logger.debug("Publish CDN: {} = {}", e.getKey(), e.getValue()));
 		
