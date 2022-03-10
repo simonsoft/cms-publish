@@ -161,6 +161,7 @@ public class PublishCdnResource {
 		
 		PublishCdnItem p = new PublishCdnItem();
 		p.setItemId(repository.getItemId(path, null));
+		// No longer required to fall back to "preview".
 		if (m.containsKey("embd_publish-cdn_custom_cdn")) {
 			p.setCdn(m.get("embd_publish-cdn_custom_cdn"));
 		} else {
