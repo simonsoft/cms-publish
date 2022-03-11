@@ -19,10 +19,25 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 
 public class PublishJobStorage extends PublishConfigStorage {
 	
+	/**
+	 * The export writer implementation may optionally use this field for future proofing. 
+	 */
 	private String pathversion;
+	/**
+	 * The export writer implementation may optionally use this field for separation of tenants.
+	 */
 	private String pathcloudid;
+	/**
+	 * Typically mapped to export job prefix.
+	 */
 	private String pathconfigname;
+	/**
+	 * Typically included in export job name (and job path).
+	 */
 	private String pathdir;
+	/**
+	 * Typically included in export job name (and job path).
+	 */
 	private String pathnamebase;
 	
 	public PublishJobStorage() {
