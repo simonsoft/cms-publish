@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.worker.export;
 
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
+import se.simonsoft.cms.item.export.CmsExportUrlPresigner;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 
 public class CmsExportProviderNotConfigured implements CmsExportProvider {
@@ -34,6 +35,11 @@ public class CmsExportProviderNotConfigured implements CmsExportProvider {
 
 	@Override
 	public CmsExportWriter getWriter() {
+		throw new UnsupportedOperationException("System is not configured to support exports of type: " + type);
+	}
+
+	@Override
+	public CmsExportUrlPresigner getUrlPresigner() {
 		throw new UnsupportedOperationException("System is not configured to support exports of type: " + type);
 	}
 
