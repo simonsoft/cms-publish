@@ -66,6 +66,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		logger.debug("Requesting export of PublishJob manifest.");
+		String tagStep = "manifest";
+		String tagCdn = ""; // Value length 0 is allowed.
 		
 		PublishJobProgress progress = options.getProgress();
 		if (progress == null) {
@@ -79,6 +81,10 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		if (manifest.getPathext() == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobManifest object with 'pathext' field. Indicates missing 'docno...' config.");
+		}
+		
+		if (manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
+			tagCdn = manifest.getCustom().get("cdn");
 		}
 		
 		if (!resultLookup.isPublishResultExists(itemId, options)) {
@@ -98,6 +104,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), manifest.getPathext());
 		job.addExportItem(exportItem);
+		job.withTagging("PublishStep", tagStep);
+		job.withTagging("PublishCdn", tagCdn);
 		job.prepare();
 
 		logger.debug("Preparing writer for export...");

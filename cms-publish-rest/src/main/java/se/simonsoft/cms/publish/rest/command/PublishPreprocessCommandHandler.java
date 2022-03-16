@@ -108,6 +108,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	public LinkedList<CmsExportWriter> doWebappExport(CmsItemId itemId, PublishJobOptions options) {
 		final PublishJobPreProcess preprocess = options.getPreprocess();
 		final PublishJobStorage storage = options.getStorage();
+		final PublishJobManifest manifest = options.getManifest();
+		
+		String tagStep = "preprocess";
+		String tagCdn = ""; // Value length 0 is allowed.
 
 		if (storage.getType() != null && !storage.getType().equals("s3")) {
 			throw new IllegalArgumentException("Unsupported storage type: " + storage.getType());
@@ -120,6 +124,12 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		if (options.getType().equals("none") || options.getType().equals("export")) {
 			// There is no engine stage in this publish config, storing as publish result.
 			pathext = "zip";
+			tagStep = "engine";
+		}
+		
+		// Cdn tagging
+		if (manifest != null && manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
+			tagCdn = manifest.getCustom().get("cdn");
 		}
 		
 		// Use preprocess options to populate the Export Options.
@@ -154,9 +164,12 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		LinkedList<CmsExportWriter> result = new LinkedList<CmsExportWriter>();
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
+		setTags(job, tagStep, tagCdn);
 		HashMap<String, CmsExportJob> secondaryJobs = new HashMap<>();
 		for (String artifact: this.secondaryExportArtifacts) {
-			secondaryJobs.put(artifact, PublishExportJobFactory.getExportJobZip(storage, artifact + ".zip"));
+			CmsExportJob sJob = PublishExportJobFactory.getExportJobZip(storage, artifact + ".zip");
+			setTags(sJob, tagStep, tagCdn);
+			secondaryJobs.put(artifact, sJob);
 		}
 		
 		// Export service
@@ -248,6 +261,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		if (options.getCmsAttributesSuppressAll() == null) {
 			options.setCmsAttributesSuppressAll(true);
 		}
+	}
+	
+	private void setTags(CmsExportJob job, String tagStep, String tagCdn) {
+		job.withTagging("PublishStep", tagStep);
+		job.withTagging("PublishCdn", tagCdn);
 	}
 
 }
