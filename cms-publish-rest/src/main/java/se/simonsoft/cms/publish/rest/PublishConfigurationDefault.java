@@ -51,7 +51,7 @@ import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterActive;
 import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterVisible;
 import se.simonsoft.cms.release.ReleaseProperties;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
-import se.simonsoft.cms.release.translation.TranslationLocalesMappingProvider;
+import se.simonsoft.cms.release.translation.TranslationLocalesMappingFactory;
 
 public class PublishConfigurationDefault implements PublishConfiguration {
 	
@@ -138,7 +138,7 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 		CmsResourceContext context = getConfigurationParentFolder(itemId);
 		TranslationLocalesMapping m;
 		try {
-			m = TranslationLocalesMappingProvider.getTranslationLocalesMapping(itemId.getRepository(), context);
+			m = TranslationLocalesMappingFactory.getTranslationLocalesMapping(itemId.getRepository(), context);
 		} catch (IllegalStateException e) {
 			logger.warn("Export Publications requires config TranslationLocales for mapping of RFC locales.");
 			// TranslationLocales config might be missing when only processing Release items. 
