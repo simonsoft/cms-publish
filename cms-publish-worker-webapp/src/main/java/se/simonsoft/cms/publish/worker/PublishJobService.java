@@ -176,7 +176,10 @@ public class PublishJobService {
 		logger.debug("Adding data to the jobs params: [}");
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
+		// 'type' parameter is defined by request.setFormat(..)
+		/*
 		request.addParam("type", options.getFormat());
+		*/
 		request.addParam("file-type", "xml");
 		
 		PublishProfilingRecipe profiling = options.getProfiling();
