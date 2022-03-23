@@ -237,7 +237,7 @@ public class AwsStepfunctionPublishWorker {
 	private void waitForJob(GetActivityTaskResponse taskResponse, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 
 		final int interval = 10;
-		final Long MAX_WAIT = 7200L; // TODO: Configurable
+		final Long MAX_WAIT = 5*3600L; // TODO: Configurable, Quarkus
 		final long iterations = MAX_WAIT / interval;
 
 		for (int i = 0; i < iterations; i++) {
