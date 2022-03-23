@@ -15,11 +15,11 @@
  */
 package se.simonsoft.cms.publish.worker.status.report;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class WorkerStatusReport {
 
@@ -27,6 +27,7 @@ public class WorkerStatusReport {
 	public static final int MAX_LENGTH = 100;
 	private WorkerEvent workerLoop = new WorkerEvent("Pending", new Date(), "Worker connection pending.");
 
+	
 	public List<WorkerEvent> getWorkerEvents(){
 		return this.events;
 	}
@@ -65,8 +66,9 @@ public class WorkerStatusReport {
 		}
 
 		public String getTimeStamp() {
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			return df.format(timeStamp);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss UTC");
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			return sdf.format(timeStamp);
 		}
 
 		public void setTimeStamp(Date timeStamp) {
