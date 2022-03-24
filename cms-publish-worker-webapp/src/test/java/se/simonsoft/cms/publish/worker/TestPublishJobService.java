@@ -41,7 +41,6 @@ import se.simonsoft.cms.publish.abxpe.PublishFormatPDF;
 import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
-import se.simonsoft.cms.publish.worker.PublishJobService;
 
 public class TestPublishJobService {
 	
@@ -73,9 +72,10 @@ public class TestPublishJobService {
         
         assertEquals("http://localhost:8080", pr.getConfig().get("host"));
         assertEquals("/e3/servlet/e3", pr.getConfig().get("path"));
+        assertEquals("pdf", pr.getFormat().getFormat());
+        assertEquals("format/type is handled by setFormat(..)", null, pr.getParams().get("type"));
         assertEquals("yes", pr.getParams().get("zip-output"));
         assertEquals("DOC_900108_Released.pdf", pr.getParams().get("zip-root"));
-        assertEquals("pdf", pr.getParams().get("type"));
         assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
         assertEquals("DOC_900108_Released.pdf/somepath", pr.getParams().get("pathname"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
