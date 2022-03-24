@@ -66,7 +66,7 @@ public class WorkerStatusReport {
 		}
 
 		public String getTimeStamp() {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss UTC");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'");
 			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 			return sdf.format(timeStamp);
 		}
