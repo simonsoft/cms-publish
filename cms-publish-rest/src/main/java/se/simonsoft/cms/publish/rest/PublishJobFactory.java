@@ -159,7 +159,7 @@ public class PublishJobFactory {
 		*/
 		
 		// #1539 Preparing for special handling of Preview such that all/most Configs can be instantiated as Preview or Full job.
-		doPreviewTransformations(pj);
+		doCdnTransformations(item, pj);
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
@@ -167,7 +167,7 @@ public class PublishJobFactory {
 	
 	
 	// #1539 For now, just ensure that manifest.custom.cdn is defined if delivery.type = 'cdn'.
-	private void doPreviewTransformations(PublishJob pj) {
+	private void doCdnTransformations(CmsItemPublish item, PublishJob pj) {
 		
 		if (pj.getOptions().getDelivery() != null && "cdn".equals(pj.getOptions().getDelivery().getType())) {
 			LinkedHashMap<String, String> custom = pj.getOptions().getManifest().getCustom();
@@ -179,6 +179,13 @@ public class PublishJobFactory {
 			// Default to "preview" CDN when not explicitly defined in PublishConfig.
 			if (custom.get("cdn") == null) {
 				custom.put("cdn", "preview");
+			}
+			
+			// #1438 Ensure 'version0' is always set (except for preview)
+			// TODO: Default to release label when implementing multiple delivery versions.
+			if (custom.get("version0") == null && !custom.get("cdn").equals("preview")) {
+				custom.put("version0", "latest");
+				//custom.put("version0", item.getReleaseLabel());
 			}
 		}
 	}
