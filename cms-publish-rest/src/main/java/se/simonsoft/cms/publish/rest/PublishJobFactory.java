@@ -183,6 +183,7 @@ public class PublishJobFactory {
 			
 			// #1438 Ensure 'version0' is always set (except for preview)
 			// TODO: Default to release label when implementing multiple delivery versions.
+			// #1438 Allow suppressing the initial CDN delivery by setting 'version0' to empty string, i.e. keep empty string if set by manifest template.
 			if (custom.get("version0") == null && !custom.get("cdn").equals("preview")) {
 				custom.put("version0", "latest");
 				//custom.put("version0", item.getReleaseLabel());
