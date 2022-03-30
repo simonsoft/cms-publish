@@ -64,6 +64,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	}
 
 	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
+	}
+	
+	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 		logger.debug("Requesting export of PublishJob manifest.");
 		String tagStep = "manifest";

@@ -34,6 +34,11 @@ public class PublishNoopCommandHandler implements ExternalCommandHandler<Publish
 	}
 
 	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
+	}
+	
+	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 
 		logger.warn("Publish Command 'noop', nothing will be done.");

@@ -55,6 +55,11 @@ public class PublishPostprocessCommandHandler implements ExternalCommandHandler<
 		this.resultLookup = resultLookup;
 		this.exportServices = exportServices;
 	}
+	
+	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
+	}
 
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {

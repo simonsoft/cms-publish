@@ -49,6 +49,11 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 		
 		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class);
 	}
+	
+	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
+	}
 
 	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {

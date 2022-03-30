@@ -53,7 +53,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
-public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions>{
+public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions> {
 
 
 	private final Long expiryMinutes;
@@ -85,6 +85,11 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 				.region(region)
 				.credentialsProvider(credentials)
 				.build();
+	}
+	
+	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
 	}
 
 	@Override

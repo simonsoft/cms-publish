@@ -74,6 +74,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	}
 
 	@Override
+	public Class<PublishJobOptions> getArgumentsClass() {
+		return PublishJobOptions.class;
+	}
+	
+	@Override
 	public String handleExternalCommand(CmsItemId itemId, PublishJobOptions options) {
 
 		final PublishJobPreProcess preprocess = options.getPreprocess();
