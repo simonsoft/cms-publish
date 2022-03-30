@@ -20,9 +20,9 @@ import javax.inject.Named;
 
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemPath;
+import se.simonsoft.cms.item.CmsProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
-import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ProfilingNaming;
 
@@ -41,7 +41,7 @@ public class PublishJobStorageFactory {
 		this.s3bucket = bucket;
 	}
 	
-	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName, PublishProfilingRecipe profiling) {
+	public PublishJobStorage getInstance(PublishConfigStorage c, CmsItemPublish item, String configName, CmsProfilingRecipe profiling) {
 		
 		if (item == null) {
 			throw new IllegalArgumentException("PublishJobStorageFactory needs a valid CmsItemPublish: " + item);
@@ -75,7 +75,7 @@ public class PublishJobStorageFactory {
 		return s;
 	}
 	
-	public String getNameBase(CmsItemId itemId, PublishProfilingRecipe profiling) {
+	public String getNameBase(CmsItemId itemId, CmsProfilingRecipe profiling) {
 		
 		if (itemId.getPegRev() == null) {
 			throw new IllegalArgumentException("ItemId must have revision: " + itemId);
