@@ -24,15 +24,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
+import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
@@ -49,12 +57,24 @@ public class TestPublishJobService {
 	ObjectMapper mapper = new ObjectMapper();
 	ObjectReader reader = mapper.readerFor(PublishJobOptions.class);
 	PublishServicePe pe;
+	private Map<String, CmsExportProvider> exportProviders = new HashMap<>();
+	
+	@Mock CmsExportProviderFsSingle mockExportFsProvider;
+	@Mock CmsExportProviderAwsSingle mockExportAwsProvider;
+	
+	@Before
+	public void initMocks() {
+		MockitoAnnotations.initMocks(this);
+
+		exportProviders.put("fs", mockExportFsProvider);
+    	exportProviders.put("s3", mockExportAwsProvider);
+	}
 	
 	@Test
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
 		PublishFormat format = new PublishFormatPDF();
-		PublishJobService service = new PublishJobService(pe, aptapplicationPrefix);
+		PublishJobService service = new PublishJobService(exportProviders, pe, aptapplicationPrefix);
 		PublishJobOptions job = reader.readValue(getJsonString());
 		PublishTicket publishTicket = new PublishTicket("2");
 		
