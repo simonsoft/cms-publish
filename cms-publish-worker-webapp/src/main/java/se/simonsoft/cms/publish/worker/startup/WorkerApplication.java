@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Manifest;
 
 import javax.servlet.ServletContext;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.sfn.SfnClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -67,6 +69,7 @@ public class WorkerApplication extends ResourceConfig {
 	private static final String AWS_ACTIVITY_NAME = "abxpe";
 	private static final String PUBLISH_FS_PATH_ENV = "PUBLISH_FS_PATH";
 	private static final String PUBLISH_S3_BUCKET_ENV = "PUBLISH_S3_BUCKET";
+	private static final String PUBLISH_S3_ACCELERATED_ENV = "PUBLISH_S3_ACCELERATED";
 	private static final String BUCKET_NAME_DEFAULT = "cms-automation";
 
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
@@ -138,6 +141,14 @@ public class WorkerApplication extends ResourceConfig {
         		logger.info("Region name: {}", region.id());
             	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
+            	
+            	S3Configuration.Builder s3ConfigBuilder = S3Configuration.builder();
+            	String accelerated = environment.getParamOptional(PUBLISH_S3_ACCELERATED_ENV);
+            	if (accelerated != null) {
+            		logger.info("Worker S3 accelerated: {}", accelerated);
+        			s3ConfigBuilder.accelerateModeEnabled(Boolean.valueOf(accelerated));
+        		}
+            	
 
             	String fsParent = environment.getParamOptional(PUBLISH_FS_PATH_ENV);
             	//Bind of export providers.
@@ -151,7 +162,7 @@ public class WorkerApplication extends ResourceConfig {
             	}
 
             	exportProviders.put("fs", cmsExportProviderFsSingle);
-            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials));
+            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials, s3ConfigBuilder.build(), Optional.empty()));
             	bind(exportProviders).to(Map.class);
 
             	//Bind AWS client
