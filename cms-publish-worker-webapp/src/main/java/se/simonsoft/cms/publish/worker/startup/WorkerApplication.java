@@ -139,11 +139,6 @@ public class WorkerApplication extends ResourceConfig {
             	bind(region).to(Region.class);
             	awsAccountId = getAwsAccountId(credentials, region);
 
-            	bind(new PublishServicePe()).to(PublishServicePe.class);
-            	PublishServicePe publishServicePe = new PublishServicePe();
-            	PublishJobService publishJobService = new PublishJobService(publishServicePe, aptapplicationPrefix, credentials, region);
-            	bind(publishJobService).to(PublishJobService.class);
-
             	String fsParent = environment.getParamOptional(PUBLISH_FS_PATH_ENV);
             	//Bind of export providers.
             	Map<String, CmsExportProvider> exportProviders = new HashMap<>();
@@ -177,6 +172,11 @@ public class WorkerApplication extends ResourceConfig {
         		ObjectWriter writer = mapper.writer();
         		bind(reader).to(ObjectReader.class);
         		bind(writer).to(ObjectWriter.class);
+        		
+        		PublishServicePe publishServicePe = new PublishServicePe();
+        		bind(publishServicePe).to(PublishServicePe.class);
+        		PublishJobService publishJobService = new PublishJobService(exportProviders, publishServicePe, aptapplicationPrefix);
+        		bind(publishJobService).to(PublishJobService.class);
 
 				if (cloudId != null) {
 					//Not the easiest thing to inject a singleton with hk2. We create a instance of it here and let it start it self from its constructor.

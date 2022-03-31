@@ -40,8 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
-import se.simonsoft.cms.item.export.CmsExportPrefix;
+import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.PublishException;
@@ -55,39 +54,29 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecip
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.worker.startup.Environment;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 
 public class PublishJobService {
 
+	private final Map<String, CmsExportProvider> exportProviders;
 	private final PublishServicePe pe;
 	private final String publishHost = "http://localhost:8080";
 	private final String publishPath = "/e3/servlet/e3";
 	private final String aptapplicationPrefix;
-	private final AwsCredentialsProvider credentials;
-	private final Region region;
 	private boolean rootFolderEnable = Boolean.valueOf(new Environment().getParamOptional("APTROOTFOLDERWEBENABLE"));
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobService.class);
 
 	@Inject
-	public PublishJobService(PublishServicePe pe, @Named("APTAPPLICATION") String aptapplicationPrefix) {
+	public PublishJobService(
+			Map<String, CmsExportProvider> exportProviders,
+			PublishServicePe pe, 
+			@Named("APTAPPLICATION") String aptapplicationPrefix) {
+
+		this.exportProviders = exportProviders;
 		this.pe = pe;
 		this.aptapplicationPrefix = aptapplicationPrefix;
-		this.region = null;
-		this.credentials = null;
 	}
 
-	@Inject
-	public PublishJobService(PublishServicePe pe,
-			@Named("APTAPPLICATION") String aptapplicationPrefix,
-			AwsCredentialsProvider credentials,
-			Region region) {
-		this.pe = pe;
-		this.aptapplicationPrefix = aptapplicationPrefix;
-		this.region = region;
-		this.credentials = credentials;
-	}
 
 	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
 		if (jobOptions == null) {
@@ -239,10 +228,7 @@ public class PublishJobService {
 
 	private String retrieveSource(PublishJobOptions jobOptions) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
-		CmsExportPrefix cmsPrefix = new CmsExportPrefix(jobOptions.getStorage().getPathversion());
-		String cloudId = jobOptions.getStorage().getPathcloudid();
-		String bucketName = jobOptions.getStorage().getParams().get("s3bucket");
-		CmsExportProviderAwsSingle exportProvider = new CmsExportProviderAwsSingle(cmsPrefix, cloudId, bucketName, region, credentials);
+		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
 		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
 		InputStream contents = reader.getContents();
