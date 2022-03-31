@@ -237,7 +237,9 @@ public class AwsStepfunctionPublishWorker {
 	private void waitForJob(GetActivityTaskResponse taskResponse, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 
 		final int interval = 10;
-		final Long MAX_WAIT = 5*3600L; // TODO: Configurable, Quarkus
+		// #1553 The max wait time cannot be higher than Step Functions "TimeoutSeconds" for the Task.
+		// Configurable would be better to prevent potentially long stuck time for customers without huge documents.
+		final Long MAX_WAIT = 4*3600L; // TODO: Configurable, Quarkus
 		final long iterations = MAX_WAIT / interval;
 
 		for (int i = 0; i < iterations; i++) {
