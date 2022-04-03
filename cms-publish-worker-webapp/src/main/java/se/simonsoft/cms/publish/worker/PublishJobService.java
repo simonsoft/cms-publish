@@ -83,12 +83,12 @@ public class PublishJobService {
 			throw new NullPointerException("The given PublishJob was null");
 		}
 
-		logger.debug("Request to publish with job: {}", jobOptions);
+		logger.trace("Request to publish with job: {}", jobOptions);
 
 		PublishRequestDefault request = new PublishRequestDefault();
 
 		PublishFormat format = pe.getPublishFormat(jobOptions.getFormat());
-		logger.debug("Will be published with format: {}", format.getFormat());
+		logger.debug("Request to publish with format: {}", format.getFormat());
 
 		request.addConfig("host", publishHost);
 		request.addConfig("path", publishPath);
@@ -162,7 +162,7 @@ public class PublishJobService {
 	
 	
 	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
-		logger.debug("Adding data to the jobs params: [}");
+		logger.trace("Adding data to the jobs params: {}", request);
 		request.addParam("zip-output", "yes");
 		request.addParam("zip-root", options.getPathname());
 		// 'type' parameter is defined by request.setFormat(..)
