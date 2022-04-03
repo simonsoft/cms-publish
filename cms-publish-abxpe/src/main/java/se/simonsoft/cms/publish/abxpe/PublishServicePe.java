@@ -107,7 +107,7 @@ public class PublishServicePe implements PublishService {
 
 	@Override
 	public PublishTicket requestPublish(PublishRequest request) throws PublishException {
-		logger.debug("Start");
+		logger.trace("Start");
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
 		// Start with host and pe path
@@ -158,7 +158,7 @@ public class PublishServicePe implements PublishService {
 
 	@Override
 	public Boolean isCompleted(PublishTicket ticket, PublishRequest request) throws PublishException {
-		logger.debug("Start");
+		logger.trace("Start");
 		
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
@@ -285,8 +285,7 @@ public class PublishServicePe implements PublishService {
 	 * @throws PublishException 
 	 */
 	private String parseResponse(String element, String attribute, InputStream content) throws PublishException{
-		logger.debug("Start");
-		logger.debug("Start parse response");
+		logger.trace("Start parse response");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
 			
@@ -326,7 +325,7 @@ public class PublishServicePe implements PublishService {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		logger.debug("End parse response");
+		logger.trace("End parse response");
 		return null;
 	}
 	
@@ -385,9 +384,9 @@ public class PublishServicePe implements PublishService {
 	 * @return
 	 */
 	private PublishTicket getQueueTicket(InputStream response) throws PublishException {
-		logger.debug("Start");
+		logger.trace("Start");
 		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id", response));
-		logger.debug("End");
+		logger.trace("End");
 		return queueTicket;
 	}
 	
