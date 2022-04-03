@@ -134,7 +134,6 @@ public class AwsStepfunctionPublishWorker {
 					}
 					if (hasTaskToken(taskResponse)) {
 						PublishTicket publishTicket = null;
-						String progressAsJson = null;
 						logger.debug("tasktoken: {}", taskResponse.taskToken());
 						PublishJobOptions options = null;
 
@@ -142,7 +141,8 @@ public class AwsStepfunctionPublishWorker {
 							String taskInput = taskResponse.input();
 							logger.debug("Got a task from workflow. {}", taskInput);
 							options = deserializeInputToOptions(taskInput);
-
+							
+							// TODO: Support 'action' field, likely move implementation of publish to an ExternalCommandHandler.
 							if (hasTicket(options)) {
 								// The second activity is no longer used, moving towards a single activity.
 								if (hasCompleted(options)) {
@@ -153,9 +153,8 @@ public class AwsStepfunctionPublishWorker {
 									updateStatusReport("Completed manifest export", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
 									sendTaskResult(taskResponse, getProgressAsJson(options.getProgress()));
 								} else {
-									updateStatusReport("Retrieving", new Date(), "Ticket: " + options.getProgress().getParams().get("ticket"));
-									progressAsJson = exportJob(options);
-									sendTaskResult(taskResponse, progressAsJson);
+									// Removed the initial approach with 2 Tasks.
+									throw new IllegalStateException("The legacy dual-task workflow is no longer supported.");
 								}
 							} else {
 								// Request publish and wait for completion.
@@ -210,29 +209,6 @@ public class AwsStepfunctionPublishWorker {
 		});
 	}
 
-	@Deprecated
-	private String exportJob(PublishJobOptions options) throws PublishException, IOException, CommandRuntimeException {
-		logger.debug("Job has a ticket, checking if it is ready for export.");
-
-		final PublishTicket publishTicket = new PublishTicket(options.getProgress().getParams().get("ticket"));
-		final Boolean jobCompleted = isJobCompleted(publishTicket);
-		PublishJobProgress progress = options.getProgress();
-		progress.getParams().put("ticket", publishTicket.toString());
-		progress.getParams().put("completed", jobCompleted.toString());
-		final String progressAsJson = getProgressAsJson(progress);
-
-		String exportPath = null;
-
-		if (jobCompleted) {
-			logger.debug("Job is completed, starting export...");
-			exportPath = exportCompletedJob(publishTicket, options);
-			logger.debug("Job is exported to: {}", exportPath);
-		} else {
-			logger.debug("Job is not completed send fail result JobPending");
-			throw new CommandRuntimeException("JobPending");
-		}
-		return progressAsJson;
-	}
 
 	private void waitForJob(GetActivityTaskResponse taskResponse, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 
