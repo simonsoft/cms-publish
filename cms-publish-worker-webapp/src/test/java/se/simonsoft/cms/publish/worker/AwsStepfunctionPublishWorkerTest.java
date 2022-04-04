@@ -145,7 +145,8 @@ public class AwsStepfunctionPublishWorkerTest {
 		assertEquals("{\"params\":{\"ticket\":\"44\",\"completed\":\"true\",\"pathResult\":\"name-from-cmsconfig-publish/vvab/xml/documents/900108.xml/900108.zip\"}}", value.output());
 	}
 
-	@Test @Deprecated
+	@Test // No longer a valid state, only single task workflow supported.
+	// TODO: Consider throwing a specific exception.
 	public void testHasTicketNotCompleted() throws Exception {
 
 		ArgumentCaptor<SendTaskFailureRequest> requestCaptor = ArgumentCaptor.forClass(SendTaskFailureRequest.class);
@@ -161,7 +162,8 @@ public class AwsStepfunctionPublishWorkerTest {
 		verify(mockTaskResponse, times(1)).input();
 		verify(mockClient, times(1)).sendTaskFailure(requestCaptor.capture());
 
-		assertEquals("JobPending", requestCaptor.getValue().error());
+		//The "JobPending" route no longer exists in workflow.
+		assertEquals("JobFailed", requestCaptor.getValue().error());
 	}
 
 	@Test @Deprecated
