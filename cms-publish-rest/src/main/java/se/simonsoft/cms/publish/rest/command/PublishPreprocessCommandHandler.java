@@ -236,6 +236,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		// Profiling is enabled by default because it is often more efficient (excludes filtered graphics).
 		// Can disable profiling with "ProfilingEnable": false in order to filter on PE (as with adapter).
+		
+		// #1529: Fully resolve and remove @keyref in order to support PE without adapter (will otherwise overwrite with empty key text).
+		if (options.getKeyrefKeywordOutput() == null) {
+			options.setKeyrefKeywordOutput("resolve");
+		}
 	}
 	
 	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
