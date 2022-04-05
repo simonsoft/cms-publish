@@ -267,6 +267,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			options.setKeyrefKeywordOutput("resolve");
 		}
 		
+		// Resolve keyref attributes for href.
+		if (options.getKeyrefHrefOutput() == null) {
+			options.setKeyrefHrefOutput("resolve");
+		}
+		
 		// Suppress all cms-namespace attributes, not allowed by DITA-OT. Revision metadata must be set in other attributes.
 		if (options.getCmsAttributesSuppressAll() == null) {
 			options.setCmsAttributesSuppressAll(true);
