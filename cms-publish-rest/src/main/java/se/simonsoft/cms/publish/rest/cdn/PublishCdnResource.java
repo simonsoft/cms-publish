@@ -76,7 +76,7 @@ public class PublishCdnResource {
 		
 		// Get information from index, type = publish-cdn
 		String cdn = p.getCdn();
-		String path = p.getPathformat();
+		String path = getPath(p);
 		Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
 		// Verify access control.
@@ -101,6 +101,20 @@ public class PublishCdnResource {
 				.header("Vary", "Accept")
 				.build();
 		return response;
+	}
+	
+	private String getPath(PublishCdnItem p) {
+		
+		StringBuilder result = new StringBuilder();
+		result.append(p.getPathformat());
+		// Need to add additional single-file formats or introduce some field in manifest.job that specifies single/multi.
+		// Could also add manifest.document.pathext for single-file only.
+		if (p.getFormat().equals("pdf")) {
+			result.append(p.getPathname());
+			result.append('.');
+			result.append("pdf");
+		}
+		return result.toString();
 	}
 	
 	
@@ -151,8 +165,16 @@ public class PublishCdnResource {
 			throw new RuntimeException("Publish CDN error: " + m.get("text_error"));
 		}
 		
+		if (!m.containsKey("embd_publish-cdn_job_format")) {
+			throw new RuntimeException("Publish CDN found no CDN job format in index: " + id);
+		}
+
+		if (!m.containsKey("embd_publish-cdn_document_pathname")) {
+			throw new RuntimeException("Publish CDN found no CDN document pathname in index: " + id);
+		}
+		
 		if (!m.containsKey("embd_publish-cdn_progress_pathformat")) {
-			throw new RuntimeException("Publish CDN found no CDN document path in index: " + id);
+			throw new RuntimeException("Publish CDN found no CDN document pathformat in index: " + id);
 		}
 		
 		CmsRepository repository = new CmsRepository("https", m.get("repohost"), m.get("repoparent"), m.get("repo"));
@@ -168,6 +190,8 @@ public class PublishCdnResource {
 			p.setCdn("preview");
 		}
 		// Existence verified above.
+		p.setFormat(m.get("embd_publish-cdn_job_format"));
+		p.setPathname(m.get("embd_publish-cdn_document_pathname"));
 		p.setPathformat(m.get("embd_publish-cdn_progress_pathformat"));
 		
 		return p;

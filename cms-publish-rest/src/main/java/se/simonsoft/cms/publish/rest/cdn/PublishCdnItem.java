@@ -20,7 +20,9 @@ import se.simonsoft.cms.item.CmsItemId;
 public class PublishCdnItem {
 
 	private CmsItemId itemId;
+	private String format; // job format, add additional field if we need CDN formatsuffix (already in pathformat).
 	private String cdn;
+	private String pathname;
 	private String pathformat;
 	
 	
@@ -30,11 +32,23 @@ public class PublishCdnItem {
 	public void setItemId(CmsItemId itemId) {
 		this.itemId = itemId;
 	}
+	public String getFormat() {
+		return format;
+	}
+	public void setFormat(String format) {
+		this.format = format;
+	}
 	public String getCdn() {
 		return cdn;
 	}
 	public void setCdn(String cdn) {
 		this.cdn = cdn;
+	}
+	public String getPathname() {
+		return pathname;
+	}
+	public void setPathname(String pathname) {
+		this.pathname = pathname;
 	}
 	public String getPathformat() {
 		return pathformat;
@@ -42,6 +56,8 @@ public class PublishCdnItem {
 	public void setPathformat(String pathformat) {
 		this.pathformat = pathformat;
 	}
+	
+	
 	
 	
 	
