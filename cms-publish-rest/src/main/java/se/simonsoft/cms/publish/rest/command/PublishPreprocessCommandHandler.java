@@ -118,6 +118,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		String tagStep = "preprocess";
 		String tagCdn = ""; // Value length 0 is allowed.
 
+		if (options.getType() == null) {
+			throw new IllegalArgumentException("Unsupported job type: must not be null");
+		}
+		
 		if (storage.getType() != null && !storage.getType().equals("s3")) {
 			throw new IllegalArgumentException("Unsupported storage type: " + storage.getType());
 		}
