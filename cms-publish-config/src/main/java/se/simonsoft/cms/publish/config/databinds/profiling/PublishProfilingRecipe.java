@@ -48,12 +48,19 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 		// Default constructor.
 	}
 	
+	public PublishProfilingRecipe(String name, Map<String, String> attributes) {
+		this(name, null, attributes);
+	}
+	
+	@Deprecated // deprecating since we will move towards CMS filtering instead of logicalexpr.
 	public PublishProfilingRecipe(String name, String expr, Map<String, String> attributes) {
 
 		// Verify that the expr does not contain '<','>' or space (or any other URL-disallowed char).
-		Matcher m = INVALID_EXPR.matcher(expr);
-		if (m.matches()) {
-			throw new IllegalArgumentException("Not an URL encoded logical expression: " + expr);
+		if (expr != null) {
+			Matcher m = INVALID_EXPR.matcher(expr);
+			if (m.matches()) {
+				throw new IllegalArgumentException("Not an URL encoded logical expression: " + expr);
+			}
 		}
 		
 		if (attributes != null && (attributes.containsKey("name") || attributes.containsKey("logicalexpr"))) {
@@ -63,7 +70,9 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 			this.attributes.putAll(attributes);
 		}
 		this.attributes.put("name", name);
-		this.attributes.put("logicalexpr", expr);
+		if (expr != null) {
+			this.attributes.put("logicalexpr", expr);
+		}
 	}
 	
 	

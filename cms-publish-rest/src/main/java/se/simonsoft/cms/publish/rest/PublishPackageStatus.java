@@ -135,6 +135,7 @@ public class PublishPackageStatus {
         logger.debug("Found {} workflow executions for item: {}", executions.size(), item.getId());
         
         // FIXME: We currently ignore the RUNNING_STALE executions. It remains to be seen if this needs to be handled properly.
+        // #1525 The state RUNNING_STALE is probably going away.
         executions.removeIf(execution -> execution.getStatus().equals("RUNNING_STALE"));
         // Filter out the executions not related to the current publication
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));

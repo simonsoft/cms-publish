@@ -112,8 +112,8 @@ public class TestPublishProfilingSet {
 	public void testOrder() {
 		
 		PublishProfilingRecipe p1 = new PublishProfilingRecipe("A", "", null);
-		PublishProfilingRecipe p2 = new PublishProfilingRecipe("B", "", null);
-		PublishProfilingRecipe p3 = new PublishProfilingRecipe("C", "", null);
+		PublishProfilingRecipe p2 = new PublishProfilingRecipe("B", null, null);
+		PublishProfilingRecipe p3 = new PublishProfilingRecipe("C", null);
 		
 		PublishProfilingSet ppSet = new PublishProfilingSet();
 		ppSet.add(p2);
@@ -151,9 +151,9 @@ public class TestPublishProfilingSet {
 		PublishProfilingRecipe recipe = new PublishProfilingRecipe("testData", "", null);
 		ppSet.add(recipe);
 		assertEquals(recipe, ppSet.get("testData"));
-
-
 	}
+
+	
 	@Test
 	public void testUnsupportedMethods() throws JsonProcessingException, IOException {
 		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
