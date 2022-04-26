@@ -137,7 +137,7 @@ public class PublishCdnResource {
 		//query.addFilterQuery("repo:" + repo);
 
 		//query.setSort("rev", ORDER.desc);
-		query.setFields("repo", "repoparent", "repohost", "rev", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "text_error");
+		query.setFields("repo", "repoparent", "repohost", "rev", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_job_format", "embd_publish-cdn_document_pathname", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "text_error");
 		query.setRows(3);
 		
 		try {
