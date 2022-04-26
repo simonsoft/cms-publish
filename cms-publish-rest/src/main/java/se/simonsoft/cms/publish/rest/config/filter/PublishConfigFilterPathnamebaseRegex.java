@@ -15,28 +15,26 @@
  */
 package se.simonsoft.cms.publish.rest.config.filter;
 
-import java.util.List;
-
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
-public class PublishConfigFilterType implements PublishConfigFilter {
-	
-	private final String fieldNameBook = "embd_xml_a_type";
-	private final String fieldNameDita = "meta_s_s_xml_a_othermeta_cms-type";
-	
+public class PublishConfigFilterPathnamebaseRegex implements PublishConfigFilter {
+
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
-		String fieldValueBook = (String) item.getMeta().get(fieldNameBook);
-		String fieldValueDita = (String) item.getMeta().get(fieldNameDita);
 		
-		boolean accept = false;
-		List<String> configInclude = config.getTypeInclude();
-		if (configInclude == null || configInclude.contains(fieldValueBook) || configInclude.contains(fieldValueDita)) { 
-			accept = true;
+		if (!(item instanceof CmsItemPublish)) {
+			return false;
 		}
 		
-		return accept;
+		if (config.getPathNameBaseInclude() == null) {
+			// Always include if not set
+			return true;
+		} else {
+			String pathnamebase = item.getId().getRelPath().getNameBase();
+			return pathnamebase.matches(config.getPathNameBaseInclude());
+		}
 	}
 
 }

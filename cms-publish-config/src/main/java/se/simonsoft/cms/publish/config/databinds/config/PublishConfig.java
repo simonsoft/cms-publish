@@ -27,6 +27,7 @@ public class PublishConfig {
 	protected boolean exportable = true;
 	protected String description; // Display in dialog, suppress in PublishJob.
 	protected List<String> statusInclude;
+	protected String pathNameBaseInclude; // Regex allowed
 	protected List<String> elementNameInclude;
 	protected List<String> typeInclude;
 	protected Boolean profilingInclude;
@@ -76,6 +77,12 @@ public class PublishConfig {
 	}
 	public void setStatusInclude(List<String> statusInclude) {
 		this.statusInclude = statusInclude;
+	}
+	public String getPathNameBaseInclude() {
+		return pathNameBaseInclude;
+	}
+	public void setPathNameBaseInclude(String pathNameBaseInclude) {
+		this.pathNameBaseInclude = pathNameBaseInclude;
 	}
 	public List<String> getElementNameInclude() {
 		return this.elementNameInclude;

@@ -120,7 +120,7 @@ public class TestPublishConfig extends TestCase {
 		
 		String jobJson = writer.writeValueAsString(job);
 		
-		String expectedJobJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"statusInclude\":[\"Review\",\"Released\"],\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[]," + 
+		String expectedJobJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"statusInclude\":[\"Review\",\"Released\"],\"pathNameBaseInclude\":null,\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"areaMainInclude\":false,\"areas\":[]," + 
 				"\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\"," +
 				"\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"}," +
 				"\"manifest\":{\"job\":{}}," + 
