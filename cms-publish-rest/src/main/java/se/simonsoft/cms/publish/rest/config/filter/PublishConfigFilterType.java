@@ -22,15 +22,17 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 
 public class PublishConfigFilterType implements PublishConfigFilter {
 	
-	private final String fieldName = "embd_xml_a_type";
+	private final String fieldNameBook = "embd_xml_a_type";
+	private final String fieldNameDita = "meta_s_s_xml_a_othermeta_cms-type";
 	
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
-		String fieldValue = (String) item.getMeta().get(fieldName);
+		String fieldValueBook = (String) item.getMeta().get(fieldNameBook);
+		String fieldValueDita = (String) item.getMeta().get(fieldNameDita);
 		
 		boolean accept = false;
 		List<String> configInclude = config.getTypeInclude();
-		if (configInclude == null || configInclude.contains(fieldValue)) { 
+		if (configInclude == null || configInclude.contains(fieldValueBook) || configInclude.contains(fieldValueDita)) { 
 			accept = true;
 		}
 		
