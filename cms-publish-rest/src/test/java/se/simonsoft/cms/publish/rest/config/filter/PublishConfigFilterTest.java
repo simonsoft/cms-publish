@@ -47,6 +47,7 @@ public class PublishConfigFilterTest {
 	
 	private final ObjectReader reader = new ObjectMapper().readerFor(PublishConfig.class);
 	
+	private final String pathConfigPathnamebase = "se/simonsoft/cms/publish/rest/config/filter/publish-config-pathnamebase.json";
 	private final String pathConfigSimple = "se/simonsoft/cms/publish/rest/config/filter/publish-config-simple.json";
 	private final String pathConfigStatus = "se/simonsoft/cms/publish/rest/config/filter/publish-config-status.json";
 	private final String pathConfigType = "se/simonsoft/cms/publish/rest/config/filter/publish-config-type.json";
@@ -184,6 +185,35 @@ public class PublishConfigFilterTest {
 		Map<String, Object> emptyMeta = new HashMap<String, Object>();
 		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);
 		assertFalse(filter.accept(publishConfig, itemMockNoType));
+	}
+	
+	
+	
+	@Test
+	public void testPathNameBaseFilter() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigPathnamebase);
+		PublishConfigFilter filter = new PublishConfigFilterPathnamebaseRegex();
+		
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		
+		CmsItem itemXml = mock(CmsItem.class);
+		CmsItemId itemId108 = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108.xml");
+		when(itemXml.getId()).thenReturn(itemId108);
+		when(itemXml.getProperties()).thenReturn(props);
+		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemXml)));
+		
+		CmsItem itemLong = mock(CmsItem.class);
+		CmsItemId itemId108long = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900108999.xml");
+		when(itemLong.getId()).thenReturn(itemId108long);
+		when(itemLong.getProperties()).thenReturn(props);
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemLong)));
+		
+		
+		CmsItem itemDita = mock(CmsItem.class);
+		CmsItemId itemId255 = new CmsItemIdArg("x-svn:///svn/demo1^/vvab/xml/documents/900255.dita");
+		when(itemDita.getId()).thenReturn(itemId255);
+		when(itemDita.getProperties()).thenReturn(props);
+		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemDita)));
 	}
 	
 	

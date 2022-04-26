@@ -1,0 +1,26 @@
+{
+  "active": true,
+  "visible": true,
+  "pathNameBaseInclude": "[0-9]{3}1..",
+  "typeInclude": ["operator", "service"],
+  "areaMainInclude": true,
+  "areas": [
+    {
+        "pathnameTemplate": "DOC_${item.getId().getRelPath().getNameBase()}.pdf"
+    }
+  ],
+  "options" : {
+      "type": "abxpe",
+      "format": "pdf",
+      "params": {
+          "stylesheet": "axdocbook.style",
+          "pdfconfig": "smallfile.pdfcf"
+      },
+      
+      "storage": {
+        "type": "s3"
+        
+      }
+      
+  }
+}
