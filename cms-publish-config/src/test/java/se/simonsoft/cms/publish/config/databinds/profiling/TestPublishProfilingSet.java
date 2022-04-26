@@ -108,6 +108,7 @@ public class TestPublishProfilingSet {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testOrder() {
 		
@@ -148,7 +149,7 @@ public class TestPublishProfilingSet {
 		assertNotNull(ppSetArray);
 
 		//Testing PublishProfilingSet.add(PublishProfilingRecipe e) (only Jackson should be using this method)
-		PublishProfilingRecipe recipe = new PublishProfilingRecipe("testData", "", null);
+		PublishProfilingRecipe recipe = new PublishProfilingRecipe("testData", null);
 		ppSet.add(recipe);
 		assertEquals(recipe, ppSet.get("testData"));
 	}
@@ -229,9 +230,9 @@ public class TestPublishProfilingSet {
 		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
 		try {
-			PublishProfilingRecipe ppRecipe = new PublishProfilingRecipe("Nicke", "", null);
+			PublishProfilingRecipe ppRecipe = new PublishProfilingRecipe("Nicke", null);
 			ppSet.add(ppRecipe);
-			PublishProfilingRecipe ppRecipe2 = new PublishProfilingRecipe("Nicke", "", null);
+			PublishProfilingRecipe ppRecipe2 = new PublishProfilingRecipe("Nicke", null);
 			ppSet.add(ppRecipe2);
 			
 			fail("Should throw IllegalArgumentException, duplicate names are not allowed in PublishProfilingSet");
