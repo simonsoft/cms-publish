@@ -120,6 +120,7 @@ public class PublishJobManifestBuilder {
 			result.put("profiling", profiling.getName());
 		}
 		
+		// Consider removing this approximate StartTime since we are now augmenting in the same way as executionId.
 		result.put("start", DateTimeFormatter.ISO_INSTANT.format(getStartInstant().truncatedTo(ChronoUnit.SECONDS)));
 		
 		try {

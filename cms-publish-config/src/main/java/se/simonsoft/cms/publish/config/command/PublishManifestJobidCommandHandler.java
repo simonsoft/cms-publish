@@ -71,6 +71,8 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 		
 		// Augment the manifest with UUID of the workflow execution, not available before starting the workflow.
 		doInsertJobId(manifest, progress);
+		// Augment the manifest with the true StartTime of the execution.
+		doInsertJobStart(manifest, progress);
 		
 		
 		try {
@@ -81,7 +83,7 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 	}
 	
 	/**
-	 * Insert the Execution UUID as manifest.job.id before writing the manifest to file.
+	 * Insert the Execution UUID as manifest.job.id.
 	 * @param manifest
 	 * @param progress
 	 */
@@ -97,6 +99,21 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 			throw new CommandRuntimeException("PublishExecutionIdMalformed", "no UUID detected");
 		}
 		manifest.getJob().put("id", id.getUuid());
+	}
+	
+	/**
+	 * Insert the Execution StartTime as manifest.job.start.
+	 * @param manifest
+	 * @param progress
+	 */
+	private void doInsertJobStart(PublishJobManifest manifest, PublishJobProgress progress) {
+		
+		String start = progress.getParams().get("executionstart");
+		if (start == null || start.isBlank()) {
+			throw new CommandRuntimeException("PublishExecutionStartMissing");
+		}
+		
+		manifest.getJob().put("start", start);
 	}
 	
 }
