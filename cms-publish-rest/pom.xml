@@ -56,13 +56,6 @@
 		    <artifactId>cms-reporting</artifactId>
 		    <version>[2.1.0,)</version>
 		</dependency>
-		
-		<!-- Used by Webhook for Presigner.  -->
-		<!-- TODO: Replace with cms-export-aws Presigner abstraction. -->
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3</artifactId>
-		</dependency>
 		 
 		 <!-- Required for Datatypeconverter -->
 		 <dependency>
