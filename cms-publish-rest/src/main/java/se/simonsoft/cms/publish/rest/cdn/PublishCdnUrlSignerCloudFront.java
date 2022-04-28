@@ -30,7 +30,6 @@ import java.util.List;
 import javax.xml.bind.DatatypeConverter;
 
 import se.simonsoft.cms.item.CmsItemPath;
-import software.amazon.awssdk.core.exception.SdkException;
 
 public class PublishCdnUrlSignerCloudFront {
 	

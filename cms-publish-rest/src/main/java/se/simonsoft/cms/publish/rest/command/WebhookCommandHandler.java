@@ -59,6 +59,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 	private final Long expiryMinutes;
 	private final String bucketName;
 	private final HttpClient client;
+	// TODO: Replace with cms-export-aws Presigner abstraction.
 	private final S3Utilities s3Utils;
 	private final S3Presigner presigner;
 
