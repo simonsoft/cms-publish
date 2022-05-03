@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -46,6 +47,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.worker.export.CmsExportItemPublish;
+import se.simonsoft.cms.publish.worker.startup.Environment;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport.WorkerEvent;
 import software.amazon.awssdk.core.exception.AbortedException;
@@ -69,6 +71,9 @@ public class AwsStepfunctionPublishWorker {
 	private ObjectReader readerJob;
 	private ObjectReader readerOptions;
 	private ObjectWriter writer;
+	
+	// #1553 The max wait time cannot be higher than Step Functions "TimeoutSeconds" for the Task.
+	final Long MAX_WAIT = Long.valueOf(new Environment().getParamOptional("PUBLISH_MAX_BUSY", "14400")); // 4*3600L
 
 	private static final Logger logger = LoggerFactory.getLogger(AwsStepfunctionPublishWorker.class);
 
@@ -106,7 +111,8 @@ public class AwsStepfunctionPublishWorker {
 
 			@Override
 			public void run() {
-				updateStatusReport("Worker Startup", new Date(), "AwsStepFunctionPublishWorker is running");
+				String startMsg = MessageFormatter.format("AwsStepFunctionPublishWorker is running (max busy: {})", MAX_WAIT).getMessage();
+				updateStatusReport("Worker Startup", new Date(), startMsg);
 				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				final String startupTimeFormatted = df.format(startUpTime);
 
@@ -213,9 +219,6 @@ public class AwsStepfunctionPublishWorker {
 	private void waitForJob(GetActivityTaskResponse taskResponse, PublishTicket ticket) throws PublishException, IOException, CommandRuntimeException {
 
 		final int interval = 10;
-		// #1553 The max wait time cannot be higher than Step Functions "TimeoutSeconds" for the Task.
-		// Configurable would be better to prevent potentially long stuck time for customers without huge documents.
-		final Long MAX_WAIT = 5*3600L - 600; // TODO: Configurable, Quarkus
 		final long iterations = MAX_WAIT / interval;
 
 		for (int i = 0; i < iterations; i++) {

@@ -31,4 +31,13 @@ public class Environment {
     public String getParamOptional(String key) {
     	return System.getenv(key);
     }
+    
+    public String getParamOptional(String key, String fallback) {
+    	String v = System.getenv(key);
+    	if (v != null) {
+    		return v;
+    	} else {
+    		return fallback;
+    	}
+    }
 }
