@@ -20,6 +20,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -112,8 +113,9 @@ public class AwsStepfunctionPublishWorker {
 			@Override
 			public void run() {
 				String startMsg = MessageFormatter.format("AwsStepFunctionPublishWorker is running (max busy: {})", MAX_WAIT).getMessage();
-				updateStatusReport("Worker Startup", new Date(), startMsg);
+				updateStatusReport("Worker Startup", startUpTime, startMsg);
 				final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+				df.setTimeZone(TimeZone.getTimeZone("UTC"));
 				final String startupTimeFormatted = df.format(startUpTime);
 
 				while(true) {
