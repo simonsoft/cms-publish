@@ -247,6 +247,9 @@ public class PublishJobService {
 				zis.closeEntry();
 				zipEntry = zis.getNextEntry();
 			}
+			// TODO: Place in finally or refactor completely into POST.
+			// #1280 Return the httpclient to the pool.
+			zis.close();
 			return temp.toString() + "/_document.xml";
 		} catch (IOException e) {
 			logger.debug("Error when trying to download new zip entries: {}", e.getMessage());
