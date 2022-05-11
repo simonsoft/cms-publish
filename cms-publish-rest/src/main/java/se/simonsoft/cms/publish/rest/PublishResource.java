@@ -282,9 +282,11 @@ public class PublishResource {
 		boolean allowStartSucceeded = (advanced != null);
 		itemId.setHostnameOrValidate(this.hostname);
 		
+		/*
 		if (profiling != null && profiling.length > 1) {
 			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
 		}
+		*/
 		
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		Set<PublishJob> jobs = this.jobFactory.getPublishJobsForPackage(publishPackage, this.publishConfiguration);
