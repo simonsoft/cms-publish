@@ -139,8 +139,11 @@ public class PublishPackageStatus {
         executions.removeIf(execution -> execution.getStatus().equals("RUNNING_STALE"));
         // Filter out the executions not related to the current publication
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
+        
+        logger.debug("Found {} workflow executions '{}' for item: {}", executions.size(), publication, item.getId());
         // Filter out profiling name.
         if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 0) {
+        	logger.debug("Filtering workflow executions (profiling '{}' for item: {}", profiling.getName(), item.getId());
         	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(profiling.getName())));
         }
         logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
