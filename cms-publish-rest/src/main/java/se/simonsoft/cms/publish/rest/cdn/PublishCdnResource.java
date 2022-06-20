@@ -92,7 +92,7 @@ public class PublishCdnResource {
 			result.add(url);
 		} catch (Exception e) {
 			logger.error("Publish CDN failed to sign CDN url.", e);
-			throw new IllegalStateException("Failed to provide URL on Delivery.");
+			throw new IllegalStateException("Failed to provide URL on Delivery Service: " + e.getMessage(), e);
 		}
 		
 		// Requiring GenericEntity for Iterable<?>.
