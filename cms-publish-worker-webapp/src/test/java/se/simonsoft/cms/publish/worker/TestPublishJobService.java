@@ -21,9 +21,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +44,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import se.simonsoft.cms.export.aws.CmsExportProviderAwsSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportProviderFsSingle;
+import se.simonsoft.cms.item.export.CmsExportReader;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
@@ -74,6 +79,10 @@ public class TestPublishJobService {
 	@Test
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
+		CmsExportReader exportReader = Mockito.mock(CmsExportReader.class);
+		when(mockExportAwsProvider.getReader()).thenReturn(exportReader);
+		when(exportReader.getContents()).thenReturn(new ByteArrayInOutStream().getInputStream());
+		
 		PublishFormat format = new PublishFormatPDF();
 		PublishJobService service = new PublishJobService(exportProviders, pe, aptapplicationPrefix);
 		PublishJobOptions job = reader.readValue(getJsonString());
@@ -83,10 +92,12 @@ public class TestPublishJobService {
 		when(pe.getPublishFormat(Mockito.anyString())).thenReturn(format);
 		when(pe.requestPublish(Mockito.any(PublishRequest.class))).thenReturn(publishTicket);
 		
+		// Call PublishJobService.
 		PublishTicket ticket = service.publishJob(job);
 		boolean completed = service.isCompleted(ticket);
 		assertTrue(completed);
 		
+		// Capture Request sent to undelying communication layer (PublishServicePe)
 		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class); 
         verify(pe, times(1)).requestPublish(requestCaptor.capture());
         PublishRequest pr = requestCaptor.getValue();
@@ -99,7 +110,8 @@ public class TestPublishJobService {
         assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
         assertEquals("DOC_900108_Released.pdf/somepath", pr.getParams().get("pathname"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
-        assertEquals("x-svn:///svn/demo1/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
+        assertEquals(null, pr.getFile().getURI());
+        assertEquals("_document.xml", pr.getFile().getInputEntry());
         assertEquals("pdf", pr.getFormat().getFormat());
         
         ArgumentCaptor<PublishTicket> ticketCaptor = ArgumentCaptor.forClass(PublishTicket.class);
@@ -113,14 +125,8 @@ public class TestPublishJobService {
 	public String getJsonString() throws IOException {
 		String jsonPath = "se/simonsoft/cms/publish/worker/publish-job-options.json";
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream));
-		StringBuilder out = new StringBuilder();
-		String line;
-		while((line = reader.readLine()) != null) {
-			out.append(line);
-		}
-		reader.close();
-		return out.toString();
-		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		resourceAsStream.transferTo(baos);
+		return baos.toString();
 	}
 }

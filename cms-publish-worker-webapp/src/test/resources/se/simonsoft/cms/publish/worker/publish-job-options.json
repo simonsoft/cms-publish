@@ -1,12 +1,23 @@
 {
 	"pathname": "DOC_900108_Released.pdf",
 	"type": "abxpe",
-	"source": "x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145",
 	"format": "pdf",
 	"params": {
 		"stylesheet": "$aptapplication/axdocbook.style",
 		"pdfconfig": "smallfile.pdfcf",
 		"pathname": "$pathname/somepath"
+	},
+	"storage": {
+		"type": "s3",
+		"pathversion": "cms4",
+		"pathcloudid": "demo1",
+		"pathconfigname": "name-from-cmsconfig-publish",
+		"pathdir": "/vvab/xml/documents/900108.xml",
+		"pathnamebase": "900108",
+		"params": {
+			"specific": "parameter for future destination types",
+			"s3bucket": "cms-automation"
+		}
 	},
 	"manifest": {
 		"type": "default",
