@@ -121,7 +121,7 @@ public class PublishJobService {
 
 	public void getCompletedJob(PublishJobOptions jobOptions, PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
 		logger.debug("Getting OutputStream from job with ticket: {}", ticket);
-		if ( ticket.toString() == "" || ticket == null ) {
+		if (ticket == null || ticket.toString().isBlank()) {
 			throw new IllegalArgumentException("The given ticket was either empty or null");
 		}
 		if(!isCompleted(ticket)) {
@@ -191,6 +191,9 @@ public class PublishJobService {
 	}
 
 	public boolean isCompleted(PublishTicket ticket) throws PublishException {
+		if (ticket == null) {
+			throw new IllegalArgumentException("Ticket must not be null");
+		}
 		logger.debug("Checking if job with ticket: {} is done", ticket.toString());
 		PublishRequestDefault request = new PublishRequestDefault();
 		request.addConfig("path", this.publishPath);
