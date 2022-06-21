@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish;
 
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 import se.simonsoft.cms.item.CmsItemId;
 
@@ -36,7 +37,7 @@ public class PublishSourceCmsItemId implements PublishSource {
 	}
 
 	@Override
-	public InputStream getInputStream() {
+	public Supplier<InputStream> getInputStream() {
 		return null;
 	}
 

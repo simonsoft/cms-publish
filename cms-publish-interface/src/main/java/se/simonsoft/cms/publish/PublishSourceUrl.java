@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.function.Supplier;
 
 public class PublishSourceUrl implements PublishSource {
 
@@ -32,7 +33,7 @@ public class PublishSourceUrl implements PublishSource {
 	}
 
 	@Override
-	public InputStream getInputStream() {
+	public Supplier<InputStream> getInputStream() {
 		return null;
 	}
 

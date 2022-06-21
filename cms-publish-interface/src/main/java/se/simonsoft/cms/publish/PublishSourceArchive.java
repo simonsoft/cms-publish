@@ -1,13 +1,14 @@
 package se.simonsoft.cms.publish;
 
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 public class PublishSourceArchive implements PublishSource {
 
-	private final InputStream inputStream;
+	private final Supplier<InputStream> inputStream;
 	private final String inputEntry;
 	
-	public PublishSourceArchive(InputStream inputStream, String inputEntry) {
+	public PublishSourceArchive(Supplier<InputStream> inputStream, String inputEntry) {
 		this.inputStream = inputStream;
 		this.inputEntry = inputEntry;
 	}
@@ -18,7 +19,7 @@ public class PublishSourceArchive implements PublishSource {
 	}
 
 	@Override
-	public InputStream getInputStream() {
+	public Supplier<InputStream> getInputStream() {
 		return inputStream;
 	}
 
