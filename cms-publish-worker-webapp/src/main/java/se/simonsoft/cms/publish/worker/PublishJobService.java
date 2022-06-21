@@ -214,12 +214,15 @@ public class PublishJobService {
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
 		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
+		logger.debug("Prepared CmsExportReader for publish source archive: {}", reader.getMeta().keySet());
 		
 		return new Supplier<InputStream>() {
 			
 			@Override
 			public InputStream get() {
-				return reader.getContents();
+				InputStream is = reader.getContents();
+				logger.debug("Supplier providing publish source inputstream: {}", is.getClass());
+				return is;
 			}
 		};
 	}

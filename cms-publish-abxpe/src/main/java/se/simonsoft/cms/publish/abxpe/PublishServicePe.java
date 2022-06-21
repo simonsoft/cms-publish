@@ -210,12 +210,6 @@ public class PublishServicePe implements PublishService {
 		}
 
 		try {
-			ResponseHeaders head = this.restClient.head(uri.toString());
-			if (head.getStatus() != 200) {
-				logger.error("HEAD before POST: {}", head.getStatus());
-				// TODO: Throw error?
-			}
-			
 			logger.info("POSTing source to PE: {}", uri);
 			HttpClient httpClient = this.restClient.getClientPost();
 			
@@ -237,9 +231,9 @@ public class PublishServicePe implements PublishService {
 		} catch (IOException e) {
 			logger.debug("IOException: Message: {}", e.getMessage(), e);
 			
-			// TODO: checkException
+			IOException exception = this.restClient.check(e);
 			
-			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
+			throw new PublishException("Publishing failed (" + exception.getClass().getName() + "): " + exception.getMessage(), exception);
 		} catch (InterruptedException e) {
 			logger.error("Interrupted: {}", e.getMessage(), e.getStackTrace());
 			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);

@@ -26,11 +26,14 @@ import java.net.URL;
 
 import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 import se.simonsoft.cms.publish.PublishException;
+import se.simonsoft.cms.publish.PublishSource;
+import se.simonsoft.cms.publish.PublishSourceArchive;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
 import se.simonsoft.cms.publish.PublishSourceUrl;
 import se.simonsoft.cms.publish.PublishTicket;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -101,8 +104,8 @@ public class PublishingEngineServiceTest {
 		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.techdoc/doctypes/techdoc/techdoc.style");
 		request.addParam("app-config", "$aptpath/application/se.simonsoft.techdoc/app/standard.3sppdf");
 		
-		URL path = new URL("file:///C:/Program%20Files/e3/e3/e3demo.xml"); // DEMO xml.
-		PublishSourceUrl url = new PublishSourceUrl(path);
+		ByteArrayInOutStream baios = new ByteArrayInOutStream();
+		PublishSource url = new PublishSourceArchive(() -> baios.getInputStream(), "_document.xml");
 		
 		request.setFile(url);
 		request.setFormat(new PublishFormatPDF());
