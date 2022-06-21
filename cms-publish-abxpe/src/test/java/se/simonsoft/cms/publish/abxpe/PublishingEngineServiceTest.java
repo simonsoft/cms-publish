@@ -41,11 +41,11 @@ public class PublishingEngineServiceTest {
 	
 	@Test @Ignore
 	public void publishRequestTest() throws MalformedURLException, InterruptedException, PublishException {
-		PublishServicePe peService = new PublishServicePe();
+		PublishServicePe peService = new PublishServicePe(publishHost);
 		PublishRequestDefault request = new PublishRequestDefault();
 		
 		// Add config
-		request.addConfig("host", this.publishHost);
+		//request.addConfig("host", this.publishHost);
 		request.addConfig("path", this.publishPath);
 		// Add Params
 		request.addParam("profile", "<LogicalExpression><LogicalGroup operator=\"OR\"><ProfileRef alias=\"Features\" value=\"FeatureX\"/><ProfileRef alias=\"Features\" value=\"FeatureD\"/></LogicalGroup></LogicalExpression>");
@@ -91,11 +91,11 @@ public class PublishingEngineServiceTest {
 	
 	@Test
 	public void publishRequestUnknownHostTest() throws MalformedURLException, InterruptedException, PublishException {
-		PublishServicePe peService = new PublishServicePe();
+		PublishServicePe peService = new PublishServicePe("http://bogus.pdsvision.net");
 		PublishRequestDefault request = new PublishRequestDefault();
 		
 		// Add config
-		request.addConfig("host", "http://bogus.pdsvision.net");
+		//request.addConfig("host", "http://bogus.pdsvision.net");
 		request.addConfig("path", this.publishPath);
 		// Add Params
 		request.addParam("stylesheet", "$aptpath/application/se.simonsoft.techdoc/doctypes/techdoc/techdoc.style");
@@ -110,15 +110,21 @@ public class PublishingEngineServiceTest {
 			PublishTicket ticket = peService.requestPublish(request);
 			assertNotNull("Ticket should not be null", ticket);
 			assertFalse("Ticket should not be empty", ticket.toString().isEmpty());
-		} catch (Exception e) {
+		} catch (PublishException e) {
+			//e.printStackTrace();
+			// Java 11 wraps its UnresolvedAddressException twice and sets message to null.
+			// Restclient works around that and throws the traditional UnknownHostException with hostname.
 			assertEquals("Publishing failed (java.net.UnknownHostException): bogus.pdsvision.net", e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail();
 		}
 	}
 	
 	@Test
 	public void testParseHtmlErrorResponse() throws Exception {
 		
-		PublishServicePe pe = new PublishServicePe();
+		PublishServicePe pe = new PublishServicePe(publishHost);
 		String parsed = pe.parseErrorResponseBody(getPEStandardFomratedResponse());
 		
 		assertFalse("Do not start with p tag", parsed.startsWith("<p>"));
@@ -136,14 +142,14 @@ public class PublishingEngineServiceTest {
 	
 	@Test
 	public void testParseNull() {
-		PublishServicePe pe = new PublishServicePe();
+		PublishServicePe pe = new PublishServicePe(publishHost);
 		String parsed = pe.parseErrorResponseBody(null);
 		assertEquals(parsed, "");
 	}
 	
 	@Test
 	public void testParseResponseNoP() {
-		PublishServicePe pe = new PublishServicePe();
+		PublishServicePe pe = new PublishServicePe(publishHost);
 		String parsed = pe.parseErrorResponseBody("<html> <body> <div>content</div> </body> </html>");
 		
 		assertEquals("No match should return empty string." ,"", parsed);

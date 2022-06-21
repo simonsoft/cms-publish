@@ -43,7 +43,7 @@ import org.xml.sax.SAXException;
 import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestResponse;
-import se.repos.restclient.javase.RestClientJavaNet;
+import se.repos.restclient.javase.RestClientJavaHttp;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
@@ -54,24 +54,25 @@ import se.simonsoft.cms.publish.PublishTicket;
 
 /**
  * Arbortext Publishing Engine implementation of PublishService
- * @author joakimdurehed
  */
 public class PublishServicePe implements PublishService {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private Set<PublishFormat> publishFormats;
 	private String peUri = "/e3/servlet/e3";
-	private RestClientJavaNet httpClient; 
+	private RestClientJavaHttp restClient; 
 	public static final String PE_URL_ENCODING = "UTF-8";
 	
-	public PublishServicePe(){
+	public PublishServicePe(String serverRootUrl){
 		this.publishFormats = new HashSet<PublishFormat>();
 		this.publishFormats.add(new PublishFormatPDF());
 		this.publishFormats.add(new PublishFormatPostscript());
 		this.publishFormats.add(new PublishFormatWeb());
 		this.publishFormats.add(new PublishFormatHTML());
 		this.publishFormats.add(new PublishFormatXML());
-		this.publishFormats.add(new PublishFormatRTF());	
+		this.publishFormats.add(new PublishFormatRTF());
+		
+		this.restClient = new RestClientJavaHttp(serverRootUrl, null);
 	}
 	
 	@Override
@@ -130,13 +131,11 @@ public class PublishServicePe implements PublishService {
 			}
 		}
 
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-	
 		try {
 			
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 	
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -172,13 +171,11 @@ public class PublishServicePe implements PublishService {
 		uri.append("&response-format=xml"); // We always want a XML response to parse
 		uri.append("&id=" + ticket.toString()); // And ask publish with ticket id
 		
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-		
 		try {
 		
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 			
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -198,7 +195,7 @@ public class PublishServicePe implements PublishService {
 				
 				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
 				
-				ResponseHeaders head = this.httpClient.head(jobRequestURI.toString());
+				ResponseHeaders head = this.restClient.head(jobRequestURI.toString());
 				
 				if (head.getStatus() != 200) {
 					getErrorResponseMessageHTML(jobRequestURI.toString());
@@ -220,8 +217,6 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public void getResultStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) throws PublishException {
 		
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-		
 			// Create the uri
 		String uri = getJobRequestURI(ticket);
 		final OutputStream outputStream = outStream;
@@ -229,7 +224,7 @@ public class PublishServicePe implements PublishService {
 		
 		try {
 			//What if the job do no exist. This code will probably not handle that. Does it get a response body or does it throw a exception?
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -250,7 +245,6 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public void getLogStream(PublishTicket ticket, PublishRequest request,
 			OutputStream outStream) {
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		// THIS IS NOT WORKING YET. 
 		// Create the uri
 		String uri = getJobRequestURI(ticket);
@@ -258,7 +252,7 @@ public class PublishServicePe implements PublishService {
 		final OutputStream outputStream = outStream;
 
 		try {
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -360,7 +354,7 @@ public class PublishServicePe implements PublishService {
 	private void getErrorResponseMessageHTML(String requestUri) throws IOException, PublishException {
 		
 		try {
-			this.httpClient.get(requestUri.toString(), new RestResponse() {
+			this.restClient.get(requestUri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
