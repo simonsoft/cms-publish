@@ -21,7 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +52,7 @@ import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishService;
+import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 
 
@@ -59,6 +64,7 @@ public class PublishServicePe implements PublishService {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private Set<PublishFormat> publishFormats;
+	private String serverRootUrl;
 	private String peUri = "/e3/servlet/e3";
 	private RestClientJavaHttp restClient; 
 	public static final String PE_URL_ENCODING = "UTF-8";
@@ -71,7 +77,8 @@ public class PublishServicePe implements PublishService {
 		this.publishFormats.add(new PublishFormatHTML());
 		this.publishFormats.add(new PublishFormatXML());
 		this.publishFormats.add(new PublishFormatRTF());
-		
+	
+		this.serverRootUrl = serverRootUrl;
 		this.restClient = new RestClientJavaHttp(serverRootUrl, null);
 	}
 	
@@ -108,6 +115,17 @@ public class PublishServicePe implements PublishService {
 
 	@Override
 	public PublishTicket requestPublish(PublishRequest request) throws PublishException {
+		
+		if (request.getFile().getURI() != null) {
+			return requestPublishGet(request);
+		} else {
+			return requestPublishPost(request);
+		}
+	}
+	
+	
+	// Deprecated
+	public PublishTicket requestPublishGet(PublishRequest request) throws PublishException {
 		logger.trace("Start");
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
@@ -132,7 +150,6 @@ public class PublishServicePe implements PublishService {
 		}
 
 		try {
-			
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 	
 			this.restClient.get(uri.toString(), new RestResponse() {
@@ -150,6 +167,74 @@ public class PublishServicePe implements PublishService {
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
 			logger.debug("IOException: Message: {}", e.getMessage(), e);
+			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
+		}
+	}
+	
+
+	public PublishTicket requestPublishPost(PublishRequest request) throws PublishException {
+		logger.trace("Start");
+		// Create the uri
+		StringBuffer uri = new StringBuffer();
+		// Start with host and pe path
+		uri.append(this.peUri);
+		// General always valid params
+		uri.append("?f=convert");// This is always a convert operation
+		uri.append("&response-format=xml"); // We always want a XML response to parse
+		uri.append("&queue=yes"); // We always want to queue
+		
+		// Mandatory client params
+		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
+		
+		String contentType = "application/xml";
+		PublishSource source = request.getFile();
+		if (source.getInputEntry() != null) {
+			uri.append("&file-type=zip"); // Assume zip, the only supported archive format.
+			uri.append("&input-entry=").append(source.getInputEntry());
+			contentType = "application/zip";
+		}
+		
+		logger.debug("URI: " + uri.toString());
+		
+		// Additional params if there are any
+		if (request.getParams().size() > 0) {
+			for(Map.Entry<String, String> entry: request.getParams().entrySet()){
+				uri.append("&" + entry.getKey() + "=" + urlencode(entry.getValue()));
+			}
+		}
+
+		try {
+			ResponseHeaders head = this.restClient.head(uri.toString());
+			if (head.getStatus() != 200) {
+				logger.error("HEAD before POST: {}", head.getStatus());
+				// TODO: Throw error?
+			}
+			
+			logger.info("POST source to PE: {}", uri);
+			HttpClient httpClient = this.restClient.getClientPost();
+			
+	        HttpRequest postRequest = HttpRequest.newBuilder()
+	                .POST(HttpRequest.BodyPublishers.ofInputStream(source.getInputStream()))
+	                .uri(URI.create(this.serverRootUrl + uri.toString()))
+	                .header("Content-Type", contentType)
+	                .build();
+
+	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+
+			
+			// Keeps response in memory, BUT, in this case we know that response will not be to large
+			return this.getQueueTicket( new ByteArrayInputStream(response.body().getBytes())); 
+		} catch (HttpStatusError e) {
+			logger.debug("Publication Error! \n Response: {} \nStacktrace:{} ", e.getResponse(), e.getStackTrace());
+			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
+		} catch (IOException e) {
+			logger.debug("IOException: Message: {}", e.getMessage(), e);
+			
+			// TODO: checkException
+			
+			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
+		} catch (InterruptedException e) {
+			logger.error("Interrupted: {}", e.getMessage(), e.getStackTrace());
 			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
 		}
 	}
