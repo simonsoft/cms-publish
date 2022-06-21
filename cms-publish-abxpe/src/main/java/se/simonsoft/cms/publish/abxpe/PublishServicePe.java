@@ -116,11 +116,16 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public PublishTicket requestPublish(PublishRequest request) throws PublishException {
 		
+		PublishTicket ticket;
 		if (request.getFile().getURI() != null) {
-			return requestPublishGet(request);
+			ticket = requestPublishGet(request);
 		} else {
-			return requestPublishPost(request);
+			ticket = requestPublishPost(request);
 		}
+		if (ticket == null) {
+			throw new IllegalStateException("No ticket returned from PE");
+		}
+		return ticket;
 	}
 	
 	
@@ -138,6 +143,7 @@ public class PublishServicePe implements PublishService {
 		
 		// Mandatory client params
 		uri.append("&file=").append(urlencode(request.getFile().getURI()));// The file to convert
+		uri.append("&file-type=zip");
 		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
 		
 		logger.debug("URI: " + uri.toString());
@@ -210,7 +216,7 @@ public class PublishServicePe implements PublishService {
 				// TODO: Throw error?
 			}
 			
-			logger.info("POST source to PE: {}", uri);
+			logger.info("POSTing source to PE: {}", uri);
 			HttpClient httpClient = this.restClient.getClientPost();
 			
 	        HttpRequest postRequest = HttpRequest.newBuilder()
@@ -221,6 +227,7 @@ public class PublishServicePe implements PublishService {
 
 	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 
+	        logger.info("POSTed source to PE: {}", response.body());
 			
 			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			return this.getQueueTicket( new ByteArrayInputStream(response.body().getBytes())); 

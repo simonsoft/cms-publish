@@ -154,7 +154,6 @@ public class PublishJobService {
 		/*
 		request.addParam("type", options.getFormat());
 		*/
-		request.addParam("file-type", "xml");
 		
 		PublishProfilingRecipe profiling = options.getProfiling();
 		if (profiling != null) {
