@@ -15,8 +15,26 @@
  */
 package se.simonsoft.cms.publish;
 
+import java.io.InputStream;
+
 public interface PublishSource {
 
+	/**
+	 * @return string representation of URI where source can be downloaded
+	 * @deprecated
+	 */
 	String getURI();
+	
+	
+	/**
+	 * @return inputstream with source data, potentially an archive
+	 */
+	InputStream getInputStream();
+
+	
+	/**
+	 * @return input entry name when {@link #getInputStream()} is an archive
+	 */
+	String getInputEntry();
 	
 }

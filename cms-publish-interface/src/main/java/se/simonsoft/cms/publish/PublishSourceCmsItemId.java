@@ -15,6 +15,8 @@
  */
 package se.simonsoft.cms.publish;
 
+import java.io.InputStream;
+
 import se.simonsoft.cms.item.CmsItemId;
 
 /**
@@ -31,6 +33,16 @@ public class PublishSourceCmsItemId implements PublishSource {
 	@Override
 	public String getURI() {
 		return id.getLogicalId();
+	}
+
+	@Override
+	public InputStream getInputStream() {
+		return null;
+	}
+
+	@Override
+	public String getInputEntry() {
+		return null;
 	}
 
 }

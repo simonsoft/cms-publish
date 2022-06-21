@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish;
 
+import java.io.InputStream;
 import java.net.URL;
 
 public class PublishSourceUrl implements PublishSource {
@@ -28,6 +29,16 @@ public class PublishSourceUrl implements PublishSource {
 	@Override
 	public String getURI() {
 		return url.toString();
+	}
+
+	@Override
+	public InputStream getInputStream() {
+		return null;
+	}
+
+	@Override
+	public String getInputEntry() {
+		return null;
 	}
 
 }
