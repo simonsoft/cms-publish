@@ -70,6 +70,7 @@ public class TestPublishJobService {
     	exportProviders.put("s3", mockExportAwsProvider);
 	}
 	
+	//TODO: Update the test for POST
 	@Test
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
@@ -90,7 +91,6 @@ public class TestPublishJobService {
         verify(pe, times(1)).requestPublish(requestCaptor.capture());
         PublishRequest pr = requestCaptor.getValue();
         
-        assertEquals("http://localhost:8080", pr.getConfig().get("host"));
         assertEquals("/e3/servlet/e3", pr.getConfig().get("path"));
         assertEquals("pdf", pr.getFormat().getFormat());
         assertEquals("format/type is handled by setFormat(..)", null, pr.getParams().get("type"));
@@ -99,7 +99,7 @@ public class TestPublishJobService {
         assertEquals("bogus/axdocbook.style", pr.getParams().get("stylesheet"));
         assertEquals("DOC_900108_Released.pdf/somepath", pr.getParams().get("pathname"));
         assertEquals("smallfile.pdfcf", pr.getParams().get("pdfconfig"));
-        assertEquals("x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
+        assertEquals("x-svn:///svn/demo1/vvab/release/B/xml/documents/900108.xml?p=145", pr.getFile().getURI());
         assertEquals("pdf", pr.getFormat().getFormat());
         
         ArgumentCaptor<PublishTicket> ticketCaptor = ArgumentCaptor.forClass(PublishTicket.class);
