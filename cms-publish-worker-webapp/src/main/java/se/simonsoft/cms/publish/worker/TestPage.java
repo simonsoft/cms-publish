@@ -112,6 +112,7 @@ public class TestPage {
 	public String getPublishDocumentForm() throws Exception {
 
 		VelocityContext context = new VelocityContext();
+		context.put("aptpath", "$aptpath");
 		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/DocumentFormTemplate.vm");
 
 		StringWriter wr = new StringWriter();
@@ -172,7 +173,7 @@ public class TestPage {
 	public String getPublishJobForm() throws Exception {
 
 		VelocityContext context = new VelocityContext();
-		
+		context.put("aptpath", "$aptpath");
 		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/PublishJobForm.vm");
 		
 		StringWriter wr = new StringWriter();
