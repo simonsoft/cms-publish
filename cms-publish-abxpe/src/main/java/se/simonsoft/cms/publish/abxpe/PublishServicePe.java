@@ -220,6 +220,7 @@ public class PublishServicePe implements PublishService {
 	                .POST(HttpRequest.BodyPublishers.ofInputStream(source.getInputStream()))
 	                .uri(URI.create(this.serverRootUrl + uri.toString()))
 	                .header("Content-Type", contentType)
+	                .header("Content-Length", "1920711")
 	                .build();
 
 	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
