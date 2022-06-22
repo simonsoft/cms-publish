@@ -15,33 +15,49 @@
  */
 package se.simonsoft.cms.publish.abxpe;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.http.HttpHeaders;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiPredicate;
 
-import se.simonsoft.cms.publish.impl.PublishRequestDefault;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import se.simonsoft.cms.item.CmsItemId;
+import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishSourceArchive;
 import se.simonsoft.cms.publish.PublishSourceCmsItemId;
-import se.simonsoft.cms.publish.PublishSourceUrl;
 import se.simonsoft.cms.publish.PublishTicket;
-import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.impl.CmsItemIdArg;
-import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import se.simonsoft.cms.publish.impl.PublishRequestDefault;
 
 public class PublishingEngineServiceTest {
 	private String publishHost = "http://pds-suse-svn3.pdsvision.net";
 	private String publishPath = "/e3/servlet/e3";
 	
+	private static BiPredicate<String, String> alwaysBiPredicate = new BiPredicate<String, String>() {
+		@Override
+		public boolean test(String t, String u) {
+			return true;
+		}
+	};
+	
+	// This test is actually communicating with a PE, used during dev.
 	@Test @Ignore
 	public void publishRequestTest() throws MalformedURLException, InterruptedException, PublishException {
 		PublishServicePe peService = new PublishServicePe(publishHost);
@@ -122,6 +138,17 @@ public class PublishingEngineServiceTest {
 			e.printStackTrace();
 			fail();
 		}
+	}
+	
+	
+	@Test
+	public void testParseTicket() throws PublishException {
+		PublishServicePe pe = new PublishServicePe(publishHost);
+		Map<String, List<String>> map = new HashMap<String, List<String>>(1);
+		map.put("Location", Arrays.asList("/e3/jsp/jobstatus.jsp?id=120"));
+		HttpHeaders headers = HttpHeaders.of(map, alwaysBiPredicate);
+		PublishTicket ticket = pe.getQueueTicket(headers);
+		assertEquals("120", ticket.toString());
 	}
 	
 	@Test

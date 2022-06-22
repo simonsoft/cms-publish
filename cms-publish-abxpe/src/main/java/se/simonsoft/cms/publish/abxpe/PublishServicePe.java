@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashSet;
@@ -186,7 +187,8 @@ public class PublishServicePe implements PublishService {
 		uri.append(this.peUri);
 		// General always valid params
 		uri.append("?f=convert");// This is always a convert operation
-		uri.append("&response-format=xml"); // We always want a XML response to parse
+		// PE 8.1.3.1 fails when POSTing in combination with response-format=xml.
+		//uri.append("&response-format=xml"); // We always want a XML response to parse
 		uri.append("&queue=yes"); // We always want to queue
 		
 		// Mandatory client params
@@ -222,9 +224,8 @@ public class PublishServicePe implements PublishService {
 	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 
 	        logger.info("POSTed source to PE: {}", response.body());
-			
-			// Keeps response in memory, BUT, in this case we know that response will not be to large
-			return this.getQueueTicket( new ByteArrayInputStream(response.body().getBytes())); 
+	        // Get ticket ID from the location header.
+			return this.getQueueTicket(response.headers()); 
 		} catch (HttpStatusError e) {
 			logger.debug("Publication Error! \n Response: {} \nStacktrace:{} ", e.getResponse(), e.getStackTrace());
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
@@ -466,6 +467,24 @@ public class PublishServicePe implements PublishService {
 	private PublishTicket getQueueTicket(InputStream response) throws PublishException {
 		logger.trace("Start");
 		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id", response));
+		logger.trace("End");
+		return queueTicket;
+	}
+	
+	/**
+	 * Parse queue ID from Location header.
+	 * @param response
+	 * @return
+	 */
+	PublishTicket getQueueTicket(HttpHeaders headers) throws PublishException {
+		logger.trace("Start");
+		String location = headers.firstValue("Location").orElseThrow(IllegalStateException::new);
+		// Location: /e3/jsp/jobstatus.jsp?id=120
+		String[] s = location.split("id=");
+		if (s.length != 2) {
+			throw new IllegalStateException("Location header in PE response has unexpected format: " + location);
+		}
+		PublishTicket queueTicket = new PublishTicket(s[1]);
 		logger.trace("End");
 		return queueTicket;
 	}
