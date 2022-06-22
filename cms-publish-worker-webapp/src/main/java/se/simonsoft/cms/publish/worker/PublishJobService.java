@@ -17,10 +17,12 @@ package se.simonsoft.cms.publish.worker;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -101,6 +103,11 @@ public class PublishJobService {
 			} else {
 				throw new NullPointerException("The storage cannot be null when the source is!");
 			}
+			
+		} else if (jobOptions.getSource().endsWith(".zip")) {
+			// Test mode, use zip from disk.
+			
+			source = new PublishSourceArchive(getSourceLocalFile(jobOptions.getSource()), "_document.xml");
 		} else {
 			// The source is to be retrieved from a repository
 			// PE 8.1.2.0+ no longer supports this.
@@ -226,6 +233,30 @@ public class PublishJobService {
 				InputStream is = reader.getContents();
 				logger.debug("Supplier providing publish source inputstream: {}", is.getClass());
 				return is;
+			}
+		};
+	}
+	
+	private Supplier<InputStream> getSourceLocalFile(String filename) {
+		Path path = Path.of("C:\\Temp\\", filename);
+		logger.info("Attempt test publish from local file: {}", path);
+		
+		if (!path.toFile().canRead()) {
+			throw new IllegalArgumentException(filename);
+		}
+		
+		return new Supplier<InputStream>() {
+			
+			@Override
+			public InputStream get() {
+				InputStream is;
+				try {
+					is = new FileInputStream(path.toFile());
+					logger.debug("Supplier providing publish source inputstream: {}", is.getClass());
+					return is;
+				} catch (FileNotFoundException e) {
+					throw new IllegalArgumentException(filename);
+				}
 			}
 		};
 	}
