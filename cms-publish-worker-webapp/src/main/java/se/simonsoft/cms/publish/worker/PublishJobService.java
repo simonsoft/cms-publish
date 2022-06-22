@@ -35,8 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
-import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
@@ -100,7 +100,7 @@ public class PublishJobService {
 					throw new IllegalStateException(msg);
 				}
 				// The source is in the S3 storage
-				source = new PublishSourceArchive(getSourceBuffered(jobOptions), 1920711L, "_document.xml");
+				source = getSourceStreaming(jobOptions, "_document.xml");
 			} else {
 				throw new NullPointerException("The storage cannot be null when the source is!");
 			}
@@ -108,7 +108,7 @@ public class PublishJobService {
 		} else if (jobOptions.getSource().endsWith(".zip")) {
 			// Test mode, use zip from disk.
 			
-			source = new PublishSourceArchive(getSourceLocalFile(jobOptions.getSource()), 1920711L, "_document.xml");
+			source = getSourceLocalFile(jobOptions.getSource(), "_document.xml");
 		} else {
 			// The source is to be retrieved from a repository
 			// PE 8.1.2.0+ no longer supports this.
@@ -220,14 +220,15 @@ public class PublishJobService {
 		return temp.getAbsolutePath();
 	}
 
-	private Supplier<InputStream> getSourceStreaming(PublishJobOptions jobOptions) {
+	private PublishSource getSourceStreaming(PublishJobOptions jobOptions, String inputEntry) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
-		CmsExportReader reader = exportProvider.getReader();
+		CmsExportAwsReaderSingle reader = (CmsExportAwsReaderSingle) exportProvider.getReader();
 		reader.prepare(downloadJob);
 		logger.debug("Prepared CmsExportReader for streaming publish source archive: {}", reader.getMeta().keySet());
 		
-		return new Supplier<InputStream>() {
+		Long contentLength = reader.getContentLength();
+		Supplier<InputStream> content = new Supplier<InputStream>() {
 			
 			@Override
 			public InputStream get() {
@@ -236,13 +237,14 @@ public class PublishJobService {
 				return is;
 			}
 		};
+		return new PublishSourceArchive(content, contentLength, inputEntry);
 	}
 	
 	// NOTE: Do NOT use in production!
-	private Supplier<InputStream> getSourceBuffered(PublishJobOptions jobOptions) {
+	private PublishSource getSourceBuffered(PublishJobOptions jobOptions, String inputEntry) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
-		CmsExportReader reader = exportProvider.getReader();
+		CmsExportAwsReaderSingle reader = (CmsExportAwsReaderSingle) exportProvider.getReader();
 		reader.prepare(downloadJob);
 		logger.debug("Prepared CmsExportReader for buffered publish source archive: {}", reader.getMeta().keySet());
 		ByteArrayInOutStream baios = new ByteArrayInOutStream();
@@ -253,7 +255,8 @@ public class PublishJobService {
 		}
 		logger.debug("Downloaded CmsExportReader for buffered publish source archive: {}", reader.getMeta().keySet());
 		
-		return new Supplier<InputStream>() {
+		Long contentLength = reader.getContentLength();
+		Supplier<InputStream> content = new Supplier<InputStream>() {
 			
 			@Override
 			public InputStream get() {
@@ -262,9 +265,10 @@ public class PublishJobService {
 				return is;
 			}
 		};
+		return new PublishSourceArchive(content, contentLength, inputEntry);
 	}
 	
-	private Supplier<InputStream> getSourceLocalFile(String filename) {
+	private PublishSource getSourceLocalFile(String filename, String inputEntry) {
 		Path path = Path.of("C:\\Temp\\", filename);
 		logger.info("Attempt test publish from local file: {}", path);
 		
@@ -272,7 +276,8 @@ public class PublishJobService {
 			throw new IllegalArgumentException(filename);
 		}
 		
-		return new Supplier<InputStream>() {
+		Long contentLength = path.toFile().length();
+		Supplier<InputStream> content = new Supplier<InputStream>() {
 			
 			@Override
 			public InputStream get() {
@@ -286,6 +291,7 @@ public class PublishJobService {
 				}
 			}
 		};
+		return new PublishSourceArchive(content, contentLength, inputEntry);
 	}
 
 }
