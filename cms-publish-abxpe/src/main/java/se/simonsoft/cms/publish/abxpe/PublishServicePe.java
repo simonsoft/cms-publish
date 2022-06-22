@@ -49,6 +49,7 @@ import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestResponse;
 import se.repos.restclient.javase.RestClientJavaHttp;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
@@ -260,19 +261,19 @@ public class PublishServicePe implements PublishService {
 		
 		try {
 		
-			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+			final ByteArrayInOutStream baios = new ByteArrayInOutStream();
 			
 			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
 						logger.debug("Got response from PE with headers {}", headers);
-					return byteOutputStream; // The httpclient will stream the content to tempfile
+					return baios;
 				}
 			});
 			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			// If we find that the response says Complete, return true
-			String parseResult = this.parseResponse("Transaction", "state", new ByteArrayInputStream(byteOutputStream.toByteArray()));
+			String parseResult = parseResponseQueue(baios.getInputStream());
 			if(parseResult.equals("Complete") || parseResult.equals("Cancelled")){
 				result = true;
 			}
@@ -356,6 +357,12 @@ public class PublishServicePe implements PublishService {
 		}
 	}
 	
+	
+	String parseResponseQueue(InputStream content) throws PublishException {
+		
+		return parseResponse("Transaction", "state", content);
+	}
+	
 	/**
 	 * Parse the response XML from PE looking for specified attribtue value on specified element
 	 * Is dependent on PE response XML not changing. 
@@ -380,6 +387,15 @@ public class PublishServicePe implements PublishService {
 	    		message = "Failed with unknown reason";
 	    	} else {
 	    		message = messageNode.item(0).getTextContent();
+	    	}
+	    	
+	    	NodeList outputNode = doc.getElementsByTagName("FunctionOutput");
+	    	if (outputNode.getLength() == 1) {
+	    		Element e = (Element) outputNode.item(0);
+	    		if (!e.hasChildNodes()) {
+	    			logger.warn("Queue status output is broken in PE 8.1.3.x, assuming Queued/Processing");
+	    			return "Queued";
+	    		}
 	    	}
 	    	
 	    	Node node = doc.getElementsByTagName(element).item(0);

@@ -151,6 +151,27 @@ public class PublishingEngineServiceTest {
 		assertEquals("120", ticket.toString());
 	}
 	
+	
+	@Test
+	public void testParseQueueWorking() throws PublishException {
+		// PE used to report state for non-completed tickets:
+		// - state:Queued 
+		// - state:Processing 
+		
+		PublishServicePe pe = new PublishServicePe(publishHost);
+		ByteArrayInOutStream baios = new ByteArrayInOutStream(getResponseQueueWorking8131());
+		String parsed = pe.parseResponseQueue(baios.getInputStream());
+		assertEquals("assuming Queued/Processing", "Queued", parsed);
+	}
+	
+	@Test
+	public void testParseQueueCompleted() throws PublishException {
+		PublishServicePe pe = new PublishServicePe(publishHost);
+		ByteArrayInOutStream baios = new ByteArrayInOutStream(getResponseQueueCompleted());
+		String parsed = pe.parseResponseQueue(baios.getInputStream());
+		assertEquals("Complete", parsed);
+	}
+	
 	@Test
 	public void testParseHtmlErrorResponse() throws Exception {
 		
@@ -185,6 +206,71 @@ public class PublishingEngineServiceTest {
 		assertEquals("No match should return empty string." ,"", parsed);
 	}
 	
+	// This format is broken in PE 8.1.3.1.
+	private String getResponseQueueWorking8131() {
+		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+				+ "<PEFunctionResult operation=\"Get Transaction Status\" success=\"Yes\">\n"
+				+ "  <FunctionParameters>\n"
+				+ "    <Parameter name=\"f\" value=\"qt-status\"/>\n"
+				+ "    <Parameter name=\"id\" value=\"130\"/>\n"
+				+ "    <Parameter name=\"response-format\" value=\"xml\"/>\n"
+				+ "  </FunctionParameters>\n"
+				+ "  <FunctionOutput/>\n"
+				+ "</PEFunctionResult>";
+	}
+	
+	
+	private String getResponseQueueCompleted() {
+		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+				+ "<PEFunctionResult operation=\"Get Transaction Status\" success=\"Yes\">\n"
+				+ "  <FunctionParameters>\n"
+				+ "    <Parameter name=\"f\" value=\"qt-status\"/>\n"
+				+ "    <Parameter name=\"id\" value=\"130\"/>\n"
+				+ "    <Parameter name=\"response-format\" value=\"xml\"/>\n"
+				+ "  </FunctionParameters>\n"
+				+ "  <FunctionOutput>\n"
+				+ "    <Transaction id=\"130\" held=\"No\" priority=\"3\" name=\"tran-130\" queueId=\"default-queue\" submitTime=\"1655889755764\" startTime=\"1655889762838\" endTime=\"1655889780380\" duration=\"17542\" state=\"Complete\" hostAddress=\"172.31.26.49\">\n"
+				+ "      <Request submitTime=\"1655889755764\">\n"
+				+ "        <Header name=\"content-length\" value=\"1920711\"/>\n"
+				+ "        <Header name=\"expect\" value=\"100-continue\"/>\n"
+				+ "        <Header name=\"host\" value=\"localhost:8080\"/>\n"
+				+ "        <Header name=\"content-type\" value=\"application/zip\"/>\n"
+				+ "        <Header name=\"user-agent\" value=\"curl/7.79.1\"/>\n"
+				+ "        <Header name=\"accept\" value=\"*/*\"/>\n"
+				+ "        <Data name=\"locale\" value=\"en_US\"/>\n"
+				+ "        <Data name=\"isSecure\" value=\"false\"/>\n"
+				+ "        <Data name=\"serverPort\" value=\"8080\"/>\n"
+				+ "        <Data name=\"authType\" value=\"\"/>\n"
+				+ "        <Data name=\"characterEncoding\" value=\"\"/>\n"
+				+ "        <Data name=\"contextPath\" value=\"/e3\"/>\n"
+				+ "        <Data name=\"peDescription\" value=\"Convert to PDF\"/>\n"
+				+ "        <Data name=\"method\" value=\"POST\"/>\n"
+				+ "        <Data name=\"pathTranslated\" value=\"C:\\Program Files\\PTC\\Arbortext PE\\e3\\e3\\e3\"/>\n"
+				+ "        <Data name=\"protocol\" value=\"HTTP/1.1\"/>\n"
+				+ "        <Data name=\"queryString\" value=\"f=convert&amp;queue=yes&amp;type=pdf&amp;file-type=zip&amp;input-entry=_document.xml&amp;zip-root=900276_M_en-GB&amp;zip-output=yes\"/>\n"
+				+ "        <Data name=\"remoteAddr\" value=\"127.0.0.1\"/>\n"
+				+ "        <Data name=\"remoteHost\" value=\"127.0.0.1\"/>\n"
+				+ "        <Data name=\"remoteUser\" value=\"\"/>\n"
+				+ "        <Data name=\"requestURI\" value=\"/e3/servlet/e3\"/>\n"
+				+ "        <Data name=\"scheme\" value=\"http\"/>\n"
+				+ "        <Data name=\"serverName\" value=\"localhost\"/>\n"
+				+ "        <Data name=\"servletPath\" value=\"/servlet\"/>\n"
+				+ "        <Parameter name=\"file-type\" value=\"zip\"/>\n"
+				+ "        <Parameter name=\"zip-root\" value=\"900276_M_en-GB\"/>\n"
+				+ "        <Parameter name=\"zip-output\" value=\"yes\"/>\n"
+				+ "        <Parameter name=\"f\" value=\"convert\"/>\n"
+				+ "        <Parameter name=\"input-entry\" value=\"_document.xml\"/>\n"
+				+ "        <Parameter name=\"type\" value=\"pdf\"/>\n"
+				+ "        <Parameter name=\"queue\" value=\"yes\"/>\n"
+				+ "      </Request>\n"
+				+ "      <Response status=\"200\" hasBody=\"Yes\" bodySize=\"2069928\">\n"
+				+ "        <Header name=\"content-disposition\" value=\"attachment; filename=pe.zip\"/>\n"
+				+ "        <Header name=\"content-type\" value=\"application/octet-stream\"/>\n"
+				+ "      </Response>\n"
+				+ "    </Transaction>\n"
+				+ "  </FunctionOutput>\n"
+				+ "</PEFunctionResult>";
+	}
 	
 	
 	private String getResponseWithNewLinesInP() {
