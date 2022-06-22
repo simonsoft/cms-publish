@@ -39,6 +39,7 @@ import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishSource;
@@ -99,7 +100,7 @@ public class PublishJobService {
 					throw new IllegalStateException(msg);
 				}
 				// The source is in the S3 storage
-				source = new PublishSourceArchive(retrieveSource(jobOptions), "_document.xml");
+				source = new PublishSourceArchive(getSourceBuffered(jobOptions), "_document.xml");
 			} else {
 				throw new NullPointerException("The storage cannot be null when the source is!");
 			}
@@ -219,12 +220,12 @@ public class PublishJobService {
 		return temp.getAbsolutePath();
 	}
 
-	private Supplier<InputStream> retrieveSource(PublishJobOptions jobOptions) {
+	private Supplier<InputStream> getSourceStreaming(PublishJobOptions jobOptions) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
 		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
-		logger.debug("Prepared CmsExportReader for publish source archive: {}", reader.getMeta().keySet());
+		logger.debug("Prepared CmsExportReader for streaming publish source archive: {}", reader.getMeta().keySet());
 		
 		return new Supplier<InputStream>() {
 			
@@ -232,6 +233,32 @@ public class PublishJobService {
 			public InputStream get() {
 				InputStream is = reader.getContents();
 				logger.debug("Supplier providing publish source inputstream: {}", is.getClass());
+				return is;
+			}
+		};
+	}
+	
+	// NOTE: Do NOT use in production!
+	private Supplier<InputStream> getSourceBuffered(PublishJobOptions jobOptions) {
+		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
+		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
+		CmsExportReader reader = exportProvider.getReader();
+		reader.prepare(downloadJob);
+		logger.debug("Prepared CmsExportReader for buffered publish source archive: {}", reader.getMeta().keySet());
+		ByteArrayInOutStream baios = new ByteArrayInOutStream();
+		try {
+			reader.getContents(baios);
+		} catch (IOException e) {
+			throw new RuntimeException("S3 download failed: " + e.getMessage(), e);
+		}
+		logger.debug("Downloaded CmsExportReader for buffered publish source archive: {}", reader.getMeta().keySet());
+		
+		return new Supplier<InputStream>() {
+			
+			@Override
+			public InputStream get() {
+				InputStream is = baios.getInputStream();
+				logger.debug("Supplier providing buffered publish source inputstream: {}", is.getClass());
 				return is;
 			}
 		};
