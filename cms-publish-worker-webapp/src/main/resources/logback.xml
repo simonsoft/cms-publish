@@ -22,9 +22,9 @@
     </layout>
   </appender>
 
-  <logger name="software.amazon.awssdk" level="debug" />
-  <logger name="org.apache.http" level="debug" />
-  <logger name="io.netty" level="debug" />
+  <logger name="software.amazon.awssdk" level="warn" />
+  <logger name="org.apache.http" level="warn" />
+  <logger name="io.netty" level="warn" />
 
   <root level="debug">
     <appender-ref ref="STDOUT"/>
