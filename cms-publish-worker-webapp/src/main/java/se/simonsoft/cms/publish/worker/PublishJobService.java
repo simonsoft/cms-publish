@@ -242,6 +242,7 @@ public class PublishJobService {
 	}
 	
 	// NOTE: Do NOT use in production!
+	@SuppressWarnings("unused")
 	private PublishSource getSourceBuffered(PublishJobOptions jobOptions, String inputEntry) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());

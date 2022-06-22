@@ -20,13 +20,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,7 +71,6 @@ public class TestPublishJobService {
     	exportProviders.put("s3", mockExportAwsProvider);
 	}
 	
-	//TODO: Update the test for POST
 	@Test
 	public void PublishJobTest() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
 		pe = Mockito.mock(PublishServicePe.class);
