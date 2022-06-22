@@ -72,6 +72,8 @@ public class WorkerApplication extends ResourceConfig {
 	private static final String PUBLISH_S3_ACCELERATED_ENV = "PUBLISH_S3_ACCELERATED";
 	private static final String BUCKET_NAME_DEFAULT = "cms-automation";
 
+	private final String publishHost = "http://localhost:8080";
+
 	private final CmsExportPrefix exportPrefix = new CmsExportPrefix("cms4");
 
 	private AwsRegionProvider regionProvider = DefaultAwsRegionProviderChain.builder().build();
@@ -184,7 +186,7 @@ public class WorkerApplication extends ResourceConfig {
         		bind(reader).to(ObjectReader.class);
         		bind(writer).to(ObjectWriter.class);
         		
-        		PublishServicePe publishServicePe = new PublishServicePe();
+        		PublishServicePe publishServicePe = new PublishServicePe(publishHost);
         		bind(publishServicePe).to(PublishServicePe.class);
         		PublishJobService publishJobService = new PublishJobService(exportProviders, publishServicePe, aptapplicationPrefix);
         		bind(publishJobService).to(PublishJobService.class);

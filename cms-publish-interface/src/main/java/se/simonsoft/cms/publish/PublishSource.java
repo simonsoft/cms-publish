@@ -15,8 +15,33 @@
  */
 package se.simonsoft.cms.publish;
 
+import java.io.InputStream;
+import java.util.function.Supplier;
+
 public interface PublishSource {
 
+	/**
+	 * @return string representation of URI where source can be downloaded
+	 * @deprecated
+	 */
 	String getURI();
-	
+
+	/**
+	 * A {@link Supplier} of {@code InputStream} is used in
+	 * case the request needs to be repeated, as the content is not buffered.
+	 * The {@code Supplier} may return {@code null} on subsequent attempts,
+	 * in which case the request fails.
+	 * 
+	 * The stream will be closed.
+	 * 
+	 * @return supplier of inputstream with source data, potentially an archive
+	 */
+	Supplier<InputStream> getInputStream();
+
+	/**
+	 * @return input entry name when {@link #getInputStream()} is an archive
+	 */
+	String getInputEntry();
+
+	Long getInputLength();
 }

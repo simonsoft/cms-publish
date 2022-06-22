@@ -52,8 +52,8 @@
 		</form>
 		<div id="exampleData">
 			<div class="exampleDataHolder">
-				<h3>Example test data with aptpath:</h3>
-				<p>$aptpath/e3/e3/e3demo.xml</p>
+				<h3>Example zip file in C:\Temp\:</h3>
+				<p>sample.zip</p>
 				<h3>Example SVN itemid</h3>
 				<p>x-svn:///svn/demo1^/vvab/release/B/xml/documents/900108.xml?p=145</p>
 			</div>

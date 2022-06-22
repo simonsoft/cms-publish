@@ -16,35 +16,38 @@
 package se.simonsoft.cms.publish;
 
 import java.io.InputStream;
-import java.net.URL;
 import java.util.function.Supplier;
 
-public class PublishSourceUrl implements PublishSource {
+public class PublishSourceArchive implements PublishSource {
 
-	private URL url;
-
-	public PublishSourceUrl(URL url) {
-		this.url = url;
+	private final Supplier<InputStream> inputStream;
+	private final Long inputLength;
+	private final String inputEntry;
+	
+	public PublishSourceArchive(Supplier<InputStream> inputStream, Long inputLength, String inputEntry) {
+		this.inputStream = inputStream;
+		this.inputLength = inputLength;
+		this.inputEntry = inputEntry;
 	}
 	
 	@Override
 	public String getURI() {
-		return url.toString();
+		return null;
 	}
 
 	@Override
 	public Supplier<InputStream> getInputStream() {
-		return null;
+		return inputStream;
 	}
 
 	@Override
 	public String getInputEntry() {
-		return null;
+		return inputEntry;
 	}
-
-	@Override
+	
+	
 	public Long getInputLength() {
-		return null;
+		return inputLength;
 	}
 
 }

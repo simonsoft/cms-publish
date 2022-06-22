@@ -21,7 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -43,35 +49,40 @@ import org.xml.sax.SAXException;
 import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestResponse;
-import se.repos.restclient.javase.RestClientJavaNet;
+import se.repos.restclient.javase.RestClientJavaHttp;
+import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;
 import se.simonsoft.cms.publish.PublishRequest;
 import se.simonsoft.cms.publish.PublishService;
+import se.simonsoft.cms.publish.PublishSource;
 import se.simonsoft.cms.publish.PublishTicket;
 
 
 
 /**
  * Arbortext Publishing Engine implementation of PublishService
- * @author joakimdurehed
  */
 public class PublishServicePe implements PublishService {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private Set<PublishFormat> publishFormats;
+	private String serverRootUrl;
 	private String peUri = "/e3/servlet/e3";
-	private RestClientJavaNet httpClient; 
+	private RestClientJavaHttp restClient; 
 	public static final String PE_URL_ENCODING = "UTF-8";
 	
-	public PublishServicePe(){
+	public PublishServicePe(String serverRootUrl){
 		this.publishFormats = new HashSet<PublishFormat>();
 		this.publishFormats.add(new PublishFormatPDF());
 		this.publishFormats.add(new PublishFormatPostscript());
 		this.publishFormats.add(new PublishFormatWeb());
 		this.publishFormats.add(new PublishFormatHTML());
 		this.publishFormats.add(new PublishFormatXML());
-		this.publishFormats.add(new PublishFormatRTF());	
+		this.publishFormats.add(new PublishFormatRTF());
+	
+		this.serverRootUrl = serverRootUrl;
+		this.restClient = new RestClientJavaHttp(serverRootUrl, null);
 	}
 	
 	@Override
@@ -107,6 +118,22 @@ public class PublishServicePe implements PublishService {
 
 	@Override
 	public PublishTicket requestPublish(PublishRequest request) throws PublishException {
+		
+		PublishTicket ticket;
+		if (request.getFile().getURI() != null) {
+			ticket = requestPublishGet(request);
+		} else {
+			ticket = requestPublishPost(request);
+		}
+		if (ticket == null) {
+			throw new IllegalStateException("No ticket returned from PE");
+		}
+		return ticket;
+	}
+	
+	
+	// Deprecated
+	public PublishTicket requestPublishGet(PublishRequest request) throws PublishException {
 		logger.trace("Start");
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
@@ -119,6 +146,7 @@ public class PublishServicePe implements PublishService {
 		
 		// Mandatory client params
 		uri.append("&file=").append(urlencode(request.getFile().getURI()));// The file to convert
+		uri.append("&file-type=zip");
 		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
 		
 		logger.debug("URI: " + uri.toString());
@@ -130,13 +158,10 @@ public class PublishServicePe implements PublishService {
 			}
 		}
 
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-	
 		try {
-			
 			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 	
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -151,6 +176,72 @@ public class PublishServicePe implements PublishService {
 			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
 		} catch (IOException e) {
 			logger.debug("IOException: Message: {}", e.getMessage(), e);
+			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
+		}
+	}
+	
+
+	public PublishTicket requestPublishPost(PublishRequest request) throws PublishException {
+		logger.trace("Start");
+		// Create the uri
+		StringBuffer uri = new StringBuffer();
+		// Start with host and pe path
+		uri.append(this.peUri);
+		// General always valid params
+		uri.append("?f=convert");// This is always a convert operation
+		// PE 8.1.3.1 fails when POSTing in combination with response-format=xml.
+		//uri.append("&response-format=xml"); // We always want a XML response to parse
+		uri.append("&queue=yes"); // We always want to queue
+		
+		// Mandatory client params
+		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
+		
+		String contentType = "application/xml";
+		PublishSource source = request.getFile();
+		if (source.getInputEntry() != null) {
+			uri.append("&file-type=zip"); // Assume zip, the only supported archive format.
+			uri.append("&input-entry=").append(source.getInputEntry());
+			contentType = "application/zip";
+		}
+		
+		logger.debug("URI: " + uri.toString());
+		
+		// Additional params if there are any
+		if (request.getParams().size() > 0) {
+			for(Map.Entry<String, String> entry: request.getParams().entrySet()){
+				uri.append("&" + entry.getKey() + "=" + urlencode(entry.getValue()));
+			}
+		}
+
+		try {
+			logger.info("POSTing source to PE: {}", uri);
+			HttpClient httpClient = this.restClient.getClientPost();
+			
+			BodyPublisher bpis = HttpRequest.BodyPublishers.ofInputStream(source.getInputStream());
+			BodyPublisher bpisWithLength = HttpRequest.BodyPublishers.fromPublisher(bpis, source.getInputLength());
+			
+	        HttpRequest postRequest = HttpRequest.newBuilder()
+	                .POST(bpisWithLength)
+	                .uri(URI.create(this.serverRootUrl + uri.toString()))
+	                .header("Content-Type", contentType)
+	                .build();
+
+	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+
+	        logger.info("POSTed source to PE: {}", response.body());
+	        // Get ticket ID from the location header.
+			return this.getQueueTicket(response.headers()); 
+		} catch (HttpStatusError e) {
+			logger.debug("Publication Error! \n Response: {} \nStacktrace:{} ", e.getResponse(), e.getStackTrace());
+			throw new PublishException("Publishing failed with message: " + e.getMessage(), e);
+		} catch (IOException e) {
+			logger.debug("IOException: Message: {}", e.getMessage(), e);
+			
+			IOException exception = this.restClient.check(e);
+			
+			throw new PublishException("Publishing failed (" + exception.getClass().getName() + "): " + exception.getMessage(), exception);
+		} catch (InterruptedException e) {
+			logger.error("Interrupted: {}", e.getMessage(), e.getStackTrace());
 			throw new PublishException("Publishing failed (" + e.getClass().getName() + "): " + e.getMessage(), e);
 		}
 	}
@@ -172,23 +263,21 @@ public class PublishServicePe implements PublishService {
 		uri.append("&response-format=xml"); // We always want a XML response to parse
 		uri.append("&id=" + ticket.toString()); // And ask publish with ticket id
 		
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-		
 		try {
 		
-			final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+			final ByteArrayInOutStream baios = new ByteArrayInOutStream();
 			
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
 						logger.debug("Got response from PE with headers {}", headers);
-					return byteOutputStream; // The httpclient will stream the content to tempfile
+					return baios;
 				}
 			});
 			// Keeps response in memory, BUT, in this case we know that response will not be to large
 			// If we find that the response says Complete, return true
-			String parseResult = this.parseResponse("Transaction", "state", new ByteArrayInputStream(byteOutputStream.toByteArray()));
+			String parseResult = parseResponseQueue(baios.getInputStream());
 			if(parseResult.equals("Complete") || parseResult.equals("Cancelled")){
 				result = true;
 			}
@@ -198,7 +287,7 @@ public class PublishServicePe implements PublishService {
 				
 				logger.debug("PE job status is complete. Doing a retrieve HEAD request to ensure the job is possible to retrieve");
 				
-				ResponseHeaders head = this.httpClient.head(jobRequestURI.toString());
+				ResponseHeaders head = this.restClient.head(jobRequestURI.toString());
 				
 				if (head.getStatus() != 200) {
 					getErrorResponseMessageHTML(jobRequestURI.toString());
@@ -220,8 +309,6 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public void getResultStream(PublishTicket ticket, PublishRequest request, OutputStream outStream) throws PublishException {
 		
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
-		
 			// Create the uri
 		String uri = getJobRequestURI(ticket);
 		final OutputStream outputStream = outStream;
@@ -229,7 +316,7 @@ public class PublishServicePe implements PublishService {
 		
 		try {
 			//What if the job do no exist. This code will probably not handle that. Does it get a response body or does it throw a exception?
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -250,7 +337,6 @@ public class PublishServicePe implements PublishService {
 	@Override
 	public void getLogStream(PublishTicket ticket, PublishRequest request,
 			OutputStream outStream) {
-		this.httpClient = new RestClientJavaNet(request.getConfig().get("host"), null);
 		// THIS IS NOT WORKING YET. 
 		// Create the uri
 		String uri = getJobRequestURI(ticket);
@@ -258,7 +344,7 @@ public class PublishServicePe implements PublishService {
 		final OutputStream outputStream = outStream;
 
 		try {
-			this.httpClient.get(uri.toString(), new RestResponse() {
+			this.restClient.get(uri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -273,6 +359,12 @@ public class PublishServicePe implements PublishService {
 		} catch (IOException e) {
 			throw new RuntimeException("Publishing Engine communication failed", e);
 		}
+	}
+	
+	
+	String parseResponseQueue(InputStream content) throws PublishException {
+		
+		return parseResponse("Transaction", "state", content);
 	}
 	
 	/**
@@ -299,6 +391,15 @@ public class PublishServicePe implements PublishService {
 	    		message = "Failed with unknown reason";
 	    	} else {
 	    		message = messageNode.item(0).getTextContent();
+	    	}
+	    	
+	    	NodeList outputNode = doc.getElementsByTagName("FunctionOutput");
+	    	if (outputNode.getLength() == 1) {
+	    		Element e = (Element) outputNode.item(0);
+	    		if (!e.hasChildNodes()) {
+	    			logger.warn("Queue status output is broken in PE 8.1.3.x, assuming Queued/Processing");
+	    			return "Queued";
+	    		}
 	    	}
 	    	
 	    	Node node = doc.getElementsByTagName(element).item(0);
@@ -360,7 +461,7 @@ public class PublishServicePe implements PublishService {
 	private void getErrorResponseMessageHTML(String requestUri) throws IOException, PublishException {
 		
 		try {
-			this.httpClient.get(requestUri.toString(), new RestResponse() {
+			this.restClient.get(requestUri.toString(), new RestResponse() {
 				@Override
 				public OutputStream getResponseStream(
 						ResponseHeaders headers) {
@@ -386,6 +487,24 @@ public class PublishServicePe implements PublishService {
 	private PublishTicket getQueueTicket(InputStream response) throws PublishException {
 		logger.trace("Start");
 		PublishTicket queueTicket = new PublishTicket(this.parseResponse("Transaction", "id", response));
+		logger.trace("End");
+		return queueTicket;
+	}
+	
+	/**
+	 * Parse queue ID from Location header.
+	 * @param response
+	 * @return
+	 */
+	PublishTicket getQueueTicket(HttpHeaders headers) throws PublishException {
+		logger.trace("Start");
+		String location = headers.firstValue("Location").orElseThrow(IllegalStateException::new);
+		// Location: /e3/jsp/jobstatus.jsp?id=120
+		String[] s = location.split("id=");
+		if (s.length != 2) {
+			throw new IllegalStateException("Location header in PE response has unexpected format: " + location);
+		}
+		PublishTicket queueTicket = new PublishTicket(s[1]);
 		logger.trace("End");
 		return queueTicket;
 	}

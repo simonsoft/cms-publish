@@ -50,11 +50,23 @@ public class TestPage {
 
 	private final PublishJobService publishJobService;
 	private ObjectReader reader;
+	private final VelocityEngine engine;
 	
 	@Inject
 	public TestPage(PublishJobService publishJobService, ObjectReader reader) {
 		this.publishJobService = publishJobService;
 		this.reader = reader;
+		this.engine = getVelocityEngine();
+	}
+	
+	private VelocityEngine getVelocityEngine() {
+		VelocityEngine engine = new VelocityEngine();
+		Properties p = new Properties();
+		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		p.setProperty("runtime.references.strict", "true");
+		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init(p);
+		return engine;
 	}
 	
 
@@ -71,9 +83,12 @@ public class TestPage {
 		}
 		
 		//TODO: Fix pathname (take name from itemId string). Use PE directly?
+		/*
 		int indexOf = itemId.lastIndexOf("/");
 		CharSequence subSequence = itemId.subSequence(indexOf, itemId.length());
 		String pathName = subSequence.toString();
+		*/
+		String pathName = "TestPublishWorker";
 		
 		PublishJobOptions options = new PublishJobOptions();
 		options.setSource(itemId);
@@ -83,11 +98,6 @@ public class TestPage {
 
 		PublishTicket ticket= publishJobService.publishJob(options);
 		
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
 		
@@ -103,13 +113,9 @@ public class TestPage {
 	@Path("publish/document")
 	@Produces(MediaType.TEXT_HTML)
 	public String getPublishDocumentForm() throws Exception {
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
+		context.put("aptpath", "$aptpath");
 		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/DocumentFormTemplate.vm");
 
 		StringWriter wr = new StringWriter();
@@ -122,11 +128,6 @@ public class TestPage {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public String getTicketForm() throws Exception {
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
 		
@@ -173,14 +174,9 @@ public class TestPage {
 	@Produces(MediaType.TEXT_HTML)
 	@Path("publish/job")
 	public String getPublishJobForm() throws Exception {
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
-		
+		context.put("aptpath", "$aptpath");
 		Template template = engine.getTemplate("se/simonsoft/cms/publish/worker/templates/PublishJobForm.vm");
 		
 		StringWriter wr = new StringWriter();
@@ -200,12 +196,6 @@ public class TestPage {
 		PublishJobOptions jobOptions = reader.readValue(jsonstring);
 		
 		PublishTicket ticket = publishJobService.publishJob(jobOptions);
-		
-		VelocityEngine engine = new VelocityEngine();
-		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine.init(p);
 
 		VelocityContext context = new VelocityContext();
 		context.put("ticketNumber", ticket.toString());
