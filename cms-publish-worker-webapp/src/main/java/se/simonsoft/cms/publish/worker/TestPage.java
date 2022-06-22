@@ -83,9 +83,12 @@ public class TestPage {
 		}
 		
 		//TODO: Fix pathname (take name from itemId string). Use PE directly?
+		/*
 		int indexOf = itemId.lastIndexOf("/");
 		CharSequence subSequence = itemId.subSequence(indexOf, itemId.length());
 		String pathName = subSequence.toString();
+		*/
+		String pathName = "TestPublishWorker";
 		
 		PublishJobOptions options = new PublishJobOptions();
 		options.setSource(itemId);
