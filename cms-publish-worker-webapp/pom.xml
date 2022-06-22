@@ -101,6 +101,12 @@
 			<artifactId>cms-versioninfo</artifactId>
 			<version>1.4.0</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>se.simonsoft</groupId>
+			<artifactId>cms-item</artifactId>
+			<version>3.1.2-SNAPSHOT</version>
+		</dependency>
 
 		<dependency>
 			<groupId>se.simonsoft</groupId>

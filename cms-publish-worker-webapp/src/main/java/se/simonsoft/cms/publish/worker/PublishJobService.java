@@ -37,6 +37,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
@@ -223,7 +224,7 @@ public class PublishJobService {
 	private PublishSource getSourceStreaming(PublishJobOptions jobOptions, String inputEntry) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
-		CmsExportAwsReaderSingle reader = (CmsExportAwsReaderSingle) exportProvider.getReader();
+		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
 		logger.debug("Prepared CmsExportReader for streaming publish source archive: {}", reader.getMeta().keySet());
 		
@@ -244,7 +245,7 @@ public class PublishJobService {
 	private PublishSource getSourceBuffered(PublishJobOptions jobOptions, String inputEntry) {
 		CmsImportJob downloadJob = PublishExportJobFactory.getImportJobSingle(jobOptions.getStorage(), "preprocess.zip");
 		CmsExportProvider exportProvider = exportProviders.get(jobOptions.getStorage().getType());
-		CmsExportAwsReaderSingle reader = (CmsExportAwsReaderSingle) exportProvider.getReader();
+		CmsExportReader reader = exportProvider.getReader();
 		reader.prepare(downloadJob);
 		logger.debug("Prepared CmsExportReader for buffered publish source archive: {}", reader.getMeta().keySet());
 		ByteArrayInOutStream baios = new ByteArrayInOutStream();
