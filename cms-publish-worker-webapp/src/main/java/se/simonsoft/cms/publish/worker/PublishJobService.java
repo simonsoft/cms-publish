@@ -100,7 +100,7 @@ public class PublishJobService {
 					throw new IllegalStateException(msg);
 				}
 				// The source is in the S3 storage
-				source = new PublishSourceArchive(getSourceBuffered(jobOptions), "_document.xml");
+				source = new PublishSourceArchive(getSourceBuffered(jobOptions), 1920711L, "_document.xml");
 			} else {
 				throw new NullPointerException("The storage cannot be null when the source is!");
 			}
@@ -108,7 +108,7 @@ public class PublishJobService {
 		} else if (jobOptions.getSource().endsWith(".zip")) {
 			// Test mode, use zip from disk.
 			
-			source = new PublishSourceArchive(getSourceLocalFile(jobOptions.getSource()), "_document.xml");
+			source = new PublishSourceArchive(getSourceLocalFile(jobOptions.getSource()), 1920711L, "_document.xml");
 		} else {
 			// The source is to be retrieved from a repository
 			// PE 8.1.2.0+ no longer supports this.

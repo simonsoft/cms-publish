@@ -21,10 +21,12 @@ import java.util.function.Supplier;
 public class PublishSourceArchive implements PublishSource {
 
 	private final Supplier<InputStream> inputStream;
+	private final Long inputLength;
 	private final String inputEntry;
 	
-	public PublishSourceArchive(Supplier<InputStream> inputStream, String inputEntry) {
+	public PublishSourceArchive(Supplier<InputStream> inputStream, Long inputLength, String inputEntry) {
 		this.inputStream = inputStream;
+		this.inputLength = inputLength;
 		this.inputEntry = inputEntry;
 	}
 	
@@ -43,5 +45,9 @@ public class PublishSourceArchive implements PublishSource {
 		return inputEntry;
 	}
 	
+	
+	public Long getInputLength() {
+		return inputLength;
+	}
 
 }

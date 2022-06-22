@@ -43,4 +43,5 @@ public interface PublishSource {
 	 */
 	String getInputEntry();
 
+	Long getInputLength();
 }

@@ -42,4 +42,9 @@ public class PublishSourceUrl implements PublishSource {
 		return null;
 	}
 
+	@Override
+	public Long getInputLength() {
+		return null;
+	}
+
 }

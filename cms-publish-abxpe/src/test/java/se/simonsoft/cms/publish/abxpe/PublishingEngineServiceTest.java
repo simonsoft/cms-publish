@@ -121,7 +121,7 @@ public class PublishingEngineServiceTest {
 		request.addParam("app-config", "$aptpath/application/se.simonsoft.techdoc/app/standard.3sppdf");
 		
 		ByteArrayInOutStream baios = new ByteArrayInOutStream();
-		PublishSource url = new PublishSourceArchive(() -> baios.getInputStream(), "_document.xml");
+		PublishSource url = new PublishSourceArchive(() -> baios.getInputStream(), null, "_document.xml");
 		
 		request.setFile(url);
 		request.setFormat(new PublishFormatPDF());

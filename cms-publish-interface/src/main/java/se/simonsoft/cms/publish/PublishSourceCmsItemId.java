@@ -46,4 +46,9 @@ public class PublishSourceCmsItemId implements PublishSource {
 		return null;
 	}
 
+	@Override
+	public Long getInputLength() {
+		return null;
+	}
+
 }

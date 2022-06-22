@@ -26,6 +26,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Map;
@@ -216,11 +217,13 @@ public class PublishServicePe implements PublishService {
 			logger.info("POSTing source to PE: {}", uri);
 			HttpClient httpClient = this.restClient.getClientPost();
 			
+			BodyPublisher bpis = HttpRequest.BodyPublishers.ofInputStream(source.getInputStream());
+			BodyPublisher bpisWithLength = HttpRequest.BodyPublishers.fromPublisher(bpis, source.getInputLength());
+			
 	        HttpRequest postRequest = HttpRequest.newBuilder()
-	                .POST(HttpRequest.BodyPublishers.ofInputStream(source.getInputStream()))
+	                .POST(bpisWithLength)
 	                .uri(URI.create(this.serverRootUrl + uri.toString()))
 	                .header("Content-Type", contentType)
-	                .header("Content-Length", "1920711")
 	                .build();
 
 	        HttpResponse<String> response = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
