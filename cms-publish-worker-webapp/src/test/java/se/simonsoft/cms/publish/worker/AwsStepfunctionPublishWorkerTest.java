@@ -119,7 +119,7 @@ public class AwsStepfunctionPublishWorkerTest {
 
 		ObjectReader spyReader = spy(reader);
 
-		PublishTicket ticket = new PublishTicket("44");
+		PublishTicketMeta ticket = new PublishTicketMeta("44", null);
 
 		when(mockTaskResponse.input()).thenReturn(getJsonString(this.jsonStringWithoutTicket));
 		when(mockJobService.publishJob(any(PublishJobOptions.class))).thenReturn(ticket);

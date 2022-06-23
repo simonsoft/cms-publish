@@ -20,6 +20,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +39,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 import se.simonsoft.cms.item.export.CmsExportJobSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
+import se.simonsoft.cms.item.export.CmsExportTagKey;
+import se.simonsoft.cms.item.export.CmsExportTagValue;
 import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.publish.PublishException;
@@ -75,6 +78,8 @@ public class AwsStepfunctionPublishWorker {
 	
 	// #1553 The max wait time cannot be higher than Step Functions "TimeoutSeconds" for the Task.
 	final Long MAX_WAIT = Long.valueOf(new Environment().getParamOptional("PUBLISH_MAX_BUSY", "14400")); // 4*3600L
+	
+	final CmsExportTagKey TAG_STEP =  new CmsExportTagKey("PublishStep");
 
 	private static final Logger logger = LoggerFactory.getLogger(AwsStepfunctionPublishWorker.class);
 
@@ -141,7 +146,7 @@ public class AwsStepfunctionPublishWorker {
 						}
 					}
 					if (hasTaskToken(taskResponse)) {
-						PublishTicket publishTicket = null;
+						PublishTicketMeta publishTicket = null;
 						logger.debug("tasktoken: {}", taskResponse.taskToken());
 						PublishJobOptions options = null;
 
@@ -252,21 +257,31 @@ public class AwsStepfunctionPublishWorker {
 		return taskResponse != null && taskResponse.taskToken() != null && !taskResponse.taskToken().isEmpty();
 	}
 
-	private PublishTicket requestPublish(PublishJobOptions options) throws InterruptedException, PublishException {
-		PublishTicket ticket = publishJobService.publishJob(options);
+	private PublishTicketMeta requestPublish(PublishJobOptions options) throws InterruptedException, PublishException {
+		PublishTicketMeta ticket = publishJobService.publishJob(options);
 
 		logger.debug("JobService returned ticket: {}", ticket.toString());
 		return ticket;
 	}
 
-	private String exportCompletedJob(PublishTicket ticket, PublishJobOptions options) throws IOException, PublishException {
+	private String exportCompletedJob(PublishTicketMeta ticket, PublishJobOptions options) throws IOException, PublishException {
 		logger.debug("Preparing publishJob {} for export to {}", options.getPathname(), options.getStorage().getType());
 
 		updateStatusReport("Exporting PublishJob", new Date(), "Ticket: " + ticket.toString() + " - " + getStatusItemDescription(options));
 
 		// The file is already zipped, performing "Single" export.
 		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), this.jobExtension);
-
+		Map<CmsExportTagKey, CmsExportTagValue> tagMap = ticket.getTagMap();
+		if (tagMap != null) {
+			for (Entry<CmsExportTagKey, CmsExportTagValue> t: tagMap.entrySet()) {
+				if (!t.getKey().equals(TAG_STEP)) {
+					job.withTagging(t.getKey(), t.getValue());
+				}
+			}			
+		}
+		// Always set "PublishStep" = "engine";
+		job.withTagging(TAG_STEP, new CmsExportTagValue("engine"));
+		
 		CmsExportItemPublish exportItem = new CmsExportItemPublish(ticket, options, publishJobService, null);
 		job.addExportItem(exportItem);
 		job.prepare();
