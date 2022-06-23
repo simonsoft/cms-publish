@@ -30,7 +30,9 @@ import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -183,6 +185,10 @@ public class PublishServicePe implements PublishService {
 
 	public PublishTicket requestPublishPost(PublishRequest request) throws PublishException {
 		logger.trace("Start");
+		PublishSource source = request.getFile();
+		Supplier<InputStream> inputStream = Objects.requireNonNull(source.getInputStream(), "Source InputStream must not be null");
+		Long inputLength = Objects.requireNonNull(source.getInputLength(), "Source InputLength must not be null (chunked POST not supported by PE)");
+		
 		// Create the uri
 		StringBuffer uri = new StringBuffer();
 		// Start with host and pe path
@@ -197,7 +203,6 @@ public class PublishServicePe implements PublishService {
 		uri.append("&type=").append(request.getFormat().getFormat()); // The output type
 		
 		String contentType = "application/xml";
-		PublishSource source = request.getFile();
 		if (source.getInputEntry() != null) {
 			uri.append("&file-type=zip"); // Assume zip, the only supported archive format.
 			uri.append("&input-entry=").append(source.getInputEntry());
@@ -217,8 +222,8 @@ public class PublishServicePe implements PublishService {
 			logger.info("POSTing source to PE: {}", uri);
 			HttpClient httpClient = this.restClient.getClientPost();
 			
-			BodyPublisher bpis = HttpRequest.BodyPublishers.ofInputStream(source.getInputStream());
-			BodyPublisher bpisWithLength = HttpRequest.BodyPublishers.fromPublisher(bpis, source.getInputLength());
+			BodyPublisher bpis = HttpRequest.BodyPublishers.ofInputStream(inputStream);
+			BodyPublisher bpisWithLength = HttpRequest.BodyPublishers.fromPublisher(bpis, inputLength);
 			
 	        HttpRequest postRequest = HttpRequest.newBuilder()
 	                .POST(bpisWithLength)

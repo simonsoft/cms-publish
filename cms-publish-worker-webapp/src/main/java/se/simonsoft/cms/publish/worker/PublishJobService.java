@@ -35,9 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import se.simonsoft.cms.export.storage.CmsExportAwsReaderSingle;
 import se.simonsoft.cms.item.export.CmsExportProvider;
 import se.simonsoft.cms.item.export.CmsExportReader;
+import se.simonsoft.cms.item.export.CmsExportTagKey;
+import se.simonsoft.cms.item.export.CmsExportTagValue;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
@@ -76,7 +77,7 @@ public class PublishJobService {
 	}
 
 
-	public PublishTicket publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
+	public PublishTicketMeta publishJob(PublishJobOptions jobOptions) throws InterruptedException, PublishException {
 		if (jobOptions == null) {
 			throw new NullPointerException("The given PublishJob was null");
 		}
@@ -124,8 +125,14 @@ public class PublishJobService {
 		logger.debug("Request is created with file: {} and format {}, sending to PE", source, format);
 		PublishTicket ticket = pe.requestPublish(request);
 		logger.debug("PE returned a ticket: {}", ticket.toString());
-
-		return ticket;
+		
+		
+		Map<CmsExportTagKey, CmsExportTagValue> tagMap = null;
+		if (source instanceof PublishSourceArchiveMeta) {
+			tagMap = ((PublishSourceArchiveMeta) source).getTagMap(); 
+		}
+				
+		return new PublishTicketMeta(ticket.toString(), tagMap);
 	}
 
 	public void getCompletedJob(PublishJobOptions jobOptions, PublishTicket ticket, OutputStream outputStream) throws IOException, PublishException {
@@ -238,7 +245,7 @@ public class PublishJobService {
 				return is;
 			}
 		};
-		return new PublishSourceArchive(content, contentLength, inputEntry);
+		return new PublishSourceArchiveMeta(content, contentLength, inputEntry, reader.getTagging());
 	}
 	
 	// NOTE: Do NOT use in production!
