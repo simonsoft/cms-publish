@@ -183,7 +183,7 @@ public class PublishConfigFilterTest {
 		
 		CmsItem itemMockTypeDita = mock(CmsItem.class);
 		Map<String, Object> metaDita = new HashMap<String, Object>();
-		metaDita.put("meta_s_s_xml_a_othermeta_cms-type", "operator");
+		metaDita.put("meta_s_s_xml_a_othermeta_cms-type", "bogus\noperator");
 		when(itemMockTypeDita.getMeta()).thenReturn(metaDita);
 		assertTrue(filter.accept(publishConfig, itemMockTypeDita));
 		

@@ -15,7 +15,10 @@
  */
 package se.simonsoft.cms.publish.rest.config.filter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
@@ -29,14 +32,26 @@ public class PublishConfigFilterType implements PublishConfigFilter {
 	public boolean accept(PublishConfig config, CmsItem item) {
 		String fieldValueBook = (String) item.getMeta().get(fieldNameBook);
 		String fieldValueDita = (String) item.getMeta().get(fieldNameDita);
+		// Support multi-value othermeta.
+		List<String> valuesDita = fieldValueDita == null ? new ArrayList<String>(): fieldValueDita.lines().collect(Collectors.toList());
+		
 		
 		boolean accept = false;
 		List<String> configInclude = config.getTypeInclude();
-		if (configInclude == null || configInclude.contains(fieldValueBook) || configInclude.contains(fieldValueDita)) { 
+		if (configInclude == null || configInclude.contains(fieldValueBook) || !intersect(configInclude, valuesDita).isEmpty()) { 
 			accept = true;
 		}
 		
 		return accept;
+	}
+	
+	private Set<String> intersect(List<String> list, List<String> otherList) {
+		
+		Set<String> result = list.stream()
+				  .distinct()
+				  .filter(otherList::contains)
+				  .collect(Collectors.toSet());
+		return result;
 	}
 
 }
