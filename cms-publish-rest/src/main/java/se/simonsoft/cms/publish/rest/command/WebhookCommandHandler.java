@@ -133,6 +133,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		try {
 			response = makeRequest(options.getDelivery(), getPostBody(postParams));
 		} catch (Exception e) {
+			logger.warn("Webhook connect failed: {}", e.getMessage(), e);
 			throw new CommandRuntimeException("WebhookFailed", e);
 		}
 		
