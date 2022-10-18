@@ -135,7 +135,7 @@ public class TestPublishConfig extends TestCase {
 				"\"paramsNameValue\":[{\"Name\":\"stylesheet\",\"Value\":\"file.css\"},{\"Name\":\"pdfconfig\",\"Value\":\"file.pdf\"},{\"Name\":\"whatever\",\"Value\":\"great\"}]" +
 				*/
 				"}," + 
-				"\"configname\":null,\"type\":null,\"action\":null,\"area\":{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null},\"itemid\":null,\"userid\":null}";
+				"\"configname\":null,\"type\":null,\"action\":null,\"area\":{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null},\"itemid\":null,\"userid\":null,\"userroles\":null}";
 		assertEquals("full job JSONs",  expectedJobJson, jobJson);
 	}
 	
