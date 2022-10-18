@@ -34,6 +34,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 	private PublishConfigArea area;
 	private String itemid;
 	private String userId;
+	private String userRoles;
 	private PublishJobOptions options;
 
 	public PublishJob(PublishJob pj) {
@@ -135,5 +136,16 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 	@Override
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+	
+	@Override
+	@JsonGetter("userroles") // Defined by the interface if the writer configure forType(WorkflowItemInputUserId.class). 
+	public String getUserRoles() {
+		return this.userRoles;
+	}
+
+	@Override
+	public void setUserRoles(String userRoles) {
+		this.userRoles = userRoles;
 	}
 }
