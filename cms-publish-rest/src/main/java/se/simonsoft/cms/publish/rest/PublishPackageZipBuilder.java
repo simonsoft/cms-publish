@@ -98,6 +98,7 @@ public class PublishPackageZipBuilder {
 		logger.debug("Export zip package '{}' with ZIP prefix: {}", publishPackage.getPublication(), addZipPrefix);
 		for (PublishJob pj: readers.keySet()) {
 			CmsExportReader r = readers.get(pj);
+			logger.info("Export zip processing source job for: {}", pj.getItemid());
 			InputStream contents = r.getContents();
 			// Assuming that published zip files do not contain non-file data btw file entries such that the zip becomes incompatible with native Java ZIP (which does not read the "central directory").
 			// https://stackoverflow.com/questions/12030703/uncompressing-a-zip-file-in-memory-in-java
@@ -117,7 +118,7 @@ public class PublishPackageZipBuilder {
 				
 				zis.close();
 			} catch (IOException e) {
-				logger.warn("Could not close inputStream from Aws: {}", e.getMessage());
+				logger.warn("Could not close S3 InputStream: {}", e.getMessage());
 			}
 
 		}
@@ -127,10 +128,10 @@ public class PublishPackageZipBuilder {
 			
 		} catch (IOException e) {
 			logger.error("Finish zip package failed with IOException: {}", e.getMessage(), e);
-			throw new RuntimeException("Export zip package failed with IOException: " + e.getMessage());
+			throw new RuntimeException("Finish zip package failed with IOException: " + e.getMessage());
 		} catch (Exception e) {
 			logger.error("Finish zip package failed with Exception: {}", e.getMessage(), e);
-			throw new RuntimeException("Export zip package failed with Exception: " + e.getMessage());
+			throw new RuntimeException("Finish zip package failed with Exception: " + e.getMessage());
 		}
 		logger.debug("Re-packaged zip files from S3.");
 	}
@@ -167,6 +168,7 @@ public class PublishPackageZipBuilder {
 					zis.closeEntry();
 					
 					entries.put(path, toHex(dis.getMessageDigest().digest()));
+					logger.debug("Zip entry exported {} : {}", path, entries.get(path));
 				} else {
 					IOUtils.copy(dis, NullOutputStream.NULL_OUTPUT_STREAM);
 					zis.closeEntry();
