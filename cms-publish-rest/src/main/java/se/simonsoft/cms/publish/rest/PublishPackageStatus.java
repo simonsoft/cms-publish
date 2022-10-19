@@ -132,7 +132,7 @@ public class PublishPackageStatus {
         final PublishProfilingRecipe profiling = publishPackage.getProfilingSet() == null ? null : publishPackage.getProfilingSet().iterator().next();
         PublishConfig publishConfig = publishPackage.getPublishConfig();
 
-        logger.debug("Found {} workflow executions for item: {}", executions.size(), item.getId());
+        logger.trace("Found {} workflow executions for item: {}", executions.size(), item.getId());
         
         // FIXME: We currently ignore the RUNNING_STALE executions. It remains to be seen if this needs to be handled properly.
         // #1525 The state RUNNING_STALE is probably going away.
@@ -140,13 +140,13 @@ public class PublishPackageStatus {
         // Filter out the executions not related to the current publication
         executions.removeIf(execution -> !((PublishJob) execution.getInput()).getConfigname().equals(publication));
         
-        logger.debug("Found {} workflow executions '{}' for item: {}", executions.size(), publication, item.getId());
+        logger.trace("Found {} workflow executions '{}' for item: {}", executions.size(), publication, item.getId());
         // Filter out profiling name.
         if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 0) {
         	logger.debug("Filtering workflow executions (profiling '{}' for item: {}", profiling.getName(), item.getId());
         	executions.removeIf(execution -> !(((PublishJob) execution.getInput()).getOptions().getProfiling() != null && ((PublishJob) execution.getInput()).getOptions().getProfiling().getName().equals(profiling.getName())));
         }
-        logger.debug("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
+        logger.trace("Found {} relevant workflow executions for item: {}", executions.size(), item.getId());
         
         // Can there be multiple at this point? Only if manual start has accidentally started another?
         // - Aborted and then restarted.
@@ -156,7 +156,7 @@ public class PublishPackageStatus {
         	execution = executions.iterator().next();
         }
         if (executions.size() > 1) {
-        	logger.info("Found {} workflow executions (selecting latest started) for item: {}", executions.size(), item.getId());
+        	logger.debug("Found {} workflow executions (selecting latest started) for item: {}", executions.size(), item.getId());
         	// TODO: Figure out how to handle.
         	// 5.0.3 and below: For now, we prefer "SUCCEEDED" to prevent starting more executions. Likely not ideal if we want to support re-publish of recent publications.
         	// Prefer the latest based on start time.
