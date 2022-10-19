@@ -38,6 +38,11 @@ public class PublishConfigTemplateString {
 		
 		this.context = new VelocityContext();
 		this.context.put("esc", new EscapeTool());
+		// Register classes with useful static methods. Using reflection in Velocity is not supported in Simonsoft CMS.
+		// This will likely be compatible with Quarkus.
+		context.put("Character", Character.class);
+		context.put("Integer", Integer.class);
+		context.put("String", String.class);
 	}
 	
 	/**

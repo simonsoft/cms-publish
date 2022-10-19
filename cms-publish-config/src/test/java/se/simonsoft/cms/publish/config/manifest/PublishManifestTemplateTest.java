@@ -17,6 +17,8 @@ package se.simonsoft.cms.publish.config.manifest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -29,6 +31,8 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigDelivery;
@@ -37,6 +41,7 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfigOptions;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 
 public class PublishManifestTemplateTest {
 
@@ -76,6 +81,29 @@ public class PublishManifestTemplateTest {
 		assertNotNull(manifestReparsed);
 	}
 	
+	
+	@Test
+	public void testVelocityStaticMethods() throws Exception {
+		CmsItemPublish item = mock(CmsItemPublish.class);
+		when(item.getReleaseLabel()).thenReturn("BA");
+		when(item.getRevisionChanged()).thenReturn(new RepoRevision(123, null));
+		
+		
+		PublishConfigTemplateString pcts = new PublishConfigTemplateString();
+		pcts.withEntry("item", item);
+		pcts.withEntry("int", Integer.valueOf(33));
+		pcts.withEntry("char", Character.valueOf('C'));
+		
+		assertEquals(10, Character.getNumericValue('A'));
+		assertEquals("10", Integer.toString(Character.getNumericValue('A')));
+		assertEquals("33", pcts.evaluate("${Integer.toString($int)}"));
+		assertEquals("2.12", pcts.evaluate("2.${Integer.toString($Character.getNumericValue($char))}"));
+		assertEquals("3.11", pcts.evaluate("3.${Character.getNumericValue($item.getReleaseLabel().charAt(0))}"));
+		assertEquals("123", pcts.evaluate("${item.getRevisionChanged().getNumber()}"));
+		
+		assertEquals("000000000123", String.format("%012d", item.getRevisionChanged().getNumber()));
+		assertEquals("4.000000000123", pcts.evaluate("4.$String.format(\"%012d\", ${item.getRevisionChanged().getNumber()})"));
+	}
 	
 	private PublishJob getPublishJob1() {
 		
