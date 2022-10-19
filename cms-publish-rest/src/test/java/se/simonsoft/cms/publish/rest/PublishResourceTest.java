@@ -73,8 +73,10 @@ public class PublishResourceTest {
 	@Mock WorkflowExecutionStatus executionStatusMock;
 	@Mock Map<CmsRepository, TranslationTracking> trackingMapMock;
 	@Mock TranslationTracking translationTrackingMock;
+	@Mock Map<CmsRepository, PublishPackageFactory> packageFactoryMapMock;
 
 	private PublishResource publishResource;
+	private PublishPackageFactory publishPackageFactory;
 
 	private final RepoRevision revision = new RepoRevision(203, new Date());
 	private final CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
@@ -92,7 +94,7 @@ public class PublishResourceTest {
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);
 		when(itemMock.getId()).thenReturn(itemId);
 		when(itemMock.getRevisionChanged()).thenReturn(revision);
-		when(trackingMapMock.get(any(CmsRepository.class))).thenReturn(translationTrackingMock);
+		
 
 		List<CmsItemTranslation> translations = new ArrayList<CmsItemTranslation>();
 		CmsItemTranslation translationMock1 = mock(CmsItemTranslation.class);
@@ -151,13 +153,16 @@ public class PublishResourceTest {
 		ppSet.add(recipe);
 		when(publishConfigurationMock.getItemProfilingSet(any(CmsItemPublish.class))).thenReturn(ppSet);
 
+		publishPackageFactory = new PublishPackageFactory(lookupReportingMock, translationTrackingMock, publishConfigurationMock);
+		when(packageFactoryMapMock.get(any(CmsRepository.class))).thenReturn(publishPackageFactory);
+		
 		publishResource = new PublishResource("localhost",
 				lookupMapMock,
 				lookupReportingMapMock,
 				publishConfigurationMock,
 				packageZipMock,
 				packageStatusMock,
-				trackingMapMock,
+				packageFactoryMapMock,
 				htmlHelperMock,
 				storageFactoryMock,
 				jobFactoryMock,
