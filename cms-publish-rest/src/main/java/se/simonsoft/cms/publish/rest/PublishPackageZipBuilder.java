@@ -122,9 +122,13 @@ public class PublishPackageZipBuilder {
 		
 		try {
 			zos.finish();
+			
 		} catch (IOException e) {
-			logger.error("Could not finish zip");
-			throw new RuntimeException("Could not finish zip", e);
+			logger.error("Finish zip package failed with IOException: {}", e.getMessage(), e);
+			throw new RuntimeException("Export zip package failed with IOException: " + e.getMessage());
+		} catch (Exception e) {
+			logger.error("Finish zip package failed with Exception: {}", e.getMessage(), e);
+			throw new RuntimeException("Export zip package failed with Exception: " + e.getMessage());
 		}
 		logger.debug("Re-packaged zip files from S3.");
 	}
@@ -165,14 +169,17 @@ public class PublishPackageZipBuilder {
 					zos.closeEntry();
 					zis.closeEntry();
 				} else {
-					logger.debug("Deduplicating entry: {}", path);					
+					logger.info("Deduplicating entry: {}", path);					
 				}
 				nextEntry = zis.getNextEntry();
 			}
 			
 		} catch (IOException e) {
-			logger.debug("Error when trying to write new zip entries: {}", e.getMessage());
-			throw new RuntimeException(e);
+			logger.error("Export zip package failed with IOException: {}", e.getMessage(), e);
+			throw new RuntimeException("Export zip package failed with IOException: " + e.getMessage());
+		} catch (Exception e) {
+			logger.error("Export zip package failed with Exception: {}", e.getMessage(), e);
+			throw new RuntimeException("Export zip package failed with Exception: " + e.getMessage());
 		}
 	}
 
