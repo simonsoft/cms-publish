@@ -135,6 +135,7 @@ public class PublishResource {
 		}
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
+		// TODO: Consider letting React handle.
 		if (configuration.isEmpty()) {
 			logger.debug("No publications are configured/visible (includeVisibleFalse: {}).", includeVisibleFalse);
 			if (!includeVisibleFalse && !publishConfiguration.getConfigurationFiltered(itemPublish).isEmpty()) {
@@ -152,6 +153,8 @@ public class PublishResource {
 	public Response getRelease(@QueryParam("item") CmsItemIdArg itemId,
 			@QueryParam("advanced") String advanced) throws Exception {
 
+		// Typically no pegrev (never from our UI) but allowing it.
+		// Not sure if the reporting query, status query, start operation etc does the right thing with pegrev.
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
@@ -160,6 +163,8 @@ public class PublishResource {
 		// For html it is not really necessary to construct the full PublishRelease object.
 		// However, it is very important to properly display any error message thrown when failing to deserialize the publish configs.
 		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
+		
+		// TODO: #1693 Prevent JSON response if indexing is behind the Release item, potentially 202 Accepted with additional headers for progress.
 		logger.debug("Getting release form for item: {}", itemId);
 		PublishRelease publishRelease = getPublishRelease(itemId, includeVisibleFalse);
 		Response response = Response.ok(publishRelease)
@@ -168,7 +173,6 @@ public class PublishResource {
 		return response;
 	}
 
-	
 	
 	
 	
