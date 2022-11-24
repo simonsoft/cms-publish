@@ -55,10 +55,12 @@ import se.simonsoft.cms.publish.rest.writers.PublishReleaseMessageBodyWriterHtml
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.simonsoft.cms.reporting.repositem.CmsItemSearch;
 import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 public class PublishResourceTest {
 	
+	@Mock CmsItemSearch cmsItemSearch;
 	@Mock Map<CmsRepository, CmsItemLookup> lookupMapMock;
 	@Mock Map<CmsRepository, CmsItemLookupReporting> lookupReportingMapMock;
 	@Mock PublishConfigurationDefault publishConfigurationMock;
@@ -157,6 +159,7 @@ public class PublishResourceTest {
 		when(packageFactoryMapMock.get(any(CmsRepository.class))).thenReturn(publishPackageFactory);
 		
 		publishResource = new PublishResource("localhost",
+				cmsItemSearch,
 				lookupMapMock,
 				lookupReportingMapMock,
 				publishConfigurationMock,
