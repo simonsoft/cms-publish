@@ -135,13 +135,15 @@ public class PublishResource {
 		}
 
 		// Avoid displaying an empty dialog, too complex to handle in Velocity (probably possible though).
-		// TODO: Consider letting React handle.
+		// CMS 5.2: Let React handle situation where no configs apply / are visible.
 		if (configuration.isEmpty()) {
 			logger.debug("No publications are configured/visible (includeVisibleFalse: {}).", includeVisibleFalse);
+			/* 
 			if (!includeVisibleFalse && !publishConfiguration.getConfigurationFiltered(itemPublish).isEmpty()) {
 				throw new IllegalStateException("No publications are configured to be visible.");
 			}
 			throw new IllegalStateException("No publications are configured.");
+			*/
 		}
 		return new PublishRelease((CmsItemRepositem) item, configuration, itemProfilings);
 	}
