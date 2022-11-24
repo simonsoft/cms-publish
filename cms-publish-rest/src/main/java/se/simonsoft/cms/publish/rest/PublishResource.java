@@ -45,6 +45,7 @@ import se.repos.web.ReposHtmlHelper;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.export.CmsExportAccessDeniedException;
 import se.simonsoft.cms.item.export.CmsExportJobNotFoundException;
 import se.simonsoft.cms.item.impl.CmsItemIdArg;
@@ -58,12 +59,14 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
+import se.simonsoft.cms.reporting.repositem.CmsItemSearch;
 import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 @Path("/publish4")
 public class PublishResource {
 	
 	private final String hostname;
+	private final CmsItemSearch cmsItemSearch;
 	private final Map<CmsRepository, CmsItemLookup> lookupMap;
 	private final Map<CmsRepository, CmsItemLookupReporting> lookupReportingMap;
 	private final PublishConfigurationDefault publishConfiguration;
@@ -82,6 +85,7 @@ public class PublishResource {
 
 	@Inject
 	public PublishResource(@Named("config:se.simonsoft.cms.hostname") String hostname,
+			CmsItemSearch cmsItemSearch,
 			Map<CmsRepository, CmsItemLookup> lookup,
 			Map<CmsRepository, CmsItemLookupReporting> lookupReporting,
 			PublishConfigurationDefault publishConfiguration,
@@ -96,6 +100,7 @@ public class PublishResource {
 			) {
 		
 		this.hostname = hostname;
+		this.cmsItemSearch = cmsItemSearch;
 		this.lookupMap = lookup;
 		this.lookupReportingMap = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
@@ -197,9 +202,17 @@ public class PublishResource {
 					.header("Vary", "Accept")
 					.build();
 		} else if (item.getRevisionChanged().isNewer(publishRelease.getItem().getRevisionChanged())) {
+			// Need to wait for indexing to complete the revision.
+			RepoRevision indexing = null;
+			try {
+				// Best effort attempt to get indexing status.
+				indexing = this.cmsItemSearch.getRevisionCompleted(itemId.getRepository().getName(), null);
+			} catch (Exception e) {
+				logger.warn("Failed to determine indexing completed revision: {}", e.getMessage(), e);
+			}
 			response = Response.accepted()
 					.header("CMS-Revision-Item", item.getRevisionChanged().getNumberPadded())
-					// TODO: Add header representing the indexing progress.
+					.header("CMS-Revision-Index", (indexing != null) ? indexing.getNumberPadded() : "")
 					.build();
 		} else {
 			throw new IllegalStateException("Release has a higher revision in indexing: " + publishRelease.getItem());
