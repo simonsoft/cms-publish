@@ -503,7 +503,8 @@ public class PublishServicePe implements PublishService {
 	 */
 	PublishTicket getQueueTicket(HttpHeaders headers) throws PublishException {
 		logger.trace("Start");
-		String location = headers.firstValue("Location").orElseThrow(IllegalStateException::new);
+		// Have seen instances where PE fails to return a Location header.
+		String location = headers.firstValue("Location").orElseThrow(() -> new IllegalStateException("Location header in PE response is missing, should provide the queue id."));
 		// Location: /e3/jsp/jobstatus.jsp?id=120
 		String[] s = location.split("id=");
 		if (s.length != 2) {
