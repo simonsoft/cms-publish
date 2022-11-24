@@ -59,7 +59,7 @@ public class PublishPackageFactory {
 	}
 	
 
-	public PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
+	public PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) {
 
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
