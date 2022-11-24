@@ -151,12 +151,11 @@ public class PublishResource {
 	
 	@GET
 	@Path("release")
-	@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
-	public Response getRelease(@QueryParam("item") CmsItemIdArg itemId,
+	@Produces({MediaType.TEXT_HTML})
+	public Response getReleaseHtml(@QueryParam("item") CmsItemIdArg itemId,
 			@QueryParam("advanced") String advanced) throws Exception {
 
 		// Typically no pegrev (never from our UI) but allowing it.
-		// Not sure if the reporting query, status query, start operation etc does the right thing with pegrev.
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
@@ -166,8 +165,7 @@ public class PublishResource {
 		// However, it is very important to properly display any error message thrown when failing to deserialize the publish configs.
 		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
 		
-		// TODO: #1693 Prevent JSON response if indexing is behind the Release item, potentially 202 Accepted with additional headers for progress.
-		logger.debug("Getting release form for item: {}", itemId);
+		logger.debug("Getting export publications form for item: {}", itemId);
 		PublishRelease publishRelease = getPublishRelease(itemId, includeVisibleFalse);
 		Response response = Response.ok(publishRelease)
 				.header("Vary", "Accept")
@@ -175,6 +173,39 @@ public class PublishResource {
 		return response;
 	}
 
+	
+	@GET
+	@Path("release")
+	@Produces({MediaType.APPLICATION_JSON})
+	public Response getReleaseJson(@QueryParam("item") CmsItemIdArg itemId,
+			@QueryParam("advanced") String advanced) throws Exception {
+
+		// Typically no pegrev (never from our UI) but allowing it.
+		// Not sure if the reporting query, status query, start operation etc does the right thing with pegrev.
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+		boolean includeVisibleFalse = (advanced != null);
+		
+		// #1693 Prevent JSON response if indexing is behind the Release item, HTTP '202 Accepted' with additional headers for progress.
+		logger.debug("Getting export publications config for item: {}", itemId);
+		PublishRelease publishRelease = getPublishRelease(itemId, includeVisibleFalse);
+		CmsItem item = lookupMap.get(itemId.getRepository()).getItem(itemId);
+		Response response;
+		if (item.getRevisionChanged().equals(publishRelease.getItem().getRevisionChanged())) {
+			response = Response.ok(publishRelease)
+					.header("Vary", "Accept")
+					.build();
+		} else if (item.getRevisionChanged().isNewer(publishRelease.getItem().getRevisionChanged())) {
+			response = Response.accepted()
+					.header("CMS-Revision-Item", item.getRevisionChanged().getNumberPadded())
+					// TODO: Add header representing the indexing progress.
+					.build();
+		} else {
+			throw new IllegalStateException("Release has a higher revision in indexing: " + publishRelease.getItem());
+		}
+		return response;
+	}
 	
 	
 	
