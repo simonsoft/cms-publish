@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -374,7 +375,14 @@ public class PublishResource {
 	}
 	
 	private PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) throws Exception {
-		return this.packageFactory.get(itemId.getRepository()).getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		LinkedHashSet<String> profilingSet = null;
+		if (profiling != null && profiling.length > 0) {
+			profilingSet = new LinkedHashSet<>();
+			for (String p: profiling) {
+				profilingSet.add(p);
+			}
+		}
+		return this.packageFactory.get(itemId.getRepository()).getPublishPackage(itemId, publication, includeRelease, includeTranslations, profilingSet);
 	}
 	
 	
