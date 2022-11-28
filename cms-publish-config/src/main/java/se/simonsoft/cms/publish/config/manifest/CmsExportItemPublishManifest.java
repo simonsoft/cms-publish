@@ -64,7 +64,6 @@ public class CmsExportItemPublishManifest implements CmsExportItem {
             throw new IllegalStateException("Export item is not ready for export");
         }
 		
-        // TODO: Potentially support Velocity template for custom manifest formats.
 		try {
 			this.writer.writeValue(stream, this.jobManifest);
 		} catch (IOException e) {
