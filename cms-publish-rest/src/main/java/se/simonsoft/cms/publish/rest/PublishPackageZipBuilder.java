@@ -70,8 +70,13 @@ public class PublishPackageZipBuilder {
 	
 	// Note: All aspects of PublishConfig does not necessarily apply to all items.
 	// The config is typically from the Release and assumed to apply to Translations as well.
-	// Assuming that naming Template applies across all items.
+	// It is very rare to define a different publish config for Translations, typically use the config areas in a unified config. 
 	public void getZip(PublishPackage publishPackage, OutputStream os) {
+		boolean addZipPrefix = !isZipFolderDisabled(publishPackage.getPublishConfig());
+		getZip(publishPackage, addZipPrefix, os);
+	}
+	
+	public void getZip(PublishPackage publishPackage, boolean addZipPrefix, OutputStream os) {
 		
 		final LinkedHashMap<PublishJob, CmsExportReader> readers = new LinkedHashMap<>();
 		final ZipOutputStream zos = new ZipOutputStream(os); 
@@ -92,7 +97,6 @@ public class PublishPackageZipBuilder {
 			readers.put(pj, r);
 		}
 		
-		boolean addZipPrefix = !isZipFolderDisabled(publishPackage.getPublishConfig());
 		HashMap<String, String> entries = new HashMap<>();
 		
 		logger.debug("Export zip package '{}' with ZIP prefix: {}", publishPackage.getPublication(), addZipPrefix);

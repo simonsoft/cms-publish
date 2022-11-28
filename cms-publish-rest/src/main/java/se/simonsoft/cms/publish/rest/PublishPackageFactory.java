@@ -59,8 +59,11 @@ public class PublishPackageFactory {
 	}
 	
 
-	public PublishPackage getPublishPackage(CmsItemId itemId, boolean includeRelease, boolean includeTranslations, String[] profiling, String publication) {
-
+	public PublishPackage getPublishPackage(CmsItemId itemId, PublishPackageOptions options) {
+		return getPublishPackage(itemId, options.getPublication(), options.isIncludeRelease(), options.isIncludeTranslations(), options.getProfiling());
+	}
+	
+	public PublishPackage getPublishPackage(CmsItemId itemId, String publication, boolean includeRelease, boolean includeTranslations, LinkedHashSet<String> profiling) {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
@@ -77,6 +80,11 @@ public class PublishPackageFactory {
 			throw new IllegalArgumentException("Field 'includerelease': must be selected if 'includetranslations' is disabled");
 		}
 
+		if (profiling == null) {
+			// Cleaner code below if normalizing on non-null.
+			profiling = new LinkedHashSet<>();
+		}
+		
 		final List<CmsItemPublish> items = new ArrayList<CmsItemPublish>();
 
 		CmsItem releaseItem = lookupReporting.getItem(itemId);
@@ -117,19 +125,19 @@ public class PublishPackageFactory {
 		// Filtering above takes care of mismatch btw includeFiltering and whether item has Profiling.
 		// The 'profiling' parameter should only be allowed if configuration has includeProfiling = true, required then.
 		if (Boolean.TRUE.equals(publishConfig.getProfilingInclude())) {
-			if (profiling.length == 0) {
+			if (profiling.size() == 0) {
 				String msg = MessageFormatter.format("Field 'profiling': required for publication name '{}'.", publication).getMessage();
 				throw new IllegalArgumentException(msg);
 			}
 		} else {
-			if (profiling.length > 0) {
+			if (profiling.size() > 0) {
 				String msg = MessageFormatter.format("Field 'profiling': not allowed for publication name '{}'.", publication).getMessage();
 				throw new IllegalArgumentException(msg);
 			}
 		}
 
 		final Set<PublishProfilingRecipe> profilingSet;
-		if (profiling.length > 0) {
+		if (profiling.size() > 0) {
 			profilingSet = getProfilingSetSelected(new CmsItemPublish(releaseItem), publishConfig, profiling);
 		} else {
 			profilingSet = null;
@@ -140,7 +148,7 @@ public class PublishPackageFactory {
 	}
 
 	// Order will not be preserved, should not matter for packaging the publications.
-	private Set<PublishProfilingRecipe> getProfilingSetSelected(CmsItemPublish item, PublishConfig publishConfig, String[] profiling) {
+	private Set<PublishProfilingRecipe> getProfilingSetSelected(CmsItemPublish item, PublishConfig publishConfig, LinkedHashSet<String> profiling) {
 
 		Map<String, PublishProfilingRecipe> profilingAll = this.publishConfiguration.getItemProfilingSet(item).getMap();
 		HashSet<PublishProfilingRecipe> profilingSet = new HashSet<PublishProfilingRecipe>(profilingAll.size());
@@ -197,8 +205,8 @@ public class PublishPackageFactory {
 				logger.debug("Publish excluding Translation (status = {}): {}", tItem.getStatus(), tItem.getId());
 			}
 		}
-
 		return items;
 	}
 
+	
 }
