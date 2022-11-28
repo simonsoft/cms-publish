@@ -34,6 +34,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.velocity.app.VelocityEngine;
@@ -210,7 +211,8 @@ public class PublishResource {
 			} catch (Exception e) {
 				logger.warn("Failed to determine indexing completed revision: {}", e.getMessage(), e);
 			}
-			response = Response.accepted()
+			//response = Response.accepted() // Likely not supported by Wink.
+			response = Response.status(Status.ACCEPTED)
 					.header("CMS-Revision-Item", item.getRevisionChanged().getNumberPadded())
 					.header("CMS-Revision-Index", (indexing != null) ? indexing.getNumberPadded() : "")
 					.build();
