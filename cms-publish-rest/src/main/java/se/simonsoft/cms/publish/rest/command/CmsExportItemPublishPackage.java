@@ -29,44 +29,40 @@ public class CmsExportItemPublishPackage implements CmsExportItem {
 
 	private final PublishPackage publishPackage;
 	private final PublishPackageZipBuilder publishPackageZip;
-	
+
 	private boolean ready = false;
-	
+
 	private Logger logger = LoggerFactory.getLogger(CmsExportItemPublishPackage.class);
-	
+
 	public CmsExportItemPublishPackage(PublishPackage publishPackage, PublishPackageZipBuilder publishPackageZip) {
 		this.publishPackage = publishPackage;
 		this.publishPackageZip = publishPackageZip;
 	}
 
-	
 	@Override
 	public void prepare() {
-        if (ready) {
-            throw new IllegalStateException("Export item:" + "Publish package" + " is already prepared");
-        }
+		if (ready) {
+			throw new IllegalStateException("Export item:" + "Publish package" + " is already prepared");
+		}
 		this.ready = true;
 	}
 
-	
-    @Override
-    public Boolean isReady() {
-        return this.ready ;
-    }
+	@Override
+	public Boolean isReady() {
+		return this.ready;
+	}
 
-    
 	@Override
 	public void getResultStream(OutputStream stream) {
-        if (!ready) {
-            throw new IllegalStateException("Export item is not ready for export");
-        }
-		
-        logger.info("Publish Package processing...");
+		if (!ready) {
+			throw new IllegalStateException("Export item is not ready for export");
+		}
+
+		logger.info("Publish Package processing...");
 		this.publishPackageZip.getZip(this.publishPackage, stream);
 		logger.info("Publish Package processed.");
 	}
 
-	
 	@Override
 	public CmsExportPath getResultPath() {
 		return null; // CmsExportJobSingle validates that getResultPath() is null.
