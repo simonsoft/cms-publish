@@ -35,6 +35,7 @@ import se.simonsoft.cms.item.export.CmsExportWriter;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 import se.simonsoft.cms.publish.config.export.PublishJobResultLookup;
 import se.simonsoft.cms.publish.config.manifest.CmsExportItemPublishManifest;
@@ -97,17 +98,45 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 			throw new CommandRuntimeException("PublishResultMissing");
 		}
 		
+		// Check if preprocess has generated a custom manifest, should not be overwritten.
+		boolean manifestCustom = resultLookup.isPublishResultExists(itemId, options, manifest.getPathext());
+		
 		logger.trace("Preparing publishJob manifest for export to S3: {}", manifest);
 
 		CmsExportItem exportItem; 
 		if (manifest.getTemplate() != null) {
 			logger.debug("Manifest will be serialized with velocity");
+			// TODO: Remove when supporting export of XSL-generated manifest.
 			exportItem = new CmsExportItemPublishManifestVelocity(options);
 		} else {
 			exportItem = new CmsExportItemPublishManifest(writerPublishManifest, manifest);
 		}
 		
-		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(options.getStorage(), manifest.getPathext());
+		// #1707 Always export the standard manifest as 'index'.
+		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "cms-index", tagStep, tagCdn);
+		
+		if (manifestCustom) {
+			// TODO: Support custom manifest for local FS. Probably a separate export command (delivery) for both zip and manifest.
+			logger.info("Manifest export suppressed due to custom manifest already in place.");
+		} else {
+			CmsExportWriter exportWriter = doExportManifest(options.getStorage(), exportItem, manifest.getPathext(), tagStep, tagCdn);
+			
+			if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
+				options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
+			}
+		}
+		
+		
+		try {
+			return writerJobProgress.writeValueAsString(progress);
+		} catch (JsonProcessingException e) {
+			throw new CommandRuntimeException("JsonProcessingException", e);
+		}
+	}
+	
+	private CmsExportWriter doExportManifest(PublishJobStorage storage, CmsExportItem exportItem, String pathext, String tagStep, String tagCdn) {
+		
+		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(storage, pathext);
 		job.addExportItem(exportItem);
 		job.withTagging("PublishStep", tagStep);
 		job.withTagging("PublishCdn", tagCdn);
@@ -119,16 +148,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		logger.debug("Writer is prepared. Writing job to S3.");
 		exportWriter.write();
 		logger.debug("Jobs manifest has been exported to S3 at path: {}", job.getJobPath());
-		
-		if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
-			options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
-		}
-		
-		try {
-			return writerJobProgress.writeValueAsString(progress);
-		} catch (JsonProcessingException e) {
-			throw new CommandRuntimeException("JsonProcessingException", e);
-		}
+		return exportWriter;
 	}
 	
 }

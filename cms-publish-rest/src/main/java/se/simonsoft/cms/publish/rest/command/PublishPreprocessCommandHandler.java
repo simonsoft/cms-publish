@@ -152,7 +152,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		}
 		
 		// Manifest available to XSL transforms.
+		String manifestPathext = "json";
 		if (options.getManifest() != null) {
+			if (options.getManifest().getPathext() != null) {
+				manifestPathext = options.getManifest().getPathext(); 
+			}
 			try {
 				exportOptions.setManifest(this.writerPublishManifest.writeValueAsString(options.getManifest()));
 			} catch (JsonProcessingException e) {
@@ -180,6 +184,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			setTags(sJob, tagStep, tagCdn);
 			secondaryJobs.put(artifact, sJob);
 		}
+		secondaryJobs.put("manifest", PublishExportJobFactory.getExportJobSingle(storage, manifestPathext));
 		
 		// Export service
 		exportService.exportRelease(itemId, exportOptions, job, secondaryJobs);

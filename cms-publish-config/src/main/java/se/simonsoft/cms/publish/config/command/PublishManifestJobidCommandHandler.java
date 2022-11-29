@@ -74,6 +74,7 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 		// Augment the manifest with the true StartTime of the execution.
 		doInsertJobStart(manifest, progress);
 		
+		// Consider deleting manifests (json / index) for restarted jobs.
 		
 		try {
 			return writerPublishManifest.writeValueAsString(manifest);

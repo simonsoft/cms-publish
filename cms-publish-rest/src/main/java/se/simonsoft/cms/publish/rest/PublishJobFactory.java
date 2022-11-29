@@ -16,6 +16,8 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,6 +28,7 @@ import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
@@ -47,6 +50,7 @@ public class PublishJobFactory {
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
+	private static final Set<String> manifestExtCollision = new HashSet<>(Arrays.asList("zip", "cms-index"));
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobFactory.class);
 
@@ -160,6 +164,12 @@ public class PublishJobFactory {
 		
 		// #1539 Preparing for special handling of Preview such that all/most Configs can be instantiated as Preview or Full job.
 		doCdnTransformations(item, pj);
+		
+		if (pj.getOptions().getManifest() != null && pj.getOptions().getManifest().getPathext() != null && manifestExtCollision.contains(pj.getOptions().getManifest().getPathext())) {
+			String msg = MessageFormatter.format("Publish Job manifest must not have file extension '{}'.", pj.getOptions().getManifest().getPathext()).getMessage();
+			logger.error(msg);
+			throw new IllegalArgumentException(msg);
+		}
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
