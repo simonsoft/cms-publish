@@ -113,7 +113,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		}
 		
 		// #1707 Always export the standard manifest as 'index'.
-		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "cms-index", tagStep, tagCdn);
+		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "index.json", tagStep, tagCdn);
 		
 		if (manifestCustom) {
 			// TODO: Support custom manifest for local FS. Probably a separate export command (delivery) for both zip and manifest.

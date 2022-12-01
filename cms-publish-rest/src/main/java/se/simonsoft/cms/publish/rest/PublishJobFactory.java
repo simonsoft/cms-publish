@@ -50,7 +50,7 @@ public class PublishJobFactory {
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
-	private static final Set<String> manifestExtCollision = new HashSet<>(Arrays.asList("zip", "cms-index"));
+	private static final Set<String> manifestExtCollision = new HashSet<>(Arrays.asList("zip", "index.json"));
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobFactory.class);
 
