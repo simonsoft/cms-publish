@@ -30,6 +30,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
  * Velocity engine is configured with XML escape tool.
  * The Velocity engine is configured to strict evaluation, requires null checks on maps that could be null.
  * Will not accept that a key is mapped to a null value, if there is a chance for this it has to be handled with null checks in template.
+ * @deprecated #1707 Replaced by XSL-generated manifest.
  * @author jandersson
  */
 public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
