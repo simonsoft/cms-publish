@@ -16,17 +16,23 @@
 package se.simonsoft.cms.publish.rest.cdn;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PrivateKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import se.simonsoft.cms.item.info.CmsCurrentUser;
 
 public class PublishCdnUrlSignerCloudFrontTest {
 
@@ -60,13 +66,39 @@ public class PublishCdnUrlSignerCloudFrontTest {
 			+ "-----END PRIVATE KEY-----";
 	
 	
+	private static PublishCdnUrlSignerCloudFront signerPublic;
 	private static PublishCdnUrlSignerCloudFront signer;
+	private static PublishCdnUrlSignerCloudFront signerPortal;
+	private static CmsCurrentUser currentUser;
 	private static Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 
-		signer = new PublishCdnUrlSignerCloudFront(new PublishCdnConfigBase() {
+		PublishCdnConfig configPublic = new PublishCdnConfigBase() {
+			
+			@Override
+			public PrivateKey getPrivateKey(String cdn) {
+				return null;
+			}
+			
+			@Override
+			public String getPrivateKeyId(String cdn) {
+				return null;
+			}
+			
+			@Override
+			public String getHostname(String cdn) {
+				return "demo-dev.public.simonsoftcdn.com";
+			}
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return null;
+			}
+		};
+		
+		PublishCdnConfig configSigner = new PublishCdnConfigBase() {
 			
 			@Override
 			public PrivateKey getPrivateKey(String cdn) {
@@ -86,23 +118,95 @@ public class PublishCdnUrlSignerCloudFrontTest {
 			public String getHostname(String cdn) {
 				return "demo-dev.preview.simonsoftcdn.com";
 			}
-		});
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return null;
+			}
+		};
+	
+		PublishCdnConfig configPortal = new PublishCdnConfigBase() {
+			
+			@Override
+			public PrivateKey getPrivateKey(String cdn) {
+				try {
+					return readPrivateKey(keyPem);
+				} catch (Exception e) {
+					throw new IllegalStateException(e);
+				}
+			}
+			
+			@Override
+			public String getPrivateKeyId(String cdn) {
+				return "K1KPJ6JE57LGCO";
+			}
+			
+			@Override
+			public String getHostname(String cdn) {
+				return "demo-dev.portal.simonsoftcdn.com";
+			}
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return new LinkedHashSet<>(Arrays.asList("*"));
+			}
+		};
+		
+		signerPublic = new PublishCdnUrlSignerCloudFront(configPublic);
+		signer = new PublishCdnUrlSignerCloudFront(configSigner);
+		signerPortal = new PublishCdnUrlSignerCloudFront(configPortal);
+		
+		// Currently not used except for logging.
+		currentUser = new CmsCurrentUser() {			
+			@Override
+			public String getUsername() {
+				return null;
+			}
+			
+			@Override
+			public String getUserRoles() {
+				return null;
+			}
+		};
 	}
+	
+	@Test
+	public void testGetUrl() throws MalformedURLException {
+		
+		String urlPublic = signerPublic.getUrlSigned("public", currentUser, expires);
+		assertEquals("", "https://demo-dev.public.simonsoftcdn.com/", urlPublic);
+		
+		try {
+			String urlSigned = signer.getUrlSigned("preview", currentUser, expires);
+			fail(urlSigned);
+		} catch (IllegalArgumentException e) {
+		}
+
+		String urlPortal = signerPortal.getUrlSigned("portal", currentUser, expires);
+		assertEquals("", "https://demo-dev.portal.simonsoftcdn.com/?Expires=", urlPortal.substring(0, urlPortal.indexOf('=')+1));
+	}
+	
 
 	
 	@Test
 	public void testGetUrlDocument() throws MalformedURLException {
 		
-		String urlWithFilename = signer.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		String urlPublic = signerPublic.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
+		
+		String urlWithFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
 		assertEquals("preserve file name if included", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlWithFilename);
 
-		String urlNoFilename = signer.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/");
+		String urlNoFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/");
 		assertEquals("TBD: currently not adding index.html", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/", urlNoFilename);
 	}
 	
 	
 	@Test
 	public void testGetUrlDocumentSigned() throws MalformedURLException {
+		
+		String urlPublic = signerPublic.getUrlDocumentSigned("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", expires);
+		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
 		
 		String urlSigned = signer.getUrlDocumentSigned("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", expires);
 		URL url = new URL(urlSigned);
