@@ -28,6 +28,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
@@ -40,9 +41,11 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.info.CmsCurrentUser;
 import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
 
@@ -53,17 +56,42 @@ public class PublishCdnResource {
 	private PublishCdnConfig cdnConfig;
 	// Consider making an interface after API stabilization.
 	private PublishCdnUrlSignerCloudFront cdnUrlSigner;
+	private CmsCurrentUser currentUser;
 	
 	private Logger logger = LoggerFactory.getLogger(PublishCdnResource.class);
 	
 	@Inject
-	public PublishCdnResource(Map<CmsRepository, CmsItemLookup> lookupMap, @Named("repositem") SolrClient solrClient, PublishCdnConfig cdnConfig) {
+	public PublishCdnResource(Map<CmsRepository, CmsItemLookup> lookupMap, @Named("repositem") SolrClient solrClient, PublishCdnConfig cdnConfig, CmsCurrentUser currentUser) {
 		this.lookupMap = lookupMap;
 		this.solrClient = solrClient;
 		this.cdnConfig = cdnConfig;
 		this.cdnUrlSigner = new PublishCdnUrlSignerCloudFront(this.cdnConfig);
+		this.currentUser = currentUser;
 	}
 	
+	
+	@GET
+	@Path("auth/{cdn}")
+	public Response getAuthRedirect(@PathParam("cdn") String cdn) {
+		// TODO: Add support for return url path.
+		
+		if (cdn == null || cdn.isBlank()) {
+			throw new IllegalArgumentException();
+		}
+		
+		// Shorter since signature applies to whole CDN.
+		// Consider configurable signature duration.
+		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+		
+		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+		
+		Response response = Response.status(Response.Status.FOUND)
+				.header("Location", url)
+				.build();
+		return response;
+	}
+	
+		
 	
 	@GET
 	@Path("execution/url")
