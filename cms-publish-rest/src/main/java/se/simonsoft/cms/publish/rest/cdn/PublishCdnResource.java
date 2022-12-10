@@ -41,7 +41,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
@@ -85,7 +84,7 @@ public class PublishCdnResource {
 		
 		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
 		
-		Response response = Response.status(Response.Status.FOUND)
+		Response response = Response.status(302)
 				.header("Location", url)
 				.build();
 		return response;
