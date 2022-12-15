@@ -72,7 +72,8 @@ public class PublishCdnResource {
 	@GET
 	@Path("auth/{cdn}")
 	public Response getAuthRedirect(@PathParam("cdn") String cdn) {
-		// TODO: Add support for return url path.
+		// TODO: Add support for return url path. Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
+		// Consider always redirecting to root portal but with some filter parameter that enables presenting the document initially sought.
 		
 		if (cdn == null || cdn.isBlank()) {
 			throw new IllegalArgumentException();
