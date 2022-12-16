@@ -62,7 +62,7 @@ public class PublishCdnUrlSignerCloudFront {
 	/**
 	 * Provides a complete URL to the full cdn microsite.
 	 * @param cdn
-	 * @param roles NOT IMPLEMENTED
+	 * @param currentUser in order to validate user roles against CDN configuration (NOT IMPLEMENTED, only supports '*' in roles config) 
 	 * @param expires
 	 * @return
 	 */
@@ -79,7 +79,7 @@ public class PublishCdnUrlSignerCloudFront {
 		if (keyId != null) {
 			// Non-public CDN, verify Roles.
 			// Currently only supporting allowing all authenticated users (or not).
-			// Roles are not set in the cofig by default, which means signing is not permitted.
+			// Roles are not set in the config by default, which means signing is not permitted.
 			Set<String> roles = cdnConfig.getAuthRoles(cdn);
 			if (roles == null || !roles.contains("*")) {
 				String msg = MessageFormatter.format("Access denied to CDN '{}'", cdn).getMessage();
@@ -115,6 +115,8 @@ public class PublishCdnUrlSignerCloudFront {
 		// Cloudfront accepts multiple wildcards. 
 		// Slash are not treated in any special way, ok when '/{docno}/' is in the path.
 		// Rearranged CDN path in CMS 5.1 placing '/{docno}/' first, allowing lang-dropdown to work.
+		// NOTE: CMS 5.1 prepared to support lang-dropdown signatures but it requires signature depth config (or similar).
+		// However, the typical use case requires a separate service providing the signed urls, this service is only for authors.
 		// TODO: Extend the api with ability to wildcard earlier (could be a config from PublishCdnConfig).
 		
 		String hostname = cdnConfig.getHostname(cdn);
