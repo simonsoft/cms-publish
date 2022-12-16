@@ -26,14 +26,21 @@ import java.security.SignatureException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import se.simonsoft.cms.item.CmsItemPath;
+import se.simonsoft.cms.item.info.CmsCurrentUser;
 
 public class PublishCdnUrlSignerCloudFront {
 	
 	private static final SecureRandom srand = new SecureRandom();
+	private static final Logger logger = LoggerFactory.getLogger(PublishCdnUrlSignerCloudFront.class);
 
 	private PublishCdnConfig cdnConfig;
 	
@@ -53,7 +60,47 @@ public class PublishCdnUrlSignerCloudFront {
 	
 	
 	/**
-	 * Provides a complete URL, signed if the CDN requires signature.
+	 * Provides a complete URL to the full cdn microsite.
+	 * @param cdn
+	 * @param currentUser in order to validate user roles against CDN configuration (NOT IMPLEMENTED, only supports '*' in roles config) 
+	 * @param expires
+	 * @return
+	 */
+	public String getUrlSigned(String cdn, CmsCurrentUser currentUser, Instant expires) {
+		String path = "/";
+		List<String> docPathSegments = new ArrayList<String>();
+		docPathSegments.add("*"); // Top level wildcard.
+		
+		String hostname = cdnConfig.getHostname(cdn);
+		String keyId = cdnConfig.getPrivateKeyId(cdn);
+		
+		// TODO: Consider validating roles allowed to see the CDN.
+		String result;
+		if (keyId != null) {
+			// Non-public CDN, verify Roles.
+			// Currently only supporting allowing all authenticated users (or not).
+			// Roles are not set in the config by default, which means signing is not permitted.
+			Set<String> roles = cdnConfig.getAuthRoles(cdn);
+			if (roles == null || !roles.contains("*")) {
+				String msg = MessageFormatter.format("Access denied to CDN '{}'", cdn).getMessage();
+				logger.warn(msg);
+				throw new IllegalArgumentException(msg);
+			}
+			logger.info("Access allowed to CDN '{}' {} {}", cdn, currentUser.getUsername(), currentUser.getUserRoles());
+			
+			result = getSignedUrlWithCustomPolicy(hostname, path, docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
+		} else {
+			result = getUrlDocument(cdn, path);
+		}
+		return result;
+	}
+	
+	
+	
+	
+	/**
+	 * Provides a complete URL to a document, signed if the CDN requires signature.
+	 * The signature allows access to all files in the parent folder (siblings to the path parameter).
 	 * 
 	 * @param cdn
 	 * @param path
@@ -68,6 +115,8 @@ public class PublishCdnUrlSignerCloudFront {
 		// Cloudfront accepts multiple wildcards. 
 		// Slash are not treated in any special way, ok when '/{docno}/' is in the path.
 		// Rearranged CDN path in CMS 5.1 placing '/{docno}/' first, allowing lang-dropdown to work.
+		// NOTE: CMS 5.1 prepared to support lang-dropdown signatures but it requires signature depth config (or similar).
+		// However, the typical use case requires a separate service providing the signed urls, this service is only for authors.
 		// TODO: Extend the api with ability to wildcard earlier (could be a config from PublishCdnConfig).
 		
 		String hostname = cdnConfig.getHostname(cdn);

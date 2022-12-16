@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.rest.cdn;
 
 import java.security.PrivateKey;
+import java.util.Set;
 
 public interface PublishCdnConfig {
 
@@ -45,5 +46,13 @@ public interface PublishCdnConfig {
 	// Consider adding:
 	// - expiry time
 	// - wildcard location, how many path segments before wildcard
+	
+	
+	/**
+	 * Roles allowed full access to the cdn.
+	 * @param cdn
+	 * @return
+	 */
+	Set<String> getAuthRoles(String cdn);
 	
 }
