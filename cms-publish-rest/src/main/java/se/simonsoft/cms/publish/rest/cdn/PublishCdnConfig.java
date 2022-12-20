@@ -24,7 +24,8 @@ public interface PublishCdnConfig {
 	 * Host name for the CDN, required
 	 * @param cdn
 	 * @return host name
-	 * @throws IllegalStateException if not defined
+	 * @throws NoSuchElementException if not defined
+	 * @throws IllegalStateException if config is inconsistent
 	 */
 	String getHostname(String cdn);
 	

@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -90,7 +91,7 @@ public class PublishCdnResource {
 			response = Response.status(302)
 				.header("Location", url)
 				.build();
-		} catch (IllegalStateException e) {
+		} catch (NoSuchElementException e) {
 			// CDN does not exist.
 			response = Response.status(404).build();
 		} catch (CmsAuthenticationException e) {
