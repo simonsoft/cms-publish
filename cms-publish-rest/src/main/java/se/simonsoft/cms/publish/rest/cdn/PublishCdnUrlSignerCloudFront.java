@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItemPath;
+import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
 
 public class PublishCdnUrlSignerCloudFront {
@@ -84,7 +85,7 @@ public class PublishCdnUrlSignerCloudFront {
 			if (roles == null || !roles.contains("*")) {
 				String msg = MessageFormatter.format("Access denied to CDN '{}'", cdn).getMessage();
 				logger.warn(msg);
-				throw new IllegalArgumentException(msg);
+				throw new CmsAuthenticationException(msg);
 			}
 			logger.info("Access allowed to CDN '{}' {} {}", cdn, currentUser.getUsername(), currentUser.getUserRoles());
 			

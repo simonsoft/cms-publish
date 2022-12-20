@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
+import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
 import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
@@ -79,15 +80,22 @@ public class PublishCdnResource {
 			throw new IllegalArgumentException();
 		}
 		
+		
 		// Shorter since signature applies to whole CDN.
 		// Consider configurable signature duration.
 		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
-		
-		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
-		
-		Response response = Response.status(302)
+		Response response;
+		try {
+			String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+			response = Response.status(302)
 				.header("Location", url)
 				.build();
+		} catch (IllegalStateException e) {
+			// CDN does not exist.
+			response = Response.status(404).build();
+		} catch (CmsAuthenticationException e) {
+			response = Response.status(403).build();
+		}
 		return response;
 	}
 	
