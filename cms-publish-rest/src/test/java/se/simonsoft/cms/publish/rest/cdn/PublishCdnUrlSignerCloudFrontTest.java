@@ -32,6 +32,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
 
 public class PublishCdnUrlSignerCloudFrontTest {
@@ -178,8 +179,8 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		
 		try {
 			String urlSigned = signer.getUrlSigned("preview", currentUser, expires);
-			fail(urlSigned);
-		} catch (IllegalArgumentException e) {
+			fail("Should deny access to 'preview': " + urlSigned);
+		} catch (CmsAuthenticationException e) {
 		}
 
 		String urlPortal = signerPortal.getUrlSigned("portal", currentUser, expires);
