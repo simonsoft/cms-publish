@@ -15,7 +15,6 @@
  */
 package se.simonsoft.cms.publish.rest.command;
 
-import java.io.OutputStream;
 import java.util.Map;
 
 import javax.inject.Inject;
