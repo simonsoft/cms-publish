@@ -76,6 +76,7 @@ public class PublishCdnResource {
 	public Response getAuthRedirect(@PathParam("cdn") String cdn) {
 		// TODO: Add support for return url path. Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
 		// Consider always redirecting to root portal but with some filter parameter that enables presenting the document initially sought.
+		// The referrer header might be useful (unless obscured by an error page redirect).
 		
 		if (cdn == null || cdn.isBlank()) {
 			throw new IllegalArgumentException();
@@ -87,6 +88,7 @@ public class PublishCdnResource {
 		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		Response response;
 		try {
+			// Should always sign the root url even if the redirect captures the initially requested document.
 			String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
 			response = Response.status(302)
 				.header("Location", url)
