@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -112,10 +113,9 @@ public class PublishCdnResource {
 	 */
 	@GET
 	@Path("search/portal/{cdn}")
-	public Response getSearchPortal(@PathParam("cdn") String cdn, @QueryParam("visibility") Integer visibility) {
-		if (visibility == null) {
-			logger.warn("Experimental use of null visibility");
-			//throw new IllegalArgumentException("parameter visibility is required [0-999]");
+	public Response getSearchPortal(@PathParam("cdn") String cdn, @QueryParam("visibility") @DefaultValue(value = "200") Integer visibility) {
+		if (visibility == null || visibility < 0 || visibility > 999) {
+			throw new IllegalArgumentException("parameter visibility is required [0-999]");
 		}
 		// Generate and log the key before testing access control, useful for administrators.
 		String key = this.cdnSearchKeyGenerator.getSearchApiKey(cdn, visibility);
