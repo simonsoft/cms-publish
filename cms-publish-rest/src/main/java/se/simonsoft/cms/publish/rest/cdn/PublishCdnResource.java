@@ -57,6 +57,7 @@ public class PublishCdnResource {
 	private PublishCdnConfig cdnConfig;
 	// Consider making an interface after API stabilization.
 	private PublishCdnUrlSignerCloudFront cdnUrlSigner;
+	private final PublishCdnSearchApiKeyGeneratorAlgolia cdnSearchKeyGenerator;
 	private CmsCurrentUser currentUser;
 	
 	private Logger logger = LoggerFactory.getLogger(PublishCdnResource.class);
@@ -67,6 +68,7 @@ public class PublishCdnResource {
 		this.solrClient = solrClient;
 		this.cdnConfig = cdnConfig;
 		this.cdnUrlSigner = new PublishCdnUrlSignerCloudFront(this.cdnConfig);
+		this.cdnSearchKeyGenerator = new PublishCdnSearchApiKeyGeneratorAlgolia(this.cdnConfig);
 		this.currentUser = currentUser;
 	}
 	
@@ -100,6 +102,32 @@ public class PublishCdnResource {
 			response = Response.status(403).build();
 		}
 		return response;
+	}
+	
+	
+	/**
+	 * EXPERIMENTAL: Awaiting specification.
+	 * @param cdn
+	 * @return
+	 */
+	@GET
+	@Path("search/portal/{cdn}")
+	public Response getSearchPortal(@PathParam("cdn") String cdn, @QueryParam("visibility") Integer visibility) {
+		if (visibility == null) {
+			logger.warn("Experimental use of null visibility");
+			//throw new IllegalArgumentException("parameter visibility is required [0-999]");
+		}
+		// Generate and log the key before testing access control, useful for administrators.
+		String key = this.cdnSearchKeyGenerator.getSearchApiKey(cdn, visibility);
+		logger.info("CDN '{}' search key (visibility>{}): {}", cdn, visibility, key);
+		
+		// Test access control, allowing this method for internal CDN configurations.
+		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+		@SuppressWarnings("unused")
+		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+		
+		// TODO: Consider returning an object containing AppId, key, ...
+		return Response.ok().entity(key).build();
 	}
 	
 		
