@@ -28,8 +28,7 @@
             "job": {
                 "configname": "simple-pdf",
                 "format": "pdf",
-                "itemid": "x-svn:///svn/demo1/vvab/release/B/xml/documents/900108.xml?p=145",
-                "start": "2020-01-01T22:50:00Z"
+                "itemid": "x-svn:///svn/demo1/vvab/release/B/xml/documents/900108.xml?p=145"
             },
             "document": {
                 "pathname": "DOC_900108_Released",
