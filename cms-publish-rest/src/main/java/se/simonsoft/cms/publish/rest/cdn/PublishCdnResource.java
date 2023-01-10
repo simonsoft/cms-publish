@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -57,6 +58,7 @@ public class PublishCdnResource {
 	private PublishCdnConfig cdnConfig;
 	// Consider making an interface after API stabilization.
 	private PublishCdnUrlSignerCloudFront cdnUrlSigner;
+	private final PublishCdnSearchApiKeyGeneratorAlgolia cdnSearchKeyGenerator;
 	private CmsCurrentUser currentUser;
 	
 	private Logger logger = LoggerFactory.getLogger(PublishCdnResource.class);
@@ -67,6 +69,7 @@ public class PublishCdnResource {
 		this.solrClient = solrClient;
 		this.cdnConfig = cdnConfig;
 		this.cdnUrlSigner = new PublishCdnUrlSignerCloudFront(this.cdnConfig);
+		this.cdnSearchKeyGenerator = new PublishCdnSearchApiKeyGeneratorAlgolia(this.cdnConfig);
 		this.currentUser = currentUser;
 	}
 	
@@ -76,6 +79,7 @@ public class PublishCdnResource {
 	public Response getAuthRedirect(@PathParam("cdn") String cdn) {
 		// TODO: Add support for return url path. Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
 		// Consider always redirecting to root portal but with some filter parameter that enables presenting the document initially sought.
+		// The referrer header might be useful (unless obscured by an error page redirect).
 		
 		if (cdn == null || cdn.isBlank()) {
 			throw new IllegalArgumentException();
@@ -87,6 +91,7 @@ public class PublishCdnResource {
 		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		Response response;
 		try {
+			// Should always sign the root url even if the redirect captures the initially requested document.
 			String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
 			response = Response.status(302)
 				.header("Location", url)
@@ -98,6 +103,31 @@ public class PublishCdnResource {
 			response = Response.status(403).build();
 		}
 		return response;
+	}
+	
+	
+	/**
+	 * EXPERIMENTAL: Awaiting specification.
+	 * @param cdn
+	 * @return
+	 */
+	@GET
+	@Path("search/portal/{cdn}")
+	public Response getSearchPortal(@PathParam("cdn") String cdn, @QueryParam("visibility") @DefaultValue(value = "200") Integer visibility) {
+		if (visibility == null || visibility < 0 || visibility > 999) {
+			throw new IllegalArgumentException("parameter visibility is required [0-999]");
+		}
+		// Generate and log the key before testing access control, useful for administrators.
+		String key = this.cdnSearchKeyGenerator.getSearchApiKey(cdn, visibility);
+		logger.info("CDN '{}' search key (visibility>{}): {}", cdn, visibility, key);
+		
+		// Test access control, allowing this method for internal CDN configurations.
+		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+		@SuppressWarnings("unused")
+		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+		
+		// TODO: Consider returning an object containing AppId, key, ...
+		return Response.ok().entity(key).build();
 	}
 	
 		

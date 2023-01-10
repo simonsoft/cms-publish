@@ -56,6 +56,13 @@
 		    <artifactId>cms-reporting</artifactId>
 		    <version>[2.1.0,)</version>
 		</dependency>
+
+		<dependency>
+			<!-- Algolia v4 beta client has more dependencies, less similar to CMS dependencies. -->
+			<groupId>com.algolia</groupId>
+			<artifactId>algoliasearch-java-net</artifactId>
+			<version>3.16.5</version>
+		</dependency>
 		 
 		 <!-- Required for Datatypeconverter -->
 		 <dependency>

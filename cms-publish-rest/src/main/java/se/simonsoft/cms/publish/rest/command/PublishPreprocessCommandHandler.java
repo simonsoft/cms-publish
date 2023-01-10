@@ -45,6 +45,8 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
+import se.simonsoft.cms.publish.rest.cdn.PublishCdnConfig;
+import se.simonsoft.cms.publish.rest.cdn.PublishCdnSearchApiKeyGeneratorAlgolia;
 import se.simonsoft.cms.release.export.ReleaseExportOptions;
 import se.simonsoft.cms.release.export.ReleaseExportService;
 
@@ -52,6 +54,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 
 	private final CmsExportProvider exportProvider;
 	private final Map<CmsRepository, ReleaseExportService> exportServices;
+	private final PublishCdnSearchApiKeyGeneratorAlgolia cdnSearchKeyGenerator;
 	private final ObjectWriter writerPublishManifest;
 	private final ObjectWriter writerJobProgress;
 
@@ -64,11 +67,13 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	public PublishPreprocessCommandHandler(
 			@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider, 
 			Map<CmsRepository, ReleaseExportService> exportServices,
+			PublishCdnConfig cdnConfig,
 			ObjectWriter objectWriter
 			) {
 
 		this.exportProvider = exportProvider;
 		this.exportServices = exportServices;
+		this.cdnSearchKeyGenerator = new PublishCdnSearchApiKeyGeneratorAlgolia(cdnConfig);
 		this.writerPublishManifest = objectWriter.forType(PublishJobManifest.class).withDefaultPrettyPrinter();
 		this.writerJobProgress = objectWriter.forType(PublishJobProgress.class);
 	}
@@ -136,9 +141,18 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 			tagStep = "engine";
 		}
 		
-		// Cdn tagging
+		// Cdn tagging and Algolia search apikey
 		if (manifest != null && manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
 			tagCdn = manifest.getCustom().get("cdn");
+			// #1644: Provide Algolia config in the manifest.
+			// Manifest changes will be transient (not visible in Step Functions).
+			String appId = this.cdnSearchKeyGenerator.getSearchAppId(tagCdn);
+			if (appId != null) {
+				String docno = manifest.getDocument().get("docno");
+				String apiKey = this.cdnSearchKeyGenerator.getSearchApiKeyDocument(tagCdn, docno);
+				manifest.getCustom().put("cdn-search-appid", appId);
+				manifest.getCustom().put("cdn-search-apikey", apiKey);
+			}
 		}
 		
 		// Use preprocess options to populate the Export Options.
@@ -153,12 +167,12 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		// Manifest available to XSL transforms.
 		String manifestPathext = "json";
-		if (options.getManifest() != null) {
-			if (options.getManifest().getPathext() != null) {
-				manifestPathext = options.getManifest().getPathext(); 
+		if (manifest != null) {
+			if (manifest.getPathext() != null) {
+				manifestPathext = manifest.getPathext(); 
 			}
 			try {
-				exportOptions.setManifest(this.writerPublishManifest.writeValueAsString(options.getManifest()));
+				exportOptions.setManifest(this.writerPublishManifest.writeValueAsString(manifest));
 			} catch (JsonProcessingException e) {
 				String msg = MessageFormatter.format("Failed to serialize manifest during export: {}", e.getMessage(), e).getMessage();
 				logger.error(msg);
