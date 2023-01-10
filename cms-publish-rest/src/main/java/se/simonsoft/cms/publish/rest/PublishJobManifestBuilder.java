@@ -16,8 +16,6 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -120,8 +118,8 @@ public class PublishJobManifestBuilder {
 			result.put("profiling", profiling.getName());
 		}
 		
-		// Consider removing this approximate StartTime since we are now augmenting in the same way as executionId.
-		result.put("start", DateTimeFormatter.ISO_INSTANT.format(getStartInstant().truncatedTo(ChronoUnit.SECONDS)));
+		// #1525 Start time is now augmented by jobid handler.
+		// Removing the approximate start time in CMS 5.2.
 		
 		try {
 			// #1469: Attempt to include topic count.
