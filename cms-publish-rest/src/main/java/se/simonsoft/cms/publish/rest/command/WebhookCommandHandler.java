@@ -16,6 +16,7 @@
 package se.simonsoft.cms.publish.rest.command;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -132,6 +133,8 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		HttpResponse response;
 		try {
 			response = makeRequest(options.getDelivery(), getPostBody(postParams));
+		} catch (CommandRuntimeException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.warn("Webhook connect failed: {}", e.getMessage(), e);
 			throw new CommandRuntimeException("WebhookFailed", e);
@@ -161,7 +164,10 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 			logger.debug("Webhook HTTP request...");
 			HttpResponse resp = client.execute(request);
 			return resp;
-			
+		
+		} catch (SocketTimeoutException e) {
+			logger.warn("Webhook Socket Timeout: " + delivery.getParams().get("url"));
+			throw new CommandRuntimeException("WebhookSocketTimeout", e.getMessage());
 		} catch (IOException e) {
 			throw new RuntimeException("Failed executing HTTP request: " + delivery.getParams().get("url"), e);
 		} finally {
