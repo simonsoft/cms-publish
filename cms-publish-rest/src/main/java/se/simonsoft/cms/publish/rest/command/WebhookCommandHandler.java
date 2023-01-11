@@ -167,7 +167,7 @@ public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobO
 		
 		} catch (SocketTimeoutException e) {
 			logger.warn("Webhook Socket Timeout: " + delivery.getParams().get("url"));
-			throw new CommandRuntimeException("WebhookSocketTimeout", e.getMessage());
+			throw new CommandRuntimeException("WebhookRequestTimeout", e.getMessage());
 		} catch (IOException e) {
 			throw new RuntimeException("Failed executing HTTP request: " + delivery.getParams().get("url"), e);
 		} finally {
