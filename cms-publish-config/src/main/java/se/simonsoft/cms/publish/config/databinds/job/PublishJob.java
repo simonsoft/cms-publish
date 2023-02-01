@@ -54,6 +54,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 		this.typeInclude = pj.getTypeInclude();
 		this.profilingInclude = pj.getProfilingInclude();
 		this.profilingNameInclude = pj.getProfilingNameInclude();
+		this.prereleaseInclude = pj.isPrereleaseInclude();
 		this.areaMainInclude = pj.isAreaMainInclude();
 	}
 	
@@ -69,6 +70,7 @@ public class PublishJob extends PublishConfig implements WorkflowItemInputUserId
 		this.typeInclude = pc.getTypeInclude();
 		this.profilingInclude = pc.getProfilingInclude();
 		this.profilingNameInclude = pc.getProfilingNameInclude();
+		this.prereleaseInclude = pc.isPrereleaseInclude();
 		this.areaMainInclude = pc.isAreaMainInclude();
 	}
 	
