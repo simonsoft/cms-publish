@@ -24,10 +24,9 @@ import java.security.PrivateKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -221,7 +220,7 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		assertEquals("Key-Pair-Id=K1KPJ6JE57LGCO", query[2]);
 		
 		assertEquals("Policy=", query[3].substring(0, 7));
-		String policy = new String(DatatypeConverter.parseBase64Binary(query[3].substring(7)));
+		String policy = new String(Base64.getDecoder().decode(query[3].substring(7)));
 		//assertEquals("", policy);
 		assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
 		//assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/*/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);

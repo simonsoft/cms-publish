@@ -18,8 +18,7 @@ package se.simonsoft.cms.publish.rest.cdn;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 public abstract class PublishCdnConfigBase implements PublishCdnConfig {
 
@@ -28,10 +27,10 @@ public abstract class PublishCdnConfigBase implements PublishCdnConfig {
 	    String privateKeyBase64 = privateKeyPkcs8
 	      .replace("-----BEGIN PRIVATE KEY-----", "")
 	      //.replaceAll(System.lineSeparator(), "")
-	      .replace("-----END PRIVATE KEY-----", "");
-
+	      .replace("-----END PRIVATE KEY-----", "")
+	      .replace("\n", "");
 	    
-	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(DatatypeConverter.parseBase64Binary(privateKeyBase64));
+	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyBase64));
 	    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 	    PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 	    return privateKey;

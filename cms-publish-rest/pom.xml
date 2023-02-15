@@ -63,14 +63,6 @@
 			<artifactId>algoliasearch-java-net</artifactId>
 			<version>3.16.5</version>
 		</dependency>
-		 
-		 <!-- Required for Datatypeconverter -->
-		 <dependency>
-			<!-- Wink includes jaxb-api 2.2, need 2.3.1 for compatibility with Jackson 2.10.4. -->
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
-        </dependency>
 
 	</dependencies>
 	
