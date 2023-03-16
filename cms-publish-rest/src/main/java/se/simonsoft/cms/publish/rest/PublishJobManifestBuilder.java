@@ -159,10 +159,10 @@ public class PublishJobManifestBuilder {
 		if (item.isRelease()) {
 			// Since CMS 5.0 the fallback to property abx:lang is implemented in CmsItemPublish.
 			result.put("lang", item.getReleaseLocale()); // Available on Release since CMS 4.3 only.
-			result.put("langrfc", localesRfc.getLocaleExternal(item.getReleaseLocale()).getLabel());
+			result.put("langrfc", getLocaleRfc(item.getReleaseLocale()));
 		} else if (item.isTranslation()) {
 			result.put("lang", item.getTranslationLocale());
-			result.put("langrfc", localesRfc.getLocaleExternal(item.getTranslationLocale()).getLabel());
+			result.put("langrfc", getLocaleRfc(item.getTranslationLocale()));
 		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
 		
 		return result;
@@ -179,7 +179,7 @@ public class PublishJobManifestBuilder {
 		result.put("docno", docno);
 		result.put("versionrelease", item.getReleaseLabel());
 		result.put("lang", item.getReleaseLocale()); // Available on Translations since CMS 3.0.2
-		result.put("langrfc", localesRfc.getLocaleExternal(item.getReleaseLocale()).getLabel());
+		result.put("langrfc", getLocaleRfc(item.getReleaseLocale()));
 		
 		return result;
 	}
@@ -223,6 +223,15 @@ public class PublishJobManifestBuilder {
 		
 		String locale = item.getProperties().getString("abx:TranslationLocale");
 		return (locale != null && !locale.isEmpty());
+	}
+	
+	private String getLocaleRfc(String locale) {
+		
+		// The 'mul' locale is never mapped for COTI export.
+		if ("mul".equals(locale)) {
+			return "mul";
+		}
+		return localesRfc.getLocaleExternal(locale).getLabel();
 	}
 	
 	
