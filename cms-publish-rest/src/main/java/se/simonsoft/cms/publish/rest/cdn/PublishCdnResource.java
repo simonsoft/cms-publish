@@ -117,6 +117,11 @@ public class PublishCdnResource {
 		if (visibility == null || visibility < 0 || visibility > 999) {
 			throw new IllegalArgumentException("parameter visibility is required [0-999]");
 		}
+		// Setting visibility filter to '0' is equivalent to no filter (since negative values are not supported at this time).
+		// Useful when some documents were published with CMS 5.1, before visibility was introduced.
+		if (visibility == 0) {
+			visibility = null;
+		}
 		// Generate and log the key before testing access control, useful for administrators.
 		String key = this.cdnSearchKeyGenerator.getSearchApiKey(cdn, visibility);
 		logger.info("CDN '{}' search key (visibility>{}): {}", cdn, visibility, key);
