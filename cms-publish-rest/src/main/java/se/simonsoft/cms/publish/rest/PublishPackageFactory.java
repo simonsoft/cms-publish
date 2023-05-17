@@ -105,7 +105,9 @@ public class PublishPackageFactory {
 			List<CmsItem> translationItems = getTranslationItems(itemId, publishConfig);
 			if (translationItems.isEmpty()) {
 				// NOTE: Adjust message if the filtering in getTranslationItems does additional aspects in the future, could add "etc" after "status". 
-				throw new IllegalArgumentException("Translations requested, no translations found matching the configured status.");
+				logger.info("Translations requested, no translations found matching the configured status.");
+				// #1580 No longer throwing exception, the UI is now much clearer and exception is incompatible with PublishPackageCommandHandler.
+				//throw new IllegalArgumentException("Translations requested, no translations found matching the configured status.");
 			}
 			translationItems.forEach(translationItem -> items.add(new CmsItemPublish(translationItem)));
 		}

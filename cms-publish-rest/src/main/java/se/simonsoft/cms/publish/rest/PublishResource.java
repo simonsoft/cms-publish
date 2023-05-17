@@ -318,6 +318,7 @@ public class PublishResource {
 		itemId.setHostnameOrValidate(this.hostname);
 		
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
+		// TODO: #1580 Consider detecting if includeTranslations=true but no Translations available (used to throw exception in getPublishPackage).
 		
 		PublishConfig publishConfig = publishPackage.getPublishConfig();
 		if (publishConfig.getOptions().getStorage() != null) {
