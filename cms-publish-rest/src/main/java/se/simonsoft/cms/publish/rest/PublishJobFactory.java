@@ -113,6 +113,15 @@ public class PublishJobFactory {
 	
 	// TODO: Consider API diffentiating btw full PublishJob (start job) and light PublishJob (download/status/...).
 	// Such differentiation might also be confusing.
+	/**
+	 * Build a single PublishJob.
+	 * @param item the item being published
+	 * @param c the configuration
+	 * @param configName the configuration name
+	 * @param profiling optional profiling, otherwise null
+	 * @param localesRfc the locales mapping to RFC form
+	 * @return a PublishJob
+	 */
 	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
