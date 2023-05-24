@@ -68,11 +68,17 @@ public class PublishStartCommandHandler implements ExternalCommandHandler<Publis
 		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 
 		// Use profilingname (get recipe from itemPublish), recipe from options or no profiling.
+		// Verify that the config is intended for profiling, if set.
 		PublishProfilingRecipe profilingRecipe = null;
+		// Verify that a dynamic profiling recipe does not contain 'name' or 'logicalexpr'.
 		
+		
+		// Set profilingRecipe.name to executionid if any of the start* parameters are provided.
+		// Figure out how to manage profilingRecipe.name when no profiling is used (method validateFilter() throws exception when no filter parameters are set).
+		// Need specific scenariotest setting 'startinput' but not 'startprofiling'.
 		
 		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc);
-		// TODO: set the options.getStartinput() in the job manifest somehow.
+		// TODO: set the options.getStartinput() in manifest.custom.startinput
 		return job;
 	}
 	
