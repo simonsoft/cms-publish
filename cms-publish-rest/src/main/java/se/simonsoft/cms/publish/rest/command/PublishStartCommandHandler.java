@@ -2,6 +2,7 @@ package se.simonsoft.cms.publish.rest.command;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -77,7 +78,7 @@ public class PublishStartCommandHandler implements ExternalCommandHandler<Publis
 		// Figure out how to manage profilingRecipe.name when no profiling is used (method validateFilter() throws exception when no filter parameters are set).
 		// Need specific scenariotest setting 'startinput' but not 'startprofiling'.
 		
-		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc);
+		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()));
 		// TODO: set the options.getStartinput() in manifest.custom.startinput
 		return job;
 	}

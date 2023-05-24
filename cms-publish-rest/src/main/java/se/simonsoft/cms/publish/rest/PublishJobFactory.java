@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -90,7 +91,7 @@ public class PublishJobFactory {
 				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc);
+				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty());
 				jobs.add(pj);
 			}
 		}
@@ -105,7 +106,7 @@ public class PublishJobFactory {
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.
 			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc));
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty()));
 			}
 		}
 		return profiledJobs;
@@ -122,8 +123,8 @@ public class PublishJobFactory {
 	 * @param localesRfc the locales mapping to RFC form
 	 * @return a PublishJob
 	 */
-	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
-		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc);
+	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname) {
+		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc, startPathname);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
 		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
@@ -210,7 +211,7 @@ public class PublishJobFactory {
 	}
 
 	
-	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc) {
+	private PublishConfigTemplateString getTemplateEvaluator(CmsItemPublish item, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname) {
 		PublishConfigTemplateString tmplStr = new PublishConfigTemplateString();
 		// Define "$aptpath" transparently to allow strict references without escape requirement in JSON.
 		// Important if allowing evaluation of params in the future.
@@ -227,6 +228,8 @@ public class PublishJobFactory {
 		tmplStr.withEntry("localesRfc", localesRfc);
 		// Add storage object to allow configuration of parameters with S3 key etc.
 		//tmplStr.withEntry("storage", storage);
+		// #1567 Dynamic naming when starting publish from API.
+		tmplStr.withEntry("startpathname", startPathname.orElse(""));
 		return tmplStr;
 	}
 }

@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.rest.event;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -110,7 +111,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc);
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty());
 				jobs.add(pj);
 			}
 		}
