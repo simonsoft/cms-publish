@@ -240,7 +240,7 @@ public class PublishResource {
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
 		
 		// Deserialize the body.
-		// Generate and log a UUID, set into options.executionuuid regardless if set already.
+		// Generate and log a UUID, set into options.executionid regardless if set already.
 		
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		
