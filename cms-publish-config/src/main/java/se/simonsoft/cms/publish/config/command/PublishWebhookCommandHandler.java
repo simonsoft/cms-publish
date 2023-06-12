@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,7 @@ import se.simonsoft.cms.item.export.CmsExportUrlPresigner;
 import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobDelivery;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 
@@ -105,35 +107,7 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 		}
 		
 		logger.debug("WebhookCommandHandler endpoint: {}", delivery.getParams().get("url"));
-		
-		
-		String manifest = null;
-		String archive = null;
-
-		if (storage.getType() == null || storage.getType().equals("s3")) {
-			Boolean presign = Boolean.parseBoolean(delivery.getParams().get("presign"));
-			
-			archive = getS3Url(storage, archiveExt, presign).toString();
-			manifest = getS3Url(storage, manifestExt, presign).toString();
-		} else {
-			archive = options.getProgress().getParams().get("archive");
-			manifest = options.getProgress().getParams().get("manifest");
-			if (archive == null || manifest == null) {
-				throw new IllegalArgumentException("Illegal paths to archive and or manifest.");
-			}
-		}
-
-		LinkedHashMap<String, String> postParams = new LinkedHashMap<String, String>();
-		if (delivery.getParams().containsKey("form-archive-name")) {
-			postParams.put(delivery.getParams().get("form-archive-name"), archive);
-		} else {
-			postParams.put("archive", archive);
-		}
-		if (delivery.getParams().containsKey("form-manifest-name")) {
-			postParams.put(delivery.getParams().get("form-manifest-name"), manifest);
-		} else {
-			postParams.put("manifest", manifest);
-		}
+		LinkedHashMap<String, String> postParams = getPostPayload(delivery, storage, Optional.of(options.getProgress()));
 		
 		// TODO: Consider writing a HttpResponse BodyHandler which retrieves the body if contentlength is short (see TSP-webhook).
 		HttpResponse<Void> response;
@@ -199,6 +173,38 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 		return "application/x-www-form-urlencoded; charset=UTF-8";
 	}
 
+	public LinkedHashMap<String, String> getPostPayload(PublishJobDelivery delivery, PublishJobStorage storage, Optional<PublishJobProgress> progress) {
+		String manifest = null;
+		String archive = null;
+
+		if (storage.getType() == null || storage.getType().equals("s3")) {
+			Boolean presign = Boolean.parseBoolean(delivery.getParams().get("presign"));
+			
+			archive = getS3Url(storage, archiveExt, presign).toString();
+			manifest = getS3Url(storage, manifestExt, presign).toString();
+		} else {
+			archive = progress.orElse(new PublishJobProgress()).getParams().get("archive");
+			manifest = progress.orElse(new PublishJobProgress()).getParams().get("manifest");
+			if (archive == null || manifest == null) {
+				throw new IllegalArgumentException("Illegal paths to archive and or manifest.");
+			}
+		}
+
+		LinkedHashMap<String, String> postParams = new LinkedHashMap<String, String>();
+		if (delivery.getParams().containsKey("form-archive-name")) {
+			postParams.put(delivery.getParams().get("form-archive-name"), archive);
+		} else {
+			postParams.put("archive", archive);
+		}
+		if (delivery.getParams().containsKey("form-manifest-name")) {
+			postParams.put(delivery.getParams().get("form-manifest-name"), manifest);
+		} else {
+			postParams.put("manifest", manifest);
+		}
+		return postParams;
+	}
+
+	
 	private URL getS3Url(PublishJobStorage storage, String extension, Boolean presign) {
 		
 		URL url = null;
