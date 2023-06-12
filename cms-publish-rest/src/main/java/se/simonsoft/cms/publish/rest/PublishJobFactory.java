@@ -187,6 +187,7 @@ public class PublishJobFactory {
 	
 	
 	// #1539 For now, just ensure that manifest.custom.cdn is defined if delivery.type = 'cdn'.
+	// #1438 Ensure 'version0' is always set (except for preview)
 	private void doCdnTransformations(CmsItemPublish item, PublishJob pj) {
 		
 		if (pj.getOptions().getDelivery() != null && "cdn".equals(pj.getOptions().getDelivery().getType())) {
