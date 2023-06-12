@@ -1,5 +1,7 @@
 package se.simonsoft.cms.publish.rest;
 
+import java.util.LinkedHashMap;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -11,10 +13,10 @@ public class PublishStartOptions {
 	private String locale; // Select Release if empty or equal to release language.
 	private String profilingname; // One of profilingname/startprofiling.
 	private PublishProfilingRecipe startprofiling;
-	private String startinput; // Validate max length in the service.
+	private LinkedHashMap<String, String> startcustom; // Override manifest.custom on a field-by-field basis. Validate max length in the service, alternatively size of the whole options JSON.
 	private String startpathname; // Validate max length in the service.
 
-	private String executionid; // Added by the Step Functions definition.
+	private String executionid; // Added by the REST Service / Step Functions definition.
 
 	
 	
@@ -50,12 +52,12 @@ public class PublishStartOptions {
 		this.startprofiling = startprofiling;
 	}
 
-	public String getStartinput() {
-		return startinput;
+	public LinkedHashMap<String, String> getStartcustom() {
+		return startcustom;
 	}
-
-	public void setStartinput(String startinput) {
-		this.startinput = startinput;
+	
+	public void setStartcustom(LinkedHashMap<String, String> startcustom) {
+		this.startcustom = startcustom;
 	}
 
 	public String getStartpathname() {
