@@ -111,7 +111,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 				jobs.addAll(this.jobFactory.getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty());
+				PublishJob pj = this.jobFactory.getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty(), Optional.empty());
 				jobs.add(pj);
 			}
 		}

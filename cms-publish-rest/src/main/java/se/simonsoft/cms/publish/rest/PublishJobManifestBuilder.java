@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class PublishJobManifestBuilder {
 		return Instant.now();
 	}
 	
-	public void build(CmsItemPublish item, PublishJob job) {
+	public void build(CmsItemPublish item, PublishJob job, Optional<LinkedHashMap<String,String>> startCustom) {
 		
 		PublishJobManifest manifest = job.getOptions().getManifest();
 		
@@ -88,7 +89,12 @@ public class PublishJobManifestBuilder {
 			} else {
 				manifest.setMaster(null);
 			}
-			manifest.setCustom(buildMap(item, manifest.getCustomTemplates()));
+			LinkedHashMap<String, String> custom = buildMap(item, manifest.getCustomTemplates());
+			if (startCustom.isPresent()) {
+				// Overlay the custom map arriving in a specific start operation.
+				custom.putAll(startCustom.get());
+			}
+			manifest.setCustom(custom);
 			manifest.setMeta(buildMap(item, manifest.getMetaTemplates()));
 			logger.debug("Manifest built with {} Custom and {} Meta keys.", manifest.getCustomTemplates().size(), manifest.getMetaTemplates().size());
 		} else {

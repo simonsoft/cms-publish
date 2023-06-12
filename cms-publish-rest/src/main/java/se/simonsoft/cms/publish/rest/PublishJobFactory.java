@@ -91,7 +91,7 @@ public class PublishJobFactory {
 				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty());
+				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty(), Optional.empty());
 				jobs.add(pj);
 			}
 		}
@@ -106,7 +106,7 @@ public class PublishJobFactory {
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.
 			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty()));
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty(), Optional.empty()));
 			}
 		}
 		return profiledJobs;
@@ -123,7 +123,7 @@ public class PublishJobFactory {
 	 * @param localesRfc the locales mapping to RFC form
 	 * @return a PublishJob
 	 */
-	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname) {
+	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname, Optional<LinkedHashMap<String,String>> startCustom) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc, startPathname);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
@@ -153,7 +153,7 @@ public class PublishJobFactory {
 		pj.getOptions().setPathname(pathname);
 		
 		// Build the Manifest, modifies the existing manifest object.
-		manifestBuilder.build(item, pj);
+		manifestBuilder.build(item, pj, startCustom);
 		
 		// Decided that template evaluation of params is NOT the long term solution, at least for now.
 		// Distribution implementations should use the Manifest for template evaluation, similar to external consumers.

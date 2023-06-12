@@ -19,12 +19,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -223,7 +225,34 @@ public class PublishResource {
 		return response;
 	}
 	
-	
+	/**
+	 * @param itemId
+	 * @param 
+	 * @return JSON containing started execution ID and presigned urls (same as webhook).
+	 * @throws Exception
+	 */
+	@POST
+	@Path("api/start")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws Exception {
+		
+		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
+		
+		// Deserialize the body.
+		// Generate and log a UUID, set into options.executionuuid regardless if set already.
+		
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
+		
+		
+		// TODO: Consider if we should serialize with Jackson here.
+		GenericEntity<LinkedHashMap<String, String>> ge = new GenericEntity<LinkedHashMap<String, String>>(result) {};
+		logger.debug("Publish start returning GenericEntity type: {}", ge.getType());
+		Response response = Response.ok(ge)
+				.header("Vary", "Accept")
+				.build();
+		return response;
+	}
 	
 	/**
 	 * @param itemId
