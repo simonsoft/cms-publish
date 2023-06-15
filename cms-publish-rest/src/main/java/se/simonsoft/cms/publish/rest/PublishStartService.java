@@ -26,19 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
-import se.simonsoft.cms.item.CmsRepository;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
-import se.simonsoft.cms.item.command.ExternalCommandHandler;
 import se.simonsoft.cms.publish.config.PublishConfiguration;
 import se.simonsoft.cms.publish.config.PublishExecutor;
+import se.simonsoft.cms.publish.config.command.PublishWebhookCommandHandler;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
-import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
+import se.simonsoft.cms.publish.config.databinds.job.*;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.publish.rest.PublishJobFactory;
-import se.simonsoft.cms.publish.rest.PublishStartOptions;
 import se.simonsoft.cms.release.ProfilingSet;
 import se.simonsoft.cms.release.ReleaseProperties;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
@@ -46,6 +42,7 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishStartService {
 
+	private final PublishWebhookCommandHandler publishWebhookCommandHandler;
 	private final CmsItemLookupReporting lookupReporting;
 	private final PublishConfiguration publishConfiguration;
 	private final PublishExecutor publishExecutor;
@@ -55,11 +52,13 @@ public class PublishStartService {
 
 	@Inject
 	public PublishStartService(
+			PublishWebhookCommandHandler publishWebhookCommandHandler,
 			CmsItemLookupReporting lookupReporting,
 			PublishConfiguration publishConfiguration,
 			PublishExecutor publishExecutor,
 			PublishJobFactory jobFactory) {
 
+		this.publishWebhookCommandHandler = publishWebhookCommandHandler;
 		this.lookupReporting = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
 		this.publishExecutor = publishExecutor;
@@ -80,7 +79,17 @@ public class PublishStartService {
 			throw new CommandRuntimeException("StartPublishJobError", String.format("None or several publish jobs started: %d", uuids.size()));
 		}
 
-		LinkedHashMap<String, String> result = null; // TODO: Use PublishWebhookCommandHandler
+		PublishJobOptions publishJobOptions = publishJob.getOptions();
+		PublishJobDelivery delivery = publishJobOptions.getDelivery();
+		PublishJobStorage storage = publishJobOptions.getStorage();
+		Optional<PublishJobProgress> progress = Optional.of(publishJobOptions.getProgress());
+
+		if (storage == null) {
+			throw new IllegalArgumentException("Need a valid PublishJobStorage object with params archive and manifest.");
+		}
+
+		logger.debug("WebhookCommandHandler endpoint: {}", delivery.getParams().get("url"));
+		LinkedHashMap<String, String> result = publishWebhookCommandHandler.getPostPayload(delivery, storage, progress);
 
 		return result;
 	}
