@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.UUID;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +40,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -76,6 +79,7 @@ public class PublishResource {
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
 	private final PublishPackageStatus statusService;
+	private final PublishStartService publishStartService;
 	private final Map<CmsRepository, PublishPackageFactory> packageFactory;
 	@SuppressWarnings("unused")
 	private final ReposHtmlHelper htmlHelper;
@@ -95,6 +99,7 @@ public class PublishResource {
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
 			PublishPackageStatus statusService,
+			PublishStartService publishStartService,
 			Map<CmsRepository, PublishPackageFactory> packageFactory,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
@@ -110,6 +115,7 @@ public class PublishResource {
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
 		this.statusService = statusService;
+		this.publishStartService = publishStartService;
 		this.packageFactory = packageFactory;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
@@ -240,15 +246,20 @@ public class PublishResource {
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
 		
 		// Deserialize the body.
+		ObjectMapper objectMapper = new ObjectMapper();
+		PublishStartOptions options = objectMapper.readValue(body, PublishStartOptions.class);
+
 		// Generate and log a UUID, set into options.executionid regardless if set already.
-		
-		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-		
-		
-		// TODO: Consider if we should serialize with Jackson here.
+		UUID uuid = UUID.randomUUID();
+		options.setExecutionid(uuid.toString());
+		logger.debug("Generated executionid: '{}'", uuid);
+
+		LinkedHashMap<String, String> result = publishStartService.doPublishStartItem(itemId, options);
+
 		GenericEntity<LinkedHashMap<String, String>> ge = new GenericEntity<LinkedHashMap<String, String>>(result) {};
 		logger.debug("Publish start returning GenericEntity type: {}", ge.getType());
-		Response response = Response.ok(ge)
+		String jsonString = objectMapper.writeValueAsString(ge.getEntity());
+		Response response = Response.ok(jsonString)
 				.header("Vary", "Accept")
 				.build();
 		return response;

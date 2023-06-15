@@ -46,7 +46,6 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishStartService {
 
-	private final ObjectMapper objectMapper;
 	private final CmsItemLookupReporting lookupReporting;
 	private final PublishConfiguration publishConfiguration;
 	private final PublishExecutor publishExecutor;
@@ -59,14 +58,12 @@ public class PublishStartService {
 			CmsItemLookupReporting lookupReporting,
 			PublishConfiguration publishConfiguration,
 			PublishExecutor publishExecutor,
-			PublishJobFactory jobFactory,
-			ObjectMapper objectMapper) {
+			PublishJobFactory jobFactory) {
 
 		this.lookupReporting = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
 		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
-		this.objectMapper = objectMapper;
 	}
 
 
@@ -103,6 +100,7 @@ public class PublishStartService {
 		PublishProfilingRecipe profilingRecipe = null;
 		// Use profilingname if set (get recipe from itemPublish)
 		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
+			ObjectMapper objectMapper = new ObjectMapper();
 			ObjectReader profilingReader = objectMapper.readerFor(ProfilingSet.class);
 			String profilingValue = item.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
 			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingReader);
