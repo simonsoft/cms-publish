@@ -41,7 +41,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -87,6 +88,8 @@ public class PublishResource {
 	private final PublishJobStorageFactory storageFactory;
 	private final PublishJobFactory jobFactory;
 	private final PublishExecutor publishExecutor;
+	private final ObjectReader publishStartOptionsReader;
+	private final ObjectWriter writer;
 
 	@SuppressWarnings("unused")
 	private VelocityEngine templateEngine;
@@ -105,7 +108,9 @@ public class PublishResource {
 			PublishJobStorageFactory storageFactory,
 			PublishJobFactory jobFactory,
 			PublishExecutor publishExecutor,
-			VelocityEngine templateEngine
+			VelocityEngine templateEngine,
+			ObjectReader reader,
+			ObjectWriter writer
 			) {
 		
 		this.hostname = hostname;
@@ -122,6 +127,8 @@ public class PublishResource {
 		this.jobFactory = jobFactory;
 		this.publishExecutor = publishExecutor;
 		this.templateEngine = templateEngine;
+		this.publishStartOptionsReader = reader.forType(PublishStartOptions.class);
+		this.writer = writer;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -246,8 +253,7 @@ public class PublishResource {
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
 		
 		// Deserialize the body.
-		ObjectMapper objectMapper = new ObjectMapper();
-		PublishStartOptions options = objectMapper.readValue(body, PublishStartOptions.class);
+		PublishStartOptions options = publishStartOptionsReader.readValue(body);
 
 		// Generate and log a UUID, set into options.executionid regardless if set already.
 		UUID uuid = UUID.randomUUID();
@@ -256,9 +262,7 @@ public class PublishResource {
 
 		LinkedHashMap<String, String> result = publishStartService.doPublishStartItem(itemId, options);
 
-		GenericEntity<LinkedHashMap<String, String>> ge = new GenericEntity<LinkedHashMap<String, String>>(result) {};
-		logger.debug("Publish start returning GenericEntity type: {}", ge.getType());
-		String jsonString = objectMapper.writeValueAsString(ge.getEntity());
+		String jsonString = writer.writeValueAsString(result);
 		Response response = Response.ok(jsonString)
 				.header("Vary", "Accept")
 				.build();

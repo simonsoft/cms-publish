@@ -19,7 +19,6 @@ import java.util.*;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import org.slf4j.Logger;
@@ -47,6 +46,7 @@ public class PublishStartService {
 	private final PublishConfiguration publishConfiguration;
 	private final PublishExecutor publishExecutor;
 	private final PublishJobFactory jobFactory;
+	ObjectReader profilingSetReader;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishStartService.class);
 
@@ -56,13 +56,15 @@ public class PublishStartService {
 			CmsItemLookupReporting lookupReporting,
 			PublishConfiguration publishConfiguration,
 			PublishExecutor publishExecutor,
-			PublishJobFactory jobFactory) {
+			PublishJobFactory jobFactory,
+			ObjectReader reader) {
 
 		this.publishWebhookCommandHandler = publishWebhookCommandHandler;
 		this.lookupReporting = lookupReporting;
 		this.publishConfiguration = publishConfiguration;
 		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
+		this.profilingSetReader = reader.forType(ProfilingSet.class);
 	}
 
 
@@ -109,10 +111,8 @@ public class PublishStartService {
 		PublishProfilingRecipe profilingRecipe = null;
 		// Use profilingname if set (get recipe from itemPublish)
 		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
-			ObjectMapper objectMapper = new ObjectMapper();
-			ObjectReader profilingReader = objectMapper.readerFor(ProfilingSet.class);
 			String profilingValue = item.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingReader);
+			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader);
 			profilingRecipe = profilingSet.get(options.getProfilingname());
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
 			profilingRecipe = options.getStartprofiling();
@@ -135,7 +135,7 @@ public class PublishStartService {
 
 		// TODO: Need specific scenariotest setting 'startinput' but not 'startprofiling'.
 		// Set profilingRecipe.name to executionid if any of the start* parameters are provided (even if profilingRecipe == null).
-		if (options.getStartpathname() != null || options.getStartcustom().size() > 0) {
+		if (options.getStartpathname() != null || options.getStartprofiling() != null || options.getStartcustom().size() > 0) {
 			profilingRecipe.setAttribute("name", options.getExecutionid());
 		} else {
 			// TODO: Figure out how to manage profilingRecipe.name when no profiling is used (method validateFilter() throws exception when no filter parameters are set).
