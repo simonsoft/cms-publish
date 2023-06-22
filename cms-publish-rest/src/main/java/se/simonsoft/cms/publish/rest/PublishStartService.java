@@ -113,7 +113,7 @@ public class PublishStartService {
 		
 		CmsItemPublish itemPublish;
 		String locale = options.getLocale();
-		if (locale != null && !locale.isBlank() && !itemPublish.getReleaseLocale().equals(locale)) {
+		if (locale != null && !locale.isBlank() && !(new CmsItemPublish(itemRelease)).getReleaseLocale().equals(locale)) {
 			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId.withPegRev(itemRelease.getRevisionChanged().getNumber()));
 			// TODO: Find the translation and create itemPublish, throw exception if no translation exists.
 			
