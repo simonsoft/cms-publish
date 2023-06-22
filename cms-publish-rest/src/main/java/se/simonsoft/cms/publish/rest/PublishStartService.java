@@ -36,13 +36,16 @@ import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.ProfilingSet;
 import se.simonsoft.cms.release.ReleaseProperties;
+import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
+import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishStartService {
 
 	private final PublishWebhookCommandHandler publishWebhookCommandHandler;
 	private final CmsItemLookupReporting lookupReporting;
+	private final TranslationTracking translationTracking;
 	private final PublishConfiguration publishConfiguration;
 	private final PublishExecutor publishExecutor;
 	private final PublishJobFactory jobFactory;
@@ -54,6 +57,7 @@ public class PublishStartService {
 	public PublishStartService(
 			PublishWebhookCommandHandler publishWebhookCommandHandler,
 			CmsItemLookupReporting lookupReporting,
+			TranslationTracking translationTracking,
 			PublishConfiguration publishConfiguration,
 			PublishExecutor publishExecutor,
 			PublishJobFactory jobFactory,
@@ -61,6 +65,7 @@ public class PublishStartService {
 
 		this.publishWebhookCommandHandler = publishWebhookCommandHandler;
 		this.lookupReporting = lookupReporting;
+		this.translationTracking = translationTracking;
 		this.publishConfiguration = publishConfiguration;
 		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
@@ -104,14 +109,25 @@ public class PublishStartService {
 
 	private PublishJob getPublishJob(CmsItemId itemId, PublishStartOptions options, PublishConfig config) {
 
-		CmsItem item = this.lookupReporting.getItem(itemId);
-		CmsItemPublish itemPublish = new CmsItemPublish(item);
-		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
+		CmsItem itemRelease = this.lookupReporting.getItem(itemId);
+		
+		CmsItemPublish itemPublish;
+		String locale = options.getLocale();
+		if (locale != null && !locale.isBlank() && !itemPublish.getReleaseLocale().equals(locale)) {
+			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId.withPegRev(itemRelease.getRevisionChanged().getNumber()));
+			// TODO: Find the translation and create itemPublish, throw exception if no translation exists.
+			
+		} else {
+			itemPublish = new CmsItemPublish(itemRelease);
+		}
+		
+		// TODO: Should we validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).
 
+		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 		PublishProfilingRecipe profilingRecipe = null;
 		// Use profilingname if set (get recipe from itemPublish)
 		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
-			String profilingValue = item.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
+			String profilingValue = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
 			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader);
 			profilingRecipe = profilingSet.get(options.getProfilingname());
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
