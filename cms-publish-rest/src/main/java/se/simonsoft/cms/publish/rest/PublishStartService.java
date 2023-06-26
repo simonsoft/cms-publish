@@ -110,17 +110,28 @@ public class PublishStartService {
 	private PublishJob getPublishJob(CmsItemId itemId, PublishStartOptions options, PublishConfig config) {
 
 		CmsItem itemRelease = this.lookupReporting.getItem(itemId);
-		
+
 		CmsItemPublish itemPublish;
 		String locale = options.getLocale();
 		if (locale != null && !locale.isBlank() && !(new CmsItemPublish(itemRelease)).getReleaseLocale().equals(locale)) {
+			CmsItemTranslation translation = null;
 			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId.withPegRev(itemRelease.getRevisionChanged().getNumber()));
-			// TODO: Find the translation and create itemPublish, throw exception if no translation exists.
-			
+			// Find the translation and create itemPublish, throw exception if no translation exists.
+			for (CmsItemTranslation item: translations) {
+				if (item.getLocale().toString().equals(locale)) {
+					translation = item;
+					break;
+				}
+			}
+			if (translation != null) {
+				itemPublish = new CmsItemPublish(translation.getItem());
+			} else {
+				throw new IllegalArgumentException("Unable to find a translation for the intended locale.");
+			}
 		} else {
 			itemPublish = new CmsItemPublish(itemRelease);
 		}
-		
+
 		// TODO: Should we validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).
 
 		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
