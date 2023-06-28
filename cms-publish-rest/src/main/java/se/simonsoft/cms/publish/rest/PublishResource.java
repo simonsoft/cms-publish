@@ -80,7 +80,7 @@ public class PublishResource {
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
 	private final PublishPackageStatus statusService;
-	private final PublishStartService publishStartService;
+	private final Map<CmsRepository, PublishStartService> publishStartService;
 	private final Map<CmsRepository, PublishPackageFactory> packageFactory;
 	@SuppressWarnings("unused")
 	private final ReposHtmlHelper htmlHelper;
@@ -102,7 +102,7 @@ public class PublishResource {
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
 			PublishPackageStatus statusService,
-			PublishStartService publishStartService,
+			Map<CmsRepository, PublishStartService> publishStartService,
 			Map<CmsRepository, PublishPackageFactory> packageFactory,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
@@ -260,7 +260,7 @@ public class PublishResource {
 		options.setExecutionid(uuid.toString());
 		logger.debug("Generated executionid: '{}'", uuid);
 
-		LinkedHashMap<String, String> result = publishStartService.doPublishStartItem(itemId, options);
+		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemId, options);
 
 		String jsonString = writer.writeValueAsString(result);
 		Response response = Response.ok(jsonString)

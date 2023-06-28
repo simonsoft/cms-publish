@@ -68,7 +68,7 @@ public class PublishResourceTest {
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
 	@Mock PublishPackageStatus packageStatusMock;
-	@Mock PublishStartService publishStartMock;
+	@Mock Map<CmsRepository, PublishStartService> publishStartMock;
 	@Mock CmsItemRepositem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
