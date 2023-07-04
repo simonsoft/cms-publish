@@ -147,12 +147,11 @@ public class PublishStartService {
 				throw new IllegalArgumentException("Dynamic profiling recipes must not contain 'name' or 'logicalexpr'");
 			}
 		} else {
-			// no profiling.
-			profilingRecipe = new PublishProfilingRecipe();
+			// No profiling.
 		}
 
 		// Verify that the config is intended for profiling, if profilingRecipe != null.
-		if (profilingRecipe != null && !config.getProfilingInclude()) {
+		if (profilingRecipe != null && !profilingRecipe.getAttributes().isEmpty() && !config.getProfilingInclude()) {
 			throw new IllegalArgumentException("Requested profiling is not properly configured");
 		}
 
@@ -162,18 +161,18 @@ public class PublishStartService {
 
 		// TODO: Need specific scenariotest setting 'startinput' but not 'startprofiling'.
 		// Set profilingRecipe.name to executionid if any of the start* parameters are provided (even if profilingRecipe == null).
-		if (options.getStartpathname() != null || options.getStartprofiling() != null || options.getStartcustom().size() > 0) {
+		if (options.getStartpathname() != null || options.getStartprofiling() != null || (options.getStartcustom() != null && options.getStartcustom().size() > 0)) {
 			profilingRecipe.setAttribute("name", options.getExecutionid());
-		} else {
-			// TODO: Figure out how to manage profilingRecipe.name when no profiling is used (method validateFilter() throws exception when no filter parameters are set).
 		}
 
 		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()), Optional.ofNullable(options.getStartcustom()));
 
 		PublishJobManifest manifest = job.getOptions().getManifest();
-		LinkedHashMap<String, String> custom = manifest.getCustom();
-		custom.putAll(options.getStartcustom());
-		manifest.setCustom(custom);
+		if (options.getStartcustom() != null) {
+			LinkedHashMap<String, String> custom = manifest.getCustom();
+			custom.putAll(options.getStartcustom());
+			manifest.setCustom(custom);
+		}
 		job.getOptions().setManifest(manifest);
 
 		return job;
