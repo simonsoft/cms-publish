@@ -69,7 +69,7 @@ public class PublishStartService {
 		this.publishConfiguration = publishConfiguration;
 		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
-		this.profilingSetReader = reader.forType(ProfilingSet.class);
+		this.profilingSetReader = reader.forType(PublishProfilingSet.class);
 	}
 
 
@@ -139,8 +139,14 @@ public class PublishStartService {
 		// Use profilingname if set (get recipe from itemPublish)
 		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
 			String profilingValue = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader);
-			profilingRecipe = profilingSet.get(options.getProfilingname());
+			// FIXME: is .getProfilingSetPublish() the right method? Is the recipe extraction sane?
+			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader).getProfilingSetPublish();
+			for (PublishProfilingRecipe recipe : profilingSet) {
+				if (recipe.getName().equals(options.getProfilingname())) {
+					profilingRecipe = recipe;
+					break;
+				}
+			}
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
 			profilingRecipe = options.getStartprofiling();
 			if (profilingRecipe.getName() != null || profilingRecipe.getLogicalExpr() != null) {
@@ -169,7 +175,7 @@ public class PublishStartService {
 
 		PublishJobManifest manifest = job.getOptions().getManifest();
 		if (options.getStartcustom() != null) {
-			LinkedHashMap<String, String> custom = manifest.getCustom();
+			LinkedHashMap<String, String> custom = (manifest.getCustom() != null) ? manifest.getCustom() : new LinkedHashMap<>();
 			custom.putAll(options.getStartcustom());
 			manifest.setCustom(custom);
 		}
