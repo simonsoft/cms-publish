@@ -138,14 +138,13 @@ public class PublishStartService {
 		PublishProfilingRecipe profilingRecipe = null;
 		// Use profilingname if set (get recipe from itemPublish)
 		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
+			// Get recipe from the document properties.
 			String profilingValue = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-			// FIXME: is .getProfilingSetPublish() the right method? Is the recipe extraction sane?
+			// Use .getProfilingSetPublish() in order to only consider recipes intended for publish.
 			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader).getProfilingSetPublish();
-			for (PublishProfilingRecipe recipe : profilingSet) {
-				if (recipe.getName().equals(options.getProfilingname())) {
-					profilingRecipe = recipe;
-					break;
-				}
+			profilingRecipe = profilingSet.get(options.getProfilingname());
+			if (profilingRecipe == null) {
+				throw new IllegalArgumentException("Predefined profiling recipe must be defined in document properties: " + options.getProfilingname());
 			}
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
 			profilingRecipe = options.getStartprofiling();
