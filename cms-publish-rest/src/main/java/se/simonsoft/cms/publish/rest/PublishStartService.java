@@ -124,7 +124,9 @@ public class PublishStartService {
 				}
 			}
 			if (translation != null) {
-				itemPublish = new CmsItemPublish(translation.getItem());
+				// The translation item is "head" while the translationId has revision.
+				CmsItem itemTranslation = this.lookupReporting.getItem(translation.getTranslation());
+				itemPublish = new CmsItemPublish(itemTranslation);
 			} else {
 				throw new IllegalArgumentException("Unable to find a translation for the intended locale.");
 			}
