@@ -164,7 +164,7 @@ public class PublishStartService {
 		}
 
 		// Verify that the config is intended for profiling, if profilingRecipe != null.
-		if (profilingRecipe != null && !profilingRecipe.getAttributes().isEmpty() && !config.getProfilingInclude()) {
+		if (profilingRecipe != null && !profilingRecipe.getAttributesFilter().isEmpty() && (config.getProfilingInclude() == null || !config.getProfilingInclude())) {
 			throw new IllegalArgumentException("Requested profiling is not properly configured");
 		}
 
