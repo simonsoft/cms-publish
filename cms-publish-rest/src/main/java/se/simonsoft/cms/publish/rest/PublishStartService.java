@@ -166,10 +166,14 @@ public class PublishStartService {
 			throw new RuntimeException("No 'executionid' was assigned");
 		}
 
-		// TODO: Need specific scenariotest setting 'startinput' but not 'startprofiling'.
+		// Need specific scenariotest setting 'startcustom' but not 'startprofiling'.
 		// Set profilingRecipe.name to executionid if any of the start* parameters are provided (even if profilingRecipe == null).
 		if (options.getStartpathname() != null || options.getStartprofiling() != null || (options.getStartcustom() != null && options.getStartcustom().size() > 0)) {
-			profilingRecipe.setAttribute("name", options.getExecutionid());
+			if (profilingRecipe == null) {
+				profilingRecipe = new PublishProfilingRecipe(options.getExecutionid(), new HashMap<>());
+			} else {
+				profilingRecipe.setAttribute("name", options.getExecutionid());
+			}
 		}
 
 		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()), Optional.ofNullable(options.getStartcustom()));
