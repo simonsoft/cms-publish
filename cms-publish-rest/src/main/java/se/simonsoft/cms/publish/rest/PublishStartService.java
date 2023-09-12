@@ -104,10 +104,16 @@ public class PublishStartService {
 	private PublishConfig getPublishConfiguration(CmsItemId itemId, String name) {
 
 		Map<String, PublishConfig> configs = publishConfiguration.getConfiguration(itemId);
+		if (!configs.containsKey(name)) {
+			throw new IllegalArgumentException("Publish config does not exist: " + name);
+		}
 		return configs.get(name);
 	}
 
 	private PublishJob getPublishJob(CmsItemId itemId, PublishStartOptions options, PublishConfig config) {
+		if (config == null) {
+			throw new IllegalArgumentException("PublishConfig must not be null.");
+		}
 
 		CmsItem itemRelease = this.lookupReporting.getItem(itemId);
 
