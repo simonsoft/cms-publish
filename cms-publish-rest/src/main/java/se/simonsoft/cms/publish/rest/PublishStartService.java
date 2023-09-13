@@ -97,7 +97,10 @@ public class PublishStartService {
 
 		logger.debug("WebhookCommandHandler endpoint: {}", delivery.getParams().get("url"));
 		LinkedHashMap<String, String> result = publishWebhookCommandHandler.getPostPayload(delivery, storage, progress);
-
+		
+		// #1770: Add the job UUID to the API response to enable a status query API?
+		// TODO: Consider a webhook call for failure.
+		
 		return result;
 	}
 
