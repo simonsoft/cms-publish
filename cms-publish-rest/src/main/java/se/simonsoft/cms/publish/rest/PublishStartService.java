@@ -112,6 +112,12 @@ public class PublishStartService {
 		}
 		return configs.get(name);
 	}
+	
+	private boolean isPublishConfigurationValid(CmsItemPublish item, String name) {
+
+		Map<String, PublishConfig> configs = publishConfiguration.getConfigurationFiltered(item);
+		return configs.containsKey(name);
+	}
 
 	private PublishJob getPublishJob(CmsItemId itemId, PublishStartOptions options, PublishConfig config) {
 		if (config == null) {
@@ -143,7 +149,12 @@ public class PublishStartService {
 			itemPublish = new CmsItemPublish(itemRelease);
 		}
 
-		// TODO: Should we validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).
+		// Validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).
+		if (!isPublishConfigurationValid(itemPublish, options.getPublication())) {
+			String msg = String.format("Publish start config '%s' not valid for item: %s", options.getPublication(), itemPublish.getId());
+			logger.info(msg);
+			throw new IllegalArgumentException(msg);
+		}
 
 		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 		PublishProfilingRecipe profilingRecipe = null;
