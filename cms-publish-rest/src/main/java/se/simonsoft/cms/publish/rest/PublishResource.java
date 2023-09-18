@@ -72,7 +72,8 @@ import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 @Path("/publish4")
 public class PublishResource {
-	
+
+	private static final int MAX_START_BODY_SIZE = 110 * 1024;
 	private final String hostname;
 	private final CmsItemSearch cmsItemSearch;
 	private final Map<CmsRepository, CmsItemLookup> lookupMap;
@@ -251,7 +252,11 @@ public class PublishResource {
 	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws Exception {
 		
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
-		
+
+		if (body != null && body.getBytes().length > MAX_START_BODY_SIZE) {
+			throw new IllegalArgumentException(String.format("The body size exceeds the {} bytes limit.", MAX_START_BODY_SIZE));
+		}
+
 		// Deserialize the body.
 		PublishStartOptions options = publishStartOptionsReader.readValue(body);
 

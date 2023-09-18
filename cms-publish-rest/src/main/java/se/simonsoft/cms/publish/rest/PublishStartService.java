@@ -19,8 +19,10 @@ import java.util.*;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.simonsoft.cms.item.CmsItem;
@@ -43,13 +45,16 @@ import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
 public class PublishStartService {
 
+	private static final int MAX_START_PATH_NAME_SIZE = 100;
+	private static final int MAX_START_CUSTOM_NAME_SIZE = 100 * 1024;
 	private final PublishWebhookCommandHandler publishWebhookCommandHandler;
 	private final CmsItemLookupReporting lookupReporting;
 	private final TranslationTracking translationTracking;
 	private final PublishConfiguration publishConfiguration;
 	private final PublishExecutor publishExecutor;
 	private final PublishJobFactory jobFactory;
-	ObjectReader profilingSetReader;
+	private final ObjectReader profilingSetReader;
+	private final ObjectWriter writer;
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishStartService.class);
 
@@ -61,7 +66,8 @@ public class PublishStartService {
 			PublishConfiguration publishConfiguration,
 			PublishExecutor publishExecutor,
 			PublishJobFactory jobFactory,
-			ObjectReader reader) {
+			ObjectReader reader,
+			ObjectWriter writer) {
 
 		this.publishWebhookCommandHandler = publishWebhookCommandHandler;
 		this.lookupReporting = lookupReporting;
@@ -70,10 +76,27 @@ public class PublishStartService {
 		this.publishExecutor = publishExecutor;
 		this.jobFactory = jobFactory;
 		this.profilingSetReader = reader.forType(PublishProfilingSet.class);
+		this.writer = writer;
 	}
 
 
 	public LinkedHashMap<String, String> doPublishStartItem(CmsItemId itemId, PublishStartOptions options) {
+
+		if (options.getStartpathname() != null && options.getStartpathname().getBytes().length > MAX_START_PATH_NAME_SIZE) {
+			throw new IllegalArgumentException(String.format("The startpathname size exceeds the {} bytes limit.", MAX_START_PATH_NAME_SIZE));
+		}
+
+		if (options.getStartcustom() != null) {
+			try {
+				String jsonString = writer.writeValueAsString(options.getStartcustom());
+				int jsonStringLength = jsonString.getBytes().length;
+				if (jsonStringLength > MAX_START_CUSTOM_NAME_SIZE) {
+					throw new IllegalArgumentException(String.format("The startcustom size exceeds the {} bytes limit.", MAX_START_CUSTOM_NAME_SIZE));
+				}
+			} catch (JsonProcessingException e) {
+				throw new IllegalArgumentException("Failed to serialize the startcustom.", e);
+			}
+		}
 
 		PublishConfig config = getPublishConfiguration(itemId, options.getPublication());
 		PublishJob publishJob = getPublishJob(itemId, options, config);
