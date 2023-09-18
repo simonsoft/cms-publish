@@ -254,7 +254,7 @@ public class PublishResource {
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
 
 		if (body != null && body.getBytes().length > MAX_START_BODY_SIZE) {
-			throw new IllegalArgumentException(String.format("The body size exceeds the {} bytes limit.", MAX_START_BODY_SIZE));
+			throw new IllegalArgumentException(String.format("The body size exceeds the %d bytes limit.", MAX_START_BODY_SIZE));
 		}
 
 		// Deserialize the body.
