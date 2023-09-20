@@ -252,6 +252,10 @@ public class PublishResource {
 	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws Exception {
 		
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
+		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
 
 		if (body != null && body.getBytes().length > MAX_START_BODY_SIZE) {
 			throw new IllegalArgumentException(String.format("The body size exceeds the %d bytes limit.", MAX_START_BODY_SIZE));
