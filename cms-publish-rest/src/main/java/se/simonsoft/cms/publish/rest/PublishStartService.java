@@ -159,14 +159,18 @@ public class PublishStartService {
 		if (config == null) {
 			throw new IllegalArgumentException("PublishConfig must not be null.");
 		}
+		if (itemId.getPegRev() != null) {
+			throw new IllegalArgumentException("ItemId must not specify a revision.");
+		}
 
-		CmsItem itemRelease = this.lookupReporting.getItem(itemId);
+		CmsItem itemReleaseHead = this.lookupReporting.getItem(itemId);
+		CmsItemId itemIdRev = itemId.withPegRev(itemReleaseHead.getRevisionChanged().getNumber());
 
 		CmsItemPublish itemPublish;
 		String locale = options.getLocale();
-		if (locale != null && !locale.isBlank() && !(new CmsItemPublish(itemRelease)).getReleaseLocale().equals(locale)) {
+		if (locale != null && !locale.isBlank() && !(new CmsItemPublish(itemReleaseHead)).getReleaseLocale().equals(locale)) {
 			CmsItemTranslation translation = null;
-			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId.withPegRev(itemRelease.getRevisionChanged().getNumber()));
+			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemIdRev);
 			// Find the translation and create itemPublish, throw exception if no translation exists.
 			for (CmsItemTranslation item: translations) {
 				if (item.getLocale().toString().equals(locale)) {
@@ -182,6 +186,7 @@ public class PublishStartService {
 				throw new IllegalArgumentException("Unable to find a translation for the intended locale.");
 			}
 		} else {
+			CmsItem itemRelease = this.lookupReporting.getItem(itemIdRev);
 			itemPublish = new CmsItemPublish(itemRelease);
 		}
 
