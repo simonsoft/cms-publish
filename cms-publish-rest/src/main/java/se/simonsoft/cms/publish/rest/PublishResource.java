@@ -272,7 +272,7 @@ public class PublishResource {
 		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemId, options);
 
 		String jsonString = writer.writeValueAsString(result);
-		Response response = Response.accepted(jsonString)
+		Response response = Response.status(202).entity(jsonString)
 				.header("Vary", "Accept")
 				.build();
 		return response;
