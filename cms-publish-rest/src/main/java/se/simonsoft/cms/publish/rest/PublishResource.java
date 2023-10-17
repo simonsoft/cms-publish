@@ -271,6 +271,7 @@ public class PublishResource {
 
 		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemId, options);
 
+		// Currently returns a response with Transfer-Encoding: chunked
 		String jsonString = writer.writeValueAsString(result);
 		Response response = Response.status(202).entity(jsonString)
 				.header("Vary", "Accept")
