@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -243,13 +244,13 @@ public class PublishResource {
 	 * @param itemId
 	 * @param 
 	 * @return JSON containing started execution ID and presigned urls (same as webhook).
-	 * @throws Exception
+	 * @throws JsonProcessingException serializing the response
 	 */
 	@POST
 	@Path("api/start")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws Exception {
+	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws JsonProcessingException  {
 		
 		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
 		
@@ -262,7 +263,13 @@ public class PublishResource {
 		}
 
 		// Deserialize the body.
-		PublishStartOptions options = publishStartOptionsReader.readValue(body);
+		PublishStartOptions options;
+		try {
+			options = publishStartOptionsReader.readValue(body);
+		} catch (JsonProcessingException e) {
+			logger.error("API request with invalid JSON body: {}", body, e);
+			throw new IllegalArgumentException("Failed to parse request body: " + e.getMessage(), e);
+		}
 
 		// Generate and log a UUID, set into options.executionid regardless if set already.
 		UUID uuid = UUID.randomUUID();
