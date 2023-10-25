@@ -158,6 +158,9 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	}
 	
 	private static String decodeString(String encoded) {
+		if (encoded == null) {
+			return null;
+		}
 
 		try {
 			return URLDecoder.decode(encoded, URL_ENCODING_CHARSET);
