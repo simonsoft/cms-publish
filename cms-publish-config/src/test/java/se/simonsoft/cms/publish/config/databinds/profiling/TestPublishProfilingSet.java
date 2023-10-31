@@ -89,6 +89,39 @@ public class TestPublishProfilingSet {
 		assertEquals("internal", ppSet.get("internal").getName());
 		assertEquals("%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E", ppSet.get("internal").getLogicalExpr());
 		assertEquals("<ProfileRef alias=\"Profiling\" value=\"internal\"/>", ppSet.get("internal").getLogicalExprDecoded());
+		
+		assertEquals(1, ppSet.get("internal").getAttributesFilter().size());
+		ppSet.get("internal").validateFilter();
+	}
+
+	@Test
+	public void testDeserializeNamespace() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonNamespace());
+
+		assertEquals("namespace", ppSet.get("namespace").getName());
+		
+		assertEquals(1, ppSet.get("namespace").getAttributesFilter().size());
+		ppSet.get("namespace").validateFilter();
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeserializeInvalidFilterSpace() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonInvalidFilterSpace());
+
+		assertEquals("invalid", ppSet.get("invalid").getName());
+		
+		assertEquals(1, ppSet.get("invalid").getAttributesFilter().size());
+		ppSet.get("invalid").validateFilter();
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeserializeInvalidFilterAccented() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonInvalidFilterAccented());
+
+		assertEquals("invalid", ppSet.get("invalid").getName());
+		
+		assertEquals(1, ppSet.get("invalid").getAttributesFilter().size());
+		ppSet.get("invalid").validateFilter();
 	}
 	
 	
@@ -249,6 +282,15 @@ public class TestPublishProfilingSet {
 	}
 	private String getJsonInternal() {
 		return "[{\"logicalexpr\":\"%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E\",\"name\":\"internal\",\"profiling\":\"internal\"}]";
+	}
+	private String getJsonNamespace() {
+		return "[{\"name\":\"namespace\",\"prf:profiling\":\"internal\"}]";
+	}
+	private String getJsonInvalidFilterAccented() {
+		return "[{\"name\":\"invalid\",\"profilingÖ\":\"internal\"}]";
+	}
+	private String getJsonInvalidFilterSpace() {
+		return "[{\"name\":\"invalid\",\"profiling one\":\"internal\"}]";
 	}
 
 }
