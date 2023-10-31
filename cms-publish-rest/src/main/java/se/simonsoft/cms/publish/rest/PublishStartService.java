@@ -235,6 +235,8 @@ public class PublishStartService {
 			} else {
 				profilingRecipe.setAttribute("name", options.getExecutionid());
 			}
+			// Ensure invalid profiling filter is reported before starting the process.
+			profilingRecipe.validateFilter();
 		}
 
 		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()), Optional.ofNullable(options.getStartcustom()));
