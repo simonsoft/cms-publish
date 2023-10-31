@@ -235,6 +235,8 @@ public class PublishStartService {
 			} else {
 				profilingRecipe.setAttribute("name", options.getExecutionid());
 			}
+		}
+		if (options.getStartprofiling() != null) {
 			// Ensure invalid profiling filter is reported before starting the process.
 			profilingRecipe.validateFilter();
 		}
