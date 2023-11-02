@@ -37,6 +37,8 @@ import se.simonsoft.cms.item.CmsProfilingRecipe;
 public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	public static final String URL_ENCODING_CHARSET = "UTF-8";
 	public static final Pattern INVALID_EXPR = Pattern.compile(".*[ <>].*");
+	public static final Pattern FILTER_ATTR_VALID = Pattern.compile("[a-zA-Z]([a-zA-Z0-9_:-])*");
+	
 	
 	/**
 	 * The additional attributes that generated the Logical Expression as stored by Editor in the JSON.
@@ -151,13 +153,23 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	 */
 	@JsonIgnore
 	public void validateFilter() {
-		if (getAttributesFilter().isEmpty()) {
+		Map<String, String> attrs = getAttributesFilter();
+		if (attrs.isEmpty()) {
 			throw new IllegalArgumentException("Profiling filter must not be empty for '" + getName() + "'.");
 		}
 		
+		for (String attrName: attrs.keySet()) {
+			Matcher m = FILTER_ATTR_VALID.matcher(attrName);
+			if (!m.matches()) {
+				throw new IllegalArgumentException("Profiling filter attribute name contains invalid character(s): '" + attrName + "'.");				
+			}
+		}
 	}
 	
 	private static String decodeString(String encoded) {
+		if (encoded == null) {
+			return null;
+		}
 
 		try {
 			return URLDecoder.decode(encoded, URL_ENCODING_CHARSET);

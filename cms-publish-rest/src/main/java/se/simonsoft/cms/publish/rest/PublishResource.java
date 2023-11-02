@@ -19,12 +19,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.UUID;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -37,6 +40,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -66,7 +73,8 @@ import se.simonsoft.cms.reporting.response.CmsItemRepositem;
 
 @Path("/publish4")
 public class PublishResource {
-	
+
+	private static final int MAX_START_BODY_SIZE = 110 * 1024;
 	private final String hostname;
 	private final CmsItemSearch cmsItemSearch;
 	private final Map<CmsRepository, CmsItemLookup> lookupMap;
@@ -74,6 +82,7 @@ public class PublishResource {
 	private final PublishConfigurationDefault publishConfiguration;
 	private final PublishPackageZipBuilder repackageService;
 	private final PublishPackageStatus statusService;
+	private final Map<CmsRepository, PublishStartService> publishStartService;
 	private final Map<CmsRepository, PublishPackageFactory> packageFactory;
 	@SuppressWarnings("unused")
 	private final ReposHtmlHelper htmlHelper;
@@ -81,6 +90,8 @@ public class PublishResource {
 	private final PublishJobStorageFactory storageFactory;
 	private final PublishJobFactory jobFactory;
 	private final PublishExecutor publishExecutor;
+	private final ObjectReader publishStartOptionsReader;
+	private final ObjectWriter writer;
 
 	@SuppressWarnings("unused")
 	private VelocityEngine templateEngine;
@@ -93,12 +104,15 @@ public class PublishResource {
 			PublishConfigurationDefault publishConfiguration,
 			PublishPackageZipBuilder repackageService,
 			PublishPackageStatus statusService,
+			Map<CmsRepository, PublishStartService> publishStartService,
 			Map<CmsRepository, PublishPackageFactory> packageFactory,
 			ReposHtmlHelper htmlHelper,
 			PublishJobStorageFactory storageFactory,
 			PublishJobFactory jobFactory,
 			PublishExecutor publishExecutor,
-			VelocityEngine templateEngine
+			VelocityEngine templateEngine,
+			ObjectReader reader,
+			ObjectWriter writer
 			) {
 		
 		this.hostname = hostname;
@@ -108,12 +122,15 @@ public class PublishResource {
 		this.publishConfiguration = publishConfiguration;
 		this.repackageService = repackageService;
 		this.statusService = statusService;
+		this.publishStartService = publishStartService;
 		this.packageFactory = packageFactory;
 		this.htmlHelper = htmlHelper;
 		this.storageFactory = storageFactory;
 		this.jobFactory = jobFactory;
 		this.publishExecutor = publishExecutor;
 		this.templateEngine = templateEngine;
+		this.publishStartOptionsReader = reader.forType(PublishStartOptions.class);
+		this.writer = writer;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishResource.class);
@@ -223,7 +240,51 @@ public class PublishResource {
 		return response;
 	}
 	
-	
+	/**
+	 * @param itemId
+	 * @param 
+	 * @return JSON containing started execution ID and presigned urls (same as webhook).
+	 * @throws JsonProcessingException serializing the response
+	 */
+	@POST
+	@Path("api/start")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response doStartApi(@QueryParam("item") CmsItemIdArg itemId, String body) throws JsonProcessingException  {
+		
+		logger.debug("Start publication requested with item: {} and options: '{}'", itemId, body);
+		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+
+		if (body != null && body.getBytes().length > MAX_START_BODY_SIZE) {
+			throw new IllegalArgumentException(String.format("The body size exceeds the %d bytes limit.", MAX_START_BODY_SIZE));
+		}
+
+		// Deserialize the body.
+		PublishStartOptions options;
+		try {
+			options = publishStartOptionsReader.readValue(body);
+		} catch (JsonProcessingException e) {
+			logger.error("API request with invalid JSON body: {}", body, e);
+			throw new IllegalArgumentException("Failed to parse request body: " + e.getMessage(), e);
+		}
+
+		// Generate and log a UUID, set into options.executionid regardless if set already.
+		UUID uuid = UUID.randomUUID();
+		options.setExecutionid(uuid.toString());
+		logger.debug("Generated executionid: '{}'", uuid);
+
+		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemId, options);
+
+		// Currently returns a response with Transfer-Encoding: chunked
+		String jsonString = writer.writeValueAsString(result);
+		Response response = Response.status(202).entity(jsonString)
+				.header("Vary", "Accept")
+				.build();
+		return response;
+	}
 	
 	/**
 	 * @param itemId

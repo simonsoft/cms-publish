@@ -171,14 +171,17 @@ public class PublishJobService {
 		request.addParam("type", options.getFormat());
 		*/
 		
+		// TODO: Consider removing profiling entirely.
 		PublishProfilingRecipe profiling = options.getProfiling();
 		if (profiling != null) {
-			String profileExpr = profiling.getLogicalExprDecoded();
-			if (profileExpr == null || profileExpr.trim().isEmpty()) {
-				throw new IllegalArgumentException("Profiling logicalexpr must not be empty: " + profiling.getName());
+			// Profiling filtering is now typically performed by the CMS export.
+			if (profiling.getLogicalExpr() == null) {
+				logger.info("Profiling logicalexpr is null, assuming CMS filtered during export: {}", profiling.getName());
+			} else {
+				String profileExpr = profiling.getLogicalExprDecoded();
+				logger.debug("Profiling expr: {}", profileExpr);
+				request.addParam("profile", "logicalexpression=".concat(profileExpr));
 			}
-			logger.debug("Profiling expr: {}", profileExpr);
-			request.addParam("profile", "logicalexpression=".concat(profileExpr));
 		}
 
 		if ( options.getParams() != null ) {

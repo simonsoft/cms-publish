@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.junit.Before;
@@ -67,6 +68,7 @@ public class PublishResourceTest {
 	@Mock CmsItemLookupReporting lookupReportingMock;
 	@Mock PublishPackageZipBuilder packageZipMock;
 	@Mock PublishPackageStatus packageStatusMock;
+	@Mock Map<CmsRepository, PublishStartService> publishStartMock;
 	@Mock CmsItemRepositem itemMock;
 	@Mock ReposHtmlHelper htmlHelperMock;
 	@Mock PublishJobStorageFactory storageFactoryMock;
@@ -82,6 +84,7 @@ public class PublishResourceTest {
 
 	private final RepoRevision revision = new RepoRevision(203, new Date());
 	private final CmsItemIdArg itemId = new CmsItemIdArg("x-svn://demo.simonsoftcms.se/svn/demo1^/vvab/xml/Docs/Sa%20s.xml?p=9");
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
@@ -165,12 +168,15 @@ public class PublishResourceTest {
 				publishConfigurationMock,
 				packageZipMock,
 				packageStatusMock,
+				publishStartMock,
 				packageFactoryMapMock,
 				htmlHelperMock,
 				storageFactoryMock,
 				jobFactoryMock,
 				publishExecutorMock,
-				getVelocityEngine());
+				getVelocityEngine(),
+				objectMapper.reader(),
+				objectMapper.writer());
 	}
 
 	@Test

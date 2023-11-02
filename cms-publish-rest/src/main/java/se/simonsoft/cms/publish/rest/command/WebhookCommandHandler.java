@@ -49,6 +49,11 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
 
+/**
+ * NOTE: Replaced by Java httpclient implementation in cms-publish-config.
+ *
+ * @deprecated
+ */
 public class WebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions> {
 
 
