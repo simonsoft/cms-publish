@@ -257,6 +257,7 @@ public class PublishResource {
 		if (itemId == null) {
 			throw new IllegalArgumentException("Field 'item': required");
 		}
+		itemId.setHostnameOrValidate(this.hostname); // Required in order to avoid hanging dependency injection after webapp restart.
 
 		if (body != null && body.getBytes().length > MAX_START_BODY_SIZE) {
 			throw new IllegalArgumentException(String.format("The body size exceeds the %d bytes limit.", MAX_START_BODY_SIZE));
