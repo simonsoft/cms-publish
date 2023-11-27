@@ -20,7 +20,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown=false)
-public class PublishConfig {
+public class PublishConfig { // TODO: Consider extending WorkflowConfig from cms-item.
 
 	protected boolean active;
 	protected boolean visible;
