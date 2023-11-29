@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>cms-publish-config</artifactId>
-	<version>1.2.2-SNAPSHOT</version>
+	<version>1.2.2</version>
 	<packaging>jar</packaging>
 
 	<name>Simonsoft CMS publish config</name>
@@ -63,7 +63,7 @@
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-item</artifactId>
-			<version>3.1.5-SNAPSHOT</version>
+			<version>3.1.5</version>
 		</dependency>
 		
 		<dependency>
