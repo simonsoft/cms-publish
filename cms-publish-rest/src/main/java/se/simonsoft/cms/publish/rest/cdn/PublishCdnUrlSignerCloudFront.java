@@ -63,7 +63,7 @@ public class PublishCdnUrlSignerCloudFront {
 	/**
 	 * Provides a complete URL to the full cdn microsite.
 	 * @param cdn
-	 * @param currentUser in order to validate user roles against CDN configuration (NOT IMPLEMENTED, only supports '*' in roles config) 
+	 * @param currentUser in order to validate user roles against CDN configuration (also supports '*' in roles config) 
 	 * @param expires
 	 * @return
 	 */
@@ -75,14 +75,14 @@ public class PublishCdnUrlSignerCloudFront {
 		String hostname = cdnConfig.getHostname(cdn);
 		String keyId = cdnConfig.getPrivateKeyId(cdn);
 		
-		// TODO: Consider validating roles allowed to see the CDN.
+		// Validating roles allowed to see the CDN.
 		String result;
 		if (keyId != null) {
 			// Non-public CDN, verify Roles.
 			// Currently only supporting allowing all authenticated users (or not).
 			// Roles are not set in the config by default, which means signing is not permitted.
 			Set<String> roles = cdnConfig.getAuthRoles(cdn);
-			if (roles == null || !roles.contains("*")) {
+			if (!currentUser.hasRole(roles)) {
 				String msg = MessageFormatter.format("Access denied to CDN '{}'", cdn).getMessage();
 				logger.warn(msg);
 				throw new CmsAuthenticationException(msg);
