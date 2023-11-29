@@ -34,6 +34,7 @@ import org.junit.Test;
 
 import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
+import se.simonsoft.cms.item.info.CmsCurrentUserBase;
 
 public class PublishCdnUrlSignerCloudFrontTest {
 
@@ -70,7 +71,9 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	private static PublishCdnUrlSignerCloudFront signerPublic;
 	private static PublishCdnUrlSignerCloudFront signer;
 	private static PublishCdnUrlSignerCloudFront signerPortal;
+	private static PublishCdnUrlSignerCloudFront signerRestricted;
 	private static CmsCurrentUser currentUser;
+	private static CmsCurrentUser currentUserCds;
 	private static Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 	
 	@BeforeClass
@@ -153,12 +156,40 @@ public class PublishCdnUrlSignerCloudFrontTest {
 			}
 		};
 		
+		PublishCdnConfig configRestricted = new PublishCdnConfigBase() {
+			
+			@Override
+			public PrivateKey getPrivateKey(String cdn) {
+				try {
+					return readPrivateKey(keyPem);
+				} catch (Exception e) {
+					throw new IllegalStateException(e);
+				}
+			}
+			
+			@Override
+			public String getPrivateKeyId(String cdn) {
+				return "K1KPJ6JE57LGCO";
+			}
+			
+			@Override
+			public String getHostname(String cdn) {
+				return "demo-dev.restricted.simonsoftcdn.com";
+			}
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return new LinkedHashSet<>(Arrays.asList("CdsViewer"));
+			}
+		};
+		
 		signerPublic = new PublishCdnUrlSignerCloudFront(configPublic);
 		signer = new PublishCdnUrlSignerCloudFront(configSigner);
 		signerPortal = new PublishCdnUrlSignerCloudFront(configPortal);
+		signerRestricted = new PublishCdnUrlSignerCloudFront(configRestricted);
 		
 		// Currently not used except for logging.
-		currentUser = new CmsCurrentUser() {			
+		currentUser = new CmsCurrentUserBase() {			
 			@Override
 			public String getUsername() {
 				return null;
@@ -167,6 +198,19 @@ public class PublishCdnUrlSignerCloudFrontTest {
 			@Override
 			public String getUserRoles() {
 				return null;
+			}
+		};
+		
+		// Add role CdsViewer
+		currentUserCds = new CmsCurrentUserBase() {			
+			@Override
+			public String getUsername() {
+				return null;
+			}
+			
+			@Override
+			public String getUserRoles() {
+				return "CmsUser,CdsViewer";
 			}
 		};
 	}
@@ -185,6 +229,15 @@ public class PublishCdnUrlSignerCloudFrontTest {
 
 		String urlPortal = signerPortal.getUrlSigned("portal", currentUser, expires);
 		assertEquals("", "https://demo-dev.portal.simonsoftcdn.com/?Expires=", urlPortal.substring(0, urlPortal.indexOf('=')+1));
+		
+		try {
+			String urlRestricted = signerRestricted.getUrlSigned("preview", currentUser, expires);
+			fail("Should deny access to 'restricted': " + urlRestricted);
+		} catch (CmsAuthenticationException e) {
+		}
+		
+		String urlRestricted = signerRestricted.getUrlSigned("portal", currentUserCds, expires);
+		assertEquals("", "https://demo-dev.restricted.simonsoftcdn.com/?Expires=", urlRestricted.substring(0, urlRestricted.indexOf('=')+1));
 	}
 	
 
