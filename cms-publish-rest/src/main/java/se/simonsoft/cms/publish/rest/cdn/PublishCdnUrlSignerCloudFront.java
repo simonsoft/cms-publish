@@ -25,10 +25,9 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +143,7 @@ public class PublishCdnUrlSignerCloudFront {
 		
 		try {
 			String customPolicy = buildCustomPolicy(hostname, docPathSegments, expires);
-			String customPolicyBase64 = DatatypeConverter.printBase64Binary(customPolicy.getBytes(StandardCharsets.UTF_8));
+			String customPolicyBase64 = Base64.getEncoder().encodeToString(customPolicy.getBytes(StandardCharsets.UTF_8));
 			byte[] signatureBytes = signWithSha1Rsa(customPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
 			String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
 			return resourceUrlOrPath + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?") + "Expires=" + expires.getEpochSecond() + "&Signature=" + urlSafeSignature + "&Key-Pair-Id=" + keyPairId + "&Policy=" + customPolicyBase64;
