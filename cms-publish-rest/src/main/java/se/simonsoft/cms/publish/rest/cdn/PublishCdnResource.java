@@ -95,10 +95,11 @@ public class PublishCdnResource {
 		if (returnPath == null || returnPath.isBlank()) {
 			logger.info("CDN '{}' auth without 'returnpath'", cdn);
 			path = Optional.empty();
-		} else if (returnPath.startsWith("%2F")) {
+		} else if (returnPath.startsWith("/")) { // A query parameter is decoded (once) by REST framework
 			// TODO: Properly match valid path with regex, see Baeldung.
 			logger.info("CDN '{}' auth with 'returnpath': {}", cdn, returnPath);
 			try {
+				// Decoding to completely decoded path for the Signer API.
 				path = Optional.of(URLDecoder.decode(returnPath, "UTF-8"));
 			} catch (UnsupportedEncodingException e) {
 				throw new IllegalStateException(e);
