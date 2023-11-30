@@ -16,12 +16,15 @@
 package se.simonsoft.cms.publish.rest.cdn;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -79,13 +82,30 @@ public class PublishCdnResource {
 	
 	@GET
 	@Path("auth/{cdn}")
-	public Response getAuthRedirect(@PathParam("cdn") String cdn) {
-		// TODO: Add support for return url path. Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
-		// Consider always redirecting to root portal but with some filter parameter that enables presenting the document initially sought.
-		// The referrer header might be useful (unless obscured by an error page redirect).
+	public Response getAuthRedirect(@PathParam("cdn") String cdn, @PathParam("returnpath") String returnPath) {
+		// Add support for return path. 
+		// Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
+		// The referrer header must be captured before authentication redirects.
 		
 		if (cdn == null || cdn.isBlank()) {
 			throw new IllegalArgumentException();
+		}
+		
+		Optional<String> path;
+		if (returnPath == null || returnPath.isBlank()) {
+			logger.info("CDN '{}' auth without 'returnpath': {}", cdn);
+			path = Optional.empty();
+		} else if (returnPath.startsWith("%2F")) {
+			// TODO: Properly match valid path with regex, see Baeldung.
+			logger.info("CDN '{}' auth with 'returnpath': {}", cdn, returnPath);
+			try {
+				path = Optional.of(URLDecoder.decode(returnPath, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new IllegalStateException(e);
+			}
+		} else {
+			logger.info("CDN '{}' auth with invalid 'returnpath': {}", cdn, returnPath);
+			path = Optional.empty();
 		}
 		
 		
@@ -95,7 +115,7 @@ public class PublishCdnResource {
 		Response response;
 		try {
 			// Should always sign the root url even if the redirect captures the initially requested document.
-			String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+			String url = cdnUrlSigner.getUrlSiteSigned(cdn, path, this.currentUser, expires);
 			response = Response.status(302)
 				.header("Location", url)
 				.build();
@@ -132,7 +152,7 @@ public class PublishCdnResource {
 		// Test access control, allowing this method for internal CDN configurations.
 		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		@SuppressWarnings("unused")
-		String url = cdnUrlSigner.getUrlSigned(cdn, this.currentUser, expires);
+		String url = cdnUrlSigner.getUrlSiteSigned(cdn, Optional.empty(), this.currentUser, expires);
 		
 		// TODO: Consider returning an object containing AppId, key, ...
 		return Response.ok().entity(key).build();
@@ -151,7 +171,10 @@ public class PublishCdnResource {
 		
 		// Get information from index, type = publish-cdn
 		String cdn = p.getCdn();
-		String path = getPath(p);
+		//String docno = p.getDocno();
+		// TODO: Determine when the signature should be based on pathdocument vs docno (Lang-dropdown requires docno for full functionality)
+		CmsItemPath pathDocument = new CmsItemPath(p.getPathdocument());
+		String path = getPath(p); // TODO: Generalize the path, currently pathformat with addition of pathname.pdf for PDF only.
 		Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
 		// Verify access control.
@@ -163,7 +186,7 @@ public class PublishCdnResource {
 		// Sign the path, if needed.
 		Set<String> result = new LinkedHashSet<String>(3);
 		try {
-			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, path, expires);
+			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, expires);
 			result.add(url);
 		} catch (Exception e) {
 			logger.error("Publish CDN failed to sign CDN url.", e);
@@ -212,7 +235,7 @@ public class PublishCdnResource {
 		//query.addFilterQuery("repo:" + repo);
 
 		//query.setSort("rev", ORDER.desc);
-		query.setFields("repo", "repoparent", "repohost", "rev", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_job_format", "embd_publish-cdn_document_pathname", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "text_error");
+		query.setFields("repo", "repoparent", "repohost", "rev", "embd_publish-cdn_path", "embd_publish-cdn_uuid", "embd_publish-cdn_status", "embd_publish-cdn_job_format", "embd_publish-cdn_document_docno", "embd_publish-cdn_document_pathname", "embd_publish-cdn_custom_cdn", "embd_publish-cdn_progress_pathformat", "embd_publish-cdn_progress_pathdocument", "text_error");
 		query.setRows(3);
 		
 		try {
@@ -243,6 +266,10 @@ public class PublishCdnResource {
 		if (!m.containsKey("embd_publish-cdn_job_format")) {
 			throw new RuntimeException("Publish CDN found no CDN job format in index: " + id);
 		}
+		
+		if (!m.containsKey("embd_publish-cdn_document_docno")) {
+			throw new RuntimeException("Publish CDN found no CDN document docno in index: " + id);
+		}
 
 		if (!m.containsKey("embd_publish-cdn_document_pathname")) {
 			throw new RuntimeException("Publish CDN found no CDN document pathname in index: " + id);
@@ -252,7 +279,12 @@ public class PublishCdnResource {
 			throw new RuntimeException("Publish CDN found no CDN document pathformat in index: " + id);
 		}
 		
+		if (!m.containsKey("embd_publish-cdn_progress_pathdocument")) {
+			throw new RuntimeException("Publish CDN found no CDN document pathdocument in index: " + id);
+		}
+		
 		CmsRepository repository = new CmsRepository("https", m.get("repohost"), m.get("repoparent"), m.get("repo"));
+		// Item path in CMS repository.
 		CmsItemPath path = new CmsItemPath(m.get("embd_publish-cdn_path"));
 		// Ignoring revision for now.
 		
@@ -266,8 +298,10 @@ public class PublishCdnResource {
 		}
 		// Existence verified above.
 		p.setFormat(m.get("embd_publish-cdn_job_format"));
+		p.setDocno(m.get("embd_publish-cdn_document_docno"));
 		p.setPathname(m.get("embd_publish-cdn_document_pathname"));
 		p.setPathformat(m.get("embd_publish-cdn_progress_pathformat"));
+		p.setPathdocument(m.get("embd_publish-cdn_progress_pathdocument"));
 		
 		return p;
 	}

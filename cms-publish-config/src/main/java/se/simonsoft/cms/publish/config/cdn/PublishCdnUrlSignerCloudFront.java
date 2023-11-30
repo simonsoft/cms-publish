@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -62,12 +63,12 @@ public class PublishCdnUrlSignerCloudFront {
 	/**
 	 * Provides a complete URL to the full cdn microsite.
 	 * @param cdn
+	 * @param path to include in the url
 	 * @param currentUser in order to validate user roles against CDN configuration (also supports '*' in roles config) 
 	 * @param expires
 	 * @return
 	 */
-	public String getUrlSigned(String cdn, CmsCurrentUser currentUser, Instant expires) {
-		String path = "/";
+	public String getUrlSiteSigned(String cdn, Optional<String> path, CmsCurrentUser currentUser, Instant expires) {
 		List<String> docPathSegments = new ArrayList<String>();
 		docPathSegments.add("*"); // Top level wildcard.
 		
@@ -88,9 +89,9 @@ public class PublishCdnUrlSignerCloudFront {
 			}
 			logger.info("Access allowed to CDN '{}' {} {}", cdn, currentUser.getUsername(), currentUser.getUserRoles());
 			
-			result = getSignedUrlWithCustomPolicy(hostname, path, docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
+			result = getSignedUrlWithCustomPolicy(hostname, path.orElse("/"), docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
 		} else {
-			result = getUrlDocument(cdn, path);
+			result = getUrlDocument(cdn, path.orElse("/"));
 		}
 		return result;
 	}
@@ -100,29 +101,30 @@ public class PublishCdnUrlSignerCloudFront {
 	
 	/**
 	 * Provides a complete URL to a document, signed if the CDN requires signature.
-	 * The signature allows access to all files in the parent folder (siblings to the path parameter).
+	 * The signature allows access to all files in the 'pathDocument' folder.
+	 * NOTE: It is the responsibility of the caller to verify user read access to the document (and the 'docno' strategy must be controlled). 
 	 * 
 	 * @param cdn
+	 * @param pathDocument a path to a folder where the signature is valid, typically the 'pathdocument' or only 'docno' to allow all locales
 	 * @param path
 	 * @param expires
 	 * @return
 	 */
-	public String getUrlDocumentSigned(String cdn, String path, Instant expires) {
-		// Using CmsItemPath for convenience. Prohibits a minumum och chars, currently * and \.
-		CmsItemPath docPath = new CmsItemPath(path).getParent();
-		List<String> docPathSegments = new ArrayList<String>(docPath.getPathSegments());
+	public String getUrlDocumentSigned(String cdn, CmsItemPath pathDocument, String path, Instant expires) {
+		// Using CmsItemPath for convenience. Prohibits a minimum och chars, currently *, / and \.
+		List<String> docPathSegments = new ArrayList<String>(pathDocument.getPathSegments());
 		docPathSegments.add("*"); // End with wildcard.
 		// Cloudfront accepts multiple wildcards. 
 		// Slash are not treated in any special way, ok when '/{docno}/' is in the path.
 		// Rearranged CDN path in CMS 5.1 placing '/{docno}/' first, allowing lang-dropdown to work.
 		// NOTE: CMS 5.1 prepared to support lang-dropdown signatures but it requires signature depth config (or similar).
 		// However, the typical use case requires a separate service providing the signed urls, this service is only for authors.
-		// TODO: Extend the api with ability to wildcard earlier (could be a config from PublishCdnConfig).
 		
 		String hostname = cdnConfig.getHostname(cdn);
 		String keyId = cdnConfig.getPrivateKeyId(cdn);
 		
 		// TODO: Consider adding "index.html" for Public CDNs (gettor in cdnConfig, perhaps from SSM);
+		// Probably keep the current approach without index.html for all CDNs.
 		
 		String result;
 		if (keyId != null) {
