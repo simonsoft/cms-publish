@@ -50,6 +50,9 @@ import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
 import se.simonsoft.cms.item.info.CmsItemLookup;
 import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
+import se.simonsoft.cms.publish.config.cdn.PublishCdnConfig;
+import se.simonsoft.cms.publish.config.cdn.PublishCdnItem;
+import se.simonsoft.cms.publish.config.cdn.PublishCdnUrlSignerCloudFront;
 
 @Path("/cdn4")
 public class PublishCdnResource {

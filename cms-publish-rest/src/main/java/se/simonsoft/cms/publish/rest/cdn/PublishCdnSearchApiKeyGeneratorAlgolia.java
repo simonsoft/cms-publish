@@ -24,6 +24,9 @@ import com.algolia.search.models.apikeys.SecuredApiKeyRestriction;
 import com.algolia.search.models.indexing.Query;
 import com.algolia.search.util.HmacShaUtils;
 
+import se.simonsoft.cms.publish.config.cdn.PublishCdnConfig;
+import se.simonsoft.cms.publish.config.cdn.PublishCdnConfigSearch;
+
 public class PublishCdnSearchApiKeyGeneratorAlgolia {
 	
 private PublishCdnConfigSearch cdnConfig;
