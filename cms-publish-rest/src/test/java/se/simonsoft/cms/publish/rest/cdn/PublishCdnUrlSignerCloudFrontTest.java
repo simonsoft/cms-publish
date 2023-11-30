@@ -214,7 +214,7 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
 		String[] query = url.getQuery().split("&");
 		assertEquals(4, query.length);
-		assertEquals("Expires=16", query[0].substring(0, 10));
+		assertEquals("Expires=17", query[0].substring(0, 10));
 		assertEquals("should end with zero if truncated to DAY/HOUR", "0", query[0].substring(query[0].length()-1));
 		assertEquals("Signature=", query[1].substring(0, 10));
 		assertEquals("Key-Pair-Id=K1KPJ6JE57LGCO", query[2]);
