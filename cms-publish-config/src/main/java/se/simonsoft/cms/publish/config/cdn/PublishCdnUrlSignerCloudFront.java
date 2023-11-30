@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItemPath;
+import se.simonsoft.cms.item.encoding.CmsItemURLEncoder;
 import se.simonsoft.cms.item.info.CmsAuthenticationException;
 import se.simonsoft.cms.item.info.CmsCurrentUser;
 
@@ -42,6 +43,7 @@ public class PublishCdnUrlSignerCloudFront {
 	
 	private static final SecureRandom srand = new SecureRandom();
 	private static final Logger logger = LoggerFactory.getLogger(PublishCdnUrlSignerCloudFront.class);
+	private static final CmsItemURLEncoder encoder = new CmsItemURLEncoder(); // There might be a few too many safe chars.
 
 	private PublishCdnConfig cdnConfig;
 	
@@ -50,11 +52,17 @@ public class PublishCdnUrlSignerCloudFront {
 	}
 	
 
+	/**
+	 * @param cdn
+	 * @param path non-encoded path
+	 * @return
+	 */
 	public String getUrlDocument(String cdn, String path) {
+		validatePath(path);
 		StringBuilder resource = new StringBuilder();
 		resource.append("https://");
 		resource.append(cdnConfig.getHostname(cdn));
-		resource.append(path);
+		resource.append(encoder.encode(path));
 		// TODO: Decide if "index.html" should be appended (using Cloudfront Functions on public CDN?)
 		return resource.toString();
 	}
@@ -63,7 +71,7 @@ public class PublishCdnUrlSignerCloudFront {
 	/**
 	 * Provides a complete URL to the full cdn microsite.
 	 * @param cdn
-	 * @param path to include in the url
+	 * @param path to include in the url, non-encoded
 	 * @param currentUser in order to validate user roles against CDN configuration (also supports '*' in roles config) 
 	 * @param expires
 	 * @return
@@ -106,7 +114,7 @@ public class PublishCdnUrlSignerCloudFront {
 	 * 
 	 * @param cdn
 	 * @param pathDocument a path to a folder where the signature is valid, typically the 'pathdocument' or only 'docno' to allow all locales
-	 * @param path
+	 * @param path non-encoded path
 	 * @param expires
 	 * @return
 	 */
@@ -137,10 +145,11 @@ public class PublishCdnUrlSignerCloudFront {
 	
 	
 	public static String getSignedUrlWithCustomPolicy(String hostname, String path, List<String> docPathSegments, String keyPairId, PrivateKey privateKey, Instant expires) {
+		validatePath(path);
 		StringBuilder resource = new StringBuilder();
 		resource.append("https://");
 		resource.append(hostname);
-		resource.append(path);
+		resource.append(encoder.encode(path));
 		String resourceUrlOrPath = resource.toString();
 		
 		try {
@@ -160,7 +169,7 @@ public class PublishCdnUrlSignerCloudFront {
 		resource.append(hostname);
 		for (String s: docPathSegments) {
 			resource.append('/');
-			resource.append(s);
+			resource.append(encoder.encode(s));
 		}
 		
 		// Since we not adding additional conditions, just resource wildcards, possible to reuse the canned string.
@@ -250,6 +259,12 @@ public class PublishCdnUrlSignerCloudFront {
 			}
 		}
 		return new String(encoded, StandardCharsets.UTF_8);
+	}
+	
+	public static void validatePath(String path) {
+		if (path == null || !path.startsWith("/")) {
+			throw new IllegalArgumentException("Invalid path: " + path);
+		}
 	}
 	
 }

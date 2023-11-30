@@ -219,8 +219,8 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	@Test
 	public void testGetUrl() throws MalformedURLException {
 		Optional<String> path = Optional.empty();
-		String urlPublic = signerPublic.getUrlSiteSigned("public", path, currentUser, expires);
-		assertEquals("", "https://demo-dev.public.simonsoftcdn.com/", urlPublic);
+		String urlPublic = signerPublic.getUrlSiteSigned("public", Optional.of("/here+and there/"), currentUser, expires);
+		assertEquals("", "https://demo-dev.public.simonsoftcdn.com/here+and%20there/", urlPublic);
 		
 		try {
 			String urlSigned = signer.getUrlSiteSigned("preview", path, currentUser, expires);
@@ -252,8 +252,8 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		String urlWithFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
 		assertEquals("preserve file name if included", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlWithFilename);
 
-		//String urlWithSpace = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS User manual/latest/WhatsNewIn-D2810D06.html");
-		//assertEquals("encode space and other extended", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS%20User%20manual/latest/WhatsNewIn-D2810D06.html", urlWithSpace);
+		String urlWithSpace = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		assertEquals("encode space and other extended", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", urlWithSpace);
 		
 		String urlNoFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/");
 		assertEquals("TBD: currently not adding index.html", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/", urlNoFilename);
@@ -264,14 +264,14 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	public void testGetUrlDocumentSigned() throws MalformedURLException {
 		CmsItemPath itemPath;
 		
-		itemPath = new CmsItemPath("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
 		String urlPublic = signerPublic.getUrlDocumentSigned("public", itemPath.getParent(), itemPath.toString(), expires);
-		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
+		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
 		
 		String urlSigned = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), expires);
 		URL url = new URL(urlSigned);
 		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
-		assertEquals("/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
+		assertEquals("/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", url.getPath());
 		String[] query = url.getQuery().split("&");
 		assertEquals(4, query.length);
 		assertEquals("Expires=17", query[0].substring(0, 10));
@@ -282,7 +282,7 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		assertEquals("Policy=", query[3].substring(0, 7));
 		String policy = new String(Base64.getDecoder().decode(query[3].substring(7)));
 		//assertEquals("", policy);
-		assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
+		assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/*\",", policy.split("\"Condition\"")[0]);
 		//assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/*/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
 
 		//assertEquals("", urlSigned);
