@@ -82,7 +82,7 @@ public class PublishCdnResource {
 	
 	@GET
 	@Path("auth/{cdn}")
-	public Response getAuthRedirect(@PathParam("cdn") String cdn, @PathParam("returnpath") String returnPath) {
+	public Response getAuthRedirect(@PathParam("cdn") String cdn, @QueryParam("returnpath") String returnPath) {
 		// Add support for return path. 
 		// Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
 		// The referrer header must be captured before authentication redirects.
@@ -93,7 +93,7 @@ public class PublishCdnResource {
 		
 		Optional<String> path;
 		if (returnPath == null || returnPath.isBlank()) {
-			logger.info("CDN '{}' auth without 'returnpath': {}", cdn);
+			logger.info("CDN '{}' auth without 'returnpath'", cdn);
 			path = Optional.empty();
 		} else if (returnPath.startsWith("%2F")) {
 			// TODO: Properly match valid path with regex, see Baeldung.
