@@ -171,18 +171,8 @@ public class PublishJobService {
 		request.addParam("type", options.getFormat());
 		*/
 		
-		// TODO: Consider removing profiling entirely.
-		PublishProfilingRecipe profiling = options.getProfiling();
-		if (profiling != null) {
-			// Profiling filtering is now typically performed by the CMS export.
-			if (profiling.getLogicalExpr() == null) {
-				logger.info("Profiling logicalexpr is null, assuming CMS filtered during export: {}", profiling.getName());
-			} else {
-				String profileExpr = profiling.getLogicalExprDecoded();
-				logger.debug("Profiling expr: {}", profileExpr);
-				request.addParam("profile", "logicalexpression=".concat(profileExpr));
-			}
-		}
+		// Profiling on PE with logicalexpression has been removed, typically performed by CMS export.
+		// Still possible to send the param 'profile' with a logicalexpression statically defined in the publish config.
 
 		if ( options.getParams() != null ) {
 			Set<Entry<String,String>> entrySet = options.getParams().entrySet();
