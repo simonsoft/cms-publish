@@ -82,10 +82,11 @@ public class PublishCdnResource {
 	
 	@GET
 	@Path("auth/{cdn}")
-	public Response getAuthRedirect(@PathParam("cdn") String cdn, @QueryParam("returnpath") String returnPath) {
-		// Add support for return path. 
+	public Response getAuthRedirect(@PathParam("cdn") String cdn, @QueryParam("returnpath") String returnPath, @QueryParam("returnquery") String returnQuery) {
+		// Added support for return path. 
 		// Potentially risk of infinite redirect if CDN makes no distinction btw 'Not Found' and 'Not Authenticated'.
 		// The referrer header must be captured before authentication redirects.
+		// TODO: Add support for 'returnquery' if used in CDS.
 		
 		if (cdn == null || cdn.isBlank()) {
 			throw new IllegalArgumentException();
@@ -108,6 +109,8 @@ public class PublishCdnResource {
 			logger.info("CDN '{}' auth with invalid 'returnpath': {}", cdn, returnPath);
 			path = Optional.empty();
 		}
+		
+		logger.info("CDN '{}' auth with 'returnquery': {}", cdn, returnQuery);
 		
 		
 		// Shorter since signature applies to whole CDN.
