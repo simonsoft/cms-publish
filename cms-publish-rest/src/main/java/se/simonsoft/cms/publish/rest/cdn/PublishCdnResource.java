@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -110,8 +111,8 @@ public class PublishCdnResource {
 			path = Optional.empty();
 		}
 		
-		logger.info("CDN '{}' auth with 'returnquery': {}", cdn, returnQuery);
-		
+		logger.info("CDN '{}' auth with 'returnquery' (not supported): {}", cdn, returnQuery);
+		Map<String, List<String>> query = new LinkedHashMap<String, List<String>>();
 		
 		// Shorter since signature applies to whole CDN.
 		// Consider configurable signature duration.
@@ -119,7 +120,7 @@ public class PublishCdnResource {
 		Response response;
 		try {
 			// Should always sign the root url even if the redirect captures the initially requested document.
-			String url = cdnUrlSigner.getUrlSiteSigned(cdn, path, this.currentUser, expires);
+			String url = cdnUrlSigner.getUrlSiteSigned(cdn, path, query, this.currentUser, expires);
 			response = Response.status(302)
 				.header("Location", url)
 				.build();
@@ -156,7 +157,7 @@ public class PublishCdnResource {
 		// Test access control, allowing this method for internal CDN configurations.
 		Instant expires = Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		@SuppressWarnings("unused")
-		String url = cdnUrlSigner.getUrlSiteSigned(cdn, Optional.empty(), this.currentUser, expires);
+		String url = cdnUrlSigner.getUrlSiteSigned(cdn, Optional.empty(), new LinkedHashMap<String, List<String>>(), this.currentUser, expires);
 		
 		// TODO: Consider returning an object containing AppId, key, ...
 		return Response.ok().entity(key).build();
@@ -190,7 +191,7 @@ public class PublishCdnResource {
 		// Sign the path, if needed.
 		Set<String> result = new LinkedHashSet<String>(3);
 		try {
-			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, expires);
+			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, new LinkedHashMap<String, List<String>>(), expires);
 			result.add(url);
 		} catch (Exception e) {
 			logger.error("Publish CDN failed to sign CDN url.", e);

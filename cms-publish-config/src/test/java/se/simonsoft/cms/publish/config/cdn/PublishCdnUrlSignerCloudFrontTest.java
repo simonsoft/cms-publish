@@ -25,7 +25,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -219,25 +222,26 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	@Test
 	public void testGetUrl() throws MalformedURLException {
 		Optional<String> path = Optional.empty();
-		String urlPublic = signerPublic.getUrlSiteSigned("public", Optional.of("/here+and there/"), currentUser, expires);
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+		String urlPublic = signerPublic.getUrlSiteSigned("public", Optional.of("/here+and there/"), returnQuery, currentUser, expires);
 		assertEquals("", "https://demo-dev.public.simonsoftcdn.com/here+and%20there/", urlPublic);
 		
 		try {
-			String urlSigned = signer.getUrlSiteSigned("preview", path, currentUser, expires);
+			String urlSigned = signer.getUrlSiteSigned("preview", path, returnQuery, currentUser, expires);
 			fail("Should deny access to 'preview': " + urlSigned);
 		} catch (CmsAuthenticationException e) {
 		}
 
-		String urlPortal = signerPortal.getUrlSiteSigned("portal", path, currentUser, expires);
+		String urlPortal = signerPortal.getUrlSiteSigned("portal", path, returnQuery, currentUser, expires);
 		assertEquals("", "https://demo-dev.portal.simonsoftcdn.com/?Expires=", urlPortal.substring(0, urlPortal.indexOf('=')+1));
 		
 		try {
-			String urlRestricted = signerRestricted.getUrlSiteSigned("preview", path, currentUser, expires);
+			String urlRestricted = signerRestricted.getUrlSiteSigned("preview", path, returnQuery, currentUser, expires);
 			fail("Should deny access to 'restricted': " + urlRestricted);
 		} catch (CmsAuthenticationException e) {
 		}
 		
-		String urlRestricted = signerRestricted.getUrlSiteSigned("portal", path, currentUserCds, expires);
+		String urlRestricted = signerRestricted.getUrlSiteSigned("portal", path, returnQuery, currentUserCds, expires);
 		assertEquals("", "https://demo-dev.restricted.simonsoftcdn.com/?Expires=", urlRestricted.substring(0, urlRestricted.indexOf('=')+1));
 	}
 	
@@ -245,17 +249,18 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	
 	@Test
 	public void testGetUrlDocument() throws MalformedURLException {
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
 		
-		String urlPublic = signerPublic.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		String urlPublic = signerPublic.getUrlDocument("public", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", returnQuery);
 		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
 		
-		String urlWithFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html");
+		String urlWithFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", returnQuery);
 		assertEquals("preserve file name if included", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/WhatsNewIn-D2810D06.html", urlWithFilename);
 
-		String urlWithSpace = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		String urlWithSpace = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html", returnQuery);
 		assertEquals("encode space and other extended", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", urlWithSpace);
 		
-		String urlNoFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/");
+		String urlNoFilename = signer.getUrlDocument("preview", "/en-GB/SimonsoftCMS-User-manual/latest/", returnQuery);
 		assertEquals("TBD: currently not adding index.html", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS-User-manual/latest/", urlNoFilename);
 	}
 	
@@ -263,12 +268,13 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	@Test
 	public void testGetUrlDocumentSigned() throws MalformedURLException {
 		CmsItemPath itemPath;
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
 		
 		itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
-		String urlPublic = signerPublic.getUrlDocumentSigned("public", itemPath.getParent(), itemPath.toString(), expires);
+		String urlPublic = signerPublic.getUrlDocumentSigned("public", itemPath.getParent(), itemPath.toString(), returnQuery, expires);
 		assertEquals("preserve file name if included", "https://demo-dev.public.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", urlPublic);
 		
-		String urlSigned = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), expires);
+		String urlSigned = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, expires);
 		URL url = new URL(urlSigned);
 		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
 		assertEquals("/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", url.getPath());

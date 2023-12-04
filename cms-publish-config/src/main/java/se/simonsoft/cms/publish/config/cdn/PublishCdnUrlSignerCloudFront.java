@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -57,13 +58,13 @@ public class PublishCdnUrlSignerCloudFront {
 	 * @param path non-encoded path
 	 * @return
 	 */
-	public String getUrlDocument(String cdn, String path) {
+	public String getUrlDocument(String cdn, String path, Map<String, List<String>> query) {
 		validatePath(path);
 		StringBuilder resource = new StringBuilder();
 		resource.append("https://");
 		resource.append(cdnConfig.getHostname(cdn));
 		resource.append(encoder.encode(path));
-		// TODO: Decide if "index.html" should be appended (using Cloudfront Functions on public CDN?)
+		// TODO: Support query
 		return resource.toString();
 	}
 	
@@ -76,7 +77,7 @@ public class PublishCdnUrlSignerCloudFront {
 	 * @param expires
 	 * @return
 	 */
-	public String getUrlSiteSigned(String cdn, Optional<String> path, CmsCurrentUser currentUser, Instant expires) {
+	public String getUrlSiteSigned(String cdn, Optional<String> path, Map<String, List<String>> query, CmsCurrentUser currentUser, Instant expires) {
 		List<String> docPathSegments = new ArrayList<String>();
 		docPathSegments.add("*"); // Top level wildcard.
 		
@@ -97,9 +98,9 @@ public class PublishCdnUrlSignerCloudFront {
 			}
 			logger.info("Access allowed to CDN '{}' {} {}", cdn, currentUser.getUsername(), currentUser.getUserRoles());
 			
-			result = getSignedUrlWithCustomPolicy(hostname, path.orElse("/"), docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
+			result = getSignedUrlWithCustomPolicy(hostname, docPathSegments, path.orElse("/"), query, keyId, cdnConfig.getPrivateKey(cdn), expires);
 		} else {
-			result = getUrlDocument(cdn, path.orElse("/"));
+			result = getUrlDocument(cdn, path.orElse("/"), query);
 		}
 		return result;
 	}
@@ -118,7 +119,7 @@ public class PublishCdnUrlSignerCloudFront {
 	 * @param expires
 	 * @return
 	 */
-	public String getUrlDocumentSigned(String cdn, CmsItemPath pathDocument, String path, Instant expires) {
+	public String getUrlDocumentSigned(String cdn, CmsItemPath pathDocument, String path, Map<String, List<String>> query, Instant expires) {
 		// Using CmsItemPath for convenience. Prohibits a minimum och chars, currently *, / and \.
 		List<String> docPathSegments = new ArrayList<String>(pathDocument.getPathSegments());
 		docPathSegments.add("*"); // End with wildcard.
@@ -136,15 +137,15 @@ public class PublishCdnUrlSignerCloudFront {
 		
 		String result;
 		if (keyId != null) {
-			result = getSignedUrlWithCustomPolicy(hostname, path, docPathSegments, keyId, cdnConfig.getPrivateKey(cdn), expires);
+			result = getSignedUrlWithCustomPolicy(hostname, docPathSegments, path, query, keyId, cdnConfig.getPrivateKey(cdn), expires);
 		} else {
-			result = getUrlDocument(cdn, path);
+			result = getUrlDocument(cdn, path, query);
 		}
 		return result;
 	}
 	
 	
-	public static String getSignedUrlWithCustomPolicy(String hostname, String path, List<String> docPathSegments, String keyPairId, PrivateKey privateKey, Instant expires) {
+	public static String getSignedUrlWithCustomPolicy(String hostname, List<String> docPathSegments, String path, Map<String, List<String>> query, String keyPairId, PrivateKey privateKey, Instant expires) {
 		validatePath(path);
 		StringBuilder resource = new StringBuilder();
 		resource.append("https://");
@@ -157,6 +158,7 @@ public class PublishCdnUrlSignerCloudFront {
 			String customPolicyBase64 = Base64.getEncoder().encodeToString(customPolicy.getBytes(StandardCharsets.UTF_8));
 			byte[] signatureBytes = signWithSha1Rsa(customPolicy.getBytes(StandardCharsets.UTF_8), privateKey);
 			String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
+			// TODO: Support query, ensure signature replaces any existing query params with the same name.
 			return resourceUrlOrPath + (resourceUrlOrPath.indexOf('?') >= 0 ? "&" : "?") + "Expires=" + expires.getEpochSecond() + "&Signature=" + urlSafeSignature + "&Key-Pair-Id=" + keyPairId + "&Policy=" + customPolicyBase64;
 		} catch (InvalidKeyException e) {
 			throw new RuntimeException("Couldn't sign url", e);
