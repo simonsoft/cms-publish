@@ -176,9 +176,15 @@ public class PublishCdnResource {
 		
 		// Get information from index, type = publish-cdn
 		String cdn = p.getCdn();
-		//String docno = p.getDocno();
-		// TODO: Determine when the signature should be based on pathdocument vs docno (Lang-dropdown requires docno for full functionality)
-		CmsItemPath pathDocument = new CmsItemPath(p.getPathdocument());
+		// Determine when the signature should be based on pathdocument vs docno (Lang-dropdown requires docno for full functionality)
+		CmsItemPath pathDocument;
+		if ("preview".equals(cdn)) {
+			pathDocument = new CmsItemPath(p.getPathdocument());
+		} else {
+			// This is a relaxed authz approach where additional measures to ensure correct docno generation is required unless documents published to CDN should be readable to all CMS users with write access.
+			pathDocument = new CmsItemPath("/" + p.getDocno());
+		}
+		
 		String path = getPath(p); // TODO: Generalize the path, currently pathformat with addition of pathname.pdf for PDF only.
 		Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
