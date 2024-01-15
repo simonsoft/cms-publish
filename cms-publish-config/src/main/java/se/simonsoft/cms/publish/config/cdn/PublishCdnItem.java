@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.simonsoft.cms.publish.rest.cdn;
+package se.simonsoft.cms.publish.config.cdn;
 
 import se.simonsoft.cms.item.CmsItemId;
 
@@ -22,8 +22,10 @@ public class PublishCdnItem {
 	private CmsItemId itemId;
 	private String format; // job format, add additional field if we need CDN formatsuffix (already in pathformat).
 	private String cdn;
+	private String docno;
 	private String pathname;
 	private String pathformat;
+	private String pathdocument;
 	
 	
 	public CmsItemId getItemId() {
@@ -44,6 +46,12 @@ public class PublishCdnItem {
 	public void setCdn(String cdn) {
 		this.cdn = cdn;
 	}
+	public String getDocno() {
+		return docno;
+	}
+	public void setDocno(String docno) {
+		this.docno = docno;
+	}
 	public String getPathname() {
 		return pathname;
 	}
@@ -57,8 +65,11 @@ public class PublishCdnItem {
 		this.pathformat = pathformat;
 	}
 	
-	
-	
-	
+	public String getPathdocument() {
+		return pathdocument;
+	}
+	public void setPathdocument(String pathdocument) {
+		this.pathdocument = pathdocument;
+	}
 	
 }
