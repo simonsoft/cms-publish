@@ -114,9 +114,9 @@ public class PublishJobService {
 		} else {
 			// The source is to be retrieved from a repository
 			// PE 8.1.2.0+ no longer supports this.
-			final String itemId = jobOptions.getSource();
-			logger.debug("Item to publish {}", itemId);
-			source = new PublishSourceCmsItemId(new CmsItemIdArg(itemId));
+			String msg = "PE no longer supports the file parameter / adapter as source (since Abx 8.1.2.0)";
+			logger.error(msg);
+			throw new PublishException(msg);
 		}
 
 		
