@@ -295,6 +295,7 @@ public class PublishServicePe implements PublishService {
 				ResponseHeaders head = this.restClient.head(jobRequestURI.toString());
 				
 				if (head.getStatus() != 200) {
+					logger.debug("HEAD request validating that job status is complete, returned status: {}", head.getStatus());
 					getErrorResponseMessageHTML(jobRequestURI.toString());
 				}
 			}
