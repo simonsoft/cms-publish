@@ -31,7 +31,7 @@ public class PublishCdnSearchApiKeyGeneratorAlgolia {
 	
 private PublishCdnConfigSearch cdnConfig;
 
-private Logger logger = LoggerFactory.getLogger(PublishCdnConfigSearch.class); 
+private static final Logger logger = LoggerFactory.getLogger(PublishCdnConfigSearch.class); 
 	
 	
 	public PublishCdnSearchApiKeyGeneratorAlgolia(PublishCdnConfig cdnConfig) {
@@ -67,7 +67,7 @@ private Logger logger = LoggerFactory.getLogger(PublishCdnConfigSearch.class);
 		String searchKey = this.cdnConfig.getSearchApiKeySearch(cdn);
 		
 		SecuredApiKeyRestriction restriction = new SecuredApiKeyRestriction()
-				.setQuery(new Query().setFilters("docno:" + docno));
+				.setQuery(new Query().setFilters("docno:'" + docno + "'"));
 		// Wildcard should work in secured key as well:
 		// https://discourse.algolia.com/t/create-secured-api-key-supports-wildcards-in-restrictindices/11999
 		restriction.setRestrictIndices(Arrays.asList("cdn_" + cdn + "_v1*"));
