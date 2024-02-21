@@ -130,6 +130,7 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 			logger.warn("Server responded with redirect ({}): {}", statusCode, response.headers().firstValue("Location"));
 			throw new CommandRuntimeException("WebhookFailed");
 		} else {
+			logger.warn("Server responded with status code: {}", statusCode);
 			throw new CommandRuntimeException("WebhookFailed");
 		}
 		return null;
