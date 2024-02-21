@@ -24,7 +24,6 @@ import com.algolia.search.models.apikeys.SecuredApiKeyRestriction;
 import com.algolia.search.models.indexing.Query;
 import com.algolia.search.util.HmacShaUtils;
 
-import se.simonsoft.cms.item.encoding.CmsItemURLEncoder;
 import se.simonsoft.cms.publish.config.cdn.PublishCdnConfig;
 import se.simonsoft.cms.publish.config.cdn.PublishCdnConfigSearch;
 
@@ -33,7 +32,6 @@ public class PublishCdnSearchApiKeyGeneratorAlgolia {
 private PublishCdnConfigSearch cdnConfig;
 
 private static final Logger logger = LoggerFactory.getLogger(PublishCdnConfigSearch.class); 
-private static final CmsItemURLEncoder encoder = new CmsItemURLEncoder(); // There might be a few too many safe chars.
 	
 	
 	public PublishCdnSearchApiKeyGeneratorAlgolia(PublishCdnConfig cdnConfig) {
@@ -69,7 +67,7 @@ private static final CmsItemURLEncoder encoder = new CmsItemURLEncoder(); // The
 		String searchKey = this.cdnConfig.getSearchApiKeySearch(cdn);
 		
 		SecuredApiKeyRestriction restriction = new SecuredApiKeyRestriction()
-				.setQuery(new Query().setFilters("docno:" + encoder.encode(docno)));
+				.setQuery(new Query().setFilters("docno:'" + docno + "'"));
 		// Wildcard should work in secured key as well:
 		// https://discourse.algolia.com/t/create-secured-api-key-supports-wildcards-in-restrictindices/11999
 		restriction.setRestrictIndices(Arrays.asList("cdn_" + cdn + "_v1*"));
