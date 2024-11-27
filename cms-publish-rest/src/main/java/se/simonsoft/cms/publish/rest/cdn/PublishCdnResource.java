@@ -47,6 +47,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItemPath;
 import se.simonsoft.cms.item.CmsRepository;
@@ -168,10 +169,9 @@ public class PublishCdnResource {
 	@GET
 	@Path("execution/url")
 	@Produces("application/json")
-	public Response getUrl(@QueryParam("uuid") String id) {
+	public Response getUrl(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
 		
 		PublishCdnItem p = getCdnPublish(id);
-		
 		CmsRepository repository = p.getItemId().getRepository();
 		
 		// Get information from index, type = publish-cdn
@@ -185,8 +185,18 @@ public class PublishCdnResource {
 			pathDocument = new CmsItemPath("/" + p.getDocno());
 		}
 		
+		long expireDays = 10;
+		if (days != null) {
+			verifyUserSuper(cdn); // Throws exception if not Super User.
+			if (days > 0 && days < 366*10) { // Arbitrary limit of 10 years for now (Quarkus config).
+				expireDays = days;
+			} else {
+				throw new IllegalArgumentException("Field 'days': Expiry days out of range.");
+			}
+		}
+		
 		String path = getPath(p); // TODO: Generalize the path, currently pathformat with addition of pathname.pdf for PDF only.
-		Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+		Instant expires = Instant.now().plus(expireDays, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
 		// Verify access control.
 		// Get the repository from indexing query.
@@ -324,6 +334,16 @@ public class PublishCdnResource {
 			uuid = id.substring(1 + id.lastIndexOf(':'));
 		}
 		return UUID.fromString(uuid);
+	}
+	
+	void verifyUserSuper(String cdn) {
+		// TODO: Consider injecting roles considered SuperUser (Quarkus config).
+		Set<String> roles = Set.of("CmsUserSuper", "CmsAdmin");
+		if (!currentUser.hasRole(roles)) {
+			String msg = MessageFormatter.format("Access (Super User) denied to CDN '{}'", cdn).getMessage();
+			logger.warn(msg);
+			throw new CmsAuthenticationException(msg);
+		}
 	}
 	
 }
