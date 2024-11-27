@@ -139,4 +139,9 @@ public class CmsItemPublish implements CmsItem {
 		item.getContents(receiver);
 	}
 
+	@Override
+	public boolean isCmsClass(String cmsClass) {
+		return item.isCmsClass(cmsClass);
+	}
+
 }
