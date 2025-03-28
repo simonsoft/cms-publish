@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.jar.Manifest;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.core.Context;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
