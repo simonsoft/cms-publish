@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.core.Context;
 
 import org.glassfish.jersey.internal.inject.AbstractBinder;

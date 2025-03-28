@@ -34,11 +34,7 @@
       <param-value>se.simonsoft.cms.publish.worker</param-value>
     </init-param>
     <init-param>
-      <param-name>>javax.ws.rs.Application</param-name>
-      <param-value>se.simonsoft.cms.publish.worker.TestPage</param-value>
-    </init-param>
-    <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>se.simonsoft.cms.publish.worker.startup.WorkerApplication</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
@@ -47,4 +43,10 @@
     <servlet-name>SimonsoftCMS Publish Worker</servlet-name>
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
+  <!-- 
+  <context-param>
+     <param-name>cloudId</param-name>
+     <param-value>DEV</param-value>
+  </context-param>
+  -->
 </web-app>
