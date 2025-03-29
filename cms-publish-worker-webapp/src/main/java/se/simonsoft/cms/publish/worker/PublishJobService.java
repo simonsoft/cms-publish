@@ -28,8 +28,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,6 @@ import se.simonsoft.cms.item.export.CmsExportReader;
 import se.simonsoft.cms.item.export.CmsExportTagKey;
 import se.simonsoft.cms.item.export.CmsExportTagValue;
 import se.simonsoft.cms.item.export.CmsImportJob;
-import se.simonsoft.cms.item.impl.CmsItemIdArg;
 import se.simonsoft.cms.item.stream.ByteArrayInOutStream;
 import se.simonsoft.cms.publish.PublishException;
 import se.simonsoft.cms.publish.PublishFormat;

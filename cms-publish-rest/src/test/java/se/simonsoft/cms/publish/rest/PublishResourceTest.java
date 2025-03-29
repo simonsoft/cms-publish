@@ -89,11 +89,14 @@ public class PublishResourceTest {
 	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(PublishResourceTest.class);
 
+	private AutoCloseable closeable;
+	
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 
 		when(htmlHelperMock.getHeadTags(any(PageInfo.class))).thenReturn("");
+		when(htmlHelperMock.getHeadTags(null)).thenReturn("");
 
 		when(lookupReportingMapMock.get(itemId.getRepository())).thenReturn(lookupReportingMock);
 		when(lookupReportingMock.getItem(itemId)).thenReturn(itemMock);

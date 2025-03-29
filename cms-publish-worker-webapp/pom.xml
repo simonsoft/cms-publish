@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>se.simonsoft</groupId>
 		<artifactId>cms-maven-parent</artifactId>
-		<version>11.0.2</version>
+		<version>17.0.1</version>
 		<relativePath />
 	</parent>
 
@@ -35,11 +35,10 @@
 		<finalName>cms-publish-worker-webapp</finalName>
 		<plugins>
 			<plugin>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.4.17.v20190418</version><!-- TODO: Use parent POM variable. -->
+				<groupId>org.eclipse.jetty.ee10</groupId>
+				<artifactId>jetty-ee10-maven-plugin</artifactId>
+				<version>12.0.18</version><!-- TODO: Use parent POM variable. -->
 				<configuration>
-					<scanIntervalSeconds>5</scanIntervalSeconds>
 					<!-- <webApp>${project.build.directory}/${project.artifactId}.war</webApp> -->
 					<webApp>
 						<contextPath>/worker</contextPath>
@@ -82,6 +81,15 @@
 			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
 			<!-- artifactId>jersey-container-servlet</artifactId -->
 		</dependency>
+	
+		<!-- Needed for jakarta.servlet.ServletContext -->
+		<dependency>
+		    <groupId>jakarta.servlet</groupId>
+		    <artifactId>jakarta.servlet-api</artifactId>
+		    <version>6.0.0</version>
+		    <scope>provided</scope>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.glassfish.jersey.inject</groupId>
 			<artifactId>jersey-hk2</artifactId>
@@ -92,7 +100,7 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>3.3.3</version>
+			<version>3.12.4</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -173,7 +181,7 @@
 	</dependencies>
 
 	<properties>
-		<jersey.version>2.35</jersey.version>
+		<jersey.version>3.1.10</jersey.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 </project>
