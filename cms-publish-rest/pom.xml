@@ -64,6 +64,14 @@
 			<artifactId>algoliasearch-java-net</artifactId>
 			<version>3.16.10</version>
 		</dependency>
+		
+		<dependency>
+			<!-- Upgrade mockito for for Java 17 compatibility. -->
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.12.4</version>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 	
