@@ -15,8 +15,11 @@
  */
 package se.simonsoft.cms.publish.config.item;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import se.simonsoft.cms.item.Checksum;
 import se.simonsoft.cms.item.CmsItem;
@@ -24,13 +27,21 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.CmsItemKind;
 import se.simonsoft.cms.item.RepoRevision;
 import se.simonsoft.cms.item.properties.CmsItemProperties;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 
 
 public class CmsItemPublish implements CmsItem {
 
 	private final CmsItem item;
 	
+	/**
+	 * @param item from reporting
+	 * @throws IllegalArgumentException if item is null
+	 */
 	public CmsItemPublish(CmsItem item) {
+		if (item == null) {
+			throw new IllegalArgumentException("CmsItemPublish must be constructed with a non-null CmsItem");
+		}
 		this.item = item;
 	}
 
@@ -74,16 +85,55 @@ public class CmsItemPublish implements CmsItem {
 		return tl; 
 	}
 	
+	/**
+	 * 
+	 * @return true if the item has one or more profiling recipes
+	 * @throws IllegalStateException if the CmsItemPublish was not constructed from a CmsItemReporting
+	 */
 	public boolean hasProfiles() {
-		
-		String profilesProp = this.getProperties().getString("abx:Profiling");
-		if (profilesProp == null || profilesProp.trim().isEmpty()) {
+		String profilingJson = getProfilingJson();
+		if (profilingJson == null || profilingJson.trim().isEmpty()) {
 			return false;
-		} else if (profilesProp.equals("[]")) {
+		} else if (profilingJson.equals("[]")) {
 			return false;
 		} else {
 			return true;
 		}
+	}
+
+	/**
+	 * @param readerProfiling
+	 * @return PublishProfilingSet preferring the indexed profiling JSON over the property.
+	 * @throws IllegalStateException if the CmsItemPublish was not constructed from a CmsItemReporting
+	 */
+	public PublishProfilingSet getProfilingSet(ObjectReader readerProfiling) {
+		if (!hasProfiles()) {
+			// Prefer empty set instead of null, avoiding NPE if chaining getProfilingSetPublish / getProfilingSetRelease.
+			return new PublishProfilingSet(); 
+		}
+		String profilingJson = getProfilingJson();
+		try {
+			PublishProfilingSet set = readerProfiling.readValue(profilingJson);
+			return set;
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Invalid Profiling definition in indexing or property: " + profilingJson);
+		}
+	}
+	
+	private String getProfilingJson() {
+		// #1295 Not allowed if constructing a CmsItemPublish without CmsItemReporting.
+		if (!(item instanceof CmsItem.MetaCms)) {
+			throw new IllegalStateException("CmsItemPublish must be constructed from reporting (with CmsItem.MetaCms), not " + item.getClass().getName());
+		}
+		String profilingJson = null;
+		// #1295 Prefer indexed profiling JSON since property might be out of date.
+		if (item.getMeta().containsKey("embd_cms_profiling")) {
+			profilingJson = (String) item.getMeta().get("embd_cms_profiling");
+		} else {
+			// Temporary fallback to Abx property, potentially useful during 5.3 avoiding hard requirement to reindex.
+			profilingJson = item.getProperties().getString("abx:Profiling");
+		}
+		return profilingJson;
 	}
 	
 	

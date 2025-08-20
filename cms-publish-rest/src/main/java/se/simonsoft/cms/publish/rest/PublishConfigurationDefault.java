@@ -115,20 +115,15 @@ public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	
 	@Override
-	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish) {
-		
+	public PublishProfilingSet getItemProfilingSet(CmsItemPublish itemPublish) throws IllegalStateException {
+		// #1295 Will throw IllegalStateException if item not from reporting.
 		if (!itemPublish.hasProfiles()) {
 			return null;
 		}
 		
-		String profilesProp = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
-		try {
-			PublishProfilingSet set = this.readerProfiling.readValue(profilesProp);
-			// #1305: Filter recipes not intended for Publish.
-			return set.getProfilingSetPublish();
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Invalid property 'abx:Profiling': " + profilesProp);
-		}
+		PublishProfilingSet set = itemPublish.getProfilingSet(readerProfiling);
+		// #1305: Filter recipes not intended for Publish.
+		return set.getProfilingSetPublish();
 	}
 	
 	@Override
