@@ -42,10 +42,12 @@ public class CmsItemPublish implements CmsItem {
 		if (item == null) {
 			throw new IllegalArgumentException("CmsItemPublish must be constructed with a non-null CmsItem");
 		}
+		/*
 		if (item instanceof CmsItemPublish) {
 			// Avoid wrapping CmsItemPublish in CmsItemPublish, which would be a no-op.
 			throw new IllegalArgumentException("CmsItemPublish must not be constructed with another CmsItemPublish, use directly instead");
 		}
+		*/
 		this.item = item;
 	}
 
@@ -126,9 +128,8 @@ public class CmsItemPublish implements CmsItem {
 	
 	private String getProfilingJson() {
 		// #1295 Not allowed if constructing a CmsItemPublish without CmsItemReporting.
-		if (!(item instanceof CmsItem.MetaCms)) {
-			throw new IllegalStateException("CmsItemPublish must be constructed from reporting (with CmsItem.MetaCms), not " + item.getClass().getName());
-		}
+		verifyMetaCms();
+		
 		String profilingJson = null;
 		// #1295 Prefer indexed profiling JSON since property might be out of date.
 		if (item.getMeta().containsKey("embd_cms_profiling")) {
@@ -138,6 +139,17 @@ public class CmsItemPublish implements CmsItem {
 			profilingJson = item.getProperties().getString("abx:Profiling");
 		}
 		return profilingJson;
+	}
+	
+	
+	private void verifyMetaCms() {
+		if (item instanceof CmsItem.MetaCms) {
+			return;
+		} else if (item instanceof CmsItemPublish) {
+			((CmsItemPublish) item).verifyMetaCms();
+		} else {
+			throw new IllegalStateException("CmsItemPublish must be constructed from reporting (with CmsItem.MetaCms), not " + item.getClass().getName());
+		}
 	}
 	
 	
