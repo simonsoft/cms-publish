@@ -42,6 +42,10 @@ public class CmsItemPublish implements CmsItem {
 		if (item == null) {
 			throw new IllegalArgumentException("CmsItemPublish must be constructed with a non-null CmsItem");
 		}
+		if (item instanceof CmsItemPublish) {
+			// Avoid wrapping CmsItemPublish in CmsItemPublish, which would be a no-op.
+			throw new IllegalArgumentException("CmsItemPublish must not be constructed with another CmsItemPublish, use directly instead");
+		}
 		this.item = item;
 	}
 

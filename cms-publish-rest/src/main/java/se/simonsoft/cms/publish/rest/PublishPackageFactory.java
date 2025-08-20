@@ -114,7 +114,7 @@ public class PublishPackageFactory {
 
 		final LinkedHashSet<CmsItemPublish> publishedItems = new LinkedHashSet<>();
 		for (CmsItemPublish item : items) {
-			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(new CmsItemPublish(item));
+			Map<String, PublishConfig> configurationFiltered = publishConfiguration.getConfigurationFiltered(item);
 			if (configurationFiltered.containsKey(publication)) {
 				publishedItems.add(item);
 			} else {
