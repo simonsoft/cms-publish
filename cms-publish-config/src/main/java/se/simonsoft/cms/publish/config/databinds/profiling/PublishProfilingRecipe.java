@@ -101,12 +101,14 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	 * @return logical expression, encoded
 	 */
 	@JsonIgnore
+	@Deprecated // deprecating since we will move towards CMS filtering instead of logicalexpr.
 	public String getLogicalExpr() {
 		return attributes.get("logicalexpr");
 	}
 	
 	
 	@JsonIgnore
+	@Deprecated // deprecating since we will move towards CMS filtering instead of logicalexpr.
 	public String getLogicalExprDecoded() {
 		return decodeString(getLogicalExpr());
 	}

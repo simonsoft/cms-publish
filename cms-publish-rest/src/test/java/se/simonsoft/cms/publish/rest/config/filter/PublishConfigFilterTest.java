@@ -335,15 +335,17 @@ public class PublishConfigFilterTest {
 		PublishConfig publishConfig = getConfigJsonTestData(pathConfigStatus); // status sample config has "profilingInclude": false
 		PublishConfigFilter filter = new PublishConfigFilterProfiling();
 		
-		CmsItem itemMock = mock(CmsItem.class);
+		CmsItem itemMock = mock(CmsItem.MetaCms.class);
 		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
 		when(itemMock.getProperties()).thenReturn(props);
 		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
 		
-		CmsItem itemMockProfiling = mock(CmsItem.class);
-		CmsItemPropertiesMap propsProfiling = new CmsItemPropertiesMap("cms:status", "Released");
-		propsProfiling.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
-		when(itemMockProfiling.getProperties()).thenReturn(propsProfiling);
+		CmsItem itemMockProfiling = mock(CmsItem.MetaCms.class);
+		Map<String, Object> metaProfiling = new HashMap<>();
+		metaProfiling.put("embd_cms_profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+		when(itemMockProfiling.getMeta()).thenReturn(metaProfiling);
+		CmsItemPropertiesMap propsStatus = new CmsItemPropertiesMap("cms:status", "Released");
+		when(itemMockProfiling.getProperties()).thenReturn(propsStatus);
 		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemMockProfiling)));
 	}
 	
@@ -352,13 +354,14 @@ public class PublishConfigFilterTest {
 		PublishConfig publishConfig = getConfigJsonTestData(pathConfigProfilingAll);
 		PublishConfigFilter filter = new PublishConfigFilterProfiling();
 		
-		CmsItem itemMock = mock(CmsItem.class);
+		CmsItem itemMock = mock(CmsItem.MetaCms.class);
 		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
 		when(itemMock.getProperties()).thenReturn(props);
 		assertFalse(filter.accept(publishConfig, new CmsItemPublish(itemMock)));
 		
-		CmsItem itemMockProfiling = mock(CmsItem.class);
+		CmsItem itemMockProfiling = mock(CmsItem.MetaCms.class);
 		CmsItemPropertiesMap propsProfiling = new CmsItemPropertiesMap("cms:status", "Released");
+		// TODO: Update to use meta instead of properties when removing fallback, see testProfilingFilterFalse
 		propsProfiling.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
 		when(itemMockProfiling.getProperties()).thenReturn(propsProfiling);
 		assertTrue(filter.accept(publishConfig, new CmsItemPublish(itemMockProfiling)));

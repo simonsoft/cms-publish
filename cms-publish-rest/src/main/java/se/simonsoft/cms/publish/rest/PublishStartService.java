@@ -200,19 +200,21 @@ public class PublishStartService {
 		TranslationLocalesMapping localesRfc = (TranslationLocalesMapping) this.publishConfiguration.getTranslationLocalesMapping(itemPublish);
 		PublishProfilingRecipe profilingRecipe = null;
 		// Use profilingname if set (get recipe from itemPublish)
-		if (itemPublish.hasProfiles() && options.getProfilingname() != null && options.getProfilingname().length() > 0) {
-			// Get recipe from the document properties.
-			String profilingValue = itemPublish.getProperties().getString(ReleaseProperties.PROPNAME_PROFILING);
+		if (itemPublish.hasProfiles() && options.getProfilingname() != null && !options.getProfilingname().isBlank()) {
 			// Use .getProfilingSetPublish() in order to only consider recipes intended for publish.
-			PublishProfilingSet profilingSet = ProfilingSet.getProfilingSet(profilingValue, profilingSetReader).getProfilingSetPublish();
+			PublishProfilingSet profilingSet = itemPublish.getProfilingSet(profilingSetReader).getProfilingSetPublish();
 			profilingRecipe = profilingSet.get(options.getProfilingname());
 			if (profilingRecipe == null) {
 				throw new IllegalArgumentException("Predefined profiling recipe must be defined in document properties: " + options.getProfilingname());
 			}
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
 			profilingRecipe = options.getStartprofiling();
-			if (profilingRecipe.getName() != null || profilingRecipe.getLogicalExpr() != null) {
-				throw new IllegalArgumentException("Dynamic profiling recipes must not contain 'name' or 'logicalexpr'");
+			if (profilingRecipe.getName() != null) {
+				throw new IllegalArgumentException("Dynamic profiling recipes must not contain 'name'");
+			}
+			// TODO: Figure out how to prevent 'logicalexpr' after removing getLogicalExpr() from PublishProfilingRecipe.
+			if (profilingRecipe.getLogicalExpr() != null) {
+				throw new IllegalArgumentException("Dynamic profiling recipes must not contain 'logicalexpr'");
 			}
 		} else {
 			// No profiling.

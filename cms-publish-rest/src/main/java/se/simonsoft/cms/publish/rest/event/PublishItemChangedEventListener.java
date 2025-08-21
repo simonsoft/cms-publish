@@ -87,6 +87,7 @@ public class PublishItemChangedEventListener implements ItemChangedEventListener
 			throw new IllegalArgumentException("Item requires a known hostname to be published: " + item.getId().getLogicalIdFull());
 		}
 		
+		// #1295 Always item from Reporting in event handler.
 		CmsItemPublish itemPublish = new CmsItemPublish(item);
 		
 		// Configs filtered for the item. Starting only Active configs based on event.

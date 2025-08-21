@@ -80,7 +80,7 @@ public class PublishItemChangedEventListenerTest {
 	
 	//Declaring all mocked objects. @Before will init them as clean mocks before each test and each individual test has to specify the mocks own behaviors. 
 	@Mock CmsResourceContext mockContext;
-	@Mock CmsItem mockItem;
+	@Mock CmsItem.MetaCms mockItem;
 	@Mock CmsRepositoryLookup mockLookup;
 	@Mock Iterator<CmsConfigOption> mockOptionIterator;
 	@Mock WorkflowExecutor<WorkflowItemInput> mockWorkflowExec;
@@ -734,11 +734,11 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
 		when(mockItem.getStatus()).thenReturn("Released");
 		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
-		props.and("abx:Profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
 		when(mockItem.getProperties()).thenReturn(props);
 
 		HashMap<String, Object> metaMap = new HashMap<String, Object>();
 		metaMap.put("embd_xml_a_type", "operator");
+		metaMap.put("embd_cms_profiling", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
 		when(mockItem.getMeta()).thenReturn(metaMap);
 
 		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext. 
