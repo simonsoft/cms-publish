@@ -189,6 +189,9 @@ public class PublishResource {
 		// However, it is very important to properly display any error message thrown when failing to deserialize the publish configs.
 		// Currently displayed instead of React UI. In the future it can be displayed by the React UI if the JSON request fails.
 		
+		// #1295 Will get "Not found in indexing" if the item is not yet indexed. No change due to Profiling from indexing in 5.3.
+		// HTMX migration can more easily provide the error message within the dialog.
+		
 		logger.debug("Getting export publications form for item: {}", itemId);
 		PublishRelease publishRelease = getPublishRelease(itemId, includeVisibleFalse);
 		Response response = Response.ok(publishRelease)
