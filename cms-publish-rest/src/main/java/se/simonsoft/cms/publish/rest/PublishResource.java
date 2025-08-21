@@ -290,6 +290,34 @@ public class PublishResource {
 		return response;
 	}
 	
+	
+	@POST
+	@Path("api/start")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_HTML)
+	public Response doStartApiHtmx(@QueryParam("item") CmsItemIdArg itemId, @FormParam("returnpath") String returnPath) {
+		
+		logger.debug("Start publication requested with item: {} and returnpath: '{}'", itemId, returnPath);
+		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+		
+
+		// Generate and log a UUID, set into options.executionid regardless if set already.
+		UUID uuid = UUID.randomUUID();
+		logger.debug("Generated executionid: '{}'", uuid);
+
+		//LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemId, options);
+
+		Response response = Response.status(302)
+				.header("Vary", "Accept")
+				.header("Location", String.format("%s?uuid=%s", returnPath, uuid))
+				.build();
+		return response;
+	}
+	
+	
 	/**
 	 * @param itemId
 	 * @param includeRelease
