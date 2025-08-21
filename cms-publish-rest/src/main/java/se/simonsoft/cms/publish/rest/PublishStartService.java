@@ -36,8 +36,6 @@ import se.simonsoft.cms.publish.config.databinds.job.*;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
-import se.simonsoft.cms.release.ProfilingSet;
-import se.simonsoft.cms.release.ReleaseProperties;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 import se.simonsoft.cms.release.translation.TranslationTracking;
@@ -159,16 +157,13 @@ public class PublishStartService {
 		if (config == null) {
 			throw new IllegalArgumentException("PublishConfig must not be null.");
 		}
-		if (itemId.getPegRev() != null) {
-			throw new IllegalArgumentException("ItemId must not specify a revision.");
-		}
-
+		
 		CmsItem itemReleaseHead = this.lookupReporting.getItem(itemId);
-		CmsItemId itemIdRev = itemId.withPegRev(itemReleaseHead.getRevisionChanged().getNumber());
 
 		CmsItemPublish itemPublish;
 		String locale = options.getLocale();
 		if (locale != null && !locale.isBlank() && !(new CmsItemPublish(itemReleaseHead)).getReleaseLocale().equals(locale)) {
+			CmsItemId itemIdRev = itemId.withPegRev(itemReleaseHead.getRevisionChanged().getNumber());
 			CmsItemTranslation translation = null;
 			List<CmsItemTranslation> translations = translationTracking.getTranslations(itemIdRev);
 			// Find the translation and create itemPublish, throw exception if no translation exists.
@@ -185,9 +180,21 @@ public class PublishStartService {
 			} else {
 				throw new IllegalArgumentException("Unable to find a translation for the intended locale.");
 			}
-		} else {
+		} else if (itemId.getPegRev() == null) {
+			CmsItemId itemIdRev = itemId.withPegRev(itemReleaseHead.getRevisionChanged().getNumber());
 			CmsItem itemRelease = this.lookupReporting.getItem(itemIdRev);
 			itemPublish = new CmsItemPublish(itemRelease);
+			if (!itemPublish.isRelease() && !itemPublish.isTranslation()) {
+				throw new IllegalArgumentException("ItemId for a Release must not specify a revision.");
+			}
+		} else {
+			// Document from Author Area should have a revision.
+			CmsItem item = this.lookupReporting.getItem(itemId);
+			itemPublish = new CmsItemPublish(item);
+			if (itemPublish.isRelease() || itemPublish.isTranslation()) {
+				throw new IllegalArgumentException("ItemId for a Release / Translation must not specify a revision.");
+			}
+			logger.debug("Publish start Author Area item: {} - {}", itemId, itemPublish.getId());
 		}
 
 		// Validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).

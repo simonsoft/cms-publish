@@ -316,8 +316,12 @@ public class PublishResource {
 		// Generate and log a UUID, set into options.executionid regardless if set already.
 		UUID uuid = UUID.randomUUID();
 		logger.debug("Generated executionid: '{}'", uuid);
+		PublishStartOptions options = new PublishStartOptions();
+		options.setExecutionid(uuid.toString());
+        options.setPublication(publication);
 
-		//LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemIdRev, options);
+		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemIdRev, options);
+		logger.debug("Started item publish: {}", result.get("archive"));
 
 		Response response = Response.status(302)
 				.header("Vary", "Accept")
