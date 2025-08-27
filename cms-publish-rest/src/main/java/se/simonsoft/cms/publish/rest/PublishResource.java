@@ -321,11 +321,12 @@ public class PublishResource {
         options.setPublication(publication);
 
 		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemIdRev, options);
+		logger.info("Started item publish: {}", result.get("executionid"));
 		logger.debug("Started item publish: {}", result.get("archive"));
 
 		Response response = Response.status(302)
 				.header("Vary", "Accept")
-				.header("Location", String.format("%s?uuid=%s", returnPath, uuid))
+				.header("Location", String.format("%s?uuid=%s", returnPath, result.get("executionid")))
 				.build();
 		return response;
 	}

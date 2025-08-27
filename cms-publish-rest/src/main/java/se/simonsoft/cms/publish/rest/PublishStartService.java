@@ -133,6 +133,7 @@ public class PublishStartService {
 		LinkedHashMap<String, String> result = publishWebhookCommandHandler.getPostPayload(delivery, storage, progress);
 		
 		// #1770: Add the job UUID to the API response to enable a status query API?
+		result.put("executionid", uuids.iterator().next());
 		// TODO: Consider a webhook call for failure.
 		
 		return result;
