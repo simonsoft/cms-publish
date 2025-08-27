@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.item.command.CommandRuntimeException;
+import se.simonsoft.cms.item.workflow.WorkflowExecutionId;
 import se.simonsoft.cms.publish.config.PublishConfiguration;
 import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.command.PublishWebhookCommandHandler;
@@ -133,7 +134,8 @@ public class PublishStartService {
 		LinkedHashMap<String, String> result = publishWebhookCommandHandler.getPostPayload(delivery, storage, progress);
 		
 		// #1770: Add the job UUID to the API response to enable a status query API?
-		result.put("executionid", uuids.iterator().next());
+		WorkflowExecutionId weid = new WorkflowExecutionId(uuids.iterator().next());
+		result.put("executionid", weid.getUuid());
 		// TODO: Consider a webhook call for failure.
 		
 		return result;
