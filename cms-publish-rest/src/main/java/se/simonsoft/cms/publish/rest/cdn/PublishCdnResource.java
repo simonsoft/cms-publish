@@ -164,12 +164,36 @@ public class PublishCdnResource {
 		return Response.ok().entity(key).build();
 	}
 	
-		
-	
 	@GET
 	@Path("execution/url")
 	@Produces("application/json")
-	public Response getUrl(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
+	public Response getUrlJson(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
+		
+		Set<String> result = new LinkedHashSet<String>(3);
+		result.add(getUrl(id, days));
+		
+		// Requiring GenericEntity for Iterable<?>.
+		GenericEntity<Iterable<String>> ge = new GenericEntity<Iterable<String>>(result) {};
+		Response response = Response.ok(ge)
+				.header("Vary", "Accept")
+				.build();
+		return response;
+	}
+	
+	@GET
+	@Path("execution/url")
+	@Produces("text/html")
+	public Response getUrlRedirect(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
+		// #1423 Support redirect to signed CDN url for web browser navigation.
+		String url = getUrl(id, days);
+		Response response = Response.status(302)
+				.header("Location", url)
+				.build();
+		return response;
+	}
+	
+
+	public String getUrl(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
 		
 		PublishCdnItem p = getCdnPublish(id);
 		CmsRepository repository = p.getItemId().getRepository();
@@ -205,21 +229,13 @@ public class PublishCdnResource {
 		lookup.getItem(p.getItemId());
 		
 		// Sign the path, if needed.
-		Set<String> result = new LinkedHashSet<String>(3);
 		try {
 			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, new LinkedHashMap<String, List<String>>(), expires);
-			result.add(url);
+			return url;
 		} catch (Exception e) {
 			logger.error("Publish CDN failed to sign CDN url.", e);
 			throw new IllegalStateException("Failed to provide URL on Delivery Service: " + e.getMessage(), e);
 		}
-		
-		// Requiring GenericEntity for Iterable<?>.
-		GenericEntity<Iterable<String>> ge = new GenericEntity<Iterable<String>>(result) {};
-		Response response = Response.ok(ge)
-				.header("Vary", "Accept")
-				.build();
-		return response;
 	}
 	
 	private String getPath(PublishCdnItem p) {
