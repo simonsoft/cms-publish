@@ -121,7 +121,7 @@ public class PublishItemChangedEventListenerTest {
 		when(mockItem.getId()).thenReturn(itemId);
 		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
 		when(mockItem.getStatus()).thenReturn("Released");
-		when(mockItem.getProperties()).thenReturn(new CmsItemPropertiesMap("cms:status", "Released"));
+		when(mockItem.getProperties()).thenReturn(new CmsItemPropertiesMap("cms:status", "Released").and("abx:lang", "en-GB"));
 		
 		HashMap<String, Object> metaMap = new HashMap<String, Object>();
 		metaMap.put("embd_xml_a_type", "operator");
@@ -156,6 +156,7 @@ public class PublishItemChangedEventListenerTest {
 		
 		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
 		
+		assertEquals("en-GB", mockItem.getProperties().getString("abx:lang"));
 		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
 				new PublishExecutorDefault(mockWorkflowExec),
 				filters,

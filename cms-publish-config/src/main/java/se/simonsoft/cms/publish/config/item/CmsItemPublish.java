@@ -106,7 +106,7 @@ public class CmsItemPublish implements CmsItem {
 				lang = item.getProperties().getString(PROPNAME_LANGATTR);
 			}
 			if (lang == null || lang.isBlank()) {
-				throw new IllegalStateException("The Author Area document does not define a language attribute.");
+				throw new IllegalStateException("The Author Area document does not define a language attribute or property: " + item.getId());
 			}
 			return lang;
 		}
