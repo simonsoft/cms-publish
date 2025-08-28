@@ -169,7 +169,11 @@ public class PublishJobManifestBuilder {
 		} else if (item.isTranslation()) {
 			result.put("lang", item.getTranslationLocale());
 			result.put("langrfc", getLocaleRfc(item.getTranslationLocale()));
-		} // Currently no lang attribute from author area, no guarantee that abx:lang exists.
+		} else {
+			// #1423 Attempt to get lang attribute / property from author area, no guarantee that either exists.
+			result.put("lang", item.getLocale());
+			result.put("langrfc", getLocaleRfc(item.getLocale()));
+		}
 		
 		return result;
 	}
