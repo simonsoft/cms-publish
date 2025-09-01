@@ -290,6 +290,48 @@ public class PublishResource {
 		return response;
 	}
 	
+	
+	@POST
+	@Path("item/start")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_HTML)
+	// Add some repo parameter if we absolutely need a query parameter in the future.
+	public Response doStartItemHtmx(@FormParam("item") CmsItemIdArg itemId, @FormParam("rev") Long rev, @FormParam("publication") final String publication, @FormParam("returnpath") String returnPath) {
+		
+		logger.debug("Start publication requested with item: {} and returnpath: '{}'", itemId, returnPath);
+		
+		if (itemId == null) {
+			throw new IllegalArgumentException("Field 'item': required");
+		}
+		
+		CmsItemId itemIdRev;
+		if (rev != null) {
+			itemIdRev = itemId.withPegRev(rev);
+		} else if (itemId.isPegged()) {
+			itemIdRev = itemId; // Already pegged, use as is.
+		} else {
+			throw new IllegalArgumentException("Field 'rev': required when 'item' does not specify a revision");			
+		}
+
+		// Generate and log a UUID, set into options.executionid regardless if set already.
+		UUID uuid = UUID.randomUUID();
+		logger.debug("Generated executionid: '{}'", uuid);
+		PublishStartOptions options = new PublishStartOptions();
+		options.setExecutionid(uuid.toString());
+        options.setPublication(publication);
+
+		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemIdRev, options);
+		logger.info("Started item publish: {}", result.get("executionid"));
+		logger.debug("Started item publish: {}", result.get("archive"));
+
+		Response response = Response.status(302)
+				.header("Vary", "Accept")
+				.header("Location", String.format("%s?uuid=%s", returnPath, result.get("executionid")))
+				.build();
+		return response;
+	}
+	
+	
 	/**
 	 * @param itemId
 	 * @param includeRelease

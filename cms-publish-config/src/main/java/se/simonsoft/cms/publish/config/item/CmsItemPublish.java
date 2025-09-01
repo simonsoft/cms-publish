@@ -34,6 +34,9 @@ public class CmsItemPublish implements CmsItem {
 
 	private final CmsItem item;
 	
+	private static final String FIELD_ATTRIBUTE_LANG = "embd_xml_a_xml.lang";
+	private static final String PROPNAME_LANGATTR = "abx:lang";
+	
 	/**
 	 * @param item from reporting
 	 * @throws IllegalArgumentException if item is null
@@ -89,6 +92,24 @@ public class CmsItemPublish implements CmsItem {
 			throw new IllegalStateException("Property 'TranslationLocale' must not be an empty string");
 		}
 		return tl; 
+	}
+	
+	public String getLocale() {
+		if (isTranslation()) {
+			return getTranslationLocale();
+		} else if (isRelease()) {
+			return getReleaseLocale();
+		} else {
+			String lang = (String) item.getMeta().get(FIELD_ATTRIBUTE_LANG);
+			if (lang == null || lang.isBlank()) {
+				// Using the traditional property as fallback. Might be able to provide basic support for old schemas that don't use xml:lang. 
+				lang = item.getProperties().getString(PROPNAME_LANGATTR);
+			}
+			if (lang == null || lang.isBlank()) {
+				throw new IllegalStateException("The Author Area document does not define a language attribute or property: " + item.getId());
+			}
+			return lang;
+		}
 	}
 	
 	/**
