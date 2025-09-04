@@ -63,6 +63,7 @@ import se.simonsoft.cms.item.workflow.WorkflowExecution;
 import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingSet;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -366,6 +367,17 @@ public class PublishResource {
 		
 		jobs = statusService.getJobsStartAllowed(publishPackage, jobs, allowStartSucceeded);
 		logger.info("Starting publish execution '{}' for {} items.", publication, jobs.size());
+		// #1895 Enable debug if advanced flag is set and the job does not already have debug enabled.
+		// Currently limited to Preprocess, could generalize to a flag in PublishJobOptions (if all steps have access to the full options object).
+		if (advanced != null) {
+			for (PublishJob job : jobs) {
+				PublishJobPreProcess preprocess = job.getOptions().getPreprocess();
+				if (preprocess != null && !preprocess.getParams().containsKey("debug")) {
+					logger.debug("Starting publish job with debug enabled: {}", job.getConfigname());
+					preprocess.getParams().put("Debug", "true");
+				}
+			}
+		}
 		Set<String> result = publishExecutor.startPublishJobs(jobs);
 		
 		// Requiring GenericEntity for Iterable<?>.

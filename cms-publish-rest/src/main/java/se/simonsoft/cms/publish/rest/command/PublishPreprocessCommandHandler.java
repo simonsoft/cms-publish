@@ -59,7 +59,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 	private final ObjectWriter writerJobProgress;
 
 	// Consider injecting list of potential secondary artifacts.
-	private final Set<String> secondaryExportArtifacts = new HashSet<String>(Arrays.asList("algolia", "graphics"));
+	private final Set<String> secondaryExportArtifacts = new HashSet<String>(Arrays.asList("algolia", "graphics", "debug"));
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishPreprocessCommandHandler.class);
 
