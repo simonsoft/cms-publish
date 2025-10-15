@@ -43,13 +43,14 @@ public class CmsExportItemPublishManifest implements CmsExportItem {
 	}
 
 	@Override
-	public void prepare() {
+	public Long prepare() {
 		
         if (ready) {
             throw new IllegalStateException("Export item:" + "Publish manifest" + " is already prepared");
         }
 
 		this.ready = true;
+		return null; // Size is not known.
 	}
 
     @Override

@@ -55,13 +55,14 @@ public class CmsExportItemPublish implements CmsExportItem {
 	}
 
 	@Override
-	public void prepare() {
+	public Long prepare() {
 		
 		if (this.ready) {
 			throw new IllegalStateException("Export item:" + "PublishExportItem" + " is already prepared");
 		}
 		logger.debug("PublishExport item with ticket: {} is prepared for export", ticket);
 		this.ready = true;
+		return null; // Could size be determined via a HEAD request to the publish service?
 	}
 
 	@Override

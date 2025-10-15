@@ -52,7 +52,7 @@ public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
 	}
 	
 	@Override
-	public void prepare() {
+	public Long prepare() {
 		
         if (ready) {
             throw new IllegalStateException("Export item:" + " Publish manifest velocity" + " is already prepared");
@@ -63,6 +63,7 @@ public class CmsExportItemPublishManifestVelocity implements CmsExportItem {
         }
 
 		this.ready = true;
+		return null; // Size is unknown.
 	}
 
 	@Override

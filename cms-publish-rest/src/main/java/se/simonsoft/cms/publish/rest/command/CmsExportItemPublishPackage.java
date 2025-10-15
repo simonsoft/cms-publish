@@ -40,11 +40,12 @@ public class CmsExportItemPublishPackage implements CmsExportItem {
 	}
 
 	@Override
-	public void prepare() {
+	public Long prepare() {
 		if (ready) {
 			throw new IllegalStateException("Export item:" + "Publish package" + " is already prepared");
 		}
 		this.ready = true;
+		return null;
 	}
 
 	@Override
