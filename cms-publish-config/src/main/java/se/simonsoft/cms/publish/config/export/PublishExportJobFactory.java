@@ -23,7 +23,7 @@ import se.simonsoft.cms.item.export.CmsImportJob;
 import se.simonsoft.cms.item.export.CmsImportJobSingle;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 
-public class PublishExportJobFactory { //extends CmsExportJobSingle implements CmsExportJob.SingleItem, CmsImportJob {
+public class PublishExportJobFactory {
 
 	public static CmsExportJobSingle getExportJobSingle(PublishJobStorage storage, String jobExtension) {
 		return new CmsExportJobSingle(createJobPrefix(storage), getJobName(storage), jobExtension);
