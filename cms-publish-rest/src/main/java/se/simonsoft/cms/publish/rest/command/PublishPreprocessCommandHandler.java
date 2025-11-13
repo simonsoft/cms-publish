@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -121,7 +122,7 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		final PublishJobManifest manifest = options.getManifest();
 		
 		String tagStep = "preprocess";
-		String tagCdn = ""; // Value length 0 is allowed.
+		Optional<String> tagCdn = Optional.empty();
 
 		if (options.getType() == null) {
 			throw new IllegalArgumentException("Unsupported job type: must not be null");
@@ -143,13 +144,13 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		// Cdn tagging and Algolia search apikey
 		if (manifest != null && manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
-			tagCdn = manifest.getCustom().get("cdn");
+			tagCdn = Optional.of(manifest.getCustom().get("cdn"));
 			// #1644: Provide Algolia config in the manifest.
 			// Manifest changes will be transient (not visible in Step Functions).
-			String appId = this.cdnSearchKeyGenerator.getSearchAppId(tagCdn);
+			String appId = this.cdnSearchKeyGenerator.getSearchAppId(tagCdn.get());
 			if (appId != null) {
 				String docno = manifest.getDocument().get("docno");
-				String apiKey = this.cdnSearchKeyGenerator.getSearchApiKeyDocument(tagCdn, docno);
+				String apiKey = this.cdnSearchKeyGenerator.getSearchApiKeyDocument(tagCdn.get(), docno);
 				manifest.getCustom().put("cdn-search-appid", appId);
 				manifest.getCustom().put("cdn-search-apikey", apiKey);
 			}
@@ -191,11 +192,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		LinkedList<CmsExportWriter> result = new LinkedList<CmsExportWriter>();
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
-		setTags(job, tagStep, tagCdn);
+		setTags(job, tagStep, tagCdn, Optional.empty());
 		HashMap<String, CmsExportJob> secondaryJobs = new HashMap<>();
 		for (String artifact: this.secondaryExportArtifacts) {
 			CmsExportJob sJob = PublishExportJobFactory.getExportJobZip(storage, artifact + ".zip");
-			setTags(sJob, tagStep, tagCdn);
+			setTags(sJob, tagStep, tagCdn, Optional.of(artifact));
 			secondaryJobs.put(artifact, sJob);
 		}
 		secondaryJobs.put("manifest", PublishExportJobFactory.getExportJobSingle(storage, manifestPathext));
@@ -301,9 +302,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		}
 	}
 	
-	private void setTags(CmsExportJob job, String tagStep, String tagCdn) {
+	private void setTags(CmsExportJob job, String tagStep, Optional<String> tagCdn, Optional<String> tagArtifact) {
+		// S3 accepts and understands the concept of empty tag values, represented with zero-length string.
 		job.withTagging("PublishStep", tagStep);
-		job.withTagging("PublishCdn", tagCdn);
+		job.withTagging("PublishCdn", tagCdn.orElse(""));
+		job.withTagging("PublishArtifact", tagArtifact.orElse(""));
 	}
 
 }
