@@ -244,6 +244,12 @@ public class PublishConfigFilterTest {
 		when(itemMockTypeDita.getMeta()).thenReturn(metaDita);
 		assertTrue(filter.accept(publishConfig, itemMockTypeDita));
 		
+		CmsItem itemMockTypeCds = mock(CmsItem.class);
+		Map<String, Object> metaCds = new HashMap<String, Object>();
+		metaCds.put("meta_s_s_xml_a_othermeta_cds-pubtype", "bogus\noperator");
+		when(itemMockTypeCds.getMeta()).thenReturn(metaCds);
+		assertTrue(filter.accept(publishConfig, itemMockTypeCds));
+		
 		CmsItem itemMockNoType = mock(CmsItem.class);
 		Map<String, Object> emptyMeta = new HashMap<String, Object>();
 		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);
