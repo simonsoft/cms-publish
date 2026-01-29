@@ -156,7 +156,7 @@ public class PublishPackageZipBuilder {
 			ZipEntry nextEntry = zis.getNextEntry();
 			while(nextEntry != null) {
 				// CmsItemPath disallows backslash and wildcard (* only).
-				CmsItemPath entryPath = new CmsItemPath(nextEntry.getName());
+				CmsItemPath entryPath = new CmsItemPath('/' + nextEntry.getName());
 				// #1818 Filter by extension for single-file formats, allows log files etc to be included in the zip without being added to the package.
 				String entryExt = entryPath.getExtension().toLowerCase(); // Empty string if no extension.
 				if (extensionFilter.isPresent() && !entryExt.isBlank() && !extensionFilter.get().contains(entryExt)) {
@@ -223,13 +223,13 @@ public class PublishPackageZipBuilder {
 	private Optional<List<String>> getZipExtensionFilter(PublishConfig config) {
 		String format = config.getOptions().getFormat();
 		if (format.equals("pdf")) {
-			return Optional.of(Arrays.asList(".pdf"));
+			return Optional.of(Arrays.asList("pdf"));
 		} else if (format.equals("epub")) {
-			return Optional.of(Arrays.asList(".epub"));
+			return Optional.of(Arrays.asList("epub"));
 		} else if (format.equals("postscript")) {
-			return Optional.of(Arrays.asList(".ps", ".eps"));
+			return Optional.of(Arrays.asList("ps", "eps"));
 		} else if (format.equals("htmlhelp")) {
-			return Optional.of(Arrays.asList(".chm"));
+			return Optional.of(Arrays.asList("chm"));
 		}
 		return Optional.empty();
 	}
