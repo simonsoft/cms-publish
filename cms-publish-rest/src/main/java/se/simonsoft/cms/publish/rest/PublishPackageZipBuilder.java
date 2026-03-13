@@ -222,13 +222,14 @@ public class PublishPackageZipBuilder {
 	
 	private Optional<List<String>> getZipExtensionFilter(PublishConfig config) {
 		String format = config.getOptions().getFormat();
-		if (format.equals("pdf")) {
+		// The format field is omitted for export (XML) configurations.
+		if ("pdf".equals(format)) {
 			return Optional.of(Arrays.asList("pdf"));
-		} else if (format.equals("epub")) {
+		} else if ("epub".equals(format)) {
 			return Optional.of(Arrays.asList("epub"));
-		} else if (format.equals("postscript")) {
+		} else if ("postscript".equals(format)) {
 			return Optional.of(Arrays.asList("ps", "eps"));
-		} else if (format.equals("htmlhelp")) {
+		} else if ("htmlhelp".equals(format)) {
 			return Optional.of(Arrays.asList("chm"));
 		}
 		return Optional.empty();
