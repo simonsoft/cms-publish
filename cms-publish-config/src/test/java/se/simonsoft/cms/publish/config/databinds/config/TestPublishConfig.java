@@ -37,13 +37,15 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 
 public class TestPublishConfig extends TestCase {
 	private ObjectReader reader;
-	private ObjectWriter writer;
+	private ObjectWriter writerConfig;
+	private ObjectWriter writerJob;
 
 	@BeforeClass
 	protected void setUp() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		reader = mapper.reader().forType(PublishConfig.class);
-		writer = mapper.writer().forType(PublishJob.class);
+		writerConfig = mapper.writer().forType(PublishConfig.class);
+		writerJob = mapper.writer().forType(PublishJob.class);
 	}
 	@Test
 	public void testJsonDeserialization() throws JsonParseException, JsonMappingException, IOException {
@@ -96,9 +98,22 @@ public class TestPublishConfig extends TestCase {
 		
 		PublishConfig config = new PublishConfig();
 		config = reader.readValue(getPublishConfigAsString());
+		
+		String expectedConfigJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"description\":\"Info in dialogs.\",\"statusInclude\":[\"Review\",\"Released\"],\"pathNameBaseInclude\":null,\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"prereleaseInclude\":false,\"areaMainInclude\":false,\"translationLocaleInclude\":null,\"areas\":[{\"type\":null,\"pathnameTemplate\":\"velocity-stuff.pdf\",\"docnoDocumentTemplate\":null,\"docnoMasterTemplate\":null}],"
+				+ "\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\","
+				+ "\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"},"
+				+ "\"manifest\":null,"
+				+ "\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"}},"
+				+ "\"preprocess\":null,"
+				+ "\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}},"
+				+ "\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}}}}";
+		assertEquals("full config JSONs", expectedConfigJson, writerConfig.writeValueAsString(config));
+		
+		PublishConfig configClone = new PublishConfig(config);
+		assertEquals("clone config JSONs", expectedConfigJson, writerConfig.writeValueAsString(configClone));
+		
 		PublishJob job = new PublishJob(config);
 		job.setArea(config.getAreas().get(0));
-		
 		assertEquals("velocity-stuff.pdf", job.getArea().getPathnameTemplate());
 		assertEquals("*", job.getProfilingNameInclude().get(0));
 		assertEquals("Review", job.getStatusInclude().get(0));
@@ -118,14 +133,15 @@ public class TestPublishConfig extends TestCase {
 		assertEquals("parameter for future destination types", job.getOptions().getPostprocess().getParams().get("specific"));
 		assertEquals("webhook", job.getOptions().getDelivery().getType());
 		
-		String jobJson = writer.writeValueAsString(job);
+		String jobJson = writerJob.writeValueAsString(job);
 		
-		String expectedJobJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"statusInclude\":[\"Review\",\"Released\"],\"pathNameBaseInclude\":null,\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"prereleaseInclude\":false,\"areaMainInclude\":false,\"areas\":[]," + 
+		String expectedJobJson = "{\"active\":true,\"visible\":true,\"exportable\":true,\"statusInclude\":[\"Review\",\"Released\"],\"pathNameBaseInclude\":null,\"elementNameInclude\":null,\"typeInclude\":null,\"profilingInclude\":true,\"profilingNameInclude\":[\"*\"],\"prereleaseInclude\":false,\"areaMainInclude\":false,\"translationLocaleInclude\":null,\"areas\":[]," + 
 				"\"options\":{\"type\":\"abxpe\",\"format\":\"pdf\"," +
 				"\"params\":{\"stylesheet\":\"file.css\",\"pdfconfig\":\"file.pdf\",\"whatever\":\"great\"}," +
 				"\"manifest\":{\"job\":{}}," + 
 				"\"storage\":{\"type\":\"s3\",\"params\":{\"specific\":\"parameter for future destination types\"},\"pathversion\":null,\"pathcloudid\":null,\"pathconfigname\":null,\"pathdir\":null,\"pathnamebase\":null}," + 
-				"\"preprocess\":{\"type\":null,\"params\":{}},\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}}," +
+				"\"preprocess\":{\"type\":null,\"params\":{}}," + 
+				"\"postprocess\":{\"type\":\"future stuff\",\"params\":{\"specific\":\"parameter for future destination types\"}}," +
 				"\"delivery\":{\"type\":\"webhook\",\"params\":{\"url\":\"https://target.example.com/something?secret=super\",\"presign\":\"true\"},\"headers\":{\"headername\":\"headerValue\"}}," +
 				"\"pathname\":null," +
 				"\"source\":null," +
