@@ -34,14 +34,26 @@ public class PublishConfig { // TODO: Consider extending WorkflowConfig from cms
 	protected List<String> profilingNameInclude = null; // No array means include all profiling recipes.
 	protected boolean prereleaseInclude = false; // Disable Release-Label with prerelease identifier by default.
 	protected boolean areaMainInclude = false; // Disable Main / Author area by default.
+	protected List<String> translationLocaleInclude; // #1683
+	
 	private List<PublishConfigArea> areas = new ArrayList<PublishConfigArea>();
 	private PublishConfigOptions options;
 	
 	public PublishConfig(PublishConfig pc) {
 		this.active = pc.isActive();
 		this.visible = pc.isVisible();
+		this.exportable = pc.isExportable();
+		this.description = pc.getDescription();
 		this.statusInclude = pc.getStatusInclude();
+		this.pathNameBaseInclude = pc.getPathNameBaseInclude();
+		this.elementNameInclude = pc.getElementNameInclude();
+		this.typeInclude = pc.getTypeInclude();
+		this.profilingInclude = pc.getProfilingInclude();
 		this.profilingNameInclude = pc.getProfilingNameInclude();
+		this.prereleaseInclude = pc.isPrereleaseInclude();
+		this.areaMainInclude = pc.isAreaMainInclude();
+		this.translationLocaleInclude = pc.getTranslationLocaleInclude();
+		
 		this.areas = pc.getAreas();
 		this.options = pc.getOptions();
 	}
@@ -120,6 +132,12 @@ public class PublishConfig { // TODO: Consider extending WorkflowConfig from cms
 	}
 	public void setAreaMainInclude(boolean areaMainInclude) {
 		this.areaMainInclude = areaMainInclude;
+	}
+	public List<String> getTranslationLocaleInclude() {
+		return translationLocaleInclude;
+	}
+	public void setTranslationLocaleInclude(List<String> translationLocaleInclude) {
+		this.translationLocaleInclude = translationLocaleInclude;
 	}
 	public List<PublishConfigArea> getAreas() {
 		return areas;
