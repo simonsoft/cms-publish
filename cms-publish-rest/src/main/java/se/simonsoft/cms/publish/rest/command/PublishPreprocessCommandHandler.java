@@ -265,6 +265,12 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		if (options.getKeyrefKeytextOutput() == null) {
 			options.setKeyrefKeytextOutput("resolve");
 		}
+		
+		// Resolve keyref attributes for href when using PE as well.
+		// Before CMS 5.3 this resolved href but also kept the keyref attribute.
+		if (options.getKeyrefHrefOutput() == null) {
+			options.setKeyrefHrefOutput("resolve");
+		}
 	}
 	
 	private void setExportOptionsDefaultDitaot(ReleaseExportOptions options) {
