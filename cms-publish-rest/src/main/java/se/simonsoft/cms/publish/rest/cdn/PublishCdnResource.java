@@ -192,7 +192,7 @@ public class PublishCdnResource {
 		return response;
 	}
 	
-
+	// Check superuser above? Have both days and hours parameters and get the hours default from config? 
 	public String getUrl(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
 		
 		PublishCdnItem p = getCdnPublish(id);
@@ -209,18 +209,18 @@ public class PublishCdnResource {
 			pathDocument = new CmsItemPath("/" + p.getDocno());
 		}
 		
-		long expireDays = 10;
+		// Reducing expiry from 10 days to 10 hours.
+		Instant expires = Instant.now().plus(10, ChronoUnit.HOURS).truncatedTo(ChronoUnit.HOURS);
 		if (days != null) {
 			verifyUserSuper(cdn); // Throws exception if not Super User.
 			if (days > 0 && days < 366*10) { // Arbitrary limit of 10 years for now (Quarkus config).
-				expireDays = days;
+				expires = Instant.now().plus(days, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 			} else {
 				throw new IllegalArgumentException("Field 'days': Expiry days out of range.");
 			}
 		}
 		
 		String path = getPath(p); // TODO: Generalize the path, currently pathformat with addition of pathname.pdf for PDF only.
-		Instant expires = Instant.now().plus(expireDays, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
 		// Verify access control.
 		// Get the repository from indexing query.
