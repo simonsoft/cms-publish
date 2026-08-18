@@ -24,6 +24,7 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -45,6 +46,7 @@ public class PublishCdnUrlSignerCloudFront {
 	private static final SecureRandom srand = new SecureRandom();
 	private static final Logger logger = LoggerFactory.getLogger(PublishCdnUrlSignerCloudFront.class);
 	private static final CmsItemURLEncoder encoder = new CmsItemURLEncoder(); // There might be a few too many safe chars.
+	private static final long URL_DOCUMENT_SIGNED_HOURS_DEFAULT = 10;
 
 	private PublishCdnConfig cdnConfig;
 	
@@ -120,6 +122,9 @@ public class PublishCdnUrlSignerCloudFront {
 	 * @return
 	 */
 	public String getUrlDocumentSigned(String cdn, CmsItemPath pathDocument, String path, Map<String, List<String>> query, Instant expires) {
+		if (expires == null) {
+			throw new IllegalArgumentException("Argument 'expires' must not be null.");
+		}
 		// Using CmsItemPath for convenience. Prohibits a minimum och chars, currently *, / and \.
 		List<String> docPathSegments = new ArrayList<String>(pathDocument.getPathSegments());
 		docPathSegments.add("*"); // End with wildcard.
@@ -143,8 +148,43 @@ public class PublishCdnUrlSignerCloudFront {
 		}
 		return result;
 	}
-	
-	
+
+
+	/**
+	 * Provides a complete URL to a document, signed if the CDN requires signature.
+	 * The signature allows access to all files in the 'pathDocument' folder.
+	 * NOTE: It is the responsibility of the caller to verify user read access to the document (and the 'docno' strategy must be controlled). 
+	 * 
+	 * When 'expires' is not provided, the signing duration is read from CDN config
+	 * key "CmsUrlDocumentSignedHours" (hours, added to Instant.now(), truncated to HOURS,
+	 * matching the calculation in PublishCdnResource). If that config is absent, the
+	 * default of {@value #URL_DOCUMENT_SIGNED_HOURS_DEFAULT} hours is used. If the config
+	 * is "" or "0" and 'expires' is not provided, the URL is returned unsigned.
+	 *
+	 * @param cdn
+	 * @param pathDocument a path to a folder where the signature is valid, typically the 'pathdocument' or only 'docno' to allow all locales
+	 * @param path non-encoded path
+	 * @param expires optional explicit expiry; when empty, resolved from CDN config
+	 * @return
+	 */
+	public String getUrlDocumentSigned(String cdn, CmsItemPath pathDocument, String path, Map<String, List<String>> query, Optional<Instant> expires) {
+		if (expires.isPresent()) {
+			return getUrlDocumentSigned(cdn, pathDocument, path, query, expires.get());
+		}
+
+		String hours = cdnConfig.getConfig(cdn).get("CmsUrlDocumentSignedHours");
+		if (hours == null) {
+			hours = String.valueOf(URL_DOCUMENT_SIGNED_HOURS_DEFAULT);
+		}
+		if (hours.isEmpty() || "0".equals(hours)) {
+			return getUrlDocument(cdn, path, query);
+		}
+
+		Instant expiresResolved = Instant.now().plus(Long.parseLong(hours), ChronoUnit.HOURS).truncatedTo(ChronoUnit.HOURS);
+		return getUrlDocumentSigned(cdn, pathDocument, path, query, expiresResolved);
+	}
+
+
 	public static String getSignedUrlWithCustomPolicy(String hostname, List<String> docPathSegments, String path, Map<String, List<String>> query, String keyPairId, PrivateKey privateKey, Instant expires) {
 		validatePath(path);
 		StringBuilder resource = new StringBuilder();

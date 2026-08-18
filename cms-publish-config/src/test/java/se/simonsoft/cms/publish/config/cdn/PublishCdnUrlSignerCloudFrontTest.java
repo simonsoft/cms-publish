@@ -76,6 +76,8 @@ public class PublishCdnUrlSignerCloudFrontTest {
 	private static PublishCdnUrlSignerCloudFront signer;
 	private static PublishCdnUrlSignerCloudFront signerPortal;
 	private static PublishCdnUrlSignerCloudFront signerRestricted;
+	private static PublishCdnUrlSignerCloudFront signerHours;
+	private static PublishCdnUrlSignerCloudFront signerHoursZero;
 	private static CmsCurrentUser currentUser;
 	private static CmsCurrentUser currentUserCds;
 	private static Instant expires = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
@@ -187,10 +189,80 @@ public class PublishCdnUrlSignerCloudFrontTest {
 			}
 		};
 		
+		PublishCdnConfig configSignerHours = new PublishCdnConfigBase() {
+
+			@Override
+			public PrivateKey getPrivateKey(String cdn) {
+				try {
+					return readPrivateKey(keyPem);
+				} catch (Exception e) {
+					throw new IllegalStateException(e);
+				}
+			}
+
+			@Override
+			public String getPrivateKeyId(String cdn) {
+				return "K1KPJ6JE57LGCO";
+			}
+
+			@Override
+			public String getHostname(String cdn) {
+				return "demo-dev.preview.simonsoftcdn.com";
+			}
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return null;
+			}
+
+			@Override
+			public Map<String, String> getConfig(String cdn) {
+				Map<String, String> config = new LinkedHashMap<String, String>();
+				config.put("CmsUrlDocumentSignedHours", "2");
+				return config;
+			}
+		};
+
+		PublishCdnConfig configSignerHoursZero = new PublishCdnConfigBase() {
+
+			@Override
+			public PrivateKey getPrivateKey(String cdn) {
+				try {
+					return readPrivateKey(keyPem);
+				} catch (Exception e) {
+					throw new IllegalStateException(e);
+				}
+			}
+
+			@Override
+			public String getPrivateKeyId(String cdn) {
+				return "K1KPJ6JE57LGCO";
+			}
+
+			@Override
+			public String getHostname(String cdn) {
+				return "demo-dev.preview.simonsoftcdn.com";
+			}
+
+			@Override
+			public Set<String> getAuthRoles(String cdn) {
+				return null;
+			}
+
+			@Override
+			public Map<String, String> getConfig(String cdn) {
+				Map<String, String> config = new LinkedHashMap<String, String>();
+				config.put("CmsUrlDocumentSignedHours", "0");
+				return config;
+			}
+		};
+
 		signerPublic = new PublishCdnUrlSignerCloudFront(configPublic);
 		signer = new PublishCdnUrlSignerCloudFront(configSigner);
 		signerPortal = new PublishCdnUrlSignerCloudFront(configPortal);
 		signerRestricted = new PublishCdnUrlSignerCloudFront(configRestricted);
+		signerHours = new PublishCdnUrlSignerCloudFront(configSignerHours);
+		signerHoursZero = new PublishCdnUrlSignerCloudFront(configSignerHoursZero);
 		
 		// Currently not used except for logging.
 		currentUser = new CmsCurrentUserBase() {			
@@ -292,6 +364,67 @@ public class PublishCdnUrlSignerCloudFrontTest {
 		//assertEquals("{\"Statement\":[{\"Resource\":\"https://demo-dev.preview.simonsoftcdn.com/*/SimonsoftCMS-User-manual/latest/*\",", policy.split("\"Condition\"")[0]);
 
 		//assertEquals("", urlSigned);
+	}
+
+
+	@Test
+	public void testGetUrlDocumentSignedOptionalPresent() throws MalformedURLException {
+		CmsItemPath itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+
+		String urlInstant = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, expires);
+		String urlOptional = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, Optional.of(expires));
+		assertEquals("Optional.of(expires) should behave identically to the Instant overload", urlInstant, urlOptional);
+	}
+
+	@Test
+	public void testGetUrlDocumentSignedOptionalEmptyResolvesFromConfig() throws MalformedURLException {
+		CmsItemPath itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+
+		String urlSigned = signerHours.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, Optional.empty());
+		URL url = new URL(urlSigned);
+		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
+		String[] query = url.getQuery().split("&");
+		long expiresSeconds = Long.parseLong(query[0].substring("Expires=".length()));
+		long expected = Instant.now().plus(2, ChronoUnit.HOURS).truncatedTo(ChronoUnit.HOURS).getEpochSecond();
+		assertEquals("Expires should be now + configured hours, truncated to HOURS", expected, expiresSeconds);
+	}
+
+	@Test
+	public void testGetUrlDocumentSignedOptionalEmptyNoConfigDefaultsToTenHours() throws MalformedURLException {
+		CmsItemPath itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+
+		// 'signer' does not override getConfig(), so CmsUrlDocumentSignedHours is absent -> defaults to 10 hours.
+		String urlSigned = signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, Optional.empty());
+		URL url = new URL(urlSigned);
+		assertEquals("demo-dev.preview.simonsoftcdn.com", url.getHost());
+		String[] query = url.getQuery().split("&");
+		long expiresSeconds = Long.parseLong(query[0].substring("Expires=".length()));
+		long expected = Instant.now().plus(10, ChronoUnit.HOURS).truncatedTo(ChronoUnit.HOURS).getEpochSecond();
+		assertEquals("Absent config should default to 10 hours", expected, expiresSeconds);
+	}
+
+	@Test
+	public void testGetUrlDocumentSignedOptionalEmptyZeroHoursReturnsUnsigned() throws MalformedURLException {
+		CmsItemPath itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+
+		String url = signerHoursZero.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, Optional.empty());
+		assertEquals("Config \"0\" should fall back to unsigned URL", "https://demo-dev.preview.simonsoftcdn.com/en-GB/SimonsoftCMS+User%20manual/latest/WhatsNewIn-D2810D06.html", url);
+	}
+
+	@Test
+	public void testGetUrlDocumentSignedNullExpiresThrows() {
+		CmsItemPath itemPath = new CmsItemPath("/en-GB/SimonsoftCMS+User manual/latest/WhatsNewIn-D2810D06.html");
+		Map<String, List<String>> returnQuery = new LinkedHashMap<String, List<String>>();
+
+		try {
+			signer.getUrlDocumentSigned("preview", itemPath.getParent(), itemPath.toString(), returnQuery, (Instant) null);
+			fail("Should throw IllegalArgumentException when expires is null");
+		} catch (IllegalArgumentException e) {
+		}
 	}
 
 }
