@@ -170,7 +170,7 @@ public class PublishCdnResource {
 	public Response getUrlJson(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
 		
 		Set<String> result = new LinkedHashSet<String>(3);
-		result.add(getUrl(id, days));
+		result.add(getUrl(id, Optional.ofNullable(days)));
 		
 		// Requiring GenericEntity for Iterable<?>.
 		GenericEntity<Iterable<String>> ge = new GenericEntity<Iterable<String>>(result) {};
@@ -185,15 +185,15 @@ public class PublishCdnResource {
 	@Produces("text/html")
 	public Response getUrlRedirect(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
 		// #1423 Support redirect to signed CDN url for web browser navigation.
-		String url = getUrl(id, days);
+		String url = getUrl(id, Optional.ofNullable(days));
 		Response response = Response.status(302)
 				.header("Location", url)
 				.build();
 		return response;
 	}
 	
-
-	public String getUrl(@QueryParam("uuid") String id, @QueryParam("days") Integer days) {
+	
+	public String getUrl(/*"uuid"*/ String id, Optional<Integer> days) {
 		
 		PublishCdnItem p = getCdnPublish(id);
 		CmsRepository repository = p.getItemId().getRepository();
@@ -209,18 +209,18 @@ public class PublishCdnResource {
 			pathDocument = new CmsItemPath("/" + p.getDocno());
 		}
 		
-		long expireDays = 10;
-		if (days != null) {
+		// Reducing expiry from 10 days to 10 hours and moving the calculation cdnUrlSigner unless days override is provided.
+		Instant expires = null;
+		if (days.isPresent()) {
 			verifyUserSuper(cdn); // Throws exception if not Super User.
-			if (days > 0 && days < 366*10) { // Arbitrary limit of 10 years for now (Quarkus config).
-				expireDays = days;
+			if (days.get() > 0 && days.get() < 366*10) { // Arbitrary limit of 10 years for now (Quarkus config).
+				expires = Instant.now().plus(days.get(), ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 			} else {
 				throw new IllegalArgumentException("Field 'days': Expiry days out of range.");
 			}
 		}
 		
 		String path = getPath(p); // TODO: Generalize the path, currently pathformat with addition of pathname.pdf for PDF only.
-		Instant expires = Instant.now().plus(expireDays, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
 		
 		// Verify access control.
 		// Get the repository from indexing query.
@@ -230,7 +230,7 @@ public class PublishCdnResource {
 		
 		// Sign the path, if needed.
 		try {
-			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, new LinkedHashMap<String, List<String>>(), expires);
+			String url = cdnUrlSigner.getUrlDocumentSigned(cdn, pathDocument, path, new LinkedHashMap<String, List<String>>(), Optional.ofNullable(expires));
 			return url;
 		} catch (Exception e) {
 			logger.error("Publish CDN failed to sign CDN url.", e);

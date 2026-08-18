@@ -16,6 +16,8 @@
 package se.simonsoft.cms.publish.config.cdn;
 
 import java.security.PrivateKey;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 public interface PublishCdnConfig {
@@ -55,5 +57,16 @@ public interface PublishCdnConfig {
 	 * @return
 	 */
 	Set<String> getAuthRoles(String cdn);
-	
+
+	/**
+	 * Custom key-value configuration for the CDN, merged from base (shared) and
+	 * cloudId-specific config. Values in cloudId-specific config take precedence
+	 * over base config for the same key.
+	 * @param cdn
+	 * @return map of config values, never null (empty map if none configured)
+	 */
+	default Map<String, String> getConfig(String cdn) {
+		return Collections.emptyMap();
+	}
+
 }
