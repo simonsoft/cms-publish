@@ -317,7 +317,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		job.withTagging("PublishStep", tagStep);
 		job.withTagging("PublishCdn", tagCdn.orElse(""));
 		job.withTagging("PublishArtifact", tagArtifact.orElse(""));
-		job.withTagging("PublishExpiration", tagExpiration.orElse(""));
+		// Publications without an expiration should not carry the tag at all.
+		if (tagExpiration.isPresent()) {
+			job.withTagging("PublishExpiration", tagExpiration.get());
+		}
 	}
 
 }
