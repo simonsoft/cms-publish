@@ -74,7 +74,8 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		logger.debug("Requesting export of PublishJob manifest.");
 		String tagStep = "manifest";
 		String tagCdn = ""; // Value length 0 is allowed.
-		
+		String tagExpiration = ""; // Value length 0 is allowed.
+
 		PublishJobProgress progress = options.getProgress();
 		if (progress == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobProgress object.");
@@ -92,7 +93,11 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		if (manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
 			tagCdn = manifest.getCustom().get("cdn");
 		}
-		
+
+		if (options.getDelivery() != null && options.getDelivery().getParams().get("expiration") != null) {
+			tagExpiration = options.getDelivery().getParams().get("expiration") + "d";
+		}
+
 		if (!resultLookup.isPublishResultExists(itemId, options)) {
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
@@ -113,13 +118,13 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		}
 		
 		// #1707 Always export the standard manifest as 'index'.
-		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "index.json", tagStep, tagCdn);
-		
+		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "index.json", tagStep, tagCdn, tagExpiration);
+
 		if (manifestCustom) {
 			// TODO: Support custom manifest for local FS. Probably a separate export command (delivery) for both zip and manifest.
 			logger.info("Manifest export suppressed due to custom manifest already in place.");
 		} else {
-			CmsExportWriter exportWriter = doExportManifest(options.getStorage(), exportItem, manifest.getPathext(), tagStep, tagCdn);
+			CmsExportWriter exportWriter = doExportManifest(options.getStorage(), exportItem, manifest.getPathext(), tagStep, tagCdn, tagExpiration);
 			
 			if (exportWriter instanceof CmsExportWriter.LocalFileSystem) {
 				options.getProgress().getParams().put("manifest", ((CmsExportWriter.LocalFileSystem) exportWriter).getExportPath().toString());
@@ -134,12 +139,13 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		}
 	}
 	
-	private CmsExportWriter doExportManifest(PublishJobStorage storage, CmsExportItem exportItem, String pathext, String tagStep, String tagCdn) {
-		
+	private CmsExportWriter doExportManifest(PublishJobStorage storage, CmsExportItem exportItem, String pathext, String tagStep, String tagCdn, String tagExpiration) {
+
 		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(storage, pathext);
 		job.addExportItem(exportItem);
 		job.withTagging("PublishStep", tagStep);
 		job.withTagging("PublishCdn", tagCdn);
+		job.withTagging("PublishExpiration", tagExpiration);
 		job.prepare();
 
 		logger.debug("Preparing writer for export...");
