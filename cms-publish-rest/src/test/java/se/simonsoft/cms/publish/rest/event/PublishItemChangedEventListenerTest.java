@@ -504,6 +504,78 @@ public class PublishItemChangedEventListenerTest {
 	
 	
 	@Test
+	public void testProfilingLocale() throws Exception {
+
+		// CMS-1997: recipes tagged with '_locale' are only valid for a matching Translation Locale.
+		initProfilingMockLocale("en-GB", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\",\"_locale\":\"en-GB\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\",\"_locale\":\"de-DE\"}]");
+
+		//Instantiate a real CmsCongigOptionBase to be returned from mocked iterator when next() is called.
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:all", getPublishConfigFromPath(pathConfigProfilingAll));
+		when(mockOptionIterator.next()).thenReturn(configOption);
+
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		filters.add(new PublishConfigFilterActive());
+		filters.add(new PublishConfigFilterType());
+		filters.add(new PublishConfigFilterStatus());
+		filters.add(new PublishConfigFilterProfiling());
+
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+				new PublishExecutorDefault(mockWorkflowExec),
+				filters,
+				mapper.reader(),
+				jobFactory);
+		//Test starting point.
+		eventListener.onItemChange(mockItem);
+
+		//Only the 'osx' recipe (_locale=en-GB) should start, 'linux' (_locale=de-DE) is filtered out for this en-GB Translation.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class);
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+
+		PublishJob publishJob = argCaptor.getValue();
+		PublishProfilingRecipe profiling = publishJob.getOptions().getProfiling();
+		assertNotNull(profiling);
+		assertEquals("osx", profiling.getName());
+		assertEquals("en-GB", profiling.getLocale());
+	}
+
+	@Test
+	public void testProfilingLocaleUnset() throws Exception {
+
+		// A recipe without '_locale' remains valid for any Translation Locale (backward compatible).
+		initProfilingMockLocale("sv-SE", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\",\"_locale\":\"en-GB\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]");
+
+		CmsConfigOptionBase<String> configOption = new CmsConfigOptionBase<>("cmsconfig-publish:all", getPublishConfigFromPath(pathConfigProfilingAll));
+		when(mockOptionIterator.next()).thenReturn(configOption);
+
+		List<PublishConfigFilter> filters = new ArrayList<PublishConfigFilter>();
+		filters.add(new PublishConfigFilterActive());
+		filters.add(new PublishConfigFilterType());
+		filters.add(new PublishConfigFilterStatus());
+		filters.add(new PublishConfigFilterProfiling());
+
+		PublishConfiguration publishConfiguration = new PublishConfigurationDefault(mockLookup, filters, mapper.reader());
+
+		PublishItemChangedEventListener eventListener = new PublishItemChangedEventListener(publishConfiguration,
+				new PublishExecutorDefault(mockWorkflowExec),
+				filters,
+				mapper.reader(),
+				jobFactory);
+		eventListener.onItemChange(mockItem);
+
+		//Only 'linux' (no '_locale') should start for this sv-SE Translation, 'osx' (_locale=en-GB) is filtered out.
+		ArgumentCaptor<PublishJob> argCaptor = ArgumentCaptor.forClass(PublishJob.class);
+		verify(mockWorkflowExec, times(1)).startExecution(argCaptor.capture());
+
+		PublishJob publishJob = argCaptor.getValue();
+		PublishProfilingRecipe profiling = publishJob.getOptions().getProfiling();
+		assertNotNull(profiling);
+		assertEquals("linux", profiling.getName());
+		assertNull(profiling.getLocale());
+	}
+
+	@Test
 	public void testReleaseItemChangedWithValidated() throws Exception {
 		
 		//CmsItem mock. Not possible to get a real CmsItem in this context.
@@ -749,6 +821,34 @@ public class PublishItemChangedEventListenerTest {
 		when(mockContext.iterator()).thenReturn(mockOptionIterator);
 		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE"));
 		when(mockOptionIterator.hasNext()).thenReturn(true, true, false); //First time hasNext(); is called answer true, second time true...
+
+	}
+
+	private void initProfilingMockLocale(String translationLocale, String profilingJson) {
+
+		//CmsItem mock, a Translation item (has 'abx:TranslationLocale'). Not possible to get a real CmsItem in this context.
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900276.xml"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(443L);
+		when(mockItem.getId()).thenReturn(itemId);
+		when(mockItem.getKind()).thenReturn(CmsItemKind.File);
+		when(mockItem.getStatus()).thenReturn("Released");
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "Released");
+		props.and("abx:TranslationLocale", translationLocale);
+		when(mockItem.getProperties()).thenReturn(props);
+
+		HashMap<String, Object> metaMap = new HashMap<String, Object>();
+		metaMap.put("embd_xml_a_type", "operator");
+		metaMap.put("embd_cms_profiling", profilingJson);
+		when(mockItem.getMeta()).thenReturn(metaMap);
+
+		//CmsRepositoryLookup mock. when called with mocked item it will return the mocked CmsResourceContext.
+		when(mockLookup.getConfig(mockItem.getId().withRelPath(mockItem.getId().getRelPath().getParent()).withPegRev(null), CmsItemKind.Folder)).thenReturn(mockContext);
+
+		//Mocking the iterator in mockContext. Easier way then instantiating mockContext with a real set of config.
+		when(mockContext.iterator()).thenReturn(mockOptionIterator);
+		when(mockContext.getConfigOption("TranslationLocales")).thenReturn(new CmsConfigOptionBase<>("cmsconfig:TranslationLocales", "en-GB | sv-SE | de-DE"));
+		when(mockOptionIterator.hasNext()).thenReturn(true, true, false);
 
 	}
 
