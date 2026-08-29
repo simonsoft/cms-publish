@@ -109,12 +109,21 @@ public class PublishPackageStatus {
     	for (CmsItem item: publishPackage.getPublishedItems()) {
     		// No refresh on subsequent calls.
     		Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(item.getId(), false);
-    		releaseExecutions.add(getStatus(publishPackage, item, executions));
+    		WorkflowExecution status = getStatus(publishPackage, item, executions);
+    		// CMS-1997: null means the profiling recipe's '_locale' does not apply to this item, no status to report.
+    		if (status != null) {
+    			releaseExecutions.add(status);
+    		}
     	}
         return releaseExecutions;
     }
-    
-    
+
+
+    /**
+     * @param publishPackage
+     * @param item
+     * @return the status for the item, or null if the package's profiling recipe (via '_locale') does not apply to this item (CMS-1997)
+     */
     public WorkflowExecution getStatus(PublishPackage publishPackage, CmsItem item) {
 
     	if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 1) {
@@ -126,11 +135,17 @@ public class PublishPackageStatus {
     }
     
     private WorkflowExecution getStatus(PublishPackage publishPackage, CmsItem item, Set<WorkflowExecution> executions) {
-    	
+
         String publication = publishPackage.getPublication();
         // Empty profiling set is not possible, disallowed by PublishPackage.
         final PublishProfilingRecipe profiling = publishPackage.getProfilingSet() == null ? null : publishPackage.getProfilingSet().iterator().next();
         PublishConfig publishConfig = publishPackage.getPublishConfig();
+
+        // CMS-1997: a '_locale'-restricted recipe never produces a job for an item whose locale doesn't match.
+        // Mirrors PublishJobFactory.getPublishJobsProfiling's localeIncluded check, avoiding a permanent UNKNOWN/INACTIVE placeholder for this (item, recipe) pair.
+        if (profiling != null && profiling.getLocale() != null && !profiling.getLocale().equals(((CmsItemPublish) item).getLocale())) {
+        	return null;
+        }
 
         logger.trace("Found {} workflow executions for item: {}", executions.size(), item.getId());
         
