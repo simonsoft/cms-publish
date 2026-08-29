@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -208,6 +209,16 @@ public class PublishJobFactory {
 			// #1438 Allow suppressing the initial CDN delivery by setting 'version0' to empty string, i.e. keep empty string if set by manifest template.
 			if (custom.get("version0") == null && !custom.get("cdn").equals("preview")) {
 				custom.put("version0", item.getReleaseLabel());
+			}
+
+			// Force a 14-day expiration for Preview CDN, regardless of PublishConfig.
+			if ("preview".equals(custom.get("cdn"))) {
+				Map<String, String> deliveryParams = pj.getOptions().getDelivery().getParams();
+				String expirationConfigured = deliveryParams.get("expiration");
+				if (expirationConfigured != null) {
+					logger.warn("Publish Job with Preview CDN delivery has a configured 'expiration' value ({}) which will be overridden with the forced Preview default (14 days). Config: {}", expirationConfigured, pj.getConfigname());
+				}
+				deliveryParams.put("expiration", "14");
 			}
 		}
 	}
