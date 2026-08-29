@@ -35,6 +35,7 @@ import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigAreas;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
@@ -127,7 +128,7 @@ public class PublishJobFactory {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc, startPathname);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
-		PublishConfigArea area = PublishJobManifestBuilder.getArea(item, c.getAreas());
+		PublishConfigArea area = PublishConfigAreas.getArea(item, c.getAreas());
 		PublishJob pj = new PublishJob(c);
 		pj.setArea(area); 
 		pj.setItemid(item.getId().getLogicalIdFull()); // Event workflow has itemid hostname so publish workflow should as well.

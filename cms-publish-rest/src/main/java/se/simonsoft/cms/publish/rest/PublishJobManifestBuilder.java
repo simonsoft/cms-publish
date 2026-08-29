@@ -16,9 +16,7 @@
 package se.simonsoft.cms.publish.rest;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import se.simonsoft.cms.item.CmsItem;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
@@ -243,43 +240,5 @@ public class PublishJobManifestBuilder {
 		}
 		return localesRfc.getLocaleExternal(locale).getLabel();
 	}
-	
-	
-	public static PublishConfigArea getArea(CmsItemPublish item, List<PublishConfigArea> areas) {
-		
-		HashMap<String, PublishConfigArea> areaMap = getAreaMap(areas);
-		
-		PublishConfigArea fallback = areaMap.get(null);
-		
-		if (item.isTranslation() && areaMap.containsKey("translation")) {
-			return areaMap.get("translation");
-		} else if (item.isRelease() && areaMap.containsKey("release")) {
-			return areaMap.get("release");
-		} else if (fallback != null) {
-			return fallback;
-		// Differentiating error messages to simplify troubleshooting.	
-		} else if (item.isTranslation()) {
-			throw new IllegalArgumentException("No fallback area configured, item is a Translation.");
-		} else if (item.isRelease()) {
-			throw new IllegalArgumentException("No fallback area configured, item is a Release.");
-		} else {
-			throw new IllegalArgumentException("No fallback area configured, item is NOT a Release / Translation.");
-		}
-	}
-	
-	
-	private static HashMap<String, PublishConfigArea> getAreaMap(List<PublishConfigArea> areas) {
-		
-		HashMap<String, PublishConfigArea> result = new HashMap<String, PublishConfigArea>(areas.size());
-		
-		for (PublishConfigArea area: areas) {
-			String type = area.getType();
-			
-			PublishConfigArea prev = result.put(type, area);
-			if (prev != null) {
-				throw new IllegalArgumentException("Duplicate area objects with type: " + type);
-			}
-		}
-		return result;
-	}
+
 }
