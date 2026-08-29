@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.publish.config.PublishConfigAreas;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
-import se.simonsoft.cms.publish.config.databinds.config.PublishConfigAreas;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
