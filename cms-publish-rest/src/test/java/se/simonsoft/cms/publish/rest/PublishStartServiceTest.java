@@ -62,11 +62,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * CMS-1997: PublishStartService#doPublishStartItem's named-recipe branch (options.getProfilingname())
- * reads a profiling recipe straight from the item's own embedded profiling set (the same source used by
- * PublishItemChangedEventListener's event-driven auto-publish, which already enforces '_locale'). Unlike
- * that listener, this single-recipe start path handed the recipe straight to PublishJobFactory#getPublishJob
- * without checking '_locale' against the item at all - so a manual/explicit start could start a job the
- * event listener would have skipped for the exact same item and recipe. These tests cover the added guard.
+ * reads a profiling recipe straight from the item's own embedded profiling set - the same source read by
+ * PublishItemChangedEventListener's event-driven auto-publish, which enforces '_locale' via
+ * PublishJobFactory.getPublishJobsProfiling's localeIncluded check. This single-recipe start path instead
+ * hands the recipe straight to PublishJobFactory#getPublishJob, bypassing that check - a manual/explicit
+ * start could start a job the event listener would skip for the exact same item and recipe. These tests
+ * cover the added guard that closes the gap before merge.
  */
 public class PublishStartServiceTest {
 
