@@ -97,7 +97,7 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	/**
 	 * A profiling recipe can be tagged with the locale (Translation or Release Locale) for which it is valid,
 	 * enabling multiple recipes (e.g. country-specific variants) per Translation without requiring a fan-out
-	 * for every Translation, i.e. supporting a many-to-one relationship btw published documents and Translation.
+	 * for every Translation, i.e. supporting a one-to-many relationship btw Translation and published documents.
 	 * @return the locale for which this recipe is valid, or null if valid for any locale
 	 */
 	@JsonIgnore
