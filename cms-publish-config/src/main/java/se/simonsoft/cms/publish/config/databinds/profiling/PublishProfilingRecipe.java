@@ -42,7 +42,7 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	
 	/**
 	 * The additional attributes that generated the Logical Expression as stored by Editor in the JSON.
-	 * Also contains "name", "logicalexpr" and "_stage".
+	 * Also contains "name", "logicalexpr", "_stage" and "_locale".
 	 */
 	private Map<String,String> attributes = new LinkedHashMap<String, String>();
 	
@@ -93,8 +93,19 @@ public class PublishProfilingRecipe implements CmsProfilingRecipe {
 	public boolean isStagePublish() {
 		return (attributes.get("_stage") == null || "publish".equals(attributes.get("_stage")));
 	}
-	
-	
+
+	/**
+	 * A profiling recipe can be tagged with the locale (Translation or Release Locale) for which it is valid,
+	 * enabling multiple recipes (e.g. country-specific variants) per Translation without requiring a fan-out
+	 * for every Translation, i.e. supporting a one-to-many relationship btw Translation and published documents.
+	 * @return the locale for which this recipe is valid, or null if valid for any locale
+	 */
+	@JsonIgnore
+	public String getLocale() {
+		return attributes.get("_locale");
+	}
+
+
 	/** The Logical Expression of the profiles definition, encoded.
 	 * Should be encoded when placed in XML attribute but non-encoded when sent to composer pipeline.
 	 * See {@link SvnProfiling#encodeLogicalExpr(String)} for encoding. 

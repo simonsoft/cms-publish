@@ -83,6 +83,18 @@ public class TestPublishProfilingSet {
 	
 	
 	@Test
+	public void testDeserializeLocale() throws JsonProcessingException, IOException {
+		PublishProfilingSet ppSet = reader.readValue(getJsonLocale());
+
+		assertEquals("osx", ppSet.get("osx").getName());
+		assertEquals("en-GB", ppSet.get("osx").getLocale());
+		assertNull("underscore attributes should not be in attributes map", ppSet.get("osx").getAttributesFilter().get("_locale"));
+
+		assertEquals("linux", ppSet.get("linux").getName());
+		assertNull("no '_locale' means valid for any locale", ppSet.get("linux").getLocale());
+	}
+
+	@Test
 	public void testDeserializeInternal() throws JsonProcessingException, IOException {
 		PublishProfilingSet ppSet = reader.readValue(getJsonInternal());
 
@@ -279,6 +291,9 @@ public class TestPublishProfilingSet {
 	}
 	private String getJsonOsPrepareRelease() {
 		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\",\"_stage\":\"release\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";
+	}
+	private String getJsonLocale() {
+		return "[{\"name\":\"osx\",\"logicalexpr\":\"%20\",\"_locale\":\"en-GB\"}, {\"name\":\"linux\",\"logicalexpr\":\"%3A\"}]";
 	}
 	private String getJsonInternal() {
 		return "[{\"logicalexpr\":\"%3CProfileRef%20alias%3D%22Profiling%22%20value%3D%22internal%22%2F%3E\",\"name\":\"internal\",\"profiling\":\"internal\"}]";

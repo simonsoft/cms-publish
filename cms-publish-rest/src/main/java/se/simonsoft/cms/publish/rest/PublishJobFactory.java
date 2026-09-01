@@ -106,7 +106,10 @@ public class PublishJobFactory {
 		for (PublishProfilingRecipe profilesRecipe: profilingSet) {
 			List<String> profilingNames = config.getProfilingNameInclude();
 			// Filter on profilesNameInclude if set.
-			if (profilingNames == null || profilingNames.contains(profilesRecipe.getName())) {
+			boolean nameIncluded = (profilingNames == null || profilingNames.contains(profilesRecipe.getName()));
+			// Filter on recipe's '_locale' if set, must match the item's locale (CMS-1997, country-specific profiling).
+			boolean localeIncluded = (profilesRecipe.getLocale() == null || profilesRecipe.getLocale().equals(itemPublish.getLocale()));
+			if (nameIncluded && localeIncluded) {
 				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty(), Optional.empty()));
 			}
 		}

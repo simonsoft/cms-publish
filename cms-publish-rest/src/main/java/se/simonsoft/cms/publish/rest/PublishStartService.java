@@ -217,6 +217,10 @@ public class PublishStartService {
 			if (profilingRecipe == null) {
 				throw new IllegalArgumentException("Predefined profiling recipe must be defined in document properties: " + options.getProfilingname());
 			}
+			// CMS-1997: reject starting a recipe whose '_locale' does not match the item, mirroring PublishJobFactory.getPublishJobsProfiling's localeIncluded check.
+			if (profilingRecipe.getLocale() != null && !profilingRecipe.getLocale().equals(itemPublish.getLocale())) {
+				throw new IllegalArgumentException(String.format("Profiling recipe '%s' is restricted to locale '%s', not valid for item locale '%s'.", options.getProfilingname(), profilingRecipe.getLocale(), itemPublish.getLocale()));
+			}
 		} else if (options.getStartprofiling() != null) { // Use startprofiling if set (must not contain 'name' or 'logicalexpr')
 			profilingRecipe = options.getStartprofiling();
 			if (profilingRecipe.getName() != null) {
