@@ -250,6 +250,12 @@ public class PublishConfigFilterTest {
 		when(itemMockTypeCds.getMeta()).thenReturn(metaCds);
 		assertTrue(filter.accept(publishConfig, itemMockTypeCds));
 		
+		CmsItem itemMockTypeTechdocinfo = mock(CmsItem.class);
+		Map<String, Object> metaTechdocinfo = new HashMap<String, Object>();
+		metaTechdocinfo.put("meta_s_s_xml_pubtype", "bogus\noperator");
+		when(itemMockTypeTechdocinfo.getMeta()).thenReturn(metaTechdocinfo);
+		assertTrue(filter.accept(publishConfig, itemMockTypeTechdocinfo));
+
 		CmsItem itemMockNoType = mock(CmsItem.class);
 		Map<String, Object> emptyMeta = new HashMap<String, Object>();
 		when(itemMockNoType.getMeta()).thenReturn(emptyMeta);

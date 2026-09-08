@@ -28,20 +28,23 @@ public class PublishConfigFilterType implements PublishConfigFilter {
 	private final String fieldNameBook = "embd_xml_a_type";
 	private final String fieldNameDita = "meta_s_s_xml_a_othermeta_cms-type";
 	private final String fieldNameCds = "meta_s_s_xml_a_othermeta_cds-pubtype";
+	private final String fieldNameTechdocinfo = "meta_s_s_xml_pubtype";
 	
 	@Override
 	public boolean accept(PublishConfig config, CmsItem item) {
 		String fieldValueBook = (String) item.getMeta().get(fieldNameBook);
 		String fieldValueDita = (String) item.getMeta().get(fieldNameDita);
 		String fieldValueCds = (String) item.getMeta().get(fieldNameCds);
-		// Support multi-value othermeta.
+		String fieldValueTechdocinfo = (String) item.getMeta().get(fieldNameTechdocinfo);
+		// Support newline-separated multi-value metadata.
 		List<String> valuesDita = fieldValueDita == null ? new ArrayList<String>(): fieldValueDita.lines().collect(Collectors.toList());
 		List<String> valuesCds = fieldValueCds == null ? new ArrayList<String>(): fieldValueCds.lines().collect(Collectors.toList());
+		List<String> valuesTechdocinfo = fieldValueTechdocinfo == null ? new ArrayList<String>(): fieldValueTechdocinfo.lines().collect(Collectors.toList());
 		
 		
 		boolean accept = false;
 		List<String> configInclude = config.getTypeInclude();
-		if (configInclude == null || configInclude.contains(fieldValueBook) || !intersect(configInclude, valuesDita).isEmpty() || !intersect(configInclude, valuesCds).isEmpty()) { 
+		if (configInclude == null || configInclude.contains(fieldValueBook) || !intersect(configInclude, valuesDita).isEmpty() || !intersect(configInclude, valuesCds).isEmpty() || !intersect(configInclude, valuesTechdocinfo).isEmpty()) {
 			accept = true;
 		}
 		
