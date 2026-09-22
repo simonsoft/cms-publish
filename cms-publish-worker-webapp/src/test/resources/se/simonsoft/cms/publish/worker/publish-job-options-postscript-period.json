@@ -1,0 +1,45 @@
+{
+	"pathname": "DOC_900108.2_Released",
+	"type": "abxpe",
+	"format": "postscript",
+	"params": {
+		"stylesheet": "$aptapplication/axdocbook.style",
+		"pathname": "$pathname/somepath"
+	},
+	"storage": {
+		"type": "s3",
+		"pathversion": "cms4",
+		"pathcloudid": "demo1",
+		"pathconfigname": "name-from-cmsconfig-publish",
+		"pathdir": "/vvab/xml/documents/900108.xml",
+		"pathnamebase": "900108",
+		"params": {
+			"specific": "parameter for future destination types",
+			"s3bucket": "cms-automation"
+		}
+	},
+	"manifest": {
+		"type": "default",
+		"job": {
+			"id": "can we get Step Function Execution name?",
+			"format": "postscript"
+		},
+		"document": {
+			"docno": "DOC_900108_sv-SE",
+			"status": "Released",
+			"releaselabel": "B",
+			"lang": "sv-SE",
+			"baselinerevision": "145"
+		},
+		"master": {
+			"docno": "DOC_900108",
+			"releaselabel": "B"
+		},
+		"custom": {
+			"type": "OPERATOR"
+		},
+		"meta": {
+			"type": "operator"
+		}
+	}
+}

@@ -183,10 +183,20 @@ public class PublishJobService {
 	}
 
 	private String getZipRoot(String pathname, String format) {
-		if ("pdf".equals(format) && pathname != null && !pathname.toLowerCase().endsWith(".pdf")) {
-			return pathname.concat(".pdf");
+		String extension = getExtensionForFormat(format);
+		if (extension != null && pathname != null && !pathname.toLowerCase().endsWith(extension)) {
+			return pathname.concat(extension);
 		}
 		return pathname;
+	}
+
+	private String getExtensionForFormat(String format) {
+		if ("pdf".equals(format)) {
+			return ".pdf";
+		} else if ("postscript".equals(format)) {
+			return ".ps";
+		}
+		return null;
 	}
 
 	private String formatParam(String param, String pathName) {
