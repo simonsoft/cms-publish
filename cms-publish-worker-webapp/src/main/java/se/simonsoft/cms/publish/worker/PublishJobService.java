@@ -89,7 +89,7 @@ public class PublishJobService {
 		logger.debug("Request to publish with format: {}", format.getFormat());
 
 		request.addConfig("path", publishPath);
-		request = this.getConfigParams(request, jobOptions);
+		request = this.getConfigParams(request, jobOptions, format.getFormat());
 
 		final PublishSource source;
 
@@ -161,10 +161,10 @@ public class PublishJobService {
 	}
 	
 	
-	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options) {
+	private PublishRequestDefault getConfigParams(PublishRequestDefault request, PublishJobOptions options, String format) {
 		logger.trace("Adding data to the jobs params: {}", request);
 		request.addParam("zip-output", "yes");
-		request.addParam("zip-root", options.getPathname());
+		request.addParam("zip-root", getZipRoot(options.getPathname(), format));
 		// 'type' parameter is defined by request.setFormat(..)
 		/*
 		request.addParam("type", options.getFormat());
@@ -180,6 +180,23 @@ public class PublishJobService {
 			}
 		}
 		return request;
+	}
+
+	private String getZipRoot(String pathname, String format) {
+		String extension = getExtensionForFormat(format);
+		if (extension != null && pathname != null && !pathname.toLowerCase().endsWith(extension)) {
+			return pathname.concat(extension);
+		}
+		return pathname;
+	}
+
+	private String getExtensionForFormat(String format) {
+		if ("pdf".equals(format)) {
+			return ".pdf";
+		} else if ("postscript".equals(format)) {
+			return ".ps";
+		}
+		return null;
 	}
 
 	private String formatParam(String param, String pathName) {
