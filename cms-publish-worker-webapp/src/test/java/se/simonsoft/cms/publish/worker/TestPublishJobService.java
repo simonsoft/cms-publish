@@ -117,8 +117,39 @@ public class TestPublishJobService {
         assertEquals(publishTicket.toString(), ticket.toString());
 	}
 	
+	@Test
+	public void PublishJobTestPathnameWithPeriodAddsExtension() throws JsonProcessingException, IOException, InterruptedException, PublishException  {
+		pe = Mockito.mock(PublishServicePe.class);
+		CmsExportReader exportReader = Mockito.mock(CmsExportReader.class);
+		when(mockExportAwsProvider.getReader()).thenReturn(exportReader);
+		when(exportReader.getContents()).thenReturn(new ByteArrayInOutStream().getInputStream());
+
+		PublishFormat format = new PublishFormatPDF();
+		PublishJobService service = new PublishJobService(exportProviders, pe, aptapplicationPrefix);
+		PublishJobOptions job = reader.readValue(getJsonString("publish-job-options-period.json"));
+		PublishTicket publishTicket = new PublishTicket("2");
+
+		when(pe.getPublishFormat(Mockito.anyString())).thenReturn(format);
+		when(pe.requestPublish(Mockito.any(PublishRequest.class))).thenReturn(publishTicket);
+
+		// Call PublishJobService.
+		service.publishJob(job);
+
+		// Capture Request sent to undelying communication layer (PublishServicePe)
+		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(pe, times(1)).requestPublish(requestCaptor.capture());
+        PublishRequest pr = requestCaptor.getValue();
+
+        assertEquals("DOC_900108.2_Released.pdf", pr.getParams().get("zip-root"));
+        assertEquals("DOC_900108.2_Released/somepath", pr.getParams().get("pathname"));
+	}
+
 	public String getJsonString() throws IOException {
-		String jsonPath = "se/simonsoft/cms/publish/worker/publish-job-options.json";
+		return getJsonString("publish-job-options.json");
+	}
+
+	public String getJsonString(String fileName) throws IOException {
+		String jsonPath = "se/simonsoft/cms/publish/worker/" + fileName;
 		InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(jsonPath);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		resourceAsStream.transferTo(baos);
