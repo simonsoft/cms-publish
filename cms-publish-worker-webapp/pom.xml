@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>se.simonsoft</groupId>
 		<artifactId>cms-maven-parent</artifactId>
-		<version>17.0.1</version>
+		<version>17.0.2</version>
 		<relativePath />
 	</parent>
 
@@ -147,6 +147,12 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>sts</artifactId>
 		</dependency>
+		
+		<!-- Ensure AWS version of netty is used instead of SolR. -->
+		<dependency>
+      		<groupId>software.amazon.awssdk</groupId>
+			<artifactId>netty-nio-client</artifactId>
+   		 </dependency>
 
 		<dependency>
 			<groupId>net.sf.jtpl</groupId>

@@ -44,6 +44,7 @@ import se.simonsoft.cms.publish.abxpe.PublishServicePe;
 import se.simonsoft.cms.publish.worker.AwsStepfunctionPublishWorker;
 import se.simonsoft.cms.publish.worker.PublishJobService;
 import se.simonsoft.cms.publish.worker.export.CmsExportProviderNotConfigured;
+import se.simonsoft.cms.publish.worker.export.CmsExportProviderPublishAws;
 import se.simonsoft.cms.publish.worker.status.report.WorkerStatusReport;
 import se.simonsoft.cms.version.CmsComponentVersion;
 import se.simonsoft.cms.version.CmsComponentVersionManifest;
@@ -164,7 +165,7 @@ public class WorkerApplication extends ResourceConfig {
             	}
 
             	exportProviders.put("fs", cmsExportProviderFsSingle);
-            	exportProviders.put("s3", new CmsExportProviderAwsSingle(exportPrefix, cloudId, bucketName, region, credentials, s3ConfigBuilder.build(), Optional.empty()));
+            	exportProviders.put("s3", new CmsExportProviderPublishAws(cloudId, bucketName, region, credentials, s3ConfigBuilder.build()));
             	bind(exportProviders).to(Map.class);
 
             	//Bind AWS client
