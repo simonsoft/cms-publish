@@ -25,7 +25,35 @@
 		</repository>
 	</repositories>
 
+	<properties>
+		<compiler-plugin.version>3.14.0</compiler-plugin.version>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+		<mockito-version>5.21.0</mockito-version>
+		<quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+		<quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+		<quarkus.platform.version>3.39.2</quarkus.platform.version>
+		<surefire-plugin.version>3.5.4</surefire-plugin.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>${quarkus.platform.group-id}</groupId>
+				<artifactId>${quarkus.platform.artifact-id}</artifactId>
+				<version>${quarkus.platform.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
+		<dependency>
+			<groupId>jakarta.inject</groupId>
+			<artifactId>jakarta.inject-api</artifactId>
+		</dependency>
+
 		<!-- logging backend for unit tests: log debug and above to console, no 
 			need for config file -->
 		<dependency>
@@ -45,25 +73,22 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>${jackson-version}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>${jackson-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>se.simonsoft</groupId>
 			<artifactId>cms-item</artifactId>
-			<version>3.2.2</version>
+			<version>3.2.3-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -83,16 +108,10 @@
 	<build>
 		<plugins>
 			<plugin>
-				<!-- Needed for Java 17 compatibility. -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>
-                    	--add-opens java.base/java.lang=ALL-UNNAMED
-                    </argLine>
-                </configuration>
-            </plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire-plugin.version}</version>
+			</plugin>
 		</plugins>	
 	</build>
 </project>
