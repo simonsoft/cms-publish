@@ -59,18 +59,18 @@
 			<artifactId>jakarta.inject-api</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.smallrye.config</groupId>
+			<artifactId>smallrye-config-core</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>jakarta.ws.rs</groupId>
 			<artifactId>jakarta.ws.rs-api</artifactId>
 		</dependency>
 
-		<!-- logging backend for unit tests: log debug and above to console, no need for config file -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback-version}</version>
-			<scope>test</scope>
-		</dependency>
-		
 		<dependency>
 		    <groupId>se.simonsoft</groupId>
 		    <artifactId>cms-publish-config</artifactId>
@@ -96,6 +96,16 @@
 			<artifactId>algoliasearch-java-net</artifactId>
 			<version>3.16.10</version>
 		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-junit-component</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
 		
 	</dependencies>
 	
@@ -105,6 +115,11 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${surefire-plugin.version}</version>
+				<configuration>
+					<systemPropertyVariables>
+						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+					</systemPropertyVariables>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
