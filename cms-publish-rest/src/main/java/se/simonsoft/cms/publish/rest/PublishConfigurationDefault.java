@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -53,6 +54,11 @@ import se.simonsoft.cms.release.ReleaseProperties;
 import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 import se.simonsoft.cms.release.translation.TranslationLocalesMappingFactory;
 
+/**
+ * Reads repository configuration on demand within the caller's request/job context.
+ * The application must supply the global lookup: a lookup bound to one repository is not equivalent.
+ */
+@RequestScoped
 public class PublishConfigurationDefault implements PublishConfiguration {
 	
 	private final CmsRepositoryLookup repositoryLookup;
