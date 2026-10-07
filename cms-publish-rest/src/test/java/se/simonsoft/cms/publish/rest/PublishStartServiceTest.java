@@ -18,8 +18,7 @@ package se.simonsoft.cms.publish.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -136,7 +135,7 @@ public class PublishStartServiceTest {
 		setUpCommonMocks(itemId, item);
 
 		PublishJob mockJob = getMinimalPublishJob();
-		when(jobFactoryMock.getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), any(String.class), anyObject(), anyObject(), anyObject(), anyObject()))
+		when(jobFactoryMock.getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), any(String.class), any(), any(), any(), any()))
 				.thenReturn(mockJob);
 		when(publishWebhookCommandHandlerMock.getPostPayload(any(PublishJobDelivery.class), any(PublishJobStorage.class), any(Optional.class)))
 				.thenReturn(new LinkedHashMap<String, String>());
