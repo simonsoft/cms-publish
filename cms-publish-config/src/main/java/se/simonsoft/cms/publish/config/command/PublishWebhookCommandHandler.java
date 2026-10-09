@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -57,6 +58,7 @@ import se.simonsoft.cms.publish.config.export.PublishExportJobFactory;
  * There is significant refactoring and alignment with TSP-webhook remaining.
  *
  */
+@RequestScoped
 public class PublishWebhookCommandHandler implements ExternalCommandHandler<PublishJobOptions> {
 
 
