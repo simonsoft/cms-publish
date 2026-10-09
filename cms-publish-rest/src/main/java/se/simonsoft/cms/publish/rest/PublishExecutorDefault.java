@@ -18,6 +18,7 @@ package se.simonsoft.cms.publish.rest;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -30,6 +31,8 @@ import se.simonsoft.cms.item.workflow.WorkflowItemInput;
 import se.simonsoft.cms.publish.config.PublishExecutor;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 
+/** Keeps the application's workflow/user binding within the calling request or job. */
+@RequestScoped
 public class PublishExecutorDefault implements PublishExecutor {
 	
 	private final WorkflowExecutor<WorkflowItemInput> workflowExecutor;

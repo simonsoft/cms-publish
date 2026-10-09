@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.rest;
 
 import java.util.*;
 
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +43,11 @@ import se.simonsoft.cms.release.translation.TranslationLocalesMapping;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
 
+/**
+ * Uses the caller's repository-bound services within one request/job context.
+ * Background callers must activate that context before invoking the service.
+ */
+@RequestScoped
 public class PublishStartService {
 
 	private static final int MAX_START_PATH_NAME_SIZE = 100;
