@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>se.simonsoft</groupId>
 		<artifactId>cms-maven-parent</artifactId>
-		<version>11.0.3</version>
+		<version>11.0.4</version>
 		<relativePath/>
 	</parent>
 
@@ -21,12 +21,12 @@
 		<repository>
 			<id>simonsoft-releases</id>
 			<name>Simonsoft Releases</name>
-			<url>http://maven.simonsoft.se/releases/</url>
+			<url>https://maven.simonsoft.se/releases/</url>
 		</repository>
 		<repository>
 			<id>repos.open.repo</id>
 			<name>Simonsoft / Repos Open Repository</name>
-			<url>http://opensource.simonsoft.se/maven/</url>
+			<url>https://opensource.simonsoft.se/maven/</url>
 		</repository>
 	</repositories>
 	
