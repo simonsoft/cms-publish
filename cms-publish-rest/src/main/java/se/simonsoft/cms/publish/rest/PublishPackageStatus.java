@@ -102,12 +102,9 @@ public class PublishPackageStatus {
     		throw new IllegalArgumentException("publish status can be requested for a single profiling recipe");
     	}
     	
-    	// Request executions with refresh once.
-    	executionsStatus.getWorkflowExecutions(publishPackage.getPublishedItems().iterator().next().getId(), true);
-        
     	Set<WorkflowExecution> releaseExecutions = new LinkedHashSet<WorkflowExecution>();
     	for (CmsItem item: publishPackage.getPublishedItems()) {
-    		// No refresh on subsequent calls.
+    		// One query for each item, the SolR implementation in cms-webapp ignores the refresh flag (CMS-2071).
     		Set<WorkflowExecution> executions = executionsStatus.getWorkflowExecutions(item.getId(), false);
     		WorkflowExecution status = getStatus(publishPackage, item, executions);
     		// CMS-1997: null means the profiling recipe's '_locale' does not apply to this item, no status to report.
