@@ -86,6 +86,10 @@ public class PublishPackageStatus {
 		// Verify with the status service, one status for each item and profiling recipe (CMS-2069).
 		// Inactive configs have a special situation, will often be reported as UNKNOWN.
 		// Build map: profiling name (null without profiling) -> CmsItemId -> status
+		// Currently one getStatus per recipe, i.e. one execution query for each item and recipe.
+		// Optimize: fetch executions once per item and filter a copy for each recipe, bringing it down to M queries (M items).
+		// The copy is required since getStatus(PublishPackage, CmsItem, Set) filters the executions in place.
+		// See CMS-2071 for a single query per package.
 		Map<String, Map<CmsItemId, WorkflowExecution>> statusMap = new HashMap<>();
 		for (PublishPackage packageSingle: getPublishPackagesSingleProfiling(publishPackage)) {
 			String profilingName = getProfilingName(packageSingle);
