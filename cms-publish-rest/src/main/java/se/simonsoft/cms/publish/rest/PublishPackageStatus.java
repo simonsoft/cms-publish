@@ -17,6 +17,7 @@ package se.simonsoft.cms.publish.rest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -82,18 +83,50 @@ public class PublishPackageStatus {
 		Set<PublishJob> jobs = new LinkedHashSet<>(jobsAll);
 
 		// Must avoid starting multiple executions for the same Job.
-		// Verify with the status service.
+		// Verify with the status service, one status for each item and profiling recipe (CMS-2069).
 		// Inactive configs have a special situation, will often be reported as UNKNOWN.
-		Set<WorkflowExecution> status = getStatus(publishPackage);
-		// There should only be one for each itemId (single profiling in each call)
-		Map<CmsItemId, WorkflowExecution> statusMap = new HashMap<>(status.size());
-		// Build map: CmsItemId -> status
-		status.forEach(wf -> statusMap.put(wf.getInput().getItemId(), wf));
-		status.forEach(wf -> logger.debug("Start publish, current status: {} - {}", wf.getStatus(), wf.getInput().getItemId()));
+		// Build map: profiling name (null without profiling) -> CmsItemId -> status
+		Map<String, Map<CmsItemId, WorkflowExecution>> statusMap = new HashMap<>();
+		boolean refresh = true;
+		for (PublishPackage packageSingle: getPublishPackagesSingleProfiling(publishPackage)) {
+			String profilingName = getProfilingName(packageSingle);
+			Set<WorkflowExecution> status = getStatus(packageSingle, refresh);
+			refresh = false;
+			// There should only be one for each itemId (single profiling in each package)
+			Map<CmsItemId, WorkflowExecution> statusItems = new HashMap<>(status.size());
+			status.forEach(wf -> statusItems.put(wf.getInput().getItemId(), wf));
+			status.forEach(wf -> logger.debug("Start publish, current status: {} - {} - {}", wf.getStatus(), profilingName, wf.getInput().getItemId()));
+			statusMap.put(profilingName, statusItems);
+		}
 		// Suppress start for items that does not have an allowed execution status.
-		jobs.removeIf(job -> !allowed.contains(statusMap.get(job.getItemId()).getStatus()));
+		jobs.removeIf(job -> !allowed.contains(statusMap.get(getProfilingName(job)).get(job.getItemId()).getStatus()));
 
 		return jobs;
+	}
+
+	/**
+	 * @param publishPackage
+	 * @return one package for each profiling recipe, or the package itself if no profiling
+	 */
+	private List<PublishPackage> getPublishPackagesSingleProfiling(PublishPackage publishPackage) {
+
+		if (publishPackage.getProfilingSet() == null) {
+			return Arrays.asList(publishPackage);
+		}
+		List<PublishPackage> result = new ArrayList<>(publishPackage.getProfilingSet().size());
+		LinkedHashSet<CmsItemPublish> publishedItems = new LinkedHashSet<>(publishPackage.getPublishedItems());
+		for (PublishProfilingRecipe profiling: publishPackage.getProfilingSet()) {
+			result.add(new PublishPackage(publishPackage.getPublication(), publishPackage.getPublishConfig(), Collections.singleton(profiling), publishedItems, publishPackage.getReleaseItemId(), publishPackage.getReleaseLabel()));
+		}
+		return result;
+	}
+
+	private static String getProfilingName(PublishPackage publishPackage) {
+		return (publishPackage.getProfilingSet() == null) ? null : publishPackage.getProfilingSet().iterator().next().getName();
+	}
+
+	private static String getProfilingName(PublishJob job) {
+		return (job.getOptions().getProfiling() == null) ? null : job.getOptions().getProfiling().getName();
 	}
 
     public Set<WorkflowExecution> getStatus(PublishPackage publishPackage) {
@@ -101,10 +134,16 @@ public class PublishPackageStatus {
     	if (publishPackage.getProfilingSet() != null && publishPackage.getProfilingSet().size() > 1) {
     		throw new IllegalArgumentException("publish status can be requested for a single profiling recipe");
     	}
-    	
-    	// Request executions with refresh once.
-    	executionsStatus.getWorkflowExecutions(publishPackage.getPublishedItems().iterator().next().getId(), true);
-        
+    	return getStatus(publishPackage, true);
+    }
+
+    private Set<WorkflowExecution> getStatus(PublishPackage publishPackage, boolean refresh) {
+
+    	if (refresh) {
+    		// Request executions with refresh once.
+    		executionsStatus.getWorkflowExecutions(publishPackage.getPublishedItems().iterator().next().getId(), true);
+    	}
+
     	Set<WorkflowExecution> releaseExecutions = new LinkedHashSet<WorkflowExecution>();
     	for (CmsItem item: publishPackage.getPublishedItems()) {
     		// No refresh on subsequent calls.

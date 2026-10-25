@@ -357,11 +357,7 @@ public class PublishResource {
 		boolean allowStartSucceeded = (advanced != null);
 		itemId.setHostnameOrValidate(this.hostname);
 		
-		// TODO: Support multiple profiling parameters, when statusService can support the filtering. 
-		if (profiling != null && profiling.length > 1) {
-			throw new IllegalArgumentException("Field 'profiling': multiple profiling parameters is currently not supported");
-		}
-		
+		// CMS-2069: Multiple profiling parameters supported, statusService filters per item and profiling recipe.
 		PublishPackage publishPackage = getPublishPackage(itemId, includeRelease, includeTranslations, profiling, publication);
 		Set<PublishJob> jobs = this.jobFactory.getPublishJobsForPackage(publishPackage, this.publishConfiguration);
 		
