@@ -36,7 +36,9 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import se.simonsoft.cms.item.CmsItem;
@@ -166,6 +168,10 @@ public class PublishPackageStatusTest {
 		for (WorkflowExecution result: status) {
 			assertEquals("SUCCEEDED", result.getStatus());
 		}
+
+		// CMS-2071: one query for each item, no additional refresh query.
+		Mockito.verify(executionsStatusMock, Mockito.never()).getWorkflowExecutions(ArgumentMatchers.any(), ArgumentMatchers.eq(true));
+		Mockito.verify(executionsStatusMock, Mockito.times(2)).getWorkflowExecutions(ArgumentMatchers.any(), ArgumentMatchers.eq(false));
 	}
 
 	@Test
