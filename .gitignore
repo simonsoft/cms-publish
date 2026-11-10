@@ -3,6 +3,7 @@
 */.project
 */.settings
 */target/
+.flattened-pom.xml
 */bin/
 /.project
 .gitignore
