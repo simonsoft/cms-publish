@@ -56,9 +56,10 @@ public class PublishJobFactory {
 	private final PublishJobStorageFactory storageFactory;
 	
 	/**
-	 * CMS-2094: The key of a supplied ditamap in options.preprocess.params and in manifest.job (SHA1).
+	 * CMS-2094: The key of a supplied ditamap in options.preprocess.params.
+	 * Framework parameter (uppercase), not forwarded as an XSL parameter by Preprocess.
 	 */
-	public static final String PARAM_START_DITAMAP = "startditamap";
+	public static final String PARAM_START_DITAMAP = "StartDitamap";
 	
 	private static final Set<String> manifestExtCollision = new HashSet<>(Arrays.asList("zip", "index.json"));
 	

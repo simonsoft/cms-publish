@@ -132,7 +132,7 @@ public class PublishJobManifestBuilder {
 		// CMS-2094: Publish with a supplied ditamap (absent when the committed ditamap was used).
 		Optional<String> startDitamap = getStartDitamap(job);
 		if (startDitamap.isPresent()) {
-			result.put(PublishJobFactory.PARAM_START_DITAMAP, getSha1(startDitamap.get()));
+			result.put("startditamap", getSha1(startDitamap.get())); // SHA1 of the supplied ditamap.
 			// The topic count of the committed ditamap is not relevant for a supplied ditamap.
 			// TODO: Consider a minimum count per publish, or using XPath to count the topicrefs in the supplied ditamap.
 			result.put("topics", "1");

@@ -112,7 +112,7 @@ public class PublishJobFactoryStartDitamapTest {
 		PublishConfig config = mapper.readValue(CONFIG, PublishConfig.class);
 		PublishJob job = factory.getPublishJob(item, config, "preview-pdf", null, null, Optional.empty(), Optional.empty(), Optional.empty());
 
-		assertFalse(job.getOptions().getPreprocess().getParams().containsKey("startditamap"));
+		assertFalse(job.getOptions().getPreprocess().getParams().containsKey("StartDitamap"));
 		assertFalse(job.getOptions().getManifest().getJob().containsKey("startditamap"));
 		assertEquals("committed ditamap topic count from indexing", "42", job.getOptions().getManifest().getJob().get("topics"));
 	}
@@ -124,10 +124,10 @@ public class PublishJobFactoryStartDitamapTest {
 		PublishJob job = factory.getPublishJob(item, config, "preview-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of(ditamap));
 
 		// Routed to preprocess params, retaining configured params.
-		assertEquals(ditamap, job.getOptions().getPreprocess().getParams().get("startditamap"));
+		assertEquals(ditamap, job.getOptions().getPreprocess().getParams().get("StartDitamap"));
 		assertEquals("x.xsl", job.getOptions().getPreprocess().getParams().get("Transform00"));
 		// The config params must not be modified (shared map).
-		assertFalse(config.getOptions().getPreprocess().getParams().containsKey("startditamap"));
+		assertFalse(config.getOptions().getPreprocess().getParams().containsKey("StartDitamap"));
 
 		// Manifest job section: SHA1 and topics from the supplied map.
 		assertEquals(sha1Hex(ditamap), job.getOptions().getManifest().getJob().get("startditamap"));
