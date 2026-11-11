@@ -124,6 +124,19 @@ public class PublishJobManifestBuilder {
 		// #1525 Start time is now augmented by jobid handler.
 		// Removing the approximate start time in CMS 5.2.
 		
+		// CMS-2094: Publish with a supplied ditamap (absent when the committed ditamap was used).
+		Optional<String> startDitamap = getStartDitamap(job);
+		if (startDitamap.isPresent()) {
+			result.put(PublishStartDitamap.PARAM_NAME, PublishStartDitamap.getSha1Hex(startDitamap.get()));
+			try {
+				// The topic count of the committed ditamap is not relevant, count the topicrefs in the supplied ditamap.
+				result.put("topics", Long.toString(PublishStartDitamap.countTopics(startDitamap.get())));
+			} catch (Exception e) {
+				logger.info("Unable to count topics in supplied ditamap for manifest: {}", e.getMessage());
+			}
+			return result;
+		}
+		
 		try {
 			// #1469: Attempt to include topic count.
 			Map<String, Object> meta = item.getMeta();
@@ -138,6 +151,18 @@ public class PublishJobManifestBuilder {
 		
 		
 		return result;
+	}
+	
+	
+	private Optional<String> getStartDitamap(PublishJob job) {
+		if (job.getOptions() == null || job.getOptions().getPreprocess() == null || job.getOptions().getPreprocess().getParams() == null) {
+			return Optional.empty();
+		}
+		Object startDitamap = job.getOptions().getPreprocess().getParams().get(PublishStartDitamap.PARAM_NAME);
+		if (startDitamap == null) {
+			return Optional.empty();
+		}
+		return Optional.of(startDitamap.toString());
 	}
 	
 	

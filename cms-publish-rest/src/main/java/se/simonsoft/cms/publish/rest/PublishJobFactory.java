@@ -17,10 +17,12 @@ package se.simonsoft.cms.publish.rest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -38,6 +40,7 @@ import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigArea;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
+import se.simonsoft.cms.publish.config.databinds.job.PublishJobPreProcess;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
@@ -92,7 +95,7 @@ public class PublishJobFactory {
 				jobs.addAll(getPublishJobsProfiling(itemPublish, config, configName, profilingSet, localesRfc));
 			} else {
 				// Normal, non-profiling job.
-				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty(), Optional.empty());
+				PublishJob pj = getPublishJob(itemPublish, config, configName, null, localesRfc, Optional.empty(), Optional.empty(), Optional.empty());
 				jobs.add(pj);
 			}
 		}
@@ -110,7 +113,7 @@ public class PublishJobFactory {
 			// Filter on recipe's '_locale' if set, must match the item's locale (CMS-1997, country-specific profiling).
 			boolean localeIncluded = (profilesRecipe.getLocale() == null || profilesRecipe.getLocale().equals(itemPublish.getLocale()));
 			if (nameIncluded && localeIncluded) {
-				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty(), Optional.empty()));
+				profiledJobs.add(getPublishJob(itemPublish, config, configName, profilesRecipe, localesRfc, Optional.empty(), Optional.empty(), Optional.empty()));
 			}
 		}
 		return profiledJobs;
@@ -125,9 +128,12 @@ public class PublishJobFactory {
 	 * @param configName the configuration name
 	 * @param profiling optional profiling, otherwise null
 	 * @param localesRfc the locales mapping to RFC form
+	 * @param startPathname optional pathname provided when starting the publish
+	 * @param startCustom optional manifest custom overlay provided when starting the publish
+	 * @param startDitamap optional ditamap provided when starting the publish (CMS-2094), placed in the preprocess params
 	 * @return a PublishJob
 	 */
-	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname, Optional<LinkedHashMap<String,String>> startCustom) {
+	public PublishJob getPublishJob(CmsItemPublish item, PublishConfig c, String configName, PublishProfilingRecipe profiling, TranslationLocalesMapping localesRfc, Optional<String> startPathname, Optional<LinkedHashMap<String,String>> startCustom, Optional<String> startDitamap) {
 		PublishConfigTemplateString templateEvaluator = getTemplateEvaluator(item, configName, profiling, localesRfc, startPathname);
 		PublishJobManifestBuilder manifestBuilder = new PublishJobManifestBuilder(templateEvaluator, localesRfc);
 		
@@ -155,6 +161,12 @@ public class PublishJobFactory {
 		// #1409 Evaluating PathnameTemplate both here and in manifest (no problem, same templateEvaluator).
 		String pathname = templateEvaluator.evaluate(area.getPathnameTemplate());
 		pj.getOptions().setPathname(pathname);
+		
+		// CMS-2094: The supplied ditamap is routed to Preprocess, not to the manifest (written to manifest.json and indexed).
+		// Set before building the manifest, which records the SHA1 of the supplied ditamap.
+		if (startDitamap.isPresent()) {
+			setPreprocessStartDitamap(pj, startDitamap.get());
+		}
 		
 		// Build the Manifest, modifies the existing manifest object.
 		manifestBuilder.build(item, pj, startCustom);
@@ -187,6 +199,18 @@ public class PublishJobFactory {
 		
 		logger.debug("Created PublishJob from config: {}", configName);
 		return pj;
+	}
+	
+	
+	private void setPreprocessStartDitamap(PublishJob pj, String startDitamap) {
+		PublishJobPreProcess preprocess = pj.getOptions().getPreprocess();
+		if (preprocess == null || preprocess.getType() == null || preprocess.getType().equals("none")) {
+			throw new IllegalArgumentException("Publish config with a supplied ditamap (startditamap) requires a preprocess: " + pj.getConfigname());
+		}
+		// The params map is shared with the PublishConfig, copy before modifying.
+		Map<String, Object> params = (preprocess.getParams() != null) ? new HashMap<>(preprocess.getParams()) : new HashMap<>();
+		params.put(PublishStartDitamap.PARAM_NAME, startDitamap);
+		preprocess.setParams(params);
 	}
 	
 	
