@@ -121,7 +121,8 @@ public class PublishJobFactoryStartDitamapTest {
 
 		// Serialized manifest must not contain the ditamap itself.
 		String manifestJson = mapper.writeValueAsString(job.getOptions().getManifest());
-		assertFalse(manifestJson, manifestJson.contains("x-svn"));
+		assertFalse(manifestJson, manifestJson.contains("topics/a.dita"));
+		assertFalse(manifestJson, manifestJson.contains("<map"));
 		assertTrue(manifestJson, manifestJson.contains(PublishStartDitamap.getSha1Hex(ditamap)));
 	}
 
