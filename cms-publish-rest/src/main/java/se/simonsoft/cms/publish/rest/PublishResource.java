@@ -245,8 +245,8 @@ public class PublishResource {
 	}
 	
 	/**
-	 * @param itemId
-	 * @param 
+	 * @param itemId the item to publish
+	 * @param body the publish start options as JSON
 	 * @return JSON containing started execution ID and presigned urls (same as webhook).
 	 * @throws JsonProcessingException serializing the response
 	 */
@@ -339,7 +339,7 @@ public class PublishResource {
 	 * @param includeTranslations
 	 * @param profiling
 	 * @param publication
-	 * @return Set<String> containing started execution IDs
+	 * @return a response containing the IDs of the started executions
 	 * @throws Exception
 	 */
 	@POST
