@@ -212,6 +212,7 @@ public class PublishStartService {
 		}
 
 		// CMS-2094: A supplied ditamap replaces the committed ditamap of an Author Area ditamap.
+		// Consider supporting a supplied ditamap for Release / Translation as well in the future (requires support in ReleaseExportXsl).
 		if (options.getStartditamap() != null) {
 			if (itemPublish.isRelease() || itemPublish.isTranslation() || !"ditamap".equals(itemPublish.getId().getRelPath().getExtension())) {
 				throw new IllegalArgumentException("The startditamap requires an Author Area ditamap: " + itemPublish.getId());
