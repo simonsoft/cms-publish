@@ -9,13 +9,14 @@
 	<version>${revision}</version>
 	<packaging>pom</packaging>
 	
-	<!-- The modules have independent parents. Jenkins reads the config development line here. -->
+	<!-- The modules have independent parents. Jenkins reads the development line for config and REST here. -->
 	<properties>
 		<revision>1.4-SNAPSHOT</revision>
 	</properties>
 	
 	<modules>
 		<module>cms-publish-config</module>
+		<module>cms-publish-rest</module>
 	</modules>
 
 	<profiles>
@@ -26,14 +27,13 @@
 			<modules>
 				<module>cms-publish-interface</module>
 				<module>cms-publish-abxpe</module>
-				<module>cms-publish-rest</module>
 				<module>cms-publish-worker-webapp</module>
 			</modules>
 		</profile>
 		<profile>
 			<id>jenkins-config</id>
 			<activation><property><name>env.BUILD_KIND</name></property></activation>
-			<!-- Deploy the config JAR only. The aggregator has no consumers in this build. -->
+			<!-- Deploy the module JARs. The aggregator has no consumers in this build. -->
 			<properties><maven.deploy.skip>true</maven.deploy.skip></properties>
 		</profile>
 	</profiles>
