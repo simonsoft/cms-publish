@@ -179,7 +179,7 @@ public class PublishStartServiceTest {
 		PublishStartOptions options = new PublishStartOptions();
 		options.setPublication(PUBLICATION);
 		options.setExecutionid("test-execution-id");
-		options.setStartditamap(PublishStartDitamapTest.DITAMAP);
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
 		
 		LinkedHashMap<String, String> result = startService.doPublishStartItem(itemId, options);
 		assertEquals("87fdcfe6-8dd4-4276-9d22-773f6e5315b1", result.get("executionid"));
@@ -188,7 +188,7 @@ public class PublishStartServiceTest {
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Optional<String>> startDitamap = ArgumentCaptor.forClass(Optional.class);
 		verify(jobFactoryMock).getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), eq(PUBLICATION), profiling.capture(), anyObject(), anyObject(), anyObject(), startDitamap.capture());
-		assertEquals(Optional.of(PublishStartDitamapTest.DITAMAP), startDitamap.getValue());
+		assertEquals(Optional.of(PublishJobFactoryStartDitamapTest.DITAMAP), startDitamap.getValue());
 		// Counts as a start* option: profiling name is the execution nonce (unique storage path).
 		assertEquals("test-execution-id", profiling.getValue().getName());
 		// Not added to manifest.custom.
@@ -232,7 +232,7 @@ public class PublishStartServiceTest {
 		PublishStartOptions options = new PublishStartOptions();
 		options.setPublication(PUBLICATION);
 		options.setExecutionid("test-execution-id");
-		options.setStartditamap(PublishStartDitamapTest.DITAMAP);
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
 		
 		try {
 			startService.doPublishStartItem(itemId, options);
@@ -254,7 +254,7 @@ public class PublishStartServiceTest {
 		PublishStartOptions options = new PublishStartOptions();
 		options.setPublication(PUBLICATION);
 		options.setExecutionid("test-execution-id");
-		options.setStartditamap(PublishStartDitamapTest.DITAMAP);
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
 		
 		try {
 			startService.doPublishStartItem(itemId, options);

@@ -23,6 +23,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -68,6 +70,13 @@ public class PublishJobFactoryStartDitamapTest {
 			+ "  }\n"
 			+ "}";
 
+	static final String DITAMAP = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+			+ "<map xmlns:cms=\"http://www.simonsoft.se/namespace/cms\" title=\"Preview\">\n"
+			+ "  <topicref href=\"x-svn:///svn/demo1^/vvab/xml/topics/a.dita#topic_a\" cms:workingcopy=\"yes\">\n"
+			+ "    <topicref href=\"x-svn:///svn/demo1^/vvab/xml/topics/b.dita#topic_b\"/>\n"
+			+ "  </topicref>\n"
+			+ "</map>\n";
+	
 	private final ObjectMapper mapper = new ObjectMapper();
 	private PublishJobFactory factory;
 	private CmsItemPublish item;
@@ -89,6 +98,15 @@ public class PublishJobFactoryStartDitamapTest {
 		when(item.getMeta()).thenReturn(meta);
 	}
 
+	private static String sha1Hex(String s) throws Exception {
+		byte[] digest = MessageDigest.getInstance("SHA-1").digest(s.getBytes(StandardCharsets.UTF_8));
+		StringBuilder sb = new StringBuilder();
+		for (byte b : digest) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
+	}
+	
 	@Test
 	public void testWithoutStartDitamap() throws Exception {
 		PublishConfig config = mapper.readValue(CONFIG, PublishConfig.class);
@@ -102,7 +120,7 @@ public class PublishJobFactoryStartDitamapTest {
 	@Test
 	public void testStartDitamap() throws Exception {
 		PublishConfig config = mapper.readValue(CONFIG, PublishConfig.class);
-		String ditamap = PublishStartDitamapTest.DITAMAP;
+		String ditamap = DITAMAP;
 		PublishJob job = factory.getPublishJob(item, config, "preview-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of(ditamap));
 
 		// Routed to preprocess params, retaining configured params.
@@ -112,8 +130,8 @@ public class PublishJobFactoryStartDitamapTest {
 		assertFalse(config.getOptions().getPreprocess().getParams().containsKey("startditamap"));
 
 		// Manifest job section: SHA1 and topics from the supplied map.
-		assertEquals(PublishStartDitamap.getSha1Hex(ditamap), job.getOptions().getManifest().getJob().get("startditamap"));
-		assertEquals("3", job.getOptions().getManifest().getJob().get("topics"));
+		assertEquals(sha1Hex(ditamap), job.getOptions().getManifest().getJob().get("startditamap"));
+		assertEquals("1", job.getOptions().getManifest().getJob().get("topics"));
 		assertEquals("preview-pdf", job.getOptions().getManifest().getJob().get("configname"));
 
 		// Not in the manifest custom section (no docno template, so no custom).
@@ -123,24 +141,22 @@ public class PublishJobFactoryStartDitamapTest {
 		String manifestJson = mapper.writeValueAsString(job.getOptions().getManifest());
 		assertFalse(manifestJson, manifestJson.contains("topics/a.dita"));
 		assertFalse(manifestJson, manifestJson.contains("<map"));
-		assertTrue(manifestJson, manifestJson.contains(PublishStartDitamap.getSha1Hex(ditamap)));
+		assertTrue(manifestJson, manifestJson.contains(sha1Hex(ditamap)));
 	}
 
 	@Test
-	public void testStartDitamapTopicsOmittedWhenUnparseable() throws Exception {
+	public void testStartDitamapSha1() throws Exception {
 		PublishConfig config = mapper.readValue(CONFIG, PublishConfig.class);
-		String ditamap = "<map><topicref></map>";
-		PublishJob job = factory.getPublishJob(item, config, "preview-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of(ditamap));
-
-		assertEquals(PublishStartDitamap.getSha1Hex(ditamap), job.getOptions().getManifest().getJob().get("startditamap"));
-		assertFalse("topics must not fall back to the committed map", job.getOptions().getManifest().getJob().containsKey("topics"));
+		PublishJob job = factory.getPublishJob(item, config, "preview-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of("abc"));
+		// echo -n "abc" | sha1sum
+		assertEquals("a9993e364706816aba3e25717850c26c9cd0d89d", job.getOptions().getManifest().getJob().get("startditamap"));
 	}
-
+	
 	@Test
 	public void testStartDitamapRequiresPreprocess() throws Exception {
 		PublishConfig config = mapper.readValue(CONFIG_NO_PREPROCESS, PublishConfig.class);
 		try {
-			factory.getPublishJob(item, config, "simple-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of(PublishStartDitamapTest.DITAMAP));
+			factory.getPublishJob(item, config, "simple-pdf", null, null, Optional.empty(), Optional.empty(), Optional.of(DITAMAP));
 			fail("Expected IllegalArgumentException when the config has no preprocess");
 		} catch (IllegalArgumentException e) {
 			assertTrue(e.getMessage(), e.getMessage().contains("startditamap"));

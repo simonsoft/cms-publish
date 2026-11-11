@@ -55,6 +55,11 @@ public class PublishJobFactory {
 	private final String action = "publish-preprocess"; // Preprocess is the first stage in Workflow (CMS 4.4), can potentially request webapp work (depends on preprocess.type).
 	private final PublishJobStorageFactory storageFactory;
 	
+	/**
+	 * CMS-2094: The key of a supplied ditamap in options.preprocess.params and in manifest.job (SHA1).
+	 */
+	public static final String PARAM_START_DITAMAP = "startditamap";
+	
 	private static final Set<String> manifestExtCollision = new HashSet<>(Arrays.asList("zip", "index.json"));
 	
 	private static final Logger logger = LoggerFactory.getLogger(PublishJobFactory.class);
@@ -209,7 +214,7 @@ public class PublishJobFactory {
 		}
 		// The params map is shared with the PublishConfig, copy before modifying.
 		Map<String, Object> params = (preprocess.getParams() != null) ? new HashMap<>(preprocess.getParams()) : new HashMap<>();
-		params.put(PublishStartDitamap.PARAM_NAME, startDitamap);
+		params.put(PARAM_START_DITAMAP, startDitamap);
 		preprocess.setParams(params);
 	}
 	

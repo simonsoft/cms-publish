@@ -15,6 +15,9 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,7 +27,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.simonsoft.cms.item.Checksum;
 import se.simonsoft.cms.item.CmsItem;
+import se.simonsoft.cms.item.impl.ChecksumRead;
 import se.simonsoft.cms.publish.config.PublishConfigTemplateString;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJob;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
@@ -127,13 +132,10 @@ public class PublishJobManifestBuilder {
 		// CMS-2094: Publish with a supplied ditamap (absent when the committed ditamap was used).
 		Optional<String> startDitamap = getStartDitamap(job);
 		if (startDitamap.isPresent()) {
-			result.put(PublishStartDitamap.PARAM_NAME, PublishStartDitamap.getSha1Hex(startDitamap.get()));
-			try {
-				// The topic count of the committed ditamap is not relevant, count the topicrefs in the supplied ditamap.
-				result.put("topics", Long.toString(PublishStartDitamap.countTopics(startDitamap.get())));
-			} catch (Exception e) {
-				logger.info("Unable to count topics in supplied ditamap for manifest: {}", e.getMessage());
-			}
+			result.put(PublishJobFactory.PARAM_START_DITAMAP, getSha1(startDitamap.get()));
+			// The topic count of the committed ditamap is not relevant for a supplied ditamap.
+			// TODO: Consider a minimum count per publish, or using XPath to count the topicrefs in the supplied ditamap.
+			result.put("topics", "1");
 			return result;
 		}
 		
@@ -158,11 +160,22 @@ public class PublishJobManifestBuilder {
 		if (job.getOptions() == null || job.getOptions().getPreprocess() == null || job.getOptions().getPreprocess().getParams() == null) {
 			return Optional.empty();
 		}
-		Object startDitamap = job.getOptions().getPreprocess().getParams().get(PublishStartDitamap.PARAM_NAME);
+		Object startDitamap = job.getOptions().getPreprocess().getParams().get(PublishJobFactory.PARAM_START_DITAMAP);
 		if (startDitamap == null) {
 			return Optional.empty();
 		}
 		return Optional.of(startDitamap.toString());
+	}
+	
+	
+	private static String getSha1(String s) {
+		try {
+			ChecksumRead checksum = new ChecksumRead(Checksum.Algorithm.SHA1);
+			checksum.add(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
+			return checksum.getSha1();
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to calculate checksum of the supplied ditamap.", e);
+		}
 	}
 	
 	
