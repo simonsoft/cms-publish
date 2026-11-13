@@ -16,6 +16,9 @@
 package se.simonsoft.cms.publish.config.command;
 
 
+import java.time.Duration;
+import java.time.Instant;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -73,7 +76,9 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 		doInsertJobId(manifest, progress);
 		// Augment the manifest with the true StartTime of the execution.
 		doInsertJobStart(manifest, progress);
-		
+		// Augment the manifest with the calculated expiration, when configured.
+		doInsertJobExpiration(manifest, options);
+
 		// Consider deleting manifests (json / index) for restarted jobs.
 		
 		try {
@@ -116,5 +121,26 @@ public class PublishManifestJobidCommandHandler implements ExternalCommandHandle
 		
 		manifest.getJob().put("start", start);
 	}
-	
+
+	/**
+	 * Insert the calculated expiration as manifest.job.expiration, when delivery.params.expiration is configured.
+	 * Same data type as manifest.job.start: an ISO-8601 dateTime string.
+	 * @param manifest
+	 * @param options
+	 */
+	private void doInsertJobExpiration(PublishJobManifest manifest, PublishJobOptions options) {
+
+		if (options.getDelivery() == null) {
+			return;
+		}
+		String expirationDays = options.getDelivery().getParams().get("expiration");
+		if (expirationDays == null) {
+			return;
+		}
+
+		String start = manifest.getJob().get("start");
+		Instant expiration = Instant.parse(start).plus(Duration.ofDays(Long.parseLong(expirationDays)));
+		manifest.getJob().put("expiration", expiration.toString());
+	}
+
 }

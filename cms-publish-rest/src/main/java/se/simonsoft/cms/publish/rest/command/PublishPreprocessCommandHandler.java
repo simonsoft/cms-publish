@@ -123,6 +123,10 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		
 		String tagStep = "preprocess";
 		Optional<String> tagCdn = Optional.empty();
+		Optional<String> tagExpiration = Optional.empty();
+		if (options.getDelivery() != null && options.getDelivery().getParams().get("expiration") != null) {
+			tagExpiration = Optional.of(options.getDelivery().getParams().get("expiration") + "d");
+		}
 
 		if (options.getType() == null) {
 			throw new IllegalArgumentException("Unsupported job type: must not be null");
@@ -192,11 +196,11 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		LinkedList<CmsExportWriter> result = new LinkedList<CmsExportWriter>();
 
 		CmsExportJob job = PublishExportJobFactory.getExportJobZip(storage, pathext);
-		setTags(job, tagStep, tagCdn, Optional.empty());
+		setTags(job, tagStep, tagCdn, Optional.empty(), tagExpiration);
 		HashMap<String, CmsExportJob> secondaryJobs = new HashMap<>();
 		for (String artifact: this.secondaryExportArtifacts) {
 			CmsExportJob sJob = PublishExportJobFactory.getExportJobZip(storage, artifact + ".zip");
-			setTags(sJob, tagStep, tagCdn, Optional.of(artifact));
+			setTags(sJob, tagStep, tagCdn, Optional.of(artifact), tagExpiration);
 			secondaryJobs.put(artifact, sJob);
 		}
 		secondaryJobs.put("manifest", PublishExportJobFactory.getExportJobSingle(storage, manifestPathext));
@@ -308,11 +312,15 @@ public class PublishPreprocessCommandHandler implements ExternalCommandHandler<P
 		}
 	}
 	
-	private void setTags(CmsExportJob job, String tagStep, Optional<String> tagCdn, Optional<String> tagArtifact) {
+	private void setTags(CmsExportJob job, String tagStep, Optional<String> tagCdn, Optional<String> tagArtifact, Optional<String> tagExpiration) {
 		// S3 accepts and understands the concept of empty tag values, represented with zero-length string.
 		job.withTagging("PublishStep", tagStep);
 		job.withTagging("PublishCdn", tagCdn.orElse(""));
 		job.withTagging("PublishArtifact", tagArtifact.orElse(""));
+		// Publications without an expiration should not carry the tag at all.
+		if (tagExpiration.isPresent()) {
+			job.withTagging("PublishExpiration", tagExpiration.get());
+		}
 	}
 
 }
