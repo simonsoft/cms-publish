@@ -16,11 +16,14 @@
 package se.simonsoft.cms.publish.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -33,6 +36,7 @@ import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -54,6 +58,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobManifest;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobProgress;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
+import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
 import se.simonsoft.cms.release.translation.TranslationTracking;
 import se.simonsoft.cms.reporting.CmsItemLookupReporting;
@@ -136,7 +141,7 @@ public class PublishStartServiceTest {
 		setUpCommonMocks(itemId, item);
 
 		PublishJob mockJob = getMinimalPublishJob();
-		when(jobFactoryMock.getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), any(String.class), anyObject(), anyObject(), anyObject(), anyObject()))
+		when(jobFactoryMock.getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), any(String.class), anyObject(), anyObject(), anyObject(), anyObject(), anyObject()))
 				.thenReturn(mockJob);
 		when(publishWebhookCommandHandlerMock.getPostPayload(any(PublishJobDelivery.class), any(PublishJobStorage.class), any(Optional.class)))
 				.thenReturn(new LinkedHashMap<String, String>());
@@ -150,6 +155,128 @@ public class PublishStartServiceTest {
 
 		LinkedHashMap<String, String> result = startService.doPublishStartItem(itemId, options);
 		assertEquals("87fdcfe6-8dd4-4276-9d22-773f6e5315b1", result.get("executionid"));
+	}
+
+	// CMS-2094: startditamap
+	
+	@Test
+	public void testStartDitamapAuthorArea() throws CommandRuntimeException {
+		
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900108.ditamap"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(9L);
+		CmsItem item = getAuthorAreaItem(itemId);
+		setUpCommonMocks(itemId, item);
+		
+		PublishJob mockJob = getMinimalPublishJob();
+		when(jobFactoryMock.getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), any(String.class), anyObject(), anyObject(), anyObject(), anyObject(), anyObject()))
+				.thenReturn(mockJob);
+		when(publishWebhookCommandHandlerMock.getPostPayload(any(PublishJobDelivery.class), any(PublishJobStorage.class), any(Optional.class)))
+				.thenReturn(new LinkedHashMap<String, String>());
+		when(publishExecutorMock.startPublishJobs(any(java.util.Set.class)))
+				.thenReturn(new HashSet<>(Collections.singletonList("arn:aws:states:eu-west-1:518993259802:execution:cms-travelonium-publish-v1:87fdcfe6-8dd4-4276-9d22-773f6e5315b1")));
+		
+		PublishStartOptions options = new PublishStartOptions();
+		options.setPublication(PUBLICATION);
+		options.setExecutionid("test-execution-id");
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
+		
+		LinkedHashMap<String, String> result = startService.doPublishStartItem(itemId, options);
+		assertEquals("87fdcfe6-8dd4-4276-9d22-773f6e5315b1", result.get("executionid"));
+		
+		ArgumentCaptor<PublishProfilingRecipe> profiling = ArgumentCaptor.forClass(PublishProfilingRecipe.class);
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Optional<String>> startDitamap = ArgumentCaptor.forClass(Optional.class);
+		verify(jobFactoryMock).getPublishJob(any(CmsItemPublish.class), any(PublishConfig.class), eq(PUBLICATION), profiling.capture(), anyObject(), anyObject(), anyObject(), startDitamap.capture());
+		assertEquals(Optional.of(PublishJobFactoryStartDitamapTest.DITAMAP), startDitamap.getValue());
+		// Counts as a start* option: profiling name is the execution nonce (unique storage path).
+		assertEquals("test-execution-id", profiling.getValue().getName());
+		// Not added to manifest.custom.
+		assertNull(mockJob.getOptions().getManifest().getCustom());
+	}
+	
+	@Test
+	public void testStartDitamapSizeLimit() {
+		
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900108.ditamap"));
+		CmsItemId itemId = itemIdArg.withPegRev(9L);
+		
+		StringBuilder sb = new StringBuilder("<map>");
+		while (sb.length() <= 100 * 1024) {
+			sb.append("<topicref href=\"x-svn:///svn/demo1^/vvab/xml/topics/a.dita#a\"/>");
+		}
+		sb.append("</map>");
+		
+		PublishStartOptions options = new PublishStartOptions();
+		options.setPublication(PUBLICATION);
+		options.setExecutionid("test-execution-id");
+		options.setStartditamap(sb.toString());
+		
+		try {
+			startService.doPublishStartItem(itemId, options);
+			fail("Expected IllegalArgumentException for startditamap exceeding the size limit.");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage(), e.getMessage().contains("startditamap size exceeds"));
+		}
+	}
+	
+	@Test
+	public void testStartDitamapRejectedForTranslation() {
+		
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/documents/900277.ditamap"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg;
+		CmsItem item = getTranslationItem(itemId, "en-GB", "[{\"name\":\"osx\",\"logicalexpr\":\"%20\"}]");
+		setUpCommonMocks(itemId, item);
+		
+		PublishStartOptions options = new PublishStartOptions();
+		options.setPublication(PUBLICATION);
+		options.setExecutionid("test-execution-id");
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
+		
+		try {
+			startService.doPublishStartItem(itemId, options);
+			fail("Expected IllegalArgumentException for startditamap on a Translation.");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage(), e.getMessage().contains("Author Area ditamap"));
+		}
+	}
+	
+	@Test
+	public void testStartDitamapRejectedForTopic() {
+		
+		CmsItemIdArg itemIdArg = new CmsItemIdArg(new CmsRepository("/svn", "demo1"), new CmsItemPath("/vvab/xml/topics/a.dita"));
+		itemIdArg.setHostname("ubuntu-cheftest1.pdsvision.net");
+		CmsItemId itemId = itemIdArg.withPegRev(9L);
+		CmsItem item = getAuthorAreaItem(itemId);
+		setUpCommonMocks(itemId, item);
+		
+		PublishStartOptions options = new PublishStartOptions();
+		options.setPublication(PUBLICATION);
+		options.setExecutionid("test-execution-id");
+		options.setStartditamap(PublishJobFactoryStartDitamapTest.DITAMAP);
+		
+		try {
+			startService.doPublishStartItem(itemId, options);
+			fail("Expected IllegalArgumentException for startditamap on a topic.");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage(), e.getMessage().contains("Author Area ditamap"));
+		}
+	}
+	
+	@Test
+	public void testStartDitamapJsonOption() throws Exception {
+		PublishStartOptions options = mapper.readValue("{\"publication\":\"preview\",\"startditamap\":\"<map/>\"}", PublishStartOptions.class);
+		assertEquals("<map/>", options.getStartditamap());
+	}
+	
+	private CmsItem getAuthorAreaItem(CmsItemId itemId) {
+		CmsItem.MetaCms item = mock(CmsItem.MetaCms.class);
+		when(item.getId()).thenReturn(itemId);
+		CmsItemPropertiesMap props = new CmsItemPropertiesMap("cms:status", "In_Work");
+		when(item.getProperties()).thenReturn(props);
+		when(item.getMeta()).thenReturn(new HashMap<String, Object>());
+		return item;
 	}
 
 	private void setUpCommonMocks(CmsItemId itemId, CmsItem item) {
