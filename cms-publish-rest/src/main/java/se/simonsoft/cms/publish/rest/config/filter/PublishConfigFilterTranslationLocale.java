@@ -47,12 +47,13 @@ public class PublishConfigFilterTranslationLocale implements PublishConfigFilter
 	
 	public static boolean isLocaleIncluded(PublishConfig config, String locale) {
 		
+		if (locale == null) {
+			throw new IllegalArgumentException("Translation must have a TranslationLocale");
+		}
+		
 		List<String> include = config.getTranslationLocaleInclude();
 		if (include == null || include.isEmpty()) {
 			return true;
-		}
-		if (locale == null) {
-			return false; // Translation without locale is not included when a list is configured.
 		}
 		return include.contains(locale);
 	}
