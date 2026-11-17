@@ -228,6 +228,64 @@ public class PublishConfigFilterTest {
 	
 	
 	@Test
+	public void testTranslationLocaleFilter() throws Exception {
+		PublishConfig publishConfig = getConfigJsonTestData(pathConfigSimple);
+		PublishConfigFilter filter = new PublishConfigFilterTranslationLocale();
+
+		CmsItem itemMockRelease = mock(CmsItem.class);
+		CmsItemPropertiesMap propsRelease = new CmsItemPropertiesMap("cms:status", "Released");
+		propsRelease.and("abx:ReleaseLabel", "B");
+		propsRelease.and("abx:ReleaseLocale", "en-GB");
+		propsRelease.and("abx:AuthorMaster", "Bogus");
+		propsRelease.and("abx:ReleaseMaster", "Bogus");
+		when(itemMockRelease.getProperties()).thenReturn(propsRelease);
+		CmsItemPublish release = new CmsItemPublish(itemMockRelease);
+
+		CmsItemPublish translationDe = new CmsItemPublish(mockTranslation("de-DE"));
+		CmsItemPublish translationSv = new CmsItemPublish(mockTranslation("sv-SE"));
+
+		// Not configured: all accepted.
+		assertEquals(null, publishConfig.getTranslationLocaleInclude());
+		assertTrue(filter.accept(publishConfig, release));
+		assertTrue(filter.accept(publishConfig, translationDe));
+		assertTrue(filter.accept(publishConfig, translationSv));
+
+		// Empty list: all accepted.
+		publishConfig.setTranslationLocaleInclude(new ArrayList<String>());
+		assertTrue(filter.accept(publishConfig, release));
+		assertTrue(filter.accept(publishConfig, translationDe));
+		assertTrue(filter.accept(publishConfig, translationSv));
+
+		// Configured: Release always accepted, Translations filtered (exact match).
+		publishConfig.setTranslationLocaleInclude(java.util.Arrays.asList("sv-SE", "fr-FR"));
+		assertTrue(filter.accept(publishConfig, release));
+		assertFalse(filter.accept(publishConfig, translationDe));
+		assertTrue(filter.accept(publishConfig, translationSv));
+
+		publishConfig.setTranslationLocaleInclude(java.util.Arrays.asList("sv-se"));
+		assertFalse("exact match", filter.accept(publishConfig, translationSv));
+	}
+
+	@Test
+	public void testTranslationLocaleJacksonParse() throws Exception {
+		PublishConfig publishConfig = reader.readValue("{\"translationLocaleInclude\":[\"de-DE\"]}");
+		assertEquals(1, publishConfig.getTranslationLocaleInclude().size());
+		assertEquals("de-DE", publishConfig.getTranslationLocaleInclude().get(0));
+	}
+
+	private CmsItem mockTranslation(String locale) {
+		CmsItem itemMockTranslation = mock(CmsItem.class);
+		CmsItemPropertiesMap propsTranslation = new CmsItemPropertiesMap("cms:status", "Released");
+		propsTranslation.and("abx:ReleaseLabel", "B");
+		propsTranslation.and("abx:TranslationLocale", locale);
+		propsTranslation.and("abx:AuthorMaster", "Bogus");
+		propsTranslation.and("abx:TranslationMaster", "Bogus");
+		when(itemMockTranslation.getProperties()).thenReturn(propsTranslation);
+		return itemMockTranslation;
+	}
+
+
+	@Test
 	public void testTypeFilter() throws Exception {
 		PublishConfig publishConfig = getConfigJsonTestData(pathConfigType);
 		PublishConfigFilter filter = new PublishConfigFilterType();
