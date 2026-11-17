@@ -33,6 +33,7 @@ import se.simonsoft.cms.item.CmsItemId;
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfig;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
 import se.simonsoft.cms.publish.config.item.CmsItemPublish;
+import se.simonsoft.cms.publish.rest.config.filter.PublishConfigFilterTranslationLocale;
 import se.simonsoft.cms.release.ReleaseLabel;
 import se.simonsoft.cms.release.translation.CmsItemTranslation;
 import se.simonsoft.cms.release.translation.TranslationTracking;
@@ -102,14 +103,14 @@ public class PublishPackageFactory {
 		}
 
 		if (includeTranslations) {
-			List<CmsItem> translationItems = getTranslationItems(itemId, publishConfig);
+			List<CmsItemPublish> translationItems = getTranslationItems(itemId, publishConfig);
 			if (translationItems.isEmpty()) {
-				// NOTE: Adjust message if the filtering in getTranslationItems does additional aspects in the future, could add "etc" after "status". 
-				logger.info("Translations requested, no translations found matching the configured status.");
+				// NOTE: Adjust message if the filtering in getTranslationItems does additional aspects in the future.
+				logger.info("Translations requested, no translations found matching the configured status and locale.");
 				// #1580 No longer throwing exception, the UI is now much clearer and exception is incompatible with PublishPackageCommandHandler.
 				//throw new IllegalArgumentException("Translations requested, no translations found matching the configured status.");
 			}
-			translationItems.forEach(translationItem -> items.add(new CmsItemPublish(translationItem)));
+			items.addAll(translationItems);
 		}
 
 		final LinkedHashSet<CmsItemPublish> publishedItems = new LinkedHashSet<>();
@@ -177,7 +178,7 @@ public class PublishPackageFactory {
 	}
 
 	
-	private List<CmsItem> getTranslationItems(CmsItemId itemId, PublishConfig publishConfig) {
+	private List<CmsItemPublish> getTranslationItems(CmsItemId itemId, PublishConfig publishConfig) {
 		final List<CmsItemTranslation> translations = translationTracking.getTranslations(itemId); // Using deprecated method until TODO in translationTracking is resolved.
 
 		logger.debug("Found {} translations.", translations.size());
@@ -192,19 +193,22 @@ public class PublishPackageFactory {
 			statusInclude = null;
 		}
 
-		List<CmsItem> items = new ArrayList<CmsItem>();
+		List<CmsItemPublish> items = new ArrayList<CmsItemPublish>();
 		for (CmsItemTranslation t : translations) {
 			// The CmsItemTranslation is now backed by a full CmsItem. 
 			// However, it is a head item and the PublishPackage should contain revision items.
 			// The getTranslation() method returns a CmsItemId with peg rev, as it has always done. 
-			CmsItem tItem = lookupReporting.getItem(t.getTranslation());
-			// Filter Translations with status not included by the PublishConfiguration.
+			CmsItemPublish tItem = new CmsItemPublish(lookupReporting.getItem(t.getTranslation()));
+			// Filter Translations with status or locale not included by the PublishConfiguration.
 			// Currently not filtering on other aspects, would likely indicate configuration mismatch (user should get a failure).
-			if (statusInclude == null || statusInclude.contains(tItem.getStatus())) {
+			if (statusInclude != null && !statusInclude.contains(tItem.getStatus())) {
+				logger.debug("Publish excluding Translation (status = {}): {}", tItem.getStatus(), tItem.getId());
+			} else if (publishConfig != null && !PublishConfigFilterTranslationLocale.isLocaleIncluded(publishConfig, tItem.getTranslationLocale())) {
+				// #1683 Translations with locale not included are silently excluded (not a configuration mismatch).
+				logger.debug("Publish excluding Translation (locale not included): {}", tItem.getId());
+			} else {
 				logger.debug("Publish including Translation: {}", tItem.getId());
 				items.add(tItem);
-			} else {
-				logger.debug("Publish excluding Translation (status = {}): {}", tItem.getStatus(), tItem.getId());
 			}
 		}
 		return items;
