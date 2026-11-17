@@ -264,6 +264,11 @@ public class PublishConfigFilterTest {
 
 		publishConfig.setTranslationLocaleInclude(java.util.Arrays.asList("sv-se"));
 		assertFalse("exact match", filter.accept(publishConfig, translationSv));
+		
+		// Null locale: included only when no list is configured.
+		assertFalse(PublishConfigFilterTranslationLocale.isLocaleIncluded(publishConfig, null));
+		publishConfig.setTranslationLocaleInclude(null);
+		assertTrue(PublishConfigFilterTranslationLocale.isLocaleIncluded(publishConfig, null));
 	}
 
 	@Test
