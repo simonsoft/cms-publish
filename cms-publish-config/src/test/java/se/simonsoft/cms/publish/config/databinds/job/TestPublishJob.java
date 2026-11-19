@@ -36,6 +36,7 @@ import se.simonsoft.cms.publish.config.databinds.job.PublishJobOptions;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobPostProcess;
 import se.simonsoft.cms.publish.config.databinds.job.PublishJobStorage;
 import se.simonsoft.cms.publish.config.databinds.profiling.PublishProfilingRecipe;
+import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 
 public class TestPublishJob {
 	private static ObjectReader reader;
@@ -45,6 +46,22 @@ public class TestPublishJob {
 	@BeforeClass
 	public static void setUp() {
 		reader = mapper.reader(PublishJob.class);
+	}
+
+	@Test
+	public void testJobStorageDoesNotModifySharedConfiguration() {
+		PublishConfigStorage config = new PublishConfigStorage();
+		config.setType("s3");
+		config.getParams().put("custom", "preserved");
+		PublishJobStorage first = new PublishJobStorage(config);
+		PublishJobStorage second = new PublishJobStorage(config);
+		first.getParams().put("s3urlbase", "s3://bucket/first/");
+		second.getParams().put("s3urlbase", "s3://bucket/second/");
+		assertEquals("s3://bucket/first/", first.getParams().get("s3urlbase"));
+		assertEquals("s3://bucket/second/", second.getParams().get("s3urlbase"));
+		assertEquals(Map.of("custom", "preserved"), config.getParams());
+		assertEquals("preserved", first.getParams().get("custom"));
+		assertEquals("s3", first.getType());
 	}
 
 	@Test
