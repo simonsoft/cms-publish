@@ -30,6 +30,7 @@ public class PublishStartOptions {
 	private PublishProfilingRecipe startprofiling;
 	private LinkedHashMap<String, String> startcustom; // Override manifest.custom on a field-by-field basis. Validate max length in the service, alternatively size of the whole options JSON.
 	private String startpathname; // Validate max length in the service.
+	private String startditamap; // CMS-2094: Ditamap replacing the committed ditamap (Author Area). Routed to preprocess params, not manifest. Validate max length in the service.
 
 	private String executionid; // Added by the REST Service / Step Functions definition.
 
@@ -81,6 +82,14 @@ public class PublishStartOptions {
 
 	public void setStartpathname(String startpathname) {
 		this.startpathname = startpathname;
+	}
+
+	public String getStartditamap() {
+		return startditamap;
+	}
+
+	public void setStartditamap(String startditamap) {
+		this.startditamap = startditamap;
 	}
 
 	public String getExecutionid() {

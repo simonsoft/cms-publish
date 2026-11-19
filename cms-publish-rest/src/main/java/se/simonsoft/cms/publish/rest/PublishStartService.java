@@ -15,6 +15,7 @@
  */
 package se.simonsoft.cms.publish.rest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import javax.inject.Inject;
@@ -47,6 +48,7 @@ public class PublishStartService {
 	private static final int MAX_START_PATH_NAME_SIZE = 100;
 	private static final int MAX_START_CUSTOM_NAME_SIZE = 100 * 1024;
 	private static final int MAX_START_PROFILING_SIZE = 100 * 1024;
+	private static final int MAX_START_DITAMAP_SIZE = 100 * 1024;
 	private final PublishWebhookCommandHandler publishWebhookCommandHandler;
 	private final CmsItemLookupReporting lookupReporting;
 	private final TranslationTracking translationTracking;
@@ -107,6 +109,15 @@ public class PublishStartService {
 				}
 			} catch (JsonProcessingException e) {
 				throw new IllegalArgumentException("Failed to serialize the startprofiling.", e);
+			}
+		}
+
+		if (options.getStartditamap() != null) {
+			if (options.getStartditamap().isBlank()) {
+				throw new IllegalArgumentException("The startditamap must not be empty.");
+			}
+			if (options.getStartditamap().getBytes(StandardCharsets.UTF_8).length > MAX_START_DITAMAP_SIZE) {
+				throw new IllegalArgumentException(String.format("The startditamap size exceeds the %d bytes limit.", MAX_START_DITAMAP_SIZE));
 			}
 		}
 
@@ -200,6 +211,14 @@ public class PublishStartService {
 			logger.debug("Publish start Author Area item: {} - {}", itemId, itemPublish.getId());
 		}
 
+		// CMS-2094: A supplied ditamap replaces the committed ditamap of an Author Area ditamap.
+		// Consider supporting a supplied ditamap for Release / Translation as well in the future (requires support in ReleaseExportXsl).
+		if (options.getStartditamap() != null) {
+			if (itemPublish.isRelease() || itemPublish.isTranslation() || !"ditamap".equals(itemPublish.getId().getRelPath().getExtension())) {
+				throw new IllegalArgumentException("The startditamap requires an Author Area ditamap: " + itemPublish.getId());
+			}
+		}
+
 		// Validate that publishconfig actually applies to itemPublish (e.g. does the Translation have the correct status).
 		if (!isPublishConfigurationValid(itemPublish, options.getPublication())) {
 			String msg = String.format("Publish start config '%s' not valid for item: %s", options.getPublication(), itemPublish.getId());
@@ -245,7 +264,7 @@ public class PublishStartService {
 
 		// Need specific scenariotest setting 'startcustom' but not 'startprofiling'.
 		// Set profilingRecipe.name to executionid if any of the start* parameters are provided (even if profilingRecipe == null).
-		if (options.getStartpathname() != null || options.getStartprofiling() != null || (options.getStartcustom() != null && options.getStartcustom().size() > 0)) {
+		if (options.getStartpathname() != null || options.getStartprofiling() != null || (options.getStartcustom() != null && options.getStartcustom().size() > 0) || options.getStartditamap() != null) {
 			if (profilingRecipe == null) {
 				profilingRecipe = new PublishProfilingRecipe(options.getExecutionid(), new HashMap<>());
 			} else {
@@ -257,7 +276,7 @@ public class PublishStartService {
 			profilingRecipe.validateFilter();
 		}
 
-		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()), Optional.ofNullable(options.getStartcustom()));
+		PublishJob job = jobFactory.getPublishJob(itemPublish, config, options.getPublication(), profilingRecipe, localesRfc, Optional.ofNullable(options.getStartpathname()), Optional.ofNullable(options.getStartcustom()), Optional.ofNullable(options.getStartditamap()));
 
 		PublishJobManifest manifest = job.getOptions().getManifest();
 		if (options.getStartcustom() != null) {

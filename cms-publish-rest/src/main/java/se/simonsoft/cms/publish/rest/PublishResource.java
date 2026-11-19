@@ -297,7 +297,7 @@ public class PublishResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
 	// Add some repo parameter if we absolutely need a query parameter in the future.
-	public Response doStartItemHtmx(@FormParam("item") CmsItemIdArg itemId, @FormParam("rev") Long rev, @FormParam("publication") final String publication, @FormParam("returnpath") String returnPath) {
+	public Response doStartItemHtmx(@FormParam("item") CmsItemIdArg itemId, @FormParam("rev") Long rev, @FormParam("publication") final String publication, @FormParam("returnpath") String returnPath, @FormParam("startditamap") String startDitamap) {
 		
 		logger.debug("Start publication requested with item: {} and returnpath: '{}'", itemId, returnPath);
 		
@@ -320,6 +320,10 @@ public class PublishResource {
 		PublishStartOptions options = new PublishStartOptions();
 		options.setExecutionid(uuid.toString());
         options.setPublication(publication);
+		// CMS-2094: Optional ditamap replacing the committed ditamap.
+		if (startDitamap != null && !startDitamap.isBlank()) {
+			options.setStartditamap(startDitamap);
+		}
 
 		LinkedHashMap<String, String> result = publishStartService.get(itemId.getRepository()).doPublishStartItem(itemIdRev, options);
 		logger.info("Started item publish: {}", result.get("executionid"));
