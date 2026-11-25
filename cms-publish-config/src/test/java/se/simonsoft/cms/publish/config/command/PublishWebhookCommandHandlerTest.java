@@ -131,16 +131,15 @@ public class PublishWebhookCommandHandlerTest {
 	}
 	
 	@Test
-	public void testFailureMasked() {
-		// Invalid header value (newline) makes the HTTP client throw, message must not contain the secret.
+	public void testInvalidSecretNotSent() {
+		// Invalid header value (newline) would make the HTTP client report the value, rejected by the resolver.
 		PublishWebhookSecrets secrets = new PublishWebhookSecretResolverTest.SecretsMap().with("ACME_TOKEN", "s3cr3t\nX-Injected: 1", null);
 		try {
 			getHandler(secrets).handleExternalCommand(null, getOptions(getUrl(), "Bearer {secrets:ACME_TOKEN}"));
 			fail("Expected CommandRuntimeException");
 		} catch (CommandRuntimeException e) {
-			assertEquals("WebhookFailed", e.getErrorName());
+			assertEquals(PublishWebhookSecretResolver.ERROR_NAME, e.getErrorName());
 			assertFalse(e.getMessage(), e.getMessage().contains("s3cr3t"));
-			assertTrue(e.getCause() == null);
 		}
 		assertTrue(received.isEmpty());
 	}

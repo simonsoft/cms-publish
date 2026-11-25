@@ -16,17 +16,11 @@
 package se.simonsoft.cms.publish.config.command;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import se.simonsoft.cms.item.command.CommandRuntimeException;
 
@@ -42,9 +36,11 @@ import se.simonsoft.cms.item.command.CommandRuntimeException;
  * <li>Header values without <code>{secrets:</code> are passed through unchanged.</li>
  * <li>A header value with a placeholder must not contain any other '{' or '}' (Qute compatibility).</li>
  * <li>Unknown secret name fails, never resolves to empty string.</li>
+ * <li>Secret values with control characters fail, ensures the HTTP client never reports the value in an error message.</li>
  * <li>If the secret is bound to a host, the webhook URL host must match exactly (case-insensitive).</li>
  * <li>Single pass, resolved values are never scanned for placeholders.</li>
  * </ul>
+ * Error messages never contain secret values.
  */
 public class PublishWebhookSecretResolver {
 	
@@ -52,8 +48,6 @@ public class PublishWebhookSecretResolver {
 	
 	static final String PLACEHOLDER_START = "{secrets:";
 	static final Pattern PLACEHOLDER = Pattern.compile("\\{secrets:([A-Za-z0-9_]+)\\}");
-	
-	static final String MASK = "***";
 	
 	private final PublishWebhookSecrets secrets;
 	
@@ -64,28 +58,25 @@ public class PublishWebhookSecretResolver {
 	/**
 	 * @param headers header values, possibly with placeholders, not modified
 	 * @param url the webhook URL, used for host binding
-	 * @return resolved headers and the secret values used (for masking)
+	 * @return new map with resolved header values, must not be logged
 	 */
-	public Resolved resolveHeaders(Map<String, String> headers, String url) {
+	public Map<String, String> resolveHeaders(Map<String, String> headers, String url) {
 		
-		LinkedHashMap<String, String> result = new LinkedHashMap<>();
-		Set<String> values = new LinkedHashSet<>();
+		Map<String, String> result = new LinkedHashMap<>();
 		if (headers == null) {
-			return new Resolved(result, values);
+			return result;
 		}
-		
 		for (Entry<String, String> e: headers.entrySet()) {
 			String value = e.getValue();
 			if (value != null && value.contains(PLACEHOLDER_START)) {
-				value = resolveValue(e.getKey(), value, url, values);
+				value = resolveValue(e.getKey(), value, url);
 			}
 			result.put(e.getKey(), value);
 		}
-		return new Resolved(result, values);
+		return result;
 	}
 	
-	
-	private String resolveValue(String headerName, String template, String url, Set<String> values) {
+	private String resolveValue(String headerName, String template, String url) {
 		
 		// Qute compatibility: no other expressions or braces than the supported placeholders.
 		String remaining = PLACEHOLDER.matcher(template).replaceAll("");
@@ -96,29 +87,40 @@ public class PublishWebhookSecretResolver {
 		Matcher m = PLACEHOLDER.matcher(template);
 		StringBuilder sb = new StringBuilder();
 		while (m.find()) {
-			String secret = getSecret(m.group(1), url);
-			values.add(secret);
-			m.appendReplacement(sb, Matcher.quoteReplacement(secret));
+			m.appendReplacement(sb, Matcher.quoteReplacement(getSecretValue(m.group(1), url)));
 		}
 		m.appendTail(sb);
 		return sb.toString();
 	}
 	
-	private String getSecret(String name, String url) {
+	private String getSecretValue(String name, String url) {
 		
-		String secret = secrets.getSecret(name);
-		if (secret == null || secret.isEmpty()) {
+		PublishWebhookSecret secret = secrets.getSecret(name);
+		if (secret == null || secret.getValue() == null || secret.getValue().isEmpty()) {
 			throw new CommandRuntimeException(ERROR_NAME, "Webhook secret is not configured: " + name);
 		}
+		if (!isValidHeaderValue(secret.getValue())) {
+			throw new CommandRuntimeException(ERROR_NAME, "Webhook secret contains control characters: " + name);
+		}
 		
-		String host = secrets.getSecretHost(name);
+		String host = secret.getHost();
 		if (host != null && !host.isBlank()) {
 			String urlHost = getHost(url);
 			if (urlHost == null || !host.trim().equalsIgnoreCase(urlHost)) {
 				throw new CommandRuntimeException(ERROR_NAME, "Webhook secret '" + name + "' is not allowed for host: " + urlHost);
 			}
 		}
-		return secret;
+		return secret.getValue();
+	}
+	
+	static boolean isValidHeaderValue(String value) {
+		for (int i = 0; i < value.length(); i++) {
+			char c = value.charAt(i);
+			if ((c < 0x20 && c != '\t') || c == 0x7F) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	static String getHost(String url) {
@@ -129,47 +131,6 @@ public class PublishWebhookSecretResolver {
 			return URI.create(url).getHost();
 		} catch (IllegalArgumentException e) {
 			return null;
-		}
-	}
-	
-	
-	public static class Resolved {
-		
-		private final Map<String, String> headers;
-		private final List<String> values;
-		
-		Resolved(Map<String, String> headers, Set<String> values) {
-			this.headers = Collections.unmodifiableMap(headers);
-			// Longest first, in case one secret is a substring of another.
-			this.values = values.stream()
-					.sorted(Comparator.comparingInt(String::length).reversed())
-					.collect(Collectors.toUnmodifiableList());
-		}
-		
-		public Map<String, String> getHeaders() {
-			return headers;
-		}
-		
-		/**
-		 * @return true if any secret was resolved
-		 */
-		public boolean hasSecrets() {
-			return !values.isEmpty();
-		}
-		
-		/**
-		 * @param message e.g. an exception message
-		 * @return the message with all resolved secret values replaced by {@value PublishWebhookSecretResolver#MASK}
-		 */
-		public String mask(String message) {
-			if (message == null) {
-				return null;
-			}
-			String result = message;
-			for (String v: values) {
-				result = result.replace(v, MASK);
-			}
-			return result;
 		}
 	}
 	

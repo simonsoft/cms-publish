@@ -25,14 +25,8 @@ public interface PublishWebhookSecrets {
 
 	/**
 	 * @param name secret name, matching <code>[A-Za-z0-9_]+</code>
-	 * @return the secret value, null if no secret is configured with that name
+	 * @return the secret, null if no secret is configured with that name
 	 */
-	String getSecret(String name);
-	
-	/**
-	 * @param name secret name, matching <code>[A-Za-z0-9_]+</code>
-	 * @return the only webhook URL host the secret may be sent to, null if not restricted
-	 */
-	String getSecretHost(String name);
+	PublishWebhookSecret getSecret(String name);
 	
 }

@@ -45,13 +45,11 @@ public class PublishWebhookSecretResolverTest {
 		}
 		
 		@Override
-		public String getSecret(String name) {
-			return values.get(name);
-		}
-
-		@Override
-		public String getSecretHost(String name) {
-			return hosts.get(name);
+		public PublishWebhookSecret getSecret(String name) {
+			if (!values.containsKey(name)) {
+				return null;
+			}
+			return new PublishWebhookSecret(values.get(name), hosts.get(name));
 		}
 	}
 	
@@ -80,17 +78,13 @@ public class PublishWebhookSecretResolverTest {
 		h.put("X-Json", "{\"a\": \"b\"}");
 		h.put("X-Space", "{ secrets:A}"); // Not a Qute expression (whitespace), literal text.
 		
-		PublishWebhookSecretResolver.Resolved r = resolver.resolveHeaders(h, URL);
-		assertEquals(h, r.getHeaders());
-		assertFalse(r.hasSecrets());
+		assertEquals(h, resolver.resolveHeaders(h, URL));
 	}
 	
 	@Test
 	public void testNullHeaders() {
 		PublishWebhookSecretResolver resolver = new PublishWebhookSecretResolver(new SecretsMap());
-		PublishWebhookSecretResolver.Resolved r = resolver.resolveHeaders(null, URL);
-		assertTrue(r.getHeaders().isEmpty());
-		assertFalse(r.hasSecrets());
+		assertTrue(resolver.resolveHeaders(null, URL).isEmpty());
 	}
 	
 	@Test
@@ -102,11 +96,10 @@ public class PublishWebhookSecretResolverTest {
 		h.put("X-Combined", "{secrets:USER}:{secrets:ACME_TOKEN}");
 		h.put("X-Other", "plain");
 		
-		PublishWebhookSecretResolver.Resolved r = resolver.resolveHeaders(h, URL);
-		assertEquals("Bearer s3cr3t", r.getHeaders().get("Authorization"));
-		assertEquals("u$er\\1:s3cr3t", r.getHeaders().get("X-Combined"));
-		assertEquals("plain", r.getHeaders().get("X-Other"));
-		assertTrue(r.hasSecrets());
+		Map<String, String> r = resolver.resolveHeaders(h, URL);
+		assertEquals("Bearer s3cr3t", r.get("Authorization"));
+		assertEquals("u$er\\1:s3cr3t", r.get("X-Combined"));
+		assertEquals("plain", r.get("X-Other"));
 		// Input not modified.
 		assertEquals("Bearer {secrets:ACME_TOKEN}", h.get("Authorization"));
 	}
@@ -115,8 +108,7 @@ public class PublishWebhookSecretResolverTest {
 	public void testSinglePass() {
 		SecretsMap secrets = new SecretsMap().with("A", "{secrets:B}", null).with("B", "b", null);
 		PublishWebhookSecretResolver resolver = new PublishWebhookSecretResolver(secrets);
-		PublishWebhookSecretResolver.Resolved r = resolver.resolveHeaders(headers("X", "{secrets:A}"), URL);
-		assertEquals("{secrets:B}", r.getHeaders().get("X"));
+		assertEquals("{secrets:B}", resolver.resolveHeaders(headers("X", "{secrets:A}"), URL).get("X"));
 	}
 	
 	@Test
@@ -142,8 +134,8 @@ public class PublishWebhookSecretResolverTest {
 		SecretsMap secrets = new SecretsMap().with("A", "a", "api.example.com");
 		PublishWebhookSecretResolver resolver = new PublishWebhookSecretResolver(secrets);
 		
-		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), URL).getHeaders().get("X"));
-		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), "https://API.Example.com:8443/x?y=z").getHeaders().get("X"));
+		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), URL).get("X"));
+		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), "https://API.Example.com:8443/x?y=z").get("X"));
 		
 		CommandRuntimeException e = assertFails(resolver, headers("X", "{secrets:A}"), "https://attacker.example.net/");
 		assertTrue(e.getMessage(), e.getMessage().contains("attacker.example.net"));
@@ -157,19 +149,18 @@ public class PublishWebhookSecretResolverTest {
 	@Test
 	public void testUnboundSecretAnyHost() {
 		PublishWebhookSecretResolver resolver = new PublishWebhookSecretResolver(new SecretsMap().with("A", "a", null));
-		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), "https://any.example.net/").getHeaders().get("X"));
+		assertEquals("a", resolver.resolveHeaders(headers("X", "{secrets:A}"), "https://any.example.net/").get("X"));
 	}
 	
 	@Test
-	public void testMask() {
-		SecretsMap secrets = new SecretsMap().with("A", "abc", null).with("B", "abcdef", null);
+	public void testControlCharacters() {
+		SecretsMap secrets = new SecretsMap().with("NL", "s3cr3t\nX-Injected: 1", null).with("DEL", "s3cr3t\u007F", null).with("TAB", "a\tb", null);
 		PublishWebhookSecretResolver resolver = new PublishWebhookSecretResolver(secrets);
-		Map<String, String> h = new LinkedHashMap<>();
-		h.put("X", "{secrets:A}");
-		h.put("Y", "{secrets:B}");
-		PublishWebhookSecretResolver.Resolved r = resolver.resolveHeaders(h, URL);
-		assertEquals("value *** and ***", r.mask("value abcdef and abc"));
-		assertEquals(null, r.mask(null));
+		CommandRuntimeException e = assertFails(resolver, headers("X", "{secrets:NL}"), URL);
+		assertTrue(e.getMessage(), e.getMessage().contains("NL"));
+		assertFalse(e.getMessage(), e.getMessage().contains("s3cr3t"));
+		assertFails(resolver, headers("X", "{secrets:DEL}"), URL);
+		assertEquals("a\tb", resolver.resolveHeaders(headers("X", "{secrets:TAB}"), URL).get("X"));
 	}
 	
 }
