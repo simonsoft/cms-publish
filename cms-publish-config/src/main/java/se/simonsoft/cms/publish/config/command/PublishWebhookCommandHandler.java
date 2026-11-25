@@ -63,6 +63,7 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 	private final Long expiryMinutes;
 	private final HttpClient httpClient;
 	private final CmsExportUrlPresigner presigner;
+	private final PublishWebhookSecretResolver secretResolver;
 
 	private final String archiveExt = "zip";
 	private final String manifestExt = "json";
@@ -73,11 +74,13 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 	public PublishWebhookCommandHandler(
 						@Named("config:se.simonsoft.cms.publish.webhook.expiry") Long expiryMinutes,
 						@Named("config:se.simonsoft.cms.publish.export") CmsExportProvider exportProvider, 
-						@Named("config:se.simonsoft.cms.publish.webhook") HttpClient httpClient) {
+						@Named("config:se.simonsoft.cms.publish.webhook") HttpClient httpClient,
+						PublishWebhookSecrets secrets) {
 		
 		this.expiryMinutes = expiryMinutes;
 		this.httpClient = httpClient;
 		this.presigner = exportProvider.getUrlPresigner();
+		this.secretResolver = new PublishWebhookSecretResolver(secrets);
 	}
 	
 	@Override
@@ -109,14 +112,24 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 		logger.debug("WebhookCommandHandler endpoint: {}", delivery.getParams().get("url"));
 		LinkedHashMap<String, String> postParams = getPostPayload(delivery, storage, Optional.of(options.getProgress()));
 		
+		// CMS-2117: Resolve secret placeholders at send time, never stored in config / job.
+		// Resolved header values must never be logged.
+		PublishWebhookSecretResolver.Resolved resolved = secretResolver.resolveHeaders(delivery.getHeaders(), delivery.getParams().get("url"));
+		
 		// TODO: Consider writing a HttpResponse BodyHandler which retrieves the body if contentlength is short (see TSP-webhook).
 		HttpResponse<Void> response;
 		try {
-			response = makeRequest(delivery.getParams().get("url"), delivery.getHeaders(), getPostBody(postParams), getPostContentType());
+			response = makeRequest(delivery.getParams().get("url"), resolved.getHeaders(), getPostBody(postParams), getPostContentType());
 		} catch (HttpTimeoutException e) {
 			logger.warn("Webhook Socket Timeout: " + delivery.getParams().get("url"));
-			throw new CommandRuntimeException("WebhookRequestTimeout", e.getMessage());
+			throw new CommandRuntimeException("WebhookRequestTimeout", resolved.mask(e.getMessage()));
 		} catch (Exception e) {
+			if (resolved.hasSecrets()) {
+				// Exception messages (also of causes) might contain header values, not logging the stack trace.
+				String message = resolved.mask(getMessages(e));
+				logger.warn("Webhook connect failed: {}", message);
+				throw new CommandRuntimeException("WebhookFailed", message);
+			}
 			logger.warn("Webhook connect failed: {}", e.getMessage(), e);
 			throw new CommandRuntimeException("WebhookFailed", e);
 		}
@@ -134,6 +147,18 @@ public class PublishWebhookCommandHandler implements ExternalCommandHandler<Publ
 			throw new CommandRuntimeException("WebhookFailed");
 		}
 		return null;
+	}
+	
+	private static String getMessages(Throwable e) {
+		StringBuilder sb = new StringBuilder();
+		int depth = 0;
+		for (Throwable t = e; t != null && depth < 10; t = t.getCause(), depth++) {
+			if (sb.length() > 0) {
+				sb.append(" - ");
+			}
+			sb.append(t.getClass().getName()).append(": ").append(t.getMessage());
+		}
+		return sb.toString();
 	}
 	
 	private HttpResponse<Void> makeRequest(String url, Map<String,String> headers, BodyPublisher body, String contentType) throws IOException {
