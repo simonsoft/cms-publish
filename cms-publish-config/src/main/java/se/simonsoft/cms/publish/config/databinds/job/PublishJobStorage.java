@@ -15,6 +15,8 @@
  */
 package se.simonsoft.cms.publish.config.databinds.job;
 
+import java.util.LinkedHashMap;
+
 import se.simonsoft.cms.publish.config.databinds.config.PublishConfigStorage;
 
 public class PublishJobStorage extends PublishConfigStorage {
@@ -47,7 +49,8 @@ public class PublishJobStorage extends PublishConfigStorage {
 	public PublishJobStorage(PublishConfigStorage config) {
 		
 		if (config != null) {
-			setParams(config.getParams());
+			// The factory adds job-specific URLs; never write them back to shared configuration or another job.
+			setParams(config.getParams() == null ? null : new LinkedHashMap<>(config.getParams()));
 			setType(config.getType());
 		}
 	}
