@@ -74,7 +74,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		logger.debug("Requesting export of PublishJob manifest.");
 		String tagStep = "manifest";
 		String tagCdn = ""; // Value length 0 is allowed.
-		
+
 		PublishJobProgress progress = options.getProgress();
 		if (progress == null) {
 			throw new IllegalArgumentException("Requires a valid PublishJobProgress object.");
@@ -92,7 +92,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		if (manifest.getCustom() != null && manifest.getCustom().containsKey("cdn")) {
 			tagCdn = manifest.getCustom().get("cdn");
 		}
-		
+
 		if (!resultLookup.isPublishResultExists(itemId, options)) {
 			logger.warn("Abort manifest export, publish result does not exist: " + itemId);
 			throw new CommandRuntimeException("PublishResultMissing");
@@ -114,7 +114,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 		
 		// #1707 Always export the standard manifest as 'index'.
 		doExportManifest(options.getStorage(), new CmsExportItemPublishManifest(writerPublishManifest, manifest), "index.json", tagStep, tagCdn);
-		
+
 		if (manifestCustom) {
 			// TODO: Support custom manifest for local FS. Probably a separate export command (delivery) for both zip and manifest.
 			logger.info("Manifest export suppressed due to custom manifest already in place.");
@@ -135,7 +135,7 @@ public class PublishManifestExportCommandHandler implements ExternalCommandHandl
 	}
 	
 	private CmsExportWriter doExportManifest(PublishJobStorage storage, CmsExportItem exportItem, String pathext, String tagStep, String tagCdn) {
-		
+
 		CmsExportJobSingle job = PublishExportJobFactory.getExportJobSingle(storage, pathext);
 		job.addExportItem(exportItem);
 		job.withTagging("PublishStep", tagStep);
